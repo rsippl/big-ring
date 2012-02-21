@@ -1,0 +1,24 @@
+PROJECT(vlc)
+
+SET(SIMPLE_SRCS simple_playback.c)
+SET(THUMB_SRCS vlc-thumb.c)
+
+ADD_EXECUTABLE(simple_playback ${SIMPLE_SRCS})
+TARGET_LINK_LIBRARIES(simple_playback vlc)
+ADD_EXECUTABLE(thumb ${THUMB_SRCS})
+TARGET_LINK_LIBRARIES(thumb vlc)
+
+FIND_PACKAGE(Qt4 REQUIRED)
+
+INCLUDE(${QT_USE_FILE})
+
+INCLUDE_DIRECTORIES(
+	${QT_INCLUDE_DIR})
+
+SET(qt_SRCS main.cpp player.cpp)
+SET(qtmy_HEADERS player.h)
+
+QT4_WRAP_CPP(qt_MOC_HEADER ${qtmy_HEADERS})
+
+ADD_EXECUTABLE(qt_player ${qt_SRCS} ${qt_MOC_HEADER})
+TARGET_LINK_LIBRARIES(qt_player ${QT_LIBRARIES} vlc)
