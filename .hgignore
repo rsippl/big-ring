@@ -2,3 +2,4 @@ syntax: glob
 
 build/
 *.swp
+CMakeLists.txt.user
