@@ -9,55 +9,10 @@
 #include <QList>
 #include <QString>
 #include <QtDebug>
-
+#include <QDirIterator>
 #include "reallivevideo.h"
 #include "reallivevideoparser.h"
 #include "reallivevideowidget.h"
-
-struct header {
-	qint16 fingerprint;
-	qint16 version;
-	qint32 numberOfBlocks;
-
-	QString toString() const {
-		return QString("fingerprint %1, version %2, number of blocks %3")
-				.arg(fingerprint).arg(version).arg(numberOfBlocks);
-	}
-};
-
-struct info {
-	qint16 fingerprint;
-	qint16 version;
-	qint32 numberOfRecords;
-	qint32 recordSize;
-
-	qint32 size() const {
-		return numberOfRecords * recordSize;
-	}
-
-	QString toString() const {
-		return QString("block fingerprint %1, block version %2, number of records %3, record size %4")
-				.arg(fingerprint).arg(version).arg(numberOfRecords).arg(recordSize);
-	}
-};
-
-struct generalRlv {
-	quint8 _filename[522];
-	float frameRate;
-	float originalRunWeight;
-	qint32 frameOffset;
-
-	QString filename() const {
-		quint8 firstBytes[522/2];
-		for(quint32 i = 0; i < sizeof(firstBytes); ++i)
-			firstBytes[i] = _filename[i*2];
-		return QString((char*)firstBytes);
-
-	}
-	QString toString() const {
-		return QString("video file name: %1, frame rate %2").arg(filename()).arg(frameRate);
-	}
-};
 
 struct frameDistanceMapping {
 	quint32 frameNumber;
@@ -68,34 +23,6 @@ struct frameDistanceMapping {
 	}
 };
 
-header readHeader(QFile& rlvFile) {
-	struct header headerBlock;
-	rlvFile.read((char*) &headerBlock, sizeof(headerBlock));
-
-//	qDebug() << headerBlock.toString();
-
-	return headerBlock;
-}
-
-info readInfo(QFile &rlvFile) {
-	struct info infoBlock;
-
-	rlvFile.read((char*) &infoBlock, sizeof(infoBlock));
-	qDebug() << infoBlock.toString();
-
-	return infoBlock;
-}
-
-generalRlv readGeneralRlv(QFile &rlvFile) {
-	struct generalRlv generalBlock;
-	rlvFile.read((char*) &generalBlock._filename, 522);
-	rlvFile.read((char*) &generalBlock.frameRate, sizeof(float));
-	rlvFile.read((char*) &generalBlock.originalRunWeight, sizeof(float));
-	rlvFile.read((char*) &generalBlock.frameOffset, sizeof(qint32));
-	qDebug() << generalBlock.toString();
-
-	return generalBlock;
-}
 
 struct generalPgmf {
 	quint32 checksum;
@@ -201,25 +128,38 @@ void readRest(QFile &rlvFile, qint32 size) {
 	rlvFile.read(size);
 }
 
+void doDir(QString& root)
+{
+	QStringList rlvFilters;
+	rlvFilters << "*.rlv";
+	QDirIterator it(root, rlvFilters, QDir::NoFilter, QDirIterator::Subdirectories);
+	while(it.hasNext()) {
+		qDebug() << it.next();
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
 
+
 	QString filename(argv[1]);
-	QFile rlvFile(filename);
+	doDir(filename);
 
-	QMainWindow mw;
-	RealLiveVideoWidget *rlvw = new RealLiveVideoWidget(&mw);
-	mw.setCentralWidget(rlvw);
-	mw.show();
+//	QFile rlvFile(filename);
 
-	if (!rlvFile.open(QIODevice::ReadOnly))
-			return 1;
-	RealLiveVideo rlv = RealLiveVideoParser().parseRealLiveVideoFile(rlvFile);
+//	QMainWindow mw;
+//	RealLiveVideoWidget *rlvw = new RealLiveVideoWidget(&mw);
+//	mw.setCentralWidget(rlvw);
+//	mw.show();
 
-	qDebug() << rlv.videoInformation.videoFilename;
-	rlvw->newRealLiveVideo(rlv);
-	app.exec();
+//	if (!rlvFile.open(QIODevice::ReadOnly))
+//			return 1;
+//	RealLiveVideo rlv = RealLiveVideoParser().parseRealLiveVideoFile(rlvFile);
+
+//	qDebug() << rlv.videoInformation.videoFilename;
+//	rlvw->newRealLiveVideo(rlv);
+//	app.exec();
 }
 
 //int main(int argc, char *argv[])
