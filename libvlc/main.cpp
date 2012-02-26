@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     QApplication app(argc, argv);
+    app.setStyleSheet("QPushButton { background-color: yellow }");
 
     Mwindow player;
     player.show();
