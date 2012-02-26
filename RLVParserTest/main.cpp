@@ -1,5 +1,7 @@
 #include <QtCore/QCoreApplication>
 
+#include <QApplication>
+#include <QMainWindow>
 #include <cstddef>
 
 #include <QByteArray>
@@ -10,6 +12,7 @@
 
 #include "reallivevideo.h"
 #include "reallivevideoparser.h"
+#include "reallivevideowidget.h"
 
 struct header {
 	qint16 fingerprint;
@@ -200,13 +203,23 @@ void readRest(QFile &rlvFile, qint32 size) {
 
 int main(int argc, char *argv[])
 {
+	QApplication app(argc, argv);
+
 	QString filename(argv[1]);
 	QFile rlvFile(filename);
+
+	QMainWindow mw;
+	RealLiveVideoWidget *rlvw = new RealLiveVideoWidget(&mw);
+	mw.setCentralWidget(rlvw);
+	mw.show();
+
 	if (!rlvFile.open(QIODevice::ReadOnly))
 			return 1;
 	RealLiveVideo rlv = RealLiveVideoParser().parseRealLiveVideoFile(rlvFile);
 
 	qDebug() << rlv.videoInformation.videoFilename;
+	rlvw->newRealLiveVideo(rlv);
+	app.exec();
 }
 
 //int main(int argc, char *argv[])

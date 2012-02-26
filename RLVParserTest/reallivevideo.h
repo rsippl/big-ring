@@ -6,7 +6,7 @@
 class VideoInformation
 {
 public:
-	VideoInformation(const QString& videoFilename, float frameRate);
+	explicit VideoInformation(const QString& videoFilename, float frameRate);
 
 	const QString videoFilename;
 	const float frameRate;
@@ -15,7 +15,7 @@ public:
 class RealLiveVideo
 {
 public:
-	RealLiveVideo(const VideoInformation& videoInformation);
+	explicit RealLiveVideo(const VideoInformation& videoInformation);
 
 	const VideoInformation videoInformation;
 };

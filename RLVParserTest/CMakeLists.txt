@@ -8,8 +8,13 @@ include_directories(${QT_INCLUDE_DIR})
 
 set(SRCS main.cpp
 	reallivevideo.cpp
-	reallivevideoparser.cpp)
+	reallivevideoparser.cpp
+	reallivevideowidget.cpp)
 
+set(MOC_HEADERS
+	reallivevideowidget.h)
 
-add_executable(RLVParserTest ${SRCS})
+qt4_wrap_cpp(MOC_SRCS ${MOC_HEADERS})
+
+add_executable(RLVParserTest ${SRCS} ${MOC_SRCS})
 target_link_libraries(RLVParserTest ${QT_LIBRARIES})

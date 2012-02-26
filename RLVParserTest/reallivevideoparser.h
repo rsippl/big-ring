@@ -8,7 +8,7 @@
 class RealLiveVideoParser
 {
 public:
-	RealLiveVideoParser();
+	explicit RealLiveVideoParser();
 
 	RealLiveVideo parseRealLiveVideoFile(QFile& rlvFile) const;
 };
