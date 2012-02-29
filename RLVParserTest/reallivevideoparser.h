@@ -2,6 +2,7 @@
 #define REALLIVEVIDEOPARSER_H
 
 #include <QFile>
+#include <QSharedPointer>
 
 #include "reallivevideo.h"
 

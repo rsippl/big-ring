@@ -6,10 +6,12 @@
 
 #include <QByteArray>
 #include <QFile>
+#include <QFutureSynchronizer>
 #include <QList>
 #include <QString>
 #include <QtDebug>
 #include <QDirIterator>
+#include <QtConcurrentRun>
 #include "reallivevideo.h"
 #include "reallivevideoparser.h"
 #include "reallivevideowidget.h"
@@ -128,14 +130,34 @@ void readRest(QFile &rlvFile, qint32 size) {
 	rlvFile.read(size);
 }
 
-void doDir(QString& root)
+RealLiveVideo parseFile(QString& filename)
 {
-	QStringList rlvFilters;
-	rlvFilters << "*.rlv";
-	QDirIterator it(root, rlvFilters, QDir::NoFilter, QDirIterator::Subdirectories);
-	while(it.hasNext()) {
-		qDebug() << it.next();
-	}
+    RealLiveVideoParser parser;
+    QFile file(filename);
+    return parser.parseRealLiveVideoFile(file);
+}
+
+QList<RealLiveVideo> doDir(QString& root)
+{
+
+    QStringList rlvFilters;
+    rlvFilters << "*.rlv";
+    QList<RealLiveVideo> rlvs;
+    QDirIterator it(root, rlvFilters, QDir::NoFilter, QDirIterator::Subdirectories);
+    QDir rootDir(root);
+    QFutureSynchronizer<RealLiveVideo> futureSynchronizer;
+    while(it.hasNext()) {
+	QString filename = rootDir.absoluteFilePath(it.next());
+
+
+	futureSynchronizer.addFuture(QtConcurrent::run(parseFile, filename));
+	qDebug() << filename;
+    }
+
+    foreach(QFuture<RealLiveVideo> future, futureSynchronizer.futures())
+	rlvs.append(future.result());
+
+    return rlvs;
 }
 
 int main(int argc, char *argv[])

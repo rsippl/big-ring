@@ -84,15 +84,17 @@ static generalRlv_t readGeneralRlv(QFile &rlvFile) {
 
 RealLiveVideo RealLiveVideoParser::parseRealLiveVideoFile(QFile &rlvFile) const
 {
+	rlvFile.open(QIODevice::ReadOnly);
+
+	VideoInformation videoInformation(QString("Unknown"), 0.0);
+
 	header_t header = readHeader(rlvFile);
 	for(qint32 blockNr = 0; blockNr < header.numberOfBlocks; ++blockNr) {
 			info_t infoBlock = readInfo(rlvFile);
 			if (infoBlock.fingerprint == 2010) {
 				generalRlv_t generalRlv = readGeneralRlv(rlvFile);
-				VideoInformation videoInformation(generalRlv.filename(), generalRlv.frameRate);
-				return RealLiveVideo(videoInformation);
+				videoInformation = VideoInformation(generalRlv.filename(), generalRlv.frameRate);
 			}
 	}
-	VideoInformation videoInformation(QString("Unknown"), 0.0);
 	return RealLiveVideo(videoInformation);
 }
