@@ -11,6 +11,7 @@ class RealLiveVideoParser
 public:
 	explicit RealLiveVideoParser();
 
+    QList<RealLiveVideo> parseRealLiveVideoFilesFromDir(QString& root);
 	RealLiveVideo parseRealLiveVideoFile(QFile& rlvFile) const;
 };
 
