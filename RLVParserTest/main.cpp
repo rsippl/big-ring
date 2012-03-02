@@ -15,6 +15,7 @@
 #include "reallivevideo.h"
 #include "reallivevideoparser.h"
 #include "reallivevideowidget.h"
+#include "rlvlistwidget.h"
 
 struct frameDistanceMapping {
 	quint32 frameNumber;
@@ -132,12 +133,22 @@ void readRest(QFile &rlvFile, qint32 size) {
 
 int main(int argc, char *argv[])
 {
-	QApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     qDebug() << "starting up";
 	QString filename(argv[1]);
     RealLiveVideoParser parser;
+
+    QMainWindow mw;
+    RlvListWidget* listWidget = new RlvListWidget(&mw);
+    mw.setCentralWidget(listWidget);
+    mw.show();
+
+    QObject::connect(&parser, SIGNAL(importFinished(QList<RealLiveVideo>)), listWidget, SLOT(setRealLiveVideos(QList<RealLiveVideo>)));
+
     parser.parseRealLiveVideoFilesFromDir(filename);
+
+    app.exec();
 
 //	QFile rlvFile(filename);
 

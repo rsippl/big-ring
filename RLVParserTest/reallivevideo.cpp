@@ -1,28 +1,21 @@
 #include "reallivevideo.h"
 
-RealLiveVideo::RealLiveVideo(const VideoInformation& videoInformation):
-	videoInformation(videoInformation)
+#include <QtDebug>
+
+RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoInformation):
+        _name(name), _videoInformation(videoInformation)
 {
 }
 
 RealLiveVideo::RealLiveVideo() {}
 
 VideoInformation::VideoInformation(const QString &videoFilename, float frameRate):
-	videoFilename(videoFilename), frameRate(frameRate)
+        _videoFilename(videoFilename), _frameRate(frameRate)
 {
 }
 
 VideoInformation::VideoInformation():
-    frameRate(0.0) {}
+    _frameRate(0.0) {}
 
-RealLiveVideo RealLiveVideo::operator =(const RealLiveVideo &other)
-{
-    return RealLiveVideo(other.videoInformation);
-}
-
-VideoInformation VideoInformation::operator =(const VideoInformation &other)
-{
-    return VideoInformation(other.videoFilename, other.frameRate);
-}
 
 

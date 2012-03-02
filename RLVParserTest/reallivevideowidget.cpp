@@ -25,6 +25,6 @@ RealLiveVideoWidget::RealLiveVideoWidget(QWidget *parent) :
 
 void RealLiveVideoWidget::newRealLiveVideo(RealLiveVideo &realLiveVideo)
 {
-	videoFilenameLabel->setText(realLiveVideo.videoInformation.videoFilename);
-	frameRateLabel->setNum(realLiveVideo.videoInformation.frameRate);
+    videoFilenameLabel->setText(realLiveVideo.videoInformation().videoFilename());
+    frameRateLabel->setNum(realLiveVideo.videoInformation().frameRate());
 }

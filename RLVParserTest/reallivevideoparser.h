@@ -2,17 +2,28 @@
 #define REALLIVEVIDEOPARSER_H
 
 #include <QFile>
+#include <QFutureWatcher>
+#include <QObject>
 #include <QSharedPointer>
 
 #include "reallivevideo.h"
 
-class RealLiveVideoParser
+class RealLiveVideoParser: public QObject
 {
+    Q_OBJECT
 public:
-	explicit RealLiveVideoParser();
+    explicit RealLiveVideoParser(QObject* parent = NULL);
 
-    QList<RealLiveVideo> parseRealLiveVideoFilesFromDir(QString& root);
-	RealLiveVideo parseRealLiveVideoFile(QFile& rlvFile) const;
+    void parseRealLiveVideoFilesFromDir(QString& root);
+
+signals:
+    void importFinished(QList<RealLiveVideo> rlvs);
+
+private slots:
+    void rlvFilesFound();
+    void importReady();
+
+private:
 };
 
 #endif // REALLIVEVIDEOPARSER_H

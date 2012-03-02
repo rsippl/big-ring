@@ -3,41 +3,66 @@
 #include <QDirIterator>
 #include <QFutureSynchronizer>
 #include <QStringList>
+#include <QtConcurrentMap>
 #include <QtConcurrentRun>
 #include <QtDebug>
 
-RealLiveVideoParser::RealLiveVideoParser()
+RealLiveVideo parseRealLiveVideoFile(QFile &rlvFile);
+
+RealLiveVideoParser::RealLiveVideoParser(QObject* parent): QObject(parent)
 {
-    // noop
 }
 
-RealLiveVideo parseFile(const RealLiveVideoParser& parser, QString& filename)
+RealLiveVideo parseFile(const QString& filename)
 {
     QFile file(filename);
-    return parser.parseRealLiveVideoFile(file);
+    return parseRealLiveVideoFile(file);
 }
 
-QList<RealLiveVideo> RealLiveVideoParser::parseRealLiveVideoFilesFromDir(QString &root)
+QStringList findRlvFiles(QString root)
 {
     QStringList rlvFilters;
     rlvFilters << "*.rlv";
-    QList<RealLiveVideo> rlvs;
     QDirIterator it(root, rlvFilters, QDir::NoFilter, QDirIterator::Subdirectories);
-    QDir rootDir(root);
-    QFutureSynchronizer<RealLiveVideo> futureSynchronizer;
+
+    QStringList filePaths;
+
     while(it.hasNext()) {
-        QString filename = rootDir.absoluteFilePath(it.next());
-        futureSynchronizer.addFuture(QtConcurrent::run(parseFile, *this, filename));
-        qDebug() << filename;
+        filePaths << it.next();
     }
 
-    futureSynchronizer.waitForFinished();
-    foreach(QFuture<RealLiveVideo> future, futureSynchronizer.futures())
-        rlvs.append(future.result());
+    return filePaths;
 
-    return rlvs;
 }
 
+void RealLiveVideoParser::parseRealLiveVideoFilesFromDir(QString &root)
+{
+    QFutureWatcher<QStringList> *futureWatcher = new QFutureWatcher<QStringList>();
+    connect(futureWatcher, SIGNAL(finished()), this, SLOT(rlvFilesFound()));
+    QFuture<QStringList> findRlvFilesFuture = QtConcurrent::run(findRlvFiles, root);
+    futureWatcher->setFuture(findRlvFilesFuture );
+}
+
+void RealLiveVideoParser::rlvFilesFound()
+{
+    QFutureWatcher<QStringList> *findFilesWatcher = dynamic_cast<QFutureWatcher<QStringList>*>(sender());
+    if (!findFilesWatcher)
+        qDebug() << "error casting sender to QFutureWatcher";
+
+    QStringList filePaths = findFilesWatcher->future().result();
+    findFilesWatcher->deleteLater();
+
+    QFutureWatcher<RealLiveVideo>* watcher = new QFutureWatcher<RealLiveVideo>();
+    connect(watcher, SIGNAL(finished()), this, SLOT(importReady()));
+    watcher->setFuture(QtConcurrent::mapped(filePaths, parseFile));
+}
+
+void RealLiveVideoParser::importReady()
+{
+    QFutureWatcher<RealLiveVideo>* watcher = static_cast<QFutureWatcher<RealLiveVideo>*>(sender());
+    emit importFinished(watcher->future().results());
+    watcher->deleteLater();
+}
 
 typedef struct header {
     qint16 fingerprint;
@@ -113,19 +138,25 @@ static generalRlv_t readGeneralRlv(QFile &rlvFile) {
     return generalBlock;
 }
 
-RealLiveVideo RealLiveVideoParser::parseRealLiveVideoFile(QFile &rlvFile) const
+RealLiveVideo parseRealLiveVideoFile(QFile &rlvFile)
 {
-    rlvFile.open(QIODevice::ReadOnly);
+    if (!rlvFile.open(QIODevice::ReadOnly))
+        return RealLiveVideo();
 
+    QString name = QFileInfo(rlvFile).baseName();
     VideoInformation videoInformation(QString("Unknown"), 0.0);
+
 
     header_t header = readHeader(rlvFile);
     for(qint32 blockNr = 0; blockNr < header.numberOfBlocks; ++blockNr) {
-        info_t infoBlock = readInfo(rlvFile);
+	        info_t infoBlock = readInfo(rlvFile);
+        if (infoBlock.fingerprint < 0 || infoBlock.fingerprint > 10000)
+	break;
         if (infoBlock.fingerprint == 2010) {
             generalRlv_t generalRlv = readGeneralRlv(rlvFile);
             videoInformation = VideoInformation(generalRlv.filename(), generalRlv.frameRate);
         }
     }
-    return RealLiveVideo(videoInformation);
+    return RealLiveVideo(name, videoInformation);
 }
+
