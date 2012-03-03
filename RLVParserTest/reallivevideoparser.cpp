@@ -2,6 +2,7 @@
 
 #include <QDirIterator>
 #include <QFutureSynchronizer>
+#include <QMap>
 #include <QStringList>
 #include <QtConcurrentMap>
 #include <QtConcurrentRun>
@@ -19,19 +20,21 @@ RealLiveVideo parseFile(const QString& filename)
     return parseRealLiveVideoFile(file);
 }
 
-QStringList findRlvFiles(QString& root)
+QStringList findFiles(const QString& root, const QString& pattern)
 {
-    QStringList rlvFilters;
-    rlvFilters << "*.rlv";
-    QDirIterator it(root, rlvFilters, QDir::NoFilter, QDirIterator::Subdirectories);
+    QStringList filters;
+    filters << pattern;
+    QDirIterator it(root, filters, QDir::NoFilter, QDirIterator::Subdirectories);
 
     QStringList filePaths;
     while(it.hasNext())
         filePaths << it.next();
-    qDebug() << Q_FUNC_INFO << "first in filepath " << filePaths[0];
-    filePaths.sort();
-    qDebug() << Q_FUNC_INFO << "first in filepath " << filePaths[0];
     return filePaths;
+}
+
+QStringList findRlvFiles(QString& root)
+{
+    return findFiles(root, "*.rlv");
 }
 
 RealLiveVideoList importRlvFiles(QString root)
@@ -137,6 +140,19 @@ static generalRlv_t readGeneralRlv(QFile &rlvFile) {
     return generalBlock;
 }
 
+QString findVideoFilename(QFile& rlvFile, const QString& videoFilename)
+{
+
+    qDebug() << Q_FUNC_INFO << "fn: " << rlvFile.fileName();
+    QFileInfo fileInfo(rlvFile);
+    QStringList possibleAvis = findFiles(fileInfo.absolutePath(), videoFilename);
+
+    if (possibleAvis.isEmpty())
+            return QString();
+    else
+        return possibleAvis.first();
+}
+
 RealLiveVideo parseRealLiveVideoFile(QFile &rlvFile)
 {
     if (!rlvFile.open(QIODevice::ReadOnly))
@@ -153,7 +169,8 @@ RealLiveVideo parseRealLiveVideoFile(QFile &rlvFile)
 	break;
         if (infoBlock.fingerprint == 2010) {
             generalRlv_t generalRlv = readGeneralRlv(rlvFile);
-            videoInformation = VideoInformation(generalRlv.filename(), generalRlv.frameRate);
+            QString videoFilename = findVideoFilename(rlvFile, generalRlv.filename());
+            videoInformation = VideoInformation(videoFilename, generalRlv.frameRate);
         }
     }
     return RealLiveVideo(name, videoInformation);
