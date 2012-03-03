@@ -30,5 +30,6 @@ private:
     QString _name;
     VideoInformation _videoInformation;
 };
+typedef QList<RealLiveVideo> RealLiveVideoList;
 
 #endif // REALLIVEVIDEO_H

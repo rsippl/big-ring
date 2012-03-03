@@ -16,8 +16,10 @@ RlvListWidget::~RlvListWidget()
     delete ui;
 }
 
-void RlvListWidget::setRealLiveVideos(QList<RealLiveVideo> rlvs)
+void RlvListWidget::setRealLiveVideos(RealLiveVideoList rlvs)
 {
+    qDebug() << Q_FUNC_INFO << "rlvs.size() = " << rlvs.size();
+    ui->rlvList->clear();
     foreach(const RealLiveVideo& rlv, rlvs) {
         new QListWidgetItem(rlv.name(), ui->rlvList);
     }

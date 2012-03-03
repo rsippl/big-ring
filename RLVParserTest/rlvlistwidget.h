@@ -16,7 +16,7 @@ public:
     ~RlvListWidget();
 
 public slots:
-    void setRealLiveVideos(QList<RealLiveVideo> rlvs);
+    void setRealLiveVideos(RealLiveVideoList rlvs);
 
 private:
     Ui::RlvListWidget *ui;

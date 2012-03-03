@@ -140,11 +140,12 @@ int main(int argc, char *argv[])
     RealLiveVideoParser parser;
 
     QMainWindow mw;
+    mw.setGeometry(0, 0, 800, 600);
     RlvListWidget* listWidget = new RlvListWidget(&mw);
     mw.setCentralWidget(listWidget);
     mw.show();
 
-    QObject::connect(&parser, SIGNAL(importFinished(QList<RealLiveVideo>)), listWidget, SLOT(setRealLiveVideos(QList<RealLiveVideo>)));
+    QObject::connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), listWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
 
     parser.parseRealLiveVideoFilesFromDir(filename);
 

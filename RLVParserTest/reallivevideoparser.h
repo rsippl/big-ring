@@ -12,15 +12,15 @@ class RealLiveVideoParser: public QObject
 {
     Q_OBJECT
 public:
+
     explicit RealLiveVideoParser(QObject* parent = NULL);
 
     void parseRealLiveVideoFilesFromDir(QString& root);
 
 signals:
-    void importFinished(QList<RealLiveVideo> rlvs);
+    void importFinished(RealLiveVideoList rlvs);
 
 private slots:
-    void rlvFilesFound();
     void importReady();
 
 private:

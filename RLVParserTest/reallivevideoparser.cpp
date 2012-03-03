@@ -19,48 +19,42 @@ RealLiveVideo parseFile(const QString& filename)
     return parseRealLiveVideoFile(file);
 }
 
-QStringList findRlvFiles(QString root)
+QStringList findRlvFiles(QString& root)
 {
     QStringList rlvFilters;
     rlvFilters << "*.rlv";
     QDirIterator it(root, rlvFilters, QDir::NoFilter, QDirIterator::Subdirectories);
 
     QStringList filePaths;
-
-    while(it.hasNext()) {
+    while(it.hasNext())
         filePaths << it.next();
-    }
-
     return filePaths;
+}
 
+RealLiveVideoList importRlvFiles(QString root)
+{
+    QStringList filePaths = findRlvFiles(root);
+
+    QFuture<RealLiveVideo> rlvParserFuture = QtConcurrent::mapped(filePaths, parseFile);
+
+    return rlvParserFuture.results();
 }
 
 void RealLiveVideoParser::parseRealLiveVideoFilesFromDir(QString &root)
 {
-    QFutureWatcher<QStringList> *futureWatcher = new QFutureWatcher<QStringList>();
-    connect(futureWatcher, SIGNAL(finished()), this, SLOT(rlvFilesFound()));
-    QFuture<QStringList> findRlvFilesFuture = QtConcurrent::run(findRlvFiles, root);
-    futureWatcher->setFuture(findRlvFilesFuture );
-}
-
-void RealLiveVideoParser::rlvFilesFound()
-{
-    QFutureWatcher<QStringList> *findFilesWatcher = dynamic_cast<QFutureWatcher<QStringList>*>(sender());
-    if (!findFilesWatcher)
-        qDebug() << "error casting sender to QFutureWatcher";
-
-    QStringList filePaths = findFilesWatcher->future().result();
-    findFilesWatcher->deleteLater();
-
-    QFutureWatcher<RealLiveVideo>* watcher = new QFutureWatcher<RealLiveVideo>();
-    connect(watcher, SIGNAL(finished()), this, SLOT(importReady()));
-    watcher->setFuture(QtConcurrent::mapped(filePaths, parseFile));
+    QFutureWatcher<RealLiveVideoList> *futureWatcher = new QFutureWatcher<RealLiveVideoList>();
+    connect(futureWatcher, SIGNAL(finished()), this, SLOT(importReady()));
+    QFuture<QList<RealLiveVideo> > importRlvFuture = QtConcurrent::run(importRlvFiles, root);
+    futureWatcher->setFuture(importRlvFuture);
 }
 
 void RealLiveVideoParser::importReady()
 {
-    QFutureWatcher<RealLiveVideo>* watcher = static_cast<QFutureWatcher<RealLiveVideo>*>(sender());
-    emit importFinished(watcher->future().results());
+    QFutureWatcher<RealLiveVideoList>* watcher = dynamic_cast<QFutureWatcher<RealLiveVideoList>*>(sender());
+    if (!watcher)
+        qWarning() << "Error getting result in " << Q_FUNC_INFO;
+    RealLiveVideoList rlvList = watcher->future().result();
+    emit importFinished(watcher->future().result());
     watcher->deleteLater();
 }
 
