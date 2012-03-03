@@ -17,5 +17,10 @@ VideoInformation::VideoInformation(const QString &videoFilename, float frameRate
 VideoInformation::VideoInformation():
     _frameRate(0.0) {}
 
+bool RealLiveVideo::compareByName(const RealLiveVideo &rlv1, const RealLiveVideo &rlv2)
+{
+    return rlv1.name().toLower() < rlv2.name().toLower();
+}
+
 
 

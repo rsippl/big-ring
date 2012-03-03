@@ -28,6 +28,9 @@ QStringList findRlvFiles(QString& root)
     QStringList filePaths;
     while(it.hasNext())
         filePaths << it.next();
+    qDebug() << Q_FUNC_INFO << "first in filepath " << filePaths[0];
+    filePaths.sort();
+    qDebug() << Q_FUNC_INFO << "first in filepath " << filePaths[0];
     return filePaths;
 }
 
@@ -54,7 +57,10 @@ void RealLiveVideoParser::importReady()
     if (!watcher)
         qWarning() << "Error getting result in " << Q_FUNC_INFO;
     RealLiveVideoList rlvList = watcher->future().result();
-    emit importFinished(watcher->future().result());
+
+    // sort rlv list by name
+    qSort(rlvList.begin(), rlvList.end(), RealLiveVideo::compareByName);
+    emit importFinished(rlvList);
     watcher->deleteLater();
 }
 
@@ -98,7 +104,6 @@ static info_t readInfo(QFile &rlvFile) {
     info_t infoBlock;
 
     rlvFile.read((char*) &infoBlock, sizeof(infoBlock));
-    qDebug() << infoBlock.toString();
 
     return infoBlock;
 }

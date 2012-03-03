@@ -26,6 +26,8 @@ public:
     bool isValid() const { return !_name.isEmpty(); }
     const QString name() const { return _name; }
     const VideoInformation& videoInformation() const { return _videoInformation; }
+
+    static bool compareByName(const RealLiveVideo& rlv1, const RealLiveVideo& rlv2);
 private:
     QString _name;
     VideoInformation _videoInformation;
