@@ -1,11 +1,15 @@
 #include "videowidget.h"
 #include <QtDebug>
 VideoWidget::VideoWidget(QWidget *parent) :
-    QWidget(parent), timer(new QTimer(this)), vlcPlayer(NULL)
+    QWidget(parent), playDelayTimer(new QTimer(this)),
+    fastForwardTimer(new QTimer(this)),
+    vlcPlayer(NULL)
 {
-    timer->setSingleShot(true);
-    timer->setInterval(250);
-    connect(timer, SIGNAL(timeout()), SLOT(playVideo()));
+    playDelayTimer->setSingleShot(true);
+    playDelayTimer->setInterval(250);
+    fastForwardTimer->setInterval(2000);
+    connect(playDelayTimer, SIGNAL(timeout()), SLOT(playVideo()));
+    connect(fastForwardTimer, SIGNAL(timeout()), SLOT(fastForward()));
 
     /* Init libVLC */
     if((vlcObject = libvlc_new(0,NULL)) == NULL) {
@@ -16,6 +20,8 @@ VideoWidget::VideoWidget(QWidget *parent) :
 
 VideoWidget::~VideoWidget()
 {
+    if (fastForwardTimer->isActive())
+        fastForwardTimer->stop();
     if (vlcPlayer)
         libvlc_media_player_release(vlcPlayer);
     if (vlcObject)
@@ -25,6 +31,7 @@ VideoWidget::~VideoWidget()
 void VideoWidget::playVideo()
 {
     if (vlcPlayer && libvlc_media_player_is_playing(vlcPlayer)) {
+        fastForwardTimer->stop();
         libvlc_media_player_stop(vlcPlayer);
         libvlc_media_player_release(vlcPlayer);
     }
@@ -36,15 +43,27 @@ void VideoWidget::playVideo()
     libvlc_media_release(movieFile);
     libvlc_media_player_set_xwindow(vlcPlayer, this->winId());
     libvlc_media_player_play(vlcPlayer);
+    fastForwardTimer->start();
+}
+
+void VideoWidget::fastForward()
+{
+    if (vlcPlayer && libvlc_media_player_is_playing(vlcPlayer)) {
+        float currentPosition = libvlc_media_player_get_position(vlcPlayer);
+        currentPosition += 0.02;
+        if (currentPosition > 1.0)
+            currentPosition -= 1.0;
+        libvlc_media_player_set_position(vlcPlayer, currentPosition);
+    }
 }
 
 void VideoWidget::realLiveVideoSelected(RealLiveVideo rlv)
 {
-    if (timer->isActive())
-        timer->stop();
+    if (playDelayTimer->isActive())
+        playDelayTimer->stop();
     currentRealLiveVideo = rlv;
 
-    timer->start();
+    playDelayTimer->start();
 }
 
 

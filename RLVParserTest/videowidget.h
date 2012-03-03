@@ -20,9 +20,11 @@ public slots:
 
 private slots:
     void playVideo();
+    void fastForward();
 private:
     RealLiveVideo currentRealLiveVideo;
-    QTimer* timer;
+    QTimer* playDelayTimer;
+    QTimer* fastForwardTimer;
     libvlc_instance_t *vlcObject;
     libvlc_media_player_t *vlcPlayer;
 };
