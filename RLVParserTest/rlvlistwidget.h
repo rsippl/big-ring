@@ -18,8 +18,14 @@ public:
 public slots:
     void setRealLiveVideos(RealLiveVideoList rlvs);
 
+signals:
+    void realLiveVideoSelected(RealLiveVideo realLiveVideo);
+
+private slots:
+    void selectionChanged(int row);
 private:
     Ui::RlvListWidget *ui;
+    RealLiveVideoList realLiveVideoList;
 };
 
 #endif // RLVLISTWIDGET_H

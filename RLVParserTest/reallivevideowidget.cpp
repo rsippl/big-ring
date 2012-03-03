@@ -23,7 +23,7 @@ RealLiveVideoWidget::RealLiveVideoWidget(QWidget *parent) :
 	layout->addWidget(videoInformationGroupBox);
 }
 
-void RealLiveVideoWidget::newRealLiveVideo(RealLiveVideo &realLiveVideo)
+void RealLiveVideoWidget::newRealLiveVideo(RealLiveVideo realLiveVideo)
 {
     videoFilenameLabel->setText(realLiveVideo.videoInformation().videoFilename());
     frameRateLabel->setNum(realLiveVideo.videoInformation().frameRate());

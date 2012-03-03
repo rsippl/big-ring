@@ -7,6 +7,7 @@
 #include <QByteArray>
 #include <QFile>
 #include <QFutureSynchronizer>
+#include <QHBoxLayout>
 #include <QList>
 #include <QString>
 #include <QtDebug>
@@ -141,10 +142,16 @@ int main(int argc, char *argv[])
 
     QMainWindow mw;
     mw.setGeometry(0, 0, 800, 600);
-    RlvListWidget* listWidget = new RlvListWidget(&mw);
-    mw.setCentralWidget(listWidget);
+    QWidget* centralWidget = new QWidget(&mw);
+    QHBoxLayout* layout = new QHBoxLayout(centralWidget);
+    RlvListWidget* listWidget = new RlvListWidget(centralWidget);
+    layout->addWidget(listWidget);
+    RealLiveVideoWidget* rlvWidget = new RealLiveVideoWidget(centralWidget);
+    layout->addWidget(rlvWidget);
+    mw.setCentralWidget(centralWidget);
     mw.show();
 
+    QObject::connect(listWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), rlvWidget, SLOT(newRealLiveVideo(RealLiveVideo)));
     QObject::connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), listWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
 
     parser.parseRealLiveVideoFilesFromDir(filename);

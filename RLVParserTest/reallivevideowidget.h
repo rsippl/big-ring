@@ -2,9 +2,9 @@
 #define REALLIVEVIDEOWIDGET_H
 
 #include <QWidget>
+#include "reallivevideo.h"
 
 class QLabel;
-class RealLiveVideo;
 
 class RealLiveVideoWidget : public QWidget
 {
@@ -15,7 +15,7 @@ public:
 signals:
 
 public slots:
-	void newRealLiveVideo(RealLiveVideo& realLiveVideo);
+        void newRealLiveVideo(RealLiveVideo realLiveVideo);
 
 private:
 	QLabel* videoFilenameLabel;
