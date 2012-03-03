@@ -1,5 +1,6 @@
 #include "reallivevideoparser.h"
 
+#include <functional>
 #include <QDirIterator>
 #include <QFutureSynchronizer>
 #include <QMap>
@@ -8,17 +9,22 @@
 #include <QtConcurrentRun>
 #include <QtDebug>
 
-RealLiveVideo parseRealLiveVideoFile(QFile &rlvFile);
+RealLiveVideo parseRealLiveVideoFile(QFile &rlvFile, const QStringList& aviFiles);
 
 RealLiveVideoParser::RealLiveVideoParser(QObject* parent): QObject(parent)
 {
 }
 
-RealLiveVideo parseFile(const QString& filename)
-{
-    QFile file(filename);
-    return parseRealLiveVideoFile(file);
-}
+struct ParseRlvFunctor: public std::unary_function<const QString&,RealLiveVideo> {
+    ParseRlvFunctor(const QStringList& aviFiles): _aviFiles(aviFiles) {}
+
+    RealLiveVideo operator()(const QString& filename) const {
+        QFile file(filename);
+        return parseRealLiveVideoFile(file, _aviFiles);
+    }
+
+    QStringList _aviFiles;
+};
 
 QStringList findFiles(const QString& root, const QString& pattern)
 {
@@ -40,8 +46,9 @@ QStringList findRlvFiles(QString& root)
 RealLiveVideoList importRlvFiles(QString root)
 {
     QStringList filePaths = findRlvFiles(root);
+    QStringList aviFiles = findFiles(root, "*.avi");
 
-    QFuture<RealLiveVideo> rlvParserFuture = QtConcurrent::mapped(filePaths, parseFile);
+    QFuture<RealLiveVideo> rlvParserFuture = QtConcurrent::mapped(filePaths.begin(), filePaths.end(), ParseRlvFunctor(aviFiles));
 
     return rlvParserFuture.results();
 }
@@ -140,27 +147,23 @@ static generalRlv_t readGeneralRlv(QFile &rlvFile) {
     return generalBlock;
 }
 
-QString findVideoFilename(QFile& rlvFile, const QString& videoFilename)
+QString findVideoFilename(const QStringList& videoFilenames, const QString& rlvVideoFilename)
 {
-
-    qDebug() << Q_FUNC_INFO << "fn: " << rlvFile.fileName();
-    QFileInfo fileInfo(rlvFile);
-    QStringList possibleAvis = findFiles(fileInfo.absolutePath(), videoFilename);
-
-    if (possibleAvis.isEmpty())
-            return QString();
-    else
-        return possibleAvis.first();
+    foreach(QString videoFilename, videoFilenames) {
+        QFileInfo fileInfo(videoFilename);
+        if (fileInfo.fileName().toLower() == rlvVideoFilename.toLower())
+            return videoFilename;
+    }
+    return QString();
 }
 
-RealLiveVideo parseRealLiveVideoFile(QFile &rlvFile)
+RealLiveVideo parseRealLiveVideoFile(QFile &rlvFile, const QStringList& videoFilenames)
 {
     if (!rlvFile.open(QIODevice::ReadOnly))
         return RealLiveVideo();
 
     QString name = QFileInfo(rlvFile).baseName();
     VideoInformation videoInformation(QString("Unknown"), 0.0);
-
 
     header_t header = readHeader(rlvFile);
     for(qint32 blockNr = 0; blockNr < header.numberOfBlocks; ++blockNr) {
@@ -169,10 +172,10 @@ RealLiveVideo parseRealLiveVideoFile(QFile &rlvFile)
 	break;
         if (infoBlock.fingerprint == 2010) {
             generalRlv_t generalRlv = readGeneralRlv(rlvFile);
-            QString videoFilename = findVideoFilename(rlvFile, generalRlv.filename());
+            QString videoFilename = findVideoFilename(videoFilenames, generalRlv.filename());
+            qDebug() << generalRlv.filename() << " => " << videoFilename;
             videoInformation = VideoInformation(videoFilename, generalRlv.frameRate);
         }
     }
     return RealLiveVideo(name, videoInformation);
 }
-

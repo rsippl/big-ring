@@ -16,10 +16,10 @@ VideoWidget::VideoWidget(QWidget *parent) :
 
 VideoWidget::~VideoWidget()
 {
+    if (vlcPlayer)
+        libvlc_media_player_release(vlcPlayer);
     if (vlcObject)
         libvlc_release(vlcObject);
-
-
 }
 
 void VideoWidget::playVideo()
