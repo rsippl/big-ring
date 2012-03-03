@@ -11,12 +11,14 @@ set(SRCS main.cpp
 	reallivevideo.cpp
 	reallivevideoparser.cpp
         reallivevideowidget.cpp
-        rlvlistwidget.cpp)
+        rlvlistwidget.cpp
+        videowidget.cpp)
 
 set(MOC_HEADERS
         reallivevideoparser.h
         reallivevideowidget.h
-        rlvlistwidget.h)
+        rlvlistwidget.h
+        videowidget.h)
 
 set(UI_FILES
     rlvlistwidget.ui)
@@ -25,4 +27,4 @@ qt4_wrap_cpp(MOC_SRCS ${MOC_HEADERS})
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
 add_executable(RLVParserTest ${SRCS} ${MOC_SRCS} ${UI_SRCS})
-target_link_libraries(RLVParserTest ${QT_LIBRARIES})
+target_link_libraries(RLVParserTest ${QT_LIBRARIES} vlc)
