@@ -149,18 +149,22 @@ int main(int argc, char *argv[])
     layout->addWidget(listWidget);
 
     QWidget* rightWidget = new QWidget(centralWidget);
+    rightWidget->setGeometry(0, 0, 800, 800);
+    rightWidget->setMinimumWidth(800);
     QVBoxLayout* rightLayout = new QVBoxLayout(rightWidget);
-    RealLiveVideoWidget* rlvWidget = new RealLiveVideoWidget(centralWidget);
-    rightLayout->addWidget(rlvWidget);
+//    RealLiveVideoWidget* rlvWidget = new RealLiveVideoWidget(centralWidget);
+//    rightLayout->addWidget(rlvWidget);
     VideoWidget* videoWidget = new VideoWidget(rightWidget);
     rightLayout->addWidget(videoWidget);
 
     layout->addWidget(rightWidget);
 
     mw.setCentralWidget(centralWidget);
+
+    listWidget->setFocus();
     mw.show();
 
-    QObject::connect(listWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), rlvWidget, SLOT(newRealLiveVideo(RealLiveVideo)));
+//    QObject::connect(listWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), rlvWidget, SLOT(newRealLiveVideo(RealLiveVideo)));
     QObject::connect(listWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoWidget, SLOT(realLiveVideoSelected(RealLiveVideo)));
     QObject::connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), listWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
 
