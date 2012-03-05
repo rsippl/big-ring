@@ -1,5 +1,7 @@
 #include "videowidget.h"
 #include <QtDebug>
+#include <QResizeEvent>
+
 VideoWidget::VideoWidget(QWidget *parent) :
     QWidget(parent), playDelayTimer(new QTimer(this)),
     fastForwardTimer(new QTimer(this)),
@@ -7,12 +9,21 @@ VideoWidget::VideoWidget(QWidget *parent) :
 {
     playDelayTimer->setSingleShot(true);
     playDelayTimer->setInterval(250);
-    fastForwardTimer->setInterval(2000);
+    fastForwardTimer->setInterval(10000);
     connect(playDelayTimer, SIGNAL(timeout()), SLOT(playVideo()));
     connect(fastForwardTimer, SIGNAL(timeout()), SLOT(fastForward()));
 
     /* Init libVLC */
-    if((vlcObject = libvlc_new(0,NULL)) == NULL) {
+    const char * const vlc_args[] = {
+                       "-I", "dummy", /* Don't use any interface */
+                       "--ignore-config", /* Don't use VLC's config */
+                       "--disable-screensaver", /* disable screensaver during playback */
+                       "--no-xlib", // avoid xlib thread error messages
+                       "--verbose=-1", // -1 = no output at all
+                       "--quiet"
+                   };
+
+    if((vlcObject = libvlc_new(0,vlc_args)) == NULL) {
         qWarning() << Q_FUNC_INFO << "Could not init libVLC";
         exit(1);
     }
@@ -66,4 +77,7 @@ void VideoWidget::realLiveVideoSelected(RealLiveVideo rlv)
     playDelayTimer->start();
 }
 
-
+void VideoWidget::resizeEvent(QResizeEvent *event)
+{
+    qDebug() << "new size is " << event->size();
+}

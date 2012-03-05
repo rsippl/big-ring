@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <cstddef>
 
+#include "mainwindow.h"
 #include <QByteArray>
 #include <QFile>
 #include <QFutureSynchronizer>
@@ -140,33 +141,9 @@ int main(int argc, char *argv[])
     qDebug() << "starting up";
 	QString filename(argv[1]);
     RealLiveVideoParser parser;
+    MainWindow mw(parser);
 
-    QMainWindow mw;
-    mw.setGeometry(0, 0, 800, 600);
-    QWidget* centralWidget = new QWidget(&mw);
-    QHBoxLayout* layout = new QHBoxLayout(centralWidget);
-    RlvListWidget* listWidget = new RlvListWidget(centralWidget);
-    layout->addWidget(listWidget);
-
-    QWidget* rightWidget = new QWidget(centralWidget);
-    rightWidget->setGeometry(0, 0, 800, 800);
-    rightWidget->setMinimumWidth(800);
-    QVBoxLayout* rightLayout = new QVBoxLayout(rightWidget);
-//    RealLiveVideoWidget* rlvWidget = new RealLiveVideoWidget(centralWidget);
-//    rightLayout->addWidget(rlvWidget);
-    VideoWidget* videoWidget = new VideoWidget(rightWidget);
-    rightLayout->addWidget(videoWidget);
-
-    layout->addWidget(rightWidget);
-
-    mw.setCentralWidget(centralWidget);
-
-    listWidget->setFocus();
     mw.show();
-
-//    QObject::connect(listWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), rlvWidget, SLOT(newRealLiveVideo(RealLiveVideo)));
-    QObject::connect(listWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoWidget, SLOT(realLiveVideoSelected(RealLiveVideo)));
-    QObject::connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), listWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
 
     parser.parseRealLiveVideoFilesFromDir(filename);
 
