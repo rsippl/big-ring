@@ -76,8 +76,3 @@ void VideoWidget::realLiveVideoSelected(RealLiveVideo rlv)
 
     playDelayTimer->start();
 }
-
-void VideoWidget::resizeEvent(QResizeEvent *event)
-{
-    qDebug() << "new size is " << event->size();
-}
