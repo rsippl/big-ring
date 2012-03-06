@@ -2,8 +2,17 @@
 
 #include <QtDebug>
 
-RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoInformation):
-        _name(name), _videoInformation(videoInformation)
+Course::Course():
+    _start(0.0), _end(0.0)
+{}
+
+Course::Course(const QString &name, float start, float end):
+    _name(name), _start(start), _end(end)
+{}
+
+RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoInformation,
+                             QList<Course>& courses):
+    _name(name), _videoInformation(videoInformation), _courses(courses)
 {
 }
 

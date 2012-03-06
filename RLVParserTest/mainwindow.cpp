@@ -5,6 +5,7 @@
 #include "videowidget.h"
 
 #include <QHBoxLayout>
+#include <QListWidget>
 #include <QWidget>
 
 MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
@@ -16,9 +17,10 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
 
     QWidget* centralWidget = new QWidget(this);
     QHBoxLayout* layout = new QHBoxLayout(centralWidget);
-    RlvListWidget* listWidget = new RlvListWidget(centralWidget);
-    listWidget->setFixedWidth(300);
-    layout->addWidget(listWidget);
+    layout->addLayout(setupSideBar());
+//    RlvListWidget* listWidget = new RlvListWidget(centralWidget);
+//    listWidget->setFixedWidth(300);
+//    layout->addWidget(listWidget);
 
     VideoWidget* videoWidget = new VideoWidget(centralWidget);
     videoWidget->setMinimumWidth(800);
@@ -28,6 +30,28 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
 
     setCentralWidget(centralWidget);
 
-    QObject::connect(listWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoWidget, SLOT(realLiveVideoSelected(RealLiveVideo)));
-    QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), listWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
+    QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoWidget, SLOT(realLiveVideoSelected(RealLiveVideo)));
+    QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
+    QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
+}
+
+QLayout* MainWindow::setupSideBar()
+{
+    QVBoxLayout* layout = new QVBoxLayout;
+    rlvListWidget = new RlvListWidget();
+    rlvListWidget->setFixedWidth(300);
+    layout->addWidget(rlvListWidget);
+
+    courseListWidget = new QListWidget;
+    layout->addWidget(courseListWidget);
+
+    return layout;
+}
+
+void MainWindow::rlvSelected(RealLiveVideo rlv)
+{
+    courseListWidget->clear();
+    foreach(const Course& course, rlv.courses()) {
+        new QListWidgetItem(course.name(), courseListWidget);
+    }
 }

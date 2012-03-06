@@ -12,6 +12,7 @@ set(SRCS main.cpp
 	reallivevideo.cpp
         reallivevideoimporter.cpp
         reallivevideowidget.cpp
+        rlvfileparser.cpp
         rlvlistwidget.cpp
         videowidget.cpp)
 
