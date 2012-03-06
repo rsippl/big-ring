@@ -1,12 +1,13 @@
 #include "mainwindow.h"
 
+#include "reallivevideoimporter.h"
 #include "rlvlistwidget.h"
 #include "videowidget.h"
 
 #include <QHBoxLayout>
 #include <QWidget>
 
-MainWindow::MainWindow(const RealLiveVideoParser& parser, QWidget *parent) :
+MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
     QMainWindow(parent)
 {
     connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), SIGNAL(importFinished(RealLiveVideoList)));

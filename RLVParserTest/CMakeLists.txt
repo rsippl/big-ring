@@ -10,14 +10,14 @@ set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror")
 set(SRCS main.cpp
         mainwindow.cpp
 	reallivevideo.cpp
-	reallivevideoparser.cpp
+        reallivevideoimporter.cpp
         reallivevideowidget.cpp
         rlvlistwidget.cpp
         videowidget.cpp)
 
 set(MOC_HEADERS
         mainwindow.h
-        reallivevideoparser.h
+        reallivevideoimporter.h
         reallivevideowidget.h
         rlvlistwidget.h
         videowidget.h)

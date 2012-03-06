@@ -1,4 +1,4 @@
-#include "reallivevideoparser.h"
+#include "reallivevideoimporter.h"
 
 #include <functional>
 #include <QDirIterator>
@@ -11,7 +11,7 @@
 
 RealLiveVideo parseRealLiveVideoFile(QFile &rlvFile, const QStringList& aviFiles);
 
-RealLiveVideoParser::RealLiveVideoParser(QObject* parent): QObject(parent)
+RealLiveVideoImporter::RealLiveVideoImporter(QObject* parent): QObject(parent)
 {
 }
 
@@ -53,7 +53,7 @@ RealLiveVideoList importRlvFiles(QString root)
     return rlvParserFuture.results();
 }
 
-void RealLiveVideoParser::parseRealLiveVideoFilesFromDir(QString &root)
+void RealLiveVideoImporter::parseRealLiveVideoFilesFromDir(QString &root)
 {
     QFutureWatcher<RealLiveVideoList> *futureWatcher = new QFutureWatcher<RealLiveVideoList>();
     connect(futureWatcher, SIGNAL(finished()), this, SLOT(importReady()));
@@ -61,7 +61,7 @@ void RealLiveVideoParser::parseRealLiveVideoFilesFromDir(QString &root)
     futureWatcher->setFuture(importRlvFuture);
 }
 
-void RealLiveVideoParser::importReady()
+void RealLiveVideoImporter::importReady()
 {
     QFutureWatcher<RealLiveVideoList>* watcher = dynamic_cast<QFutureWatcher<RealLiveVideoList>*>(sender());
     if (!watcher)

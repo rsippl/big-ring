@@ -8,12 +8,12 @@
 
 #include "reallivevideo.h"
 
-class RealLiveVideoParser: public QObject
+class RealLiveVideoImporter: public QObject
 {
     Q_OBJECT
 public:
 
-    explicit RealLiveVideoParser(QObject* parent = NULL);
+    explicit RealLiveVideoImporter(QObject* parent = NULL);
 
     void parseRealLiveVideoFilesFromDir(QString& root);
 

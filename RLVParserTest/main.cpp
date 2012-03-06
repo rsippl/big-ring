@@ -15,7 +15,7 @@
 #include <QDirIterator>
 #include <QtConcurrentRun>
 #include "reallivevideo.h"
-#include "reallivevideoparser.h"
+#include "reallivevideoimporter.h"
 #include "reallivevideowidget.h"
 #include "rlvlistwidget.h"
 #include "videowidget.h"
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 
     qDebug() << "starting up";
 	QString filename(argv[1]);
-    RealLiveVideoParser parser;
+    RealLiveVideoImporter parser;
     MainWindow mw(parser);
 
     mw.show();
