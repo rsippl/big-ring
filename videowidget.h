@@ -7,6 +7,7 @@
 #include <vlc/vlc.h>
 
 #include "reallivevideo.h"
+#include "videodecoder.h"
 class VideoWidget : public QWidget
 {
     Q_OBJECT
@@ -20,13 +21,11 @@ public slots:
 
 private slots:
     void playVideo();
-    void fastForward();
 private:
-    RealLiveVideo currentRealLiveVideo;
-    QTimer* playDelayTimer;
-    QTimer* fastForwardTimer;
-    libvlc_instance_t *vlcObject;
-    libvlc_media_player_t *vlcPlayer;
+    RealLiveVideo _currentRealLiveVideo;
+    VideoDecoder* _videoDecoder;
+
+    QTimer* _playDelayTimer;
 };
 
 #endif // VIDEOWIDGET_H

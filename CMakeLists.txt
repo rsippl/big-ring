@@ -1,4 +1,4 @@
-project(RLVParserTest)
+project(IndoorCycling)
 cmake_minimum_required(VERSION 2.8)
 find_package(Qt4 REQUIRED)
 
@@ -6,7 +6,7 @@ include(${QT_USE_FILE})
 
 include_directories(${QT_INCLUDE_DIR} ${CMAKE_BINARY_DIR})
 
-set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror")
+set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS")
 set(SRCS main.cpp
         mainwindow.cpp
 	reallivevideo.cpp
@@ -14,6 +14,7 @@ set(SRCS main.cpp
         reallivevideowidget.cpp
         rlvfileparser.cpp
         rlvlistwidget.cpp
+        videodecoder.cpp
         videowidget.cpp)
 
 set(MOC_HEADERS
@@ -21,6 +22,7 @@ set(MOC_HEADERS
         reallivevideoimporter.h
         reallivevideowidget.h
         rlvlistwidget.h
+        videodecoder.h
         videowidget.h)
 
 set(UI_FILES
@@ -30,4 +32,4 @@ qt4_wrap_cpp(MOC_SRCS ${MOC_HEADERS})
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
 add_executable(RLVParserTest ${SRCS} ${MOC_SRCS} ${UI_SRCS})
-target_link_libraries(RLVParserTest ${QT_LIBRARIES} vlc)
+target_link_libraries(RLVParserTest ${QT_LIBRARIES} vlc avcodec avformat)
