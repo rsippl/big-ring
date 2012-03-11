@@ -1,5 +1,6 @@
 project(IndoorCycling)
 cmake_minimum_required(VERSION 2.8)
+set(CMAKE_BUILD_TYPE "Debug")
 find_package(Qt4 REQUIRED)
 
 include(${QT_USE_FILE})
@@ -32,4 +33,4 @@ qt4_wrap_cpp(MOC_SRCS ${MOC_HEADERS})
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
 add_executable(RLVParserTest ${SRCS} ${MOC_SRCS} ${UI_SRCS})
-target_link_libraries(RLVParserTest ${QT_LIBRARIES} vlc avcodec avformat)
+target_link_libraries(RLVParserTest ${QT_LIBRARIES} vlc avcodec avformat avutil)

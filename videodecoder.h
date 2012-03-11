@@ -2,13 +2,17 @@
 #define VIDEODECODER_H
 
 #include <QObject>
-#include "ffmpeg.h"
+struct AVCodec;
+struct AVCodecContext;
+struct AVFormatContext;
+struct AVFrame;
 
 class VideoDecoder : public QObject
 {
     Q_OBJECT
 public:
     explicit VideoDecoder(QObject *parent = 0);
+    ~VideoDecoder();
 
     bool openFile(QString filename);
 signals:
@@ -19,7 +23,16 @@ private:
     void close();
     void initialize();
 
-    ffmpeg::AVFormatContext* _formatContext;
+    int findVideoStream();
+    void printError(int errorNr, const QString& message);
+    AVFormatContext* _formatContext;
+    AVCodecContext* _codecContext;
+    AVCodec* _codec;
+    AVFrame* _frame;
+    AVFrame* _frameRgb;
+    int _videoStream;
+    int _bufferSize;
+    quint8 *_frameBuffer;
 //          int videoStream;
 //          ffmpeg::AVCodecContext  *pCodecCtx;
 //          ffmpeg::AVCodec         *pCodec;
