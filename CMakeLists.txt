@@ -33,4 +33,4 @@ qt4_wrap_cpp(MOC_SRCS ${MOC_HEADERS})
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
 add_executable(RLVParserTest ${SRCS} ${MOC_SRCS} ${UI_SRCS})
-target_link_libraries(RLVParserTest ${QT_LIBRARIES} vlc avcodec avformat avutil)
+target_link_libraries(RLVParserTest ${QT_LIBRARIES} avcodec avformat avutil)

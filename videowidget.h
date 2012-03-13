@@ -4,8 +4,6 @@
 #include <QTimer>
 #include <QWidget>
 
-#include <vlc/vlc.h>
-
 #include "reallivevideo.h"
 #include "videodecoder.h"
 class VideoWidget : public QWidget
