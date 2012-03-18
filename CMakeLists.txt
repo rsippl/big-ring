@@ -1,8 +1,10 @@
 project(IndoorCycling)
 cmake_minimum_required(VERSION 2.8)
 set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 find_package(Qt4 REQUIRED)
-
+SET(QT_USE_QTOPENGL TRUE)
+find_package(FFMPEG REQUIRED)
 include(${QT_USE_FILE})
 
 include_directories(${QT_INCLUDE_DIR} ${CMAKE_BINARY_DIR})
@@ -33,4 +35,4 @@ qt4_wrap_cpp(MOC_SRCS ${MOC_HEADERS})
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
 add_executable(RLVParserTest ${SRCS} ${MOC_SRCS} ${UI_SRCS})
-target_link_libraries(RLVParserTest ${QT_LIBRARIES} avcodec avformat avutil)
+target_link_libraries(RLVParserTest ${QT_LIBRARIES} ${FFMPEG_LIBRARIES})

@@ -11,7 +11,9 @@ public:
     explicit Course();
 
     const QString& name() const { return _name; }
+	/*! start distance of course in  meters */
     float start() const { return _start; }
+	/*! end distance of course in meters */
     float end() const { return _end; }
 
 private:

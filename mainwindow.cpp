@@ -33,6 +33,8 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
     QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoWidget, SLOT(realLiveVideoSelected(RealLiveVideo)));
     QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
     QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
+	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
+					 videoWidget, SLOT(courseSelected(int)));
 }
 
 QLayout* MainWindow::setupSideBar()
@@ -44,6 +46,8 @@ QLayout* MainWindow::setupSideBar()
 
     courseListWidget = new QListWidget;
     layout->addWidget(courseListWidget);
+
+
 
     return layout;
 }

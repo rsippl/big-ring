@@ -2,10 +2,14 @@
 #define VIDEODECODER_H
 
 #include <QObject>
+#include <QImage>
+#include <QMutex>
+
 struct AVCodec;
 struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
+struct SwsContext;
 
 class VideoDecoder : public QObject
 {
@@ -14,14 +18,22 @@ public:
     explicit VideoDecoder(QObject *parent = 0);
     ~VideoDecoder();
 
-    bool openFile(QString filename);
-signals:
+	void lock();
+	void unlock();
+	const QImage& currentImage() const;
 
+signals:
+	void frameReady(quint32 frameNr);
+	void error();
 public slots:
+	void nextFrame();
+	void openFile(QString filename);
 
 private:
     void close();
     void initialize();
+	void initializeFrames();
+	void decodeNextFrame();
 
     int findVideoStream();
     void printError(int errorNr, const QString& message);
@@ -30,9 +42,16 @@ private:
     AVCodec* _codec;
     AVFrame* _frame;
     AVFrame* _frameRgb;
+	int _bufferSize;
+	quint8 *_frameBuffer;
+	SwsContext* _swsContext;
+	QImage _currentImage;
+
     int _videoStream;
-    int _bufferSize;
-    quint8 *_frameBuffer;
+	QMutex _mutex;
+
+
+	qint32 _currentFrame;
 //          int videoStream;
 //          ffmpeg::AVCodecContext  *pCodecCtx;
 //          ffmpeg::AVCodec         *pCodec;

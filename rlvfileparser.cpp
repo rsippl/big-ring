@@ -31,11 +31,9 @@ RealLiveVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
         tacxfile::info_t infoBlock = readInfoBlock(rlvFile);
         if (infoBlock.fingerprint < 0 || infoBlock.fingerprint > 10000)
         break;
-        qDebug() << "inforblock fingerprint: " << infoBlock.fingerprint;
         if (infoBlock.fingerprint == 2010) {
             tacxfile::generalRlv_t generalRlv = readGeneralRlvBlock(rlvFile);
             QString videoFilename = findVideoFilename(_videoFilenames, generalRlv.filename());
-//            qDebug() << generalRlv.filename() << " => " << videoFilename;
             videoInformation = VideoInformation(videoFilename, generalRlv.frameRate);
         }
         else if (infoBlock.fingerprint == 2020) {
