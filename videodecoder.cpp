@@ -35,20 +35,26 @@ void VideoDecoder::initialize()
     av_register_all();
 }
 
-void VideoDecoder::close()
+void VideoDecoder::closeFramesAndBuffers()
 {
-    _currentFrame = -1;
     if (_swsContext)
 	sws_freeContext(_swsContext);
     if (_frameBuffer)
-        delete[] _frameBuffer;
+	delete[] _frameBuffer;
     _frameBuffer = NULL;
     if (_frameRgb)
-        av_free(_frameRgb);
+	av_free(_frameRgb);
     _frameRgb = NULL;
     if (_frame)
-        av_free(_frame);
+	av_free(_frame);
     _frame = NULL;
+}
+
+void VideoDecoder::close()
+{
+    closeFramesAndBuffers();
+    _currentFrame = -1;
+
     _codec = NULL;
     if (_codecContext)
         avcodec_close(_codecContext);
@@ -99,10 +105,7 @@ void VideoDecoder::openFile(QString filename)
 
     initializeFrames();
 
-    _swsContext = sws_getContext(_codecContext->width, _codecContext->height,
-				 _codecContext->pix_fmt,
-				 targetWidth, targetHeight,
-				 PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+
 }
 
 int VideoDecoder::findVideoStream()
@@ -132,6 +135,10 @@ void VideoDecoder::initializeFrames()
 
     avpicture_fill(reinterpret_cast<AVPicture*>(_frameRgb), _frameBuffer, PIX_FMT_RGB24,
 		   targetWidth, targetHeight);
+    _swsContext = sws_getContext(_codecContext->width, _codecContext->height,
+				 _codecContext->pix_fmt,
+				 targetWidth, targetHeight,
+				 PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
 }
 
 void VideoDecoder::nextFrame()
@@ -174,7 +181,7 @@ void VideoDecoder::decodeNextFrame()
 
 		_currentFrame++;
 		emit frameReady(static_cast<quint32>(_currentFrame));
-
+		av_free_packet(&packet);
 //		qDebug() << "Decoding frame took " << afterDecode + afterScale + afterImage << " ms in total";
 	    }
 	}
@@ -202,20 +209,10 @@ void VideoDecoder::targetSizeChanged(int width, int height)
 {
     targetWidth = width;
     targetHeight = height;
+    closeFramesAndBuffers();
+
     if (!_formatContext)
 	return;
-    // reinitialize target frame;
-    if (_swsContext)
-	sws_freeContext(_swsContext);
-    if (_frameBuffer)
-	delete[] _frameBuffer;
-    _bufferSize = avpicture_get_size(PIX_FMT_RGB24, width, height);
-    _frameBuffer = new quint8[_bufferSize];
 
-    avpicture_fill(reinterpret_cast<AVPicture*>(_frameRgb), _frameBuffer, PIX_FMT_RGB24,
-		   _codecContext->width, _codecContext->height);
-    _swsContext = sws_getContext(_codecContext->width, _codecContext->height,
-				 _codecContext->pix_fmt,
-				 width, height,
-				 PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+    initializeFrames();
 }

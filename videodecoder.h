@@ -23,6 +23,7 @@ public:
     void unlock();
     const QImage* currentImage() const;
 
+
 signals:
     void frameReady(quint32 frameNr);
     void error();
@@ -33,6 +34,7 @@ public slots:
 
 private:
     void close();
+    void closeFramesAndBuffers();
     void initialize();
     void initializeFrames();
     void decodeNextFrame();

@@ -16,7 +16,7 @@ VideoWidget::VideoWidget(QWidget *parent) :
     _playDelayTimer->setSingleShot(true);
     _playDelayTimer->setInterval(250);
     connect(_playDelayTimer, SIGNAL(timeout()), SLOT(playVideo()));
-    _playTimer->setInterval(40);
+    _playTimer->setInterval(20);
     connect(_playTimer, SIGNAL(timeout()), _videoDecoder, SLOT(nextFrame()));
 
     _playThread->start();
@@ -83,7 +83,6 @@ void VideoWidget::paintGL()
 	_videoDecoder->unlock();
 	return;
     }
-    qDebug() << "painting image of " << QString("(%1x%2)").arg(image->width()).arg(image->height());
     bool doPaint = false;
     if (image->width() == width() && image->height() == height()) {
 	_glImage = convertToGLFormat(*image);
@@ -93,15 +92,12 @@ void VideoWidget::paintGL()
 
 
     if (doPaint) {
-	qDebug() << "painting image of " << QString("(%1x%2)").arg(_glImage.width()).arg(_glImage.height());
 	glDrawPixels(_glImage.width(), _glImage.height(), GL_RGBA, GL_UNSIGNED_BYTE, _glImage.bits());
-	qDebug() << "painting took " << _paintTime.elapsed() << " ms";
     }
 }
 
 void VideoWidget::resizeGL(int w, int h)
 {
-    qDebug() << "resize called with size " << QString("(%1,%2)").arg(w).arg(h);
     glViewport (0, 0, w, h);
     glMatrixMode (GL_PROJECTION);
     glLoadIdentity();
