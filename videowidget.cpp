@@ -81,9 +81,12 @@ void VideoWidget::resizeGL(int w, int h)
 {
     glViewport (0, 0, w, h);
     glMatrixMode (GL_PROJECTION);
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
     glOrtho(0, w,0,h,-1,1);
     glMatrixMode (GL_MODELVIEW);
+
     QMetaObject::invokeMethod(_videoDecoder, "targetSizeChanged",
 			      Q_ARG(int, w), Q_ARG(int, h));
 }
@@ -92,8 +95,8 @@ void VideoWidget::resizeGL(int w, int h)
 void VideoWidget::handleImage(const QImage &image)
 {
     // only paint if image size is equal to widget size.
-    if (image.width() != width() || image.height() != height())
-	return;
-    _glImage = convertToGLFormat(image);
-    glDrawPixels(_glImage.width(), _glImage.height(), GL_RGBA, GL_UNSIGNED_BYTE, _glImage.bits());
+    if (image.width() == width() || image.height() == height()) {
+	_glImage = convertToGLFormat(image);
+	glDrawPixels(_glImage.width(), _glImage.height(), GL_RGBA, GL_UNSIGNED_BYTE, _glImage.bits());
+    }
 }

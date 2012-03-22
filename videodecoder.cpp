@@ -128,6 +128,7 @@ void VideoDecoder::printError(int errorNr, const QString& message)
 
 void VideoDecoder::initializeFrames()
 {
+    calculateSize();
     _frame = avcodec_alloc_frame();
     _frameRgb = avcodec_alloc_frame();
 
@@ -179,15 +180,30 @@ void VideoDecoder::decodeNextFrame()
     }
 }
 
-void VideoDecoder::targetSizeChanged(int width, int height)
+void VideoDecoder::calculateSize()
 {
-    _targetWidth = width;
-    _targetHeight = height;
-    closeFramesAndBuffers();
-
-    if (!_formatContext)
+    if (!_codecContext)
 	return;
 
+    float sourceRatio = (float) _codecContext->width / (float) _codecContext->height;
+    float destRatio = (float) _widgetWidth / (float) _widgetHeight;
+
+    if (sourceRatio > destRatio) { // source "wider" than destination
+	_targetWidth = _widgetWidth;
+	_targetHeight = _widgetWidth / sourceRatio;
+    } else {
+	_targetHeight = _widgetHeight;
+	_targetWidth = sourceRatio * _widgetHeight;
+    }
+}
+
+void VideoDecoder::targetSizeChanged(int width, int height)
+{
+    _widgetWidth = width;
+    _widgetHeight = height;
+    closeFramesAndBuffers();
+    if (!_formatContext || !_codecContext)
+	return;
     initializeFrames();
 }
 

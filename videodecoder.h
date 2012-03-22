@@ -43,6 +43,7 @@ private:
     void initialize();
     void initializeFrames();
     void decodeNextFrame();
+    void calculateSize();
 
     int findVideoStream();
     void printError(int errorNr, const QString& message);
@@ -61,6 +62,8 @@ private:
     QMutex _mutex;
 
     qint32 _currentFrame;
+    int _widgetWidth;
+    int _widgetHeight;
     int _targetWidth;
     int _targetHeight;
 };
