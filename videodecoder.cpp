@@ -15,10 +15,11 @@ namespace {
 const int ERROR_STR_BUF_SIZE = 128;
 }
 VideoDecoder::VideoDecoder(QObject *parent) :
-    QObject(parent), _formatContext(NULL), _codecContext(NULL),
+    QObject(parent),
+    _formatContext(NULL), _codecContext(NULL),
     _codec(NULL), _frame(NULL), _frameRgb(NULL),
     _bufferSize(0), _frameBuffer(NULL), _swsContext(NULL),
-    _currentFrame(-1), targetWidth(100), targetHeight(100)
+    _currentFrame(-1), _targetWidth(100), _targetHeight(100)
 {
     initialize();
 }
@@ -130,14 +131,14 @@ void VideoDecoder::initializeFrames()
     _frame = avcodec_alloc_frame();
     _frameRgb = avcodec_alloc_frame();
 
-    _bufferSize = avpicture_get_size(PIX_FMT_RGB24, targetWidth, targetHeight);
+    _bufferSize = avpicture_get_size(PIX_FMT_RGB24, _targetWidth, _targetHeight);
     _frameBuffer = new quint8[_bufferSize];
 
     avpicture_fill(reinterpret_cast<AVPicture*>(_frameRgb), _frameBuffer, PIX_FMT_RGB24,
-		   targetWidth, targetHeight);
+		   _targetWidth, _targetHeight);
     _swsContext = sws_getContext(_codecContext->width, _codecContext->height,
 				 _codecContext->pix_fmt,
-				 targetWidth, targetHeight,
+				 _targetWidth, _targetHeight,
 				 PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
 }
 
@@ -150,7 +151,6 @@ void VideoDecoder::decodeNextFrame()
 {
     int frameFinished = 0;
     AVPacket packet;
-    _decodeTimer.restart();
     while(!frameFinished) {
 	if (av_read_frame(_formatContext, &packet) < 0)
 	    return;
@@ -159,56 +159,30 @@ void VideoDecoder::decodeNextFrame()
 
 	    avcodec_decode_video2(_codecContext, _frame,
 				  &frameFinished, &packet);
-//	    int afterDecode = _decodeTimer.restart();
-//	    qDebug() << "decoding video took " << afterDecode << " ms";
 	    if (frameFinished) {
 		sws_scale(_swsContext, _frame->data, _frame->linesize,
 			  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
-//		int afterScale = _decodeTimer.restart();
-//		qDebug() << "scaling frame took " << afterScale << " ms";
-		// Convert the frame to QImage
-//		int afterImage;
 		{
 		    QMutexLocker locker(&_mutex);
 		    _currentImage = QImage(_frameRgb->data[0],
-					   targetWidth,
-					   targetHeight,
-					   targetWidth * 3,
+					   _targetWidth,
+					   _targetHeight,
+					   _targetWidth * 3,
 					   QImage::Format_RGB888);
-//		    afterImage = _decodeTimer.restart();
-//		    qDebug() << "converting to image took " << afterImage << " ms";
 		}
 
 		_currentFrame++;
 		emit frameReady(static_cast<quint32>(_currentFrame));
 		av_free_packet(&packet);
-//		qDebug() << "Decoding frame took " << afterDecode + afterScale + afterImage << " ms in total";
 	    }
 	}
     }
 }
 
-void VideoDecoder::lock()
-{
-    _mutex.lock();
-}
-
-void VideoDecoder::unlock()
-{
-    _mutex.unlock();
-}
-
-const QImage* VideoDecoder::currentImage() const
-{
-    if (_currentImage.isNull())
-	return NULL;
-    return &_currentImage;
-}
-
 void VideoDecoder::targetSizeChanged(int width, int height)
 {
-    targetWidth = width;
-    targetHeight = height;
+    _targetWidth = width;
+    _targetHeight = height;
     closeFramesAndBuffers();
 
     if (!_formatContext)
@@ -216,3 +190,10 @@ void VideoDecoder::targetSizeChanged(int width, int height)
 
     initializeFrames();
 }
+
+void VideoDecoder::doWithImage(VideoImageHandler &handler)
+{
+    QMutexLocker lock(&_mutex);
+    handler.handleImage(_currentImage);
+}
+

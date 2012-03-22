@@ -12,19 +12,18 @@ VideoWidget::VideoWidget(QWidget *parent) :
     _playDelayTimer(new QTimer(this)),
     _playTimer(new QTimer(this)),
     _playThread(new QThread(this))
+
 {
     _playDelayTimer->setSingleShot(true);
     _playDelayTimer->setInterval(250);
     connect(_playDelayTimer, SIGNAL(timeout()), SLOT(playVideo()));
-    _playTimer->setInterval(20);
+    _playTimer->setInterval(40);
     connect(_playTimer, SIGNAL(timeout()), _videoDecoder, SLOT(nextFrame()));
 
     _playThread->start();
     _videoDecoder->moveToThread(_playThread);
 
     connect(_videoDecoder, SIGNAL(frameReady(quint32)), SLOT(frameReady(quint32)));
-
-    _paintTime.start();
 }
 
 VideoWidget::~VideoWidget()
@@ -75,25 +74,7 @@ void VideoWidget::frameReady(quint32)
 
 void VideoWidget::paintGL()
 {
-    _paintTime.restart();
-
-    _videoDecoder->lock();
-    const QImage* image = _videoDecoder->currentImage();
-    if (!image) {
-	_videoDecoder->unlock();
-	return;
-    }
-    bool doPaint = false;
-    if (image->width() == width() && image->height() == height()) {
-	_glImage = convertToGLFormat(*image);
-	doPaint = true;
-    }
-    _videoDecoder->unlock();
-
-
-    if (doPaint) {
-	glDrawPixels(_glImage.width(), _glImage.height(), GL_RGBA, GL_UNSIGNED_BYTE, _glImage.bits());
-    }
+    _videoDecoder->doWithImage(*this);
 }
 
 void VideoWidget::resizeGL(int w, int h)
@@ -105,4 +86,14 @@ void VideoWidget::resizeGL(int w, int h)
     glMatrixMode (GL_MODELVIEW);
     QMetaObject::invokeMethod(_videoDecoder, "targetSizeChanged",
 			      Q_ARG(int, w), Q_ARG(int, h));
+}
+
+/*! This method should only be called from the video decoder. */
+void VideoWidget::handleImage(const QImage &image)
+{
+    // only paint if image size is equal to widget size.
+    if (image.width() != width() || image.height() != height())
+	return;
+    _glImage = convertToGLFormat(image);
+    glDrawPixels(_glImage.width(), _glImage.height(), GL_RGBA, GL_UNSIGNED_BYTE, _glImage.bits());
 }

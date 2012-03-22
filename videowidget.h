@@ -1,16 +1,15 @@
 #ifndef VIDEOWIDGET_H
 #define VIDEOWIDGET_H
 
-#include <QTime>
 #include <QTimer>
 #include <QGLWidget>
 
 #include "reallivevideo.h"
+#include "videodecoder.h"
 
 class QThread;
-class VideoDecoder;
 
-class VideoWidget : public QGLWidget
+class VideoWidget : public QGLWidget, public VideoImageHandler
 {
     Q_OBJECT
 public:
@@ -19,6 +18,7 @@ public:
 
     void paintGL();
     void resizeGL(int w, int h);
+    virtual void handleImage(const QImage& image);
 signals:
 
 public slots:
@@ -39,7 +39,6 @@ private:
     QTimer* _playDelayTimer;
     QTimer* _playTimer;
     QThread* _playThread;
-    QTime _paintTime;
     QImage _glImage;
 };
 

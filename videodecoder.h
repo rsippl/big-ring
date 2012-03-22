@@ -4,13 +4,22 @@
 #include <QObject>
 #include <QImage>
 #include <QMutex>
-#include <QTime>
 
 struct AVCodec;
 struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
 struct SwsContext;
+
+/**
+  Pure virtual class which can be implemented by classes which want to handle
+  images from the video.
+  */
+class VideoImageHandler
+{
+public:
+    virtual void handleImage(const QImage& image) = 0;
+};
 
 class VideoDecoder : public QObject
 {
@@ -19,11 +28,7 @@ public:
     explicit VideoDecoder(QObject *parent = 0);
     ~VideoDecoder();
 
-    void lock();
-    void unlock();
-    const QImage* currentImage() const;
-
-
+    void doWithImage(VideoImageHandler& handler);
 signals:
     void frameReady(quint32 frameNr);
     void error();
@@ -41,6 +46,7 @@ private:
 
     int findVideoStream();
     void printError(int errorNr, const QString& message);
+
     AVFormatContext* _formatContext;
     AVCodecContext* _codecContext;
     AVCodec* _codec;
@@ -51,14 +57,12 @@ private:
     SwsContext* _swsContext;
     QImage _currentImage;
 
-
     int _videoStream;
     QMutex _mutex;
-    QTime _decodeTimer;
 
     qint32 _currentFrame;
-    int targetWidth;
-    int targetHeight;
+    int _targetWidth;
+    int _targetHeight;
 };
 
 #endif // VIDEODECODER_H
