@@ -34,5 +34,5 @@ set(UI_FILES
 qt4_wrap_cpp(MOC_SRCS ${MOC_HEADERS})
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
-add_executable(RLVParserTest ${SRCS} ${MOC_SRCS} ${UI_SRCS})
-target_link_libraries(RLVParserTest ${QT_LIBRARIES} ${FFMPEG_LIBRARIES})
+add_executable(indoorcycling ${SRCS} ${MOC_SRCS} ${UI_SRCS})
+target_link_libraries(indoorcycling ${QT_LIBRARIES} ${FFMPEG_LIBRARIES})
