@@ -6,6 +6,7 @@
 
 #include <QHBoxLayout>
 #include <QListWidget>
+#include <QKeyEvent>
 #include <QWidget>
 
 MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
@@ -16,25 +17,27 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
     setGeometry(0, 0, 1024, 768);
 
     QWidget* centralWidget = new QWidget(this);
-    QHBoxLayout* layout = new QHBoxLayout(centralWidget);
-    layout->addLayout(setupSideBar());
-//    RlvListWidget* listWidget = new RlvListWidget(centralWidget);
-//    listWidget->setFixedWidth(300);
-//    layout->addWidget(listWidget);
+    _layout = new QHBoxLayout(centralWidget);
+    _layout->addLayout(setupSideBar());
+    //    RlvListWidget* listWidget = new RlvListWidget(centralWidget);
+    //    listWidget->setFixedWidth(300);
+    //    layout->addWidget(listWidget);
 
     VideoWidget* videoWidget = new VideoWidget(centralWidget);
     videoWidget->setMinimumWidth(800);
     videoWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    layout->addWidget(videoWidget);
+    _layout->addWidget(videoWidget);
 
     setCentralWidget(centralWidget);
 
     QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoWidget, SLOT(realLiveVideoSelected(RealLiveVideo)));
     QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
     QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
-	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
-					 videoWidget, SLOT(courseSelected(int)));
+    QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
+		     videoWidget, SLOT(courseSelected(int)));
+
+    grabKeyboard();
 }
 
 QLayout* MainWindow::setupSideBar()
@@ -57,5 +60,41 @@ void MainWindow::rlvSelected(RealLiveVideo rlv)
     courseListWidget->clear();
     foreach(const Course& course, rlv.courses()) {
         new QListWidgetItem(course.name(), courseListWidget);
+    }
+}
+
+void MainWindow::doFullscreen()
+{
+    rlvListWidget->hide();
+    courseListWidget->hide();
+    showFullScreen();
+}
+
+void MainWindow::removeMargins()
+{
+    int l,t,r,b;
+
+    _layout->getContentsMargins(&l,&t,&r,&b);
+    _margins = QMargins(l,t,r,b);
+    _layout->setContentsMargins(0, 0, 0, 0);
+}
+
+void MainWindow::restoreMargins()
+{
+    _layout->setContentsMargins(_margins);
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_F) {
+	rlvListWidget->hide();
+	courseListWidget->hide();
+	removeMargins();
+	showFullScreen();
+    } else if (event->key() == Qt::Key_Escape) {
+	showNormal();
+	restoreMargins();
+	rlvListWidget->show();
+	courseListWidget->show();
     }
 }

@@ -1,6 +1,6 @@
 project(IndoorCycling)
 cmake_minimum_required(VERSION 2.8)
-set(CMAKE_BUILD_TYPE "Debug")
+#set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 find_package(Qt4 REQUIRED)
 SET(QT_USE_QTOPENGL TRUE)

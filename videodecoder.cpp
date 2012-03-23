@@ -15,10 +15,11 @@ namespace {
 const int ERROR_STR_BUF_SIZE = 128;
 }
 VideoDecoder::VideoDecoder(QObject *parent) :
-    QObject(parent), _formatContext(NULL), _codecContext(NULL),
+    QObject(parent),
+    _formatContext(NULL), _codecContext(NULL),
     _codec(NULL), _frame(NULL), _frameRgb(NULL),
-	_bufferSize(0), _frameBuffer(NULL), _swsContext(NULL),
-	_currentFrame(-1)
+    _bufferSize(0), _frameBuffer(NULL), _swsContext(NULL),
+    _currentFrame(-1), _targetWidth(100), _targetHeight(100)
 {
     initialize();
 }
@@ -35,20 +36,26 @@ void VideoDecoder::initialize()
     av_register_all();
 }
 
-void VideoDecoder::close()
+void VideoDecoder::closeFramesAndBuffers()
 {
-	_currentFrame = -1;
-	if (_swsContext)
-		sws_freeContext(_swsContext);
+    if (_swsContext)
+	sws_freeContext(_swsContext);
     if (_frameBuffer)
-        delete[] _frameBuffer;
+	delete[] _frameBuffer;
     _frameBuffer = NULL;
     if (_frameRgb)
-        av_free(_frameRgb);
+	av_free(_frameRgb);
     _frameRgb = NULL;
     if (_frame)
-        av_free(_frame);
+	av_free(_frame);
     _frame = NULL;
+}
+
+void VideoDecoder::close()
+{
+    closeFramesAndBuffers();
+    _currentFrame = -1;
+
     _codec = NULL;
     if (_codecContext)
         avcodec_close(_codecContext);
@@ -61,48 +68,45 @@ void VideoDecoder::close()
 void VideoDecoder::openFile(QString filename)
 {
     close();
-	int errorNr = avformat_open_input(&_formatContext, filename.toStdString().c_str(),
-                                    NULL, NULL);
-	if (errorNr != 0) {
-		printError(errorNr, QString("Unable to open %1").arg(filename));
+    int errorNr = avformat_open_input(&_formatContext, filename.toStdString().c_str(),
+				      NULL, NULL);
+    if (errorNr != 0) {
+	printError(errorNr, QString("Unable to open %1").arg(filename));
     }
-	errorNr = av_find_stream_info(_formatContext);
-	if (errorNr < 0) {
-		printError(errorNr, QString("Unable to find video stream"));
-		emit error();
+    errorNr = av_find_stream_info(_formatContext);
+    if (errorNr < 0) {
+	printError(errorNr, QString("Unable to find video stream"));
+	emit error();
     }
     av_dump_format(_formatContext, 0, filename.toStdString().c_str(), 0);
 
     _videoStream = findVideoStream();
     if (_videoStream < 0) {
         qWarning("Unable to find video stream");
-		emit error();
+	emit error();
     }
 
     _codecContext = _formatContext->streams[_videoStream]->codec;
     if (!_codecContext) {
         qWarning("Unable to open codec context");
-		emit error();
+	emit error();
     }
 
     _codec = avcodec_find_decoder(_codecContext->codec_id);
     if (!_codec) {
         qWarning("Unable to find codec");
-		emit error();
+	emit error();
     }
 
-	errorNr = avcodec_open2(_codecContext, _codec, NULL);
-	if (errorNr < 0) {
-		printError(errorNr, "Unable to open codec");
-		emit error();
+    errorNr = avcodec_open2(_codecContext, _codec, NULL);
+    if (errorNr < 0) {
+	printError(errorNr, "Unable to open codec");
+	emit error();
     }
 
-	initializeFrames();
+    initializeFrames();
 
-	_swsContext = sws_getContext(_codecContext->width, _codecContext->height,
-				   _codecContext->pix_fmt,
-				   _codecContext->width, _codecContext->height,
-				   PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+
 }
 
 int VideoDecoder::findVideoStream()
@@ -124,70 +128,88 @@ void VideoDecoder::printError(int errorNr, const QString& message)
 
 void VideoDecoder::initializeFrames()
 {
-	_frame = avcodec_alloc_frame();
-	_frameRgb = avcodec_alloc_frame();
+    calculateSize();
+    _frame = avcodec_alloc_frame();
+    _frameRgb = avcodec_alloc_frame();
 
-	_bufferSize = avpicture_get_size(PIX_FMT_RGB24, _codecContext->width, _codecContext->height);
-	_frameBuffer = new quint8[_bufferSize];
+    _bufferSize = avpicture_get_size(PIX_FMT_RGB24, _targetWidth, _targetHeight);
+    _frameBuffer = new quint8[_bufferSize];
 
-	avpicture_fill(reinterpret_cast<AVPicture*>(_frameRgb), _frameBuffer, PIX_FMT_RGB24,
-				   _codecContext->width, _codecContext->height);
+    avpicture_fill(reinterpret_cast<AVPicture*>(_frameRgb), _frameBuffer, PIX_FMT_RGB24,
+		   _targetWidth, _targetHeight);
+    _swsContext = sws_getContext(_codecContext->width, _codecContext->height,
+				 _codecContext->pix_fmt,
+				 _targetWidth, _targetHeight,
+				 PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
 }
 
 void VideoDecoder::nextFrame()
 {
-	decodeNextFrame();
+    decodeNextFrame();
 }
 
 void VideoDecoder::decodeNextFrame()
 {
-	int frameFinished = 0;
-	AVPacket packet;
-	while(!frameFinished) {
-		if (av_read_frame(_formatContext, &packet) < 0)
-			return;
+    int frameFinished = 0;
+    AVPacket packet;
+    while(!frameFinished) {
+	if (av_read_frame(_formatContext, &packet) < 0)
+	    return;
 
-		if (packet.stream_index == _videoStream) {
-			avcodec_decode_video2(_codecContext, _frame,
-								  &frameFinished, &packet);
+	if (packet.stream_index == _videoStream) {
 
-			if (frameFinished) {
-				sws_scale(_swsContext, _frame->data, _frame->linesize,
-						  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
-				// Convert the frame to QImage
-				{
-					QMutexLocker locker(&_mutex);
-					_currentImage = QImage(_frameRgb->data[0],
-										   _codecContext->width,
-										   _codecContext->height,
-										   _codecContext->width * 3,
-										   QImage::Format_RGB888);
-
-					QFile imageFile(QString("out") + _currentFrame + ".jpg");
-					if (imageFile.open(QIODevice::WriteOnly))
-						_currentImage.save(&imageFile);
-					else
-						qDebug() << "unable to save";
-				}
-
-				_currentFrame++;
-				emit frameReady(static_cast<quint32>(_currentFrame));
-			}
+	    avcodec_decode_video2(_codecContext, _frame,
+				  &frameFinished, &packet);
+	    if (frameFinished) {
+		sws_scale(_swsContext, _frame->data, _frame->linesize,
+			  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
+		{
+		    QMutexLocker locker(&_mutex);
+		    _currentImage = QImage(_frameRgb->data[0],
+					   _targetWidth,
+					   _targetHeight,
+					   _targetWidth * 3,
+					   QImage::Format_RGB888);
 		}
+
+		_currentFrame++;
+		emit frameReady(static_cast<quint32>(_currentFrame));
+		av_free_packet(&packet);
+	    }
 	}
+    }
 }
 
-void VideoDecoder::lock()
+void VideoDecoder::calculateSize()
 {
-	_mutex.lock();
+    if (!_codecContext)
+	return;
+
+    float sourceRatio = (float) _codecContext->width / (float) _codecContext->height;
+    float destRatio = (float) _widgetWidth / (float) _widgetHeight;
+
+    if (sourceRatio > destRatio) { // source "wider" than destination
+	_targetWidth = _widgetWidth;
+	_targetHeight = _widgetWidth / sourceRatio;
+    } else {
+	_targetHeight = _widgetHeight;
+	_targetWidth = sourceRatio * _widgetHeight;
+    }
 }
 
-void VideoDecoder::unlock()
+void VideoDecoder::targetSizeChanged(int width, int height)
 {
-	_mutex.unlock();
+    _widgetWidth = width;
+    _widgetHeight = height;
+    closeFramesAndBuffers();
+    if (!_formatContext || !_codecContext)
+	return;
+    initializeFrames();
 }
 
-const QImage& VideoDecoder::currentImage() const
+void VideoDecoder::doWithImage(VideoImageHandler &handler)
 {
-	return _currentImage;
+    QMutexLocker lock(&_mutex);
+    handler.handleImage(_currentImage);
 }
+
