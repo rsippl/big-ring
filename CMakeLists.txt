@@ -12,13 +12,14 @@ include_directories(${QT_INCLUDE_DIR} ${CMAKE_BINARY_DIR})
 set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS")
 set(SRCS main.cpp
         mainwindow.cpp
-	reallivevideo.cpp
+		reallivevideo.cpp
         reallivevideoimporter.cpp
         reallivevideowidget.cpp
         rlvfileparser.cpp
         rlvlistwidget.cpp
         videodecoder.cpp
-        videowidget.cpp)
+		videowidget.cpp
+		videosurface.cpp)
 
 set(MOC_HEADERS
         mainwindow.h
@@ -26,7 +27,8 @@ set(MOC_HEADERS
         reallivevideowidget.h
         rlvlistwidget.h
         videodecoder.h
-        videowidget.h)
+		videowidget.h
+		videosurface.h)
 
 set(UI_FILES
     rlvlistwidget.ui)
