@@ -136,7 +136,8 @@ void readRest(QFile &rlvFile, qint32 size) {
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+	QApplication app(argc, argv);
+	app.setApplicationName("Indoor Cycling");
 
     qDebug() << "starting up";
 	QString filename(argv[1]);

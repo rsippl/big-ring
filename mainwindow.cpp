@@ -23,15 +23,15 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
     //    listWidget->setFixedWidth(300);
     //    layout->addWidget(listWidget);
 
-    VideoWidget* videoWidget = new VideoWidget(centralWidget);
-    videoWidget->setMinimumWidth(800);
-    videoWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	VideoWidget* videoWidget = new VideoWidget(centralWidget);
+	videoWidget->setMinimumWidth(800);
+	videoWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    _layout->addWidget(videoWidget);
+	_layout->addWidget(videoWidget);
 
     setCentralWidget(centralWidget);
 
-    QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoWidget, SLOT(realLiveVideoSelected(RealLiveVideo)));
+	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoWidget, SLOT(realLiveVideoSelected(RealLiveVideo)));
     QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
     QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
     QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
