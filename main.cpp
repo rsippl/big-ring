@@ -64,7 +64,7 @@ struct generalPgmf {
 	}
 
 	QString totalTimeOrDistance() const {
-		if (_timeOrDistance == 0) 
+		if (_timeOrDistance == 0)
 			return QString("%1 seconds").arg(_totalTimeOrDistance);
 		else
 			return QString("%1 km").arg(_totalTimeOrDistance/1000.0);
@@ -72,10 +72,10 @@ struct generalPgmf {
 
 	QString toString() const {
 		return QString("General pgmf: %1, type: %2, %3-based, start alt: %4")
-			.arg(courseName())
-			.arg(type())
-			.arg(timeOrDistance())
-			.arg(startAltitude);
+				.arg(courseName())
+				.arg(type())
+				.arg(timeOrDistance())
+				.arg(startAltitude);
 	}
 };
 
@@ -98,8 +98,8 @@ struct program {
 
 	QString toString() const {
 		return QString("duration or distance: %1, value: %2, friction: %3")
-			.arg(durationDistance).arg(powerSlopeHeartRate)
-			.arg(rollingFriction);
+				.arg(durationDistance).arg(powerSlopeHeartRate)
+				.arg(rollingFriction);
 	}
 };
 
@@ -139,14 +139,14 @@ int main(int argc, char *argv[])
 	QApplication app(argc, argv);
 	app.setApplicationName("Indoor Cycling");
 
-    qDebug() << "starting up";
+	qDebug() << "starting up";
 	QString filename(argv[1]);
-    RealLiveVideoImporter parser;
-    MainWindow mw(parser);
+	RealLiveVideoImporter parser;
+	MainWindow mw(parser);
 
-    mw.show();
+	mw.show();
 
-    parser.parseRealLiveVideoFilesFromDir(filename);
+	parser.parseRealLiveVideoFilesFromDir(filename);
 
-    app.exec();
+	app.exec();
 }

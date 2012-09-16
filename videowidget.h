@@ -2,7 +2,8 @@
 #define VIDEOWIDGET_H
 
 #include <QTimer>
-#include <VideoPlayer>
+#include <VideoWidget>
+#include <MediaObject>
 
 #include "reallivevideo.h"
 #include "videodecoder.h"
@@ -25,12 +26,14 @@ public slots:
 
 private slots:
     void playVideo();
+	void tick(qint64);
 
 
 private:
 
 
-	Phonon::VideoPlayer *_videoPlayer;
+	Phonon::VideoWidget *_videoWidget;
+	Phonon::MediaObject *_mediaObject;
 
     RealLiveVideo _currentRealLiveVideo;
 

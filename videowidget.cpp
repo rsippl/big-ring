@@ -28,19 +28,29 @@ VideoWidget::VideoWidget(QWidget *parent) :
 	QGridLayout *grid = new QGridLayout(this);
 	grid->setMargin(0);
 
-	_videoPlayer = new Phonon::VideoPlayer(Phonon::VideoCategory, this);
+	_mediaObject = new Phonon::MediaObject(this);
+	_mediaObject->setTickInterval(1000);
+	_videoWidget = new Phonon::VideoWidget(this);
+	Phonon::createPath(_mediaObject, _videoWidget);
 
-	grid->addWidget(_videoPlayer, 1, 0, 3, 1);
+	connect(_mediaObject, SIGNAL(tick(qint64)), this, SLOT(tick(qint64)));
+	grid->addWidget(_videoWidget, 0, 0, 3, 1);
 }
 
 VideoWidget::~VideoWidget()
 {
-	_videoPlayer->stop();
+
 }
 
 void VideoWidget::playVideo()
 {
-	_videoPlayer->play(Phonon::MediaSource(_currentRealLiveVideo.videoInformation().videoFilename()));
+	_mediaObject->setCurrentSource(_currentRealLiveVideo.videoInformation().videoFilename());
+	_mediaObject->play();
+}
+
+void VideoWidget::tick(qint64)
+{
+	qDebug() << "tick";
 }
 
 
