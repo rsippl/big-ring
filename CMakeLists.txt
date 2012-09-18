@@ -9,7 +9,7 @@ find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui REQUIRED)
 find_package(FFMPEG REQUIRED)
 include(${QT_USE_FILE})
 
-include_directories(${QT_INCLUDE_DIR} /usr/include/phonon ${CMAKE_BINARY_DIR})
+include_directories(${QT_INCLUDE_DIR} /usr/include/QtMultimediaKit /usr/include/QtMobility ${CMAKE_BINARY_DIR})
 
 set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS")
 set(SRCS main.cpp
@@ -37,4 +37,4 @@ qt4_wrap_cpp(MOC_SRCS ${MOC_HEADERS})
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
 add_executable(indoorcycling ${SRCS} ${MOC_SRCS} ${UI_SRCS})
-target_link_libraries(indoorcycling ${QT_LIBRARIES} phonon ${FFMPEG_LIBRARIES})
+target_link_libraries(indoorcycling ${QT_LIBRARIES} QtMultimediaKit ${FFMPEG_LIBRARIES})

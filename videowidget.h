@@ -2,8 +2,8 @@
 #define VIDEOWIDGET_H
 
 #include <QTimer>
-#include <VideoWidget>
-#include <MediaObject>
+#include <QVideoWidget>
+#include <QMediaPlayer>
 
 #include "reallivevideo.h"
 #include "videodecoder.h"
@@ -25,15 +25,13 @@ public slots:
 
 
 private slots:
-    void playVideo();
-	void tick(qint64);
-
+	void playVideo();
+	void mediaStatusChanged(QMediaPlayer::MediaStatus status);
 
 private:
 
-
-	Phonon::VideoWidget *_videoWidget;
-	Phonon::MediaObject *_mediaObject;
+	QVideoWidget *_videoWidget;
+	QMediaPlayer *_mediaPlayer;
 
     RealLiveVideo _currentRealLiveVideo;
 

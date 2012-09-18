@@ -25,7 +25,8 @@ void RlvListWidget::setRealLiveVideos(RealLiveVideoList rlvs)
     qDebug() << Q_FUNC_INFO << "rlvs.size() = " << rlvs.size();
     ui->rlvList->clear();
     foreach(const RealLiveVideo& rlv, rlvs) {
-        new QListWidgetItem(rlv.name(), ui->rlvList);
+		QString rlvInfo = QString("%1 (%2)").arg(rlv.name()).arg(rlv.videoInformation().frameRate());
+		new QListWidgetItem(rlvInfo, ui->rlvList);
     }
     ui->rlvList->setEnabled(true);
 }

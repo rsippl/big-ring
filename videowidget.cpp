@@ -1,6 +1,7 @@
 #include "videowidget.h"
 
 #include <QMetaObject>
+#include <QMediaPlaylist>
 #include <QtDebug>
 #include <QResizeEvent>
 #include <QGridLayout>
@@ -28,12 +29,15 @@ VideoWidget::VideoWidget(QWidget *parent) :
 	QGridLayout *grid = new QGridLayout(this);
 	grid->setMargin(0);
 
-	_mediaObject = new Phonon::MediaObject(this);
-	_mediaObject->setTickInterval(1000);
-	_videoWidget = new Phonon::VideoWidget(this);
-	Phonon::createPath(_mediaObject, _videoWidget);
+	_mediaPlayer = new QMediaPlayer(this);
+	_mediaPlayer->setPlaylist(new QMediaPlaylist(_mediaPlayer));
 
-	connect(_mediaObject, SIGNAL(tick(qint64)), this, SLOT(tick(qint64)));
+	_videoWidget = new QVideoWidget(this);
+	_videoWidget->setAspectRatioMode(Qt::KeepAspectRatio);
+	_mediaPlayer->setVideoOutput(_videoWidget);
+	connect(_mediaPlayer, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)),
+			this, SLOT(mediaStatusChanged(QMediaPlayer::MediaStatus)));
+
 	grid->addWidget(_videoWidget, 0, 0, 3, 1);
 }
 
@@ -44,13 +48,20 @@ VideoWidget::~VideoWidget()
 
 void VideoWidget::playVideo()
 {
-	_mediaObject->setCurrentSource(_currentRealLiveVideo.videoInformation().videoFilename());
-	_mediaObject->play();
+	QMediaPlaylist* playList = _mediaPlayer->playlist();
+	playList->clear();
+	playList->addMedia(QUrl::fromLocalFile(_currentRealLiveVideo.videoInformation().videoFilename()));
+	_mediaPlayer->play();
 }
 
-void VideoWidget::tick(qint64)
+void VideoWidget::mediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
-	qDebug() << "tick";
+	if (status == QMediaPlayer::BufferedMedia) {
+		QMediaContent content = _mediaPlayer->media();
+		QMediaResource resource = content.canonicalResource();
+
+		qDebug() << "buffered" << resource.videoBitRate();
+	}
 }
 
 
