@@ -20,8 +20,8 @@ struct ParseRlvFunctor: public std::unary_function<const QString&,RealLiveVideo>
     ParseRlvFunctor(const QStringList& aviFiles): _aviFiles(aviFiles) {}
 
     RealLiveVideo operator()(const QString& filename) const {
-        QFile file(filename);
-        return parseRealLiveVideoFile(file, _aviFiles);
+		QFile file(filename);
+		return parseRealLiveVideoFile(file, _aviFiles);
     }
 
     QStringList _aviFiles;
@@ -81,5 +81,5 @@ void RealLiveVideoImporter::importReady()
 RealLiveVideo parseRealLiveVideoFile(QFile &rlvFile, const QStringList& videoFilenames)
 {
     RlvFileParser parser(videoFilenames);
-    return parser.parseRlvFile(rlvFile);
+	return parser.parseRlvFile(rlvFile);
 }
