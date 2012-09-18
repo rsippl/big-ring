@@ -91,5 +91,10 @@ void VideoWidget::courseSelected(int courseNr)
 	double totalFrames = (_mediaPlayer->duration() / 1000.0) * _currentRealLiveVideo.videoInformation().frameRate();
 	double b = frame / totalFrames;
 	_mediaPlayer->setPosition(_mediaPlayer->duration() * b);
+	_mediaPlayer->setPlaybackRate(0.5);
+
+	_videoWidget->setFullScreen(true);
+	_videoWidget->setAspectRatioMode(Qt::KeepAspectRatioByExpanding);
+
 }
 
