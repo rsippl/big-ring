@@ -35,8 +35,6 @@ VideoWidget::VideoWidget(QWidget *parent) :
 	_videoWidget = new QVideoWidget(this);
 	_videoWidget->setAspectRatioMode(Qt::KeepAspectRatio);
 	_mediaPlayer->setVideoOutput(_videoWidget);
-	connect(_mediaPlayer, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)),
-			this, SLOT(mediaStatusChanged(QMediaPlayer::MediaStatus)));
 
 	grid->addWidget(_videoWidget, 0, 0, 3, 1);
 }
@@ -53,17 +51,6 @@ void VideoWidget::playVideo()
 	playList->addMedia(QUrl::fromLocalFile(_currentRealLiveVideo.videoInformation().videoFilename()));
 	_mediaPlayer->play();
 }
-
-void VideoWidget::mediaStatusChanged(QMediaPlayer::MediaStatus status)
-{
-	if (status == QMediaPlayer::BufferedMedia) {
-		QMediaContent content = _mediaPlayer->media();
-		QMediaResource resource = content.canonicalResource();
-
-		qDebug() << "buffered" << resource.videoBitRate();
-	}
-}
-
 
 void VideoWidget::realLiveVideoSelected(RealLiveVideo rlv)
 {
@@ -87,14 +74,16 @@ void VideoWidget::courseSelected(int courseNr)
 	float startDistance = course.start();
 	quint32 frame = _currentRealLiveVideo.frameForDistance(startDistance);
 
-	qDebug() << "duration = " << _mediaPlayer->duration();
+
+
+
 	double totalFrames = (_mediaPlayer->duration() / 1000.0) * _currentRealLiveVideo.videoInformation().frameRate();
+	qDebug() << "duration = " << _mediaPlayer->duration() << " total frames " << totalFrames;
+	qDebug() << "Going to frame " << frame;
 	double b = frame / totalFrames;
 	_mediaPlayer->setPosition(_mediaPlayer->duration() * b);
-	_mediaPlayer->setPlaybackRate(0.5);
 
-	_videoWidget->setFullScreen(true);
-	_videoWidget->setAspectRatioMode(Qt::KeepAspectRatioByExpanding);
+	_videoWidget->setAspectRatioMode(Qt::KeepAspectRatio);
 
 }
 

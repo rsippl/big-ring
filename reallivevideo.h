@@ -2,12 +2,14 @@
 #define REALLIVEVIDEO_H
 
 #include <QList>
+#include <QMap>
 #include <QString>
 
 class DistanceMappingEntry
 {
 public:
 	explicit DistanceMappingEntry(quint32 frameNumber, float metersPerFrame);
+	explicit DistanceMappingEntry();
 
 	quint32 frameNumber() const { return _frameNumber; }
 	float metersPerFrame() const { return _metersPerFrame; }
@@ -68,7 +70,7 @@ private:
 	QString _name;
 	VideoInformation _videoInformation;
 	QList<Course> _courses;
-	QList<DistanceMappingEntry> _distanceMappings;
+	QMap<float, DistanceMappingEntry> _distanceMappings;
 };
 typedef QList<RealLiveVideo> RealLiveVideoList;
 

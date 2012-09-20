@@ -26,7 +26,6 @@ public slots:
 
 private slots:
 	void playVideo();
-	void mediaStatusChanged(QMediaPlayer::MediaStatus status);
 
 private:
 
