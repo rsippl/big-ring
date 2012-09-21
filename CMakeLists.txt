@@ -14,7 +14,6 @@ include_directories(${QT_INCLUDE_DIR} /usr/include/QtMultimediaKit /usr/include/
 set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS")
 set(SRCS main.cpp
         mainwindow.cpp
-		profileparser.cpp
 		reallivevideo.cpp
         reallivevideoimporter.cpp
         reallivevideowidget.cpp
@@ -24,7 +23,6 @@ set(SRCS main.cpp
 
 set(MOC_HEADERS
         mainwindow.h
-		profileparser.h
         reallivevideoimporter.h
         reallivevideowidget.h
         rlvlistwidget.h
