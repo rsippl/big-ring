@@ -11,8 +11,8 @@ Course::Course(const QString &name, float start, float end):
 {}
 
 RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoInformation,
-							 QList<Course>& courses, QList<DistanceMappingEntry> distanceMappings):
-	_name(name), _videoInformation(videoInformation), _courses(courses)
+							 QList<Course>& courses, QList<DistanceMappingEntry> distanceMappings, QMap<float, ProfileEntry> profile):
+	_name(name), _videoInformation(videoInformation), _courses(courses), _profile(profile)
 {
 	float currentDistance = 0.0f;
 
@@ -36,14 +36,6 @@ RealLiveVideo::RealLiveVideo() {}
 
 quint32 RealLiveVideo::frameForDistance(const float distance) const
 {
-	qDebug() << "**************************";
-	qDebug();
-	foreach (float distance, _distanceMappings.keys()) {
-		qDebug() << distance << ": " <<  _distanceMappings[distance].frameNumber() << ", " << _distanceMappings[distance].metersPerFrame();
-	}
-	qDebug() << "**************************";
-	qDebug();
-
 	qint32 frameNumber = 0;
 	float metersPerFrame = 0.0f;
 	float keyDistance = 0.0f;
@@ -54,7 +46,6 @@ quint32 RealLiveVideo::frameForDistance(const float distance) const
 		it.next();
 
 		keyDistance = it.key();
-		qDebug() << "key: " << keyDistance << " looking for " << distance;
 		if (keyDistance > distance)
 			break;
 
@@ -66,6 +57,23 @@ quint32 RealLiveVideo::frameForDistance(const float distance) const
 	float afterKeyDistance = distance - lastDistance;
 
 	return frameNumber + (afterKeyDistance / metersPerFrame);
+}
+
+float RealLiveVideo::slopeForDistance(const float distance) const
+{
+	float lastSlope = 0.0f;
+	QMapIterator<float, ProfileEntry> it(_profile);
+	while(it.hasNext()) {
+		it.next();
+
+		float currentDistance = it.key();
+		ProfileEntry entry = it.value();
+		qDebug() << "distance: " << distance << " entry.distance() = " << currentDistance << " slope = " << entry.slope();
+		if (currentDistance > distance)
+			break;
+		lastSlope = entry.slope();
+	}
+	return lastSlope;
 }
 
 VideoInformation::VideoInformation(const QString &videoFilename, float frameRate):
@@ -90,3 +98,16 @@ DistanceMappingEntry::DistanceMappingEntry():
 	_frameNumber(0), _metersPerFrame(0.0f)
 {
 }
+
+
+ProfileEntry::ProfileEntry(float distance, float slope):
+	_distance(distance), _slope(slope)
+{
+}
+
+ProfileEntry::ProfileEntry():
+	_distance(.0f), _slope(.0f)
+{
+}
+
+

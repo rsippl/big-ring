@@ -73,9 +73,7 @@ void VideoWidget::courseSelected(int courseNr)
 	const Course& course = _currentRealLiveVideo.courses()[courseNr];
 	float startDistance = course.start();
 	quint32 frame = _currentRealLiveVideo.frameForDistance(startDistance);
-
-
-
+	qDebug() << "slope at start = " << _currentRealLiveVideo.slopeForDistance(startDistance);
 
 	double totalFrames = (_mediaPlayer->duration() / 1000.0) * _currentRealLiveVideo.videoInformation().frameRate();
 	qDebug() << "duration = " << _mediaPlayer->duration() << " total frames " << totalFrames;

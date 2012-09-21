@@ -5,6 +5,20 @@
 #include <QMap>
 #include <QString>
 
+class ProfileEntry
+{
+public:
+	explicit ProfileEntry(float distance, float slope);
+	explicit ProfileEntry();
+
+	float distance() const { return _distance; }
+	float slope() const { return _slope; }
+
+private:
+	float _distance;
+	float _slope;
+};
+
 class DistanceMappingEntry
 {
 public:
@@ -55,7 +69,7 @@ class RealLiveVideo
 {
 public:
 	explicit RealLiveVideo(const QString& name, const VideoInformation& videoInformation, QList<Course>& courses,
-						   QList<DistanceMappingEntry> distanceMappings);
+						   QList<DistanceMappingEntry> distanceMappings, QMap<float,ProfileEntry> profile);
 	explicit RealLiveVideo();
 
 	bool isValid() const { return !_name.isEmpty(); }
@@ -64,6 +78,7 @@ public:
 	const QList<Course>& courses() const { return _courses; }
 
 	quint32 frameForDistance(const float distance) const;
+	float slopeForDistance(const float distance) const;
 
 	static bool compareByName(const RealLiveVideo& rlv1, const RealLiveVideo& rlv2);
 private:
@@ -71,6 +86,7 @@ private:
 	VideoInformation _videoInformation;
 	QList<Course> _courses;
 	QMap<float, DistanceMappingEntry> _distanceMappings;
+	QMap<float, ProfileEntry> _profile;
 };
 typedef QList<RealLiveVideo> RealLiveVideoList;
 

@@ -8,8 +8,6 @@
 
 namespace tacxfile {
 
-
-
 typedef struct header {
 	qint16 fingerprint;
 	qint16 version;
@@ -82,17 +80,84 @@ typedef struct frameDistanceMapping {
 		return QString("\tframeNumber %1, meters per frame %2").arg(frameNumber).arg(metersPerFrame);
 	}
 } frameDistanceMapping_t;
+
+typedef struct generalPgmf {
+	quint32 checksum;
+	quint8 _courseName[34];
+	qint32 powerSlopeOrHr;
+	qint32 _timeOrDistance;
+	double _totalTimeOrDistance;
+	double energyCons;
+	float startAltitude;
+	qint32 breakCategory;
+
+	QString courseName() const {
+		quint8 firstBytes[34/2];
+		for(quint32 i = 0; i < sizeof(firstBytes); ++i)
+			firstBytes[i] = _courseName[i*2];
+		return QString((char*)firstBytes);
+	}
+
+	QString type() const {
+		if (powerSlopeOrHr == 0)
+			return QString("Power");
+		if (powerSlopeOrHr == 1)
+			return QString("Slope");
+		else
+			return QString("HR");
+	}
+
+	QString timeOrDistance() const {
+		if (_timeOrDistance == 0)
+			return "Time";
+		else
+			return "Distance";
+	}
+
+	QString totalTimeOrDistance() const {
+		if (_timeOrDistance == 0)
+			return QString("%1 seconds").arg(_totalTimeOrDistance);
+		else
+			return QString("%1 km").arg(_totalTimeOrDistance/1000.0);
+	}
+
+	QString toString() const {
+		return QString("General pgmf: %1, type: %2, %3-based, start alt: %4")
+				.arg(courseName())
+				.arg(type())
+				.arg(timeOrDistance())
+				.arg(startAltitude);
+	}
+} generalPgmf_t;
+
+typedef struct program {
+	float durationDistance;
+	float powerSlopeHeartRate;
+	float rollingFriction;
+
+	QString toString() const {
+		return QString("duration or distance: %1, value: %2, friction: %3")
+				.arg(durationDistance).arg(powerSlopeHeartRate)
+				.arg(rollingFriction);
+	}
+} program_t;
 }
 
-class RlvFileParser
+class TacxFileParser
+{
+protected:
+	tacxfile::header_t readHeaderBlock(QFile& rlvFile);
+	tacxfile::info_t readInfoBlock(QFile& rlvFile);
+
+};
+
+class RlvFileParser: public TacxFileParser
 {
 public:
 	RlvFileParser(const QStringList& videoFilenames);
 
 	RealLiveVideo parseRlvFile(QFile& rlvFile);
 
-	tacxfile::header_t readHeaderBlock(QFile& rlvFile);
-	tacxfile::info_t readInfoBlock(QFile& rlvFile);
 	tacxfile::generalRlv_t readGeneralRlvBlock(QFile& rlvFile);
 	QList<Course> readCourseInformation(QFile& rlvFile, qint32 count);
 	QList<DistanceMappingEntry> readFrameDistanceMapping(QFile& rlvFile, qint32 count);
@@ -101,6 +166,16 @@ private:
 	QString findVideoFilename(const QStringList& videoFilenames, const QString& rlvVideoFilename);
 	QString findPgmfFilename(QFile& rlvFile);
 	const QStringList _videoFilenames;
+};
+
+class PgmfFileParser: public TacxFileParser
+{
+public:
+	QMap<float,ProfileEntry> readProfile(QFile& pgmfFile);
+
+private:
+	tacxfile::generalPgmf_t readGeneralPgmfInfo(QFile& pgmfFile);
+	QList<tacxfile::program_t> readProgram(QFile& pgmfFile, quint32 count);
 };
 
 #endif // RLVFILEPARSER_H

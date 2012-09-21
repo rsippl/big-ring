@@ -4,7 +4,7 @@
 #include <QFileInfo>
 #include <QtDebug>
 
-RlvFileParser::RlvFileParser(const QStringList& videoFilenames):
+RlvFileParser::RlvFileParser(const QStringList& videoFilenames): TacxFileParser(),
 	_videoFilenames(videoFilenames)
 {
 }
@@ -40,6 +40,8 @@ RealLiveVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
 	if (!pgmfFile.open(QIODevice::ReadOnly))
 		return RealLiveVideo();
 
+	QMap<float,ProfileEntry> profile = PgmfFileParser().readProfile(pgmfFile);
+
 	QList<Course> courses;
 	QString name = QFileInfo(rlvFile).baseName();
 	VideoInformation videoInformation(QString("Unknown"), 0.0);
@@ -65,10 +67,10 @@ RealLiveVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
 			rlvFile.read(infoBlock.numberOfRecords * infoBlock.recordSize);
 		}
 	}
-	return RealLiveVideo(name, videoInformation, courses, distanceMapping);
+	return RealLiveVideo(name, videoInformation, courses, distanceMapping, profile);
 }
 
-tacxfile::header_t RlvFileParser::readHeaderBlock(QFile &rlvFile)
+tacxfile::header_t TacxFileParser::readHeaderBlock(QFile &rlvFile)
 {
 	tacxfile::header_t headerBlock;
 	rlvFile.read((char*) &headerBlock, sizeof(headerBlock));
@@ -76,7 +78,7 @@ tacxfile::header_t RlvFileParser::readHeaderBlock(QFile &rlvFile)
 	return headerBlock;
 }
 
-tacxfile::info_t RlvFileParser::readInfoBlock(QFile &rlvFile)
+tacxfile::info_t TacxFileParser::readInfoBlock(QFile &rlvFile)
 {
 	tacxfile::info_t infoBlock;
 	rlvFile.read((char*) &infoBlock, sizeof(infoBlock));
@@ -121,4 +123,64 @@ QList<DistanceMappingEntry> RlvFileParser::readFrameDistanceMapping(QFile &rlvFi
 		mappings << DistanceMappingEntry(frameDistanceMappingBlock.frameNumber, frameDistanceMappingBlock.metersPerFrame);
 	}
 	return mappings;
+}
+
+
+QMap<float, ProfileEntry> PgmfFileParser::readProfile(QFile &pgmfFile)
+{
+	tacxfile::header_t header = readHeaderBlock(pgmfFile);
+	tacxfile::generalPgmf_t generalBlock;
+	QList<tacxfile::program_t> profileBlocks;
+
+	for(qint32 blockNr = 0; blockNr < header.numberOfBlocks; ++blockNr) {
+		tacxfile::info_t infoBlock = readInfoBlock(pgmfFile);
+		if (infoBlock.fingerprint < 0 || infoBlock.fingerprint > 10000)
+			break;
+		else if (infoBlock.fingerprint == 1010)
+			generalBlock = readGeneralPgmfInfo(pgmfFile);
+		else if (infoBlock.fingerprint == 1020)
+			profileBlocks = readProgram(pgmfFile, infoBlock.numberOfRecords);
+		else
+			pgmfFile.read(infoBlock.numberOfRecords * infoBlock.recordSize);
+
+	}
+
+	QMap<float, ProfileEntry> profile;
+	if (generalBlock.powerSlopeOrHr != 1)
+		return profile;
+
+	float currentDistance = 0.0f;
+	QListIterator<tacxfile::program_t> it(profileBlocks);
+	while(it.hasNext()) {
+		tacxfile::program_t item = it.next();
+		profile[currentDistance] = ProfileEntry(item.durationDistance, item.powerSlopeHeartRate);
+		currentDistance += item.durationDistance;
+	}
+	return profile;
+}
+
+tacxfile::generalPgmf_t PgmfFileParser::readGeneralPgmfInfo(QFile &pgmfFile)
+{
+	tacxfile::generalPgmf_t generalBlock;
+	pgmfFile.read((char*) &generalBlock.checksum, sizeof(qint32));
+	pgmfFile.read((char*) &generalBlock._courseName, 34);
+	pgmfFile.read((char*) &generalBlock.powerSlopeOrHr, sizeof(generalBlock) - offsetof(tacxfile::generalPgmf_t, powerSlopeOrHr));
+
+	qDebug() << generalBlock.toString();
+
+	return generalBlock;
+
+}
+
+QList<tacxfile::program_t> PgmfFileParser::readProgram(QFile &pgmfFile, quint32 count)
+{
+	QList<tacxfile::program_t> programBlocks;
+	programBlocks.reserve(count);
+
+	for (quint32 i = 0; i < count; ++i) {
+		tacxfile::program_t programBlock;
+		pgmfFile.read((char*) &programBlock, sizeof(programBlock));
+		programBlocks << programBlock;
+	}
+	return programBlocks;
 }
