@@ -23,6 +23,7 @@ public:
 	qint64 videoDuration() const;
 
 	void setPosition(qint64 position);
+	void setRate(float rate);
 signals:
 	void videoDurationAvailable(qint64 durationMs);
 

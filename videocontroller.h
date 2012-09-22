@@ -20,13 +20,16 @@ public slots:
 
 private slots:
 	void playVideo();
+	void updateVideo();
 	void videoDurationAvailable(qint64 durationMs);
 
 private:
 	VideoWidget* const _videoWidget;
 	QTimer* const _playDelayTimer;
+	QTimer* const _updateTimer;
 
 	RealLiveVideo _currentRlv;
+	float _currentDistance;
 };
 
 #endif // VIDEOCONTROLLER_H

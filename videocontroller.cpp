@@ -2,10 +2,17 @@
 
 #include <QTimer>
 
+namespace {
+const float SPEED = 15.0f / 3.6f;
+
+const float videoUpdateInterval = 1000; // ms
+}
 VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
 	QObject(parent),
 	_videoWidget(videoWidget),
-	_playDelayTimer(new QTimer(this))
+	_playDelayTimer(new QTimer(this)),
+	_updateTimer(new QTimer(this)),
+	_currentDistance(0.0f)
 {
 	connect(_videoWidget, SIGNAL(videoDurationAvailable(qint64)),
 			this, SLOT(videoDurationAvailable(qint64)));
@@ -13,6 +20,10 @@ VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
 	_playDelayTimer->setSingleShot(true);
 	_playDelayTimer->setInterval(250);
 	connect(_playDelayTimer, SIGNAL(timeout()), SLOT(playVideo()));
+
+	_updateTimer->setInterval(videoUpdateInterval);
+	connect(_updateTimer, SIGNAL(timeout()), SLOT(updateVideo()));
+	_updateTimer->start();
 }
 
 void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
@@ -22,6 +33,8 @@ void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
 	_currentRlv = rlv;
 
 	_playDelayTimer->start();
+
+	_currentDistance = 0.0f;
 }
 
 void VideoController::courseSelected(int courseNr)
@@ -34,9 +47,9 @@ void VideoController::courseSelected(int courseNr)
 		return;
 
 	const Course& course = _currentRlv.courses()[courseNr];
-	float startDistance = course.start();
-	quint32 frame = _currentRlv.frameForDistance(startDistance);
-	qDebug() << "slope at start = " << _currentRlv.slopeForDistance(startDistance);
+	_currentDistance = course.start();
+	quint32 frame = _currentRlv.frameForDistance(_currentDistance);
+	qDebug() << "slope at start = " << _currentRlv.slopeForDistance(_currentDistance);
 
 	double videoDuration = _videoWidget->videoDuration();
 
@@ -51,6 +64,20 @@ void VideoController::courseSelected(int courseNr)
 void VideoController::playVideo()
 {
 	_videoWidget->loadVideo(_currentRlv.videoInformation().videoFilename());
+}
+
+void VideoController::updateVideo()
+{
+	if (!_currentRlv.isValid())
+		return;
+
+	float metersPerFrame = _currentRlv.metersPerFrame(_currentDistance);
+
+	// speed is 30 km/h -> 8.3333 m/s
+	float framesPerSecond = SPEED / metersPerFrame;
+
+	float rate = framesPerSecond / _currentRlv.videoInformation().frameRate();
+	_videoWidget->setRate(rate);
 }
 
 void VideoController::videoDurationAvailable(qint64)

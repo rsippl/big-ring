@@ -60,4 +60,9 @@ void VideoWidget::setPosition(qint64 position)
 	_mediaPlayer->setPosition(position);
 }
 
+void VideoWidget::setRate(float rate)
+{
+	_mediaPlayer->setPlaybackRate(rate);
+}
+
 
