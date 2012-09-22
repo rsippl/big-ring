@@ -77,11 +77,17 @@ public:
 	const VideoInformation& videoInformation() const { return _videoInformation; }
 	const QList<Course>& courses() const { return _courses; }
 
+	/** Get the number or frames per meter for a certain distance */
+	float metersPerFrame(const float distance) const;
+	/** Get the exact frame for a distance. */
 	quint32 frameForDistance(const float distance) const;
+	/** Get the slope for a distance */
 	float slopeForDistance(const float distance) const;
 
 	static bool compareByName(const RealLiveVideo& rlv1, const RealLiveVideo& rlv2);
 private:
+	float findDistanceMappingEntryFor(const float distance) const;
+
 	QString _name;
 	VideoInformation _videoInformation;
 	QList<Course> _courses;

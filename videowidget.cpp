@@ -12,7 +12,7 @@ VideoWidget::VideoWidget(QWidget *parent) :
 {
 
 	setAutoFillBackground(false);
-//	setAttribute(Qt::WA_NoSystemBackground, true);
+	setAttribute(Qt::WA_NoSystemBackground, true);
 	setAttribute(Qt::WA_PaintOnScreen, true);
 
 	QPalette palette = this->palette();
@@ -24,8 +24,6 @@ VideoWidget::VideoWidget(QWidget *parent) :
 
 	QGridLayout *grid = new QGridLayout(this);
 	grid->setMargin(0);
-
-
 
 	_videoWidget = new QVideoWidget(this);
 	_videoWidget->setAspectRatioMode(Qt::KeepAspectRatio);
@@ -62,27 +60,4 @@ void VideoWidget::setPosition(qint64 position)
 	_mediaPlayer->setPosition(position);
 }
 
-//void VideoWidget::courseSelected(int courseNr)
-//{
-//	if (courseNr == -1) {
-//		return;
-//	}
-
-//	if (!_currentRealLiveVideo.isValid())
-//		return;
-
-//	const Course& course = _currentRealLiveVideo.courses()[courseNr];
-//	float startDistance = course.start();
-//	quint32 frame = _currentRealLiveVideo.frameForDistance(startDistance);
-//	qDebug() << "slope at start = " << _currentRealLiveVideo.slopeForDistance(startDistance);
-
-//	double totalFrames = (_mediaPlayer->duration() / 1000.0) * _currentRealLiveVideo.videoInformation().frameRate();
-//	qDebug() << "duration = " << _mediaPlayer->duration() << " total frames " << totalFrames;
-//	qDebug() << "Going to frame " << frame;
-//	double b = frame / totalFrames;
-//	_mediaPlayer->setPosition(_mediaPlayer->duration() * b);
-
-//	_videoWidget->setAspectRatioMode(Qt::KeepAspectRatio);
-
-//}
 

@@ -34,29 +34,19 @@ RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoI
 
 RealLiveVideo::RealLiveVideo() {}
 
+float RealLiveVideo::metersPerFrame(const float distance) const
+{
+	float keyDistance = findDistanceMappingEntryFor(distance);
+	const DistanceMappingEntry entry = _distanceMappings[keyDistance];
+	return entry.metersPerFrame();
+}
+
 quint32 RealLiveVideo::frameForDistance(const float distance) const
 {
-	qint32 frameNumber = 0;
-	float metersPerFrame = 0.0f;
-	float keyDistance = 0.0f;
-	float lastDistance = 0.0f;
+	float keyDistance = findDistanceMappingEntryFor(distance);
+	const DistanceMappingEntry entry = _distanceMappings[keyDistance];
 
-	QMapIterator<float, DistanceMappingEntry> it(_distanceMappings);
-	while(it.hasNext()) {
-		it.next();
-
-		keyDistance = it.key();
-		if (keyDistance > distance)
-			break;
-
-		frameNumber = it.value().frameNumber();
-		metersPerFrame = it.value().metersPerFrame();
-		lastDistance = keyDistance;
-	}
-
-	float afterKeyDistance = distance - lastDistance;
-
-	return frameNumber + (afterKeyDistance / metersPerFrame);
+	return entry.frameNumber() + (distance - keyDistance) / entry.metersPerFrame();
 }
 
 float RealLiveVideo::slopeForDistance(const float distance) const
@@ -87,6 +77,20 @@ VideoInformation::VideoInformation():
 bool RealLiveVideo::compareByName(const RealLiveVideo &rlv1, const RealLiveVideo &rlv2)
 {
 	return rlv1.name().toLower() < rlv2.name().toLower();
+}
+
+float RealLiveVideo::findDistanceMappingEntryFor(const float distance) const
+{
+	float lastDistance = 0.0f;
+	QMapIterator<float, DistanceMappingEntry> it(_distanceMappings);
+	while(it.hasNext()) {
+		it.next();
+
+		if (it.key() > distance)
+			break;
+		lastDistance = it.key();
+	}
+	return lastDistance;
 }
 
 DistanceMappingEntry::DistanceMappingEntry(quint32 frameNumber, float metersPerFrame):
