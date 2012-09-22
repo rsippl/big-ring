@@ -3,7 +3,9 @@
 #include <QMetaObject>
 #include <QtDebug>
 #include <QResizeEvent>
-#include <QGridLayout>
+#include <QAbstractAnimation>
+#include <QLabel>
+#include <QVBoxLayout>
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
@@ -12,18 +14,16 @@ VideoWidget::VideoWidget(QWidget *parent) :
 {
 
 	setAutoFillBackground(false);
-	setAttribute(Qt::WA_NoSystemBackground, true);
+//	setAttribute(Qt::WA_NoSystemBackground, true);
 	setAttribute(Qt::WA_PaintOnScreen, true);
 
 	QPalette palette = this->palette();
 	palette.setColor(QPalette::Background, Qt::black);
 	setPalette(palette);
 
-	setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
-
-	QGridLayout *grid = new QGridLayout(this);
-	grid->setMargin(0);
+	QVBoxLayout *layout = new QVBoxLayout(this);
 
 	_videoWidget = new QVideoWidget(this);
 	_videoWidget->setAspectRatioMode(Qt::KeepAspectRatio);
@@ -32,7 +32,12 @@ VideoWidget::VideoWidget(QWidget *parent) :
 	connect(_mediaPlayer, SIGNAL(durationChanged(qint64)),
 			this, SIGNAL(videoDurationAvailable(qint64)));
 
-	grid->addWidget(_videoWidget, 0, 0, 3, 1);
+	layout->addWidget(_videoWidget);
+
+	_speedLabel = new QLabel("0 km/h", this);
+	layout->addWidget(_speedLabel);
+	_distanceLabel = new QLabel("0 m", this);
+	layout->addWidget(_distanceLabel);
 }
 
 VideoWidget::~VideoWidget()
@@ -65,4 +70,12 @@ void VideoWidget::setRate(float rate)
 	_mediaPlayer->setPlaybackRate(rate);
 }
 
+void VideoWidget::setSpeed(float speed)
+{
+	_speedLabel->setText(QString("%1 km/h").arg(speed));
+}
 
+void VideoWidget::setDistance(float distance)
+{
+	_distanceLabel->setText(QString("%1 m").arg(distance));
+}

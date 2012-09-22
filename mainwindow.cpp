@@ -6,6 +6,7 @@
 #include "videowidget.h"
 
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QListWidget>
 #include <QKeyEvent>
 #include <QWidget>
@@ -19,18 +20,12 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
 
     QWidget* centralWidget = new QWidget(this);
     _layout = new QHBoxLayout(centralWidget);
-    _layout->addLayout(setupSideBar());
+	_layout->addLayout(setupSideBar(centralWidget));
     //    RlvListWidget* listWidget = new RlvListWidget(centralWidget);
     //    listWidget->setFixedWidth(300);
     //    layout->addWidget(listWidget);
 
-	VideoWidget* videoWidget = new VideoWidget(centralWidget);
-	videoWidget->setMinimumWidth(800);
-	videoWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-	_layout->addWidget(videoWidget);
-
-	VideoController* videoController = new VideoController(videoWidget, this);
+	_layout->addLayout(setUpMain(centralWidget));
 
     setCentralWidget(centralWidget);
 
@@ -40,17 +35,44 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
     QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
 			 videoController, SLOT(courseSelected(int)));
 
+	connect(videoController, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
+	connect(videoController, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
     grabKeyboard();
 }
 
-QLayout* MainWindow::setupSideBar()
+QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 {
-    QVBoxLayout* layout = new QVBoxLayout;
-    rlvListWidget = new RlvListWidget();
+	QVBoxLayout* layout = new QVBoxLayout(centralWidget);
+
+	videoWidget = new VideoWidget(centralWidget);
+	videoWidget->setMinimumWidth(800);
+	videoWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+	layout->addWidget(videoWidget);
+
+	QHBoxLayout* dials = new QHBoxLayout(centralWidget);
+
+	distanceLabel = new QLabel("0 m", centralWidget);
+	dials->addWidget(distanceLabel);
+	slopeLabel = new QLabel("0 %", centralWidget);
+	dials->addWidget(slopeLabel);
+
+	layout->addLayout(dials);
+
+	videoController = new VideoController(videoWidget, this);
+
+	return layout;
+}
+
+QLayout* MainWindow::setupSideBar(QWidget* centralWidget)
+{
+	QVBoxLayout* layout = new QVBoxLayout(centralWidget);
+	rlvListWidget = new RlvListWidget(centralWidget);
     rlvListWidget->setFixedWidth(300);
     layout->addWidget(rlvListWidget);
 
-    courseListWidget = new QListWidget;
+	courseListWidget = new QListWidget(centralWidget);
+	courseListWidget->setFixedWidth(300);
     layout->addWidget(courseListWidget);
 
 
@@ -70,7 +92,18 @@ void MainWindow::doFullscreen()
 {
     rlvListWidget->hide();
     courseListWidget->hide();
-    showFullScreen();
+	showFullScreen();
+}
+
+void MainWindow::distanceChanged(float distance)
+{
+	qint32 distanceInMeters = (qint32) distance;
+	distanceLabel->setText(QString("%1 m").arg(distanceInMeters));
+}
+
+void MainWindow::slopeChanged(float slope)
+{
+	slopeLabel->setText(QString("%1 %%").arg(slope));
 }
 
 void MainWindow::removeMargins()

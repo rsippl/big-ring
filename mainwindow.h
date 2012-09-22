@@ -9,8 +9,11 @@ class QTimer;
 
 class RealLiveVideoImporter;
 class RlvListWidget;
+class QLabel;
 class QListWidget;
 class QBoxLayout;
+class VideoController;
+class VideoWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -27,15 +30,24 @@ protected:
 private slots:
     void rlvSelected(RealLiveVideo rlv);
     void doFullscreen();
+
+	void distanceChanged(float distance);
+	void slopeChanged(float slope);
+
 private:
-    QLayout* setupSideBar();
+	QLayout* setUpMain(QWidget *centralWidget);
+	QLayout* setupSideBar(QWidget *centralWidget);
     void removeMargins();
     void restoreMargins();
 
+	VideoController* videoController;
+	VideoWidget* videoWidget;
     QListWidget* courseListWidget;
     RlvListWidget* rlvListWidget;
     QMargins _margins;
     QBoxLayout* _layout;
+	QLabel* distanceLabel;
+	QLabel* slopeLabel;
 };
 
 #endif // MAINWINDOW_H

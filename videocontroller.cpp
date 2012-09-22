@@ -1,5 +1,6 @@
 #include "videocontroller.h"
 
+#include <QDateTime>
 #include <QTimer>
 
 namespace {
@@ -34,7 +35,8 @@ void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
 
 	_playDelayTimer->start();
 
-	_currentDistance = 0.0f;
+	setDistance(0.0f);
+	_lastTime = QDateTime::currentMSecsSinceEpoch();
 }
 
 void VideoController::courseSelected(int courseNr)
@@ -47,7 +49,8 @@ void VideoController::courseSelected(int courseNr)
 		return;
 
 	const Course& course = _currentRlv.courses()[courseNr];
-	_currentDistance = course.start();
+	setDistance(course.start());
+	_lastTime = QDateTime::currentMSecsSinceEpoch();
 	quint32 frame = _currentRlv.frameForDistance(_currentDistance);
 	qDebug() << "slope at start = " << _currentRlv.slopeForDistance(_currentDistance);
 
@@ -59,6 +62,7 @@ void VideoController::courseSelected(int courseNr)
 	double b = frame / totalFrames;
 
 	_videoWidget->setPosition(videoDuration * b);
+
 }
 
 void VideoController::playVideo()
@@ -71,11 +75,23 @@ void VideoController::updateVideo()
 	if (!_currentRlv.isValid())
 		return;
 
+	// update distance
+	qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
+	qint64 elapsed = currentTime - _lastTime;
+
+	float distanceTravelled = (SPEED * elapsed) * 0.001;
+
+	qDebug() << elapsed << "  distance travelled = " << distanceTravelled;
+	setDistance(_currentDistance + distanceTravelled);
+
+	_lastTime = currentTime;
+
 	float metersPerFrame = _currentRlv.metersPerFrame(_currentDistance);
+	float slope = _currentRlv.slopeForDistance(_currentDistance);
+	emit slopeChanged(slope);
 
 	// speed is 30 km/h -> 8.3333 m/s
 	float framesPerSecond = SPEED / metersPerFrame;
-
 	float rate = framesPerSecond / _currentRlv.videoInformation().frameRate();
 	_videoWidget->setRate(rate);
 }
@@ -83,4 +99,10 @@ void VideoController::updateVideo()
 void VideoController::videoDurationAvailable(qint64)
 {
 	_videoWidget->playVideo();
+}
+
+void VideoController::setDistance(float distance)
+{
+	_currentDistance = distance;
+	emit distanceChanged(distance);
 }
