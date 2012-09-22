@@ -19,6 +19,7 @@ set(SRCS main.cpp
         reallivevideowidget.cpp
         rlvfileparser.cpp
         rlvlistwidget.cpp
+		videocontroller.cpp
 		videowidget.cpp)
 
 set(MOC_HEADERS
@@ -26,6 +27,7 @@ set(MOC_HEADERS
         reallivevideoimporter.h
         reallivevideowidget.h
         rlvlistwidget.h
+		videocontroller.h
 		videowidget.h)
 
 set(UI_FILES

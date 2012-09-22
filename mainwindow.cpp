@@ -2,6 +2,7 @@
 
 #include "reallivevideoimporter.h"
 #include "rlvlistwidget.h"
+#include "videocontroller.h"
 #include "videowidget.h"
 
 #include <QHBoxLayout>
@@ -29,13 +30,15 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
 
 	_layout->addWidget(videoWidget);
 
+	VideoController* videoController = new VideoController(videoWidget, this);
+
     setCentralWidget(centralWidget);
 
-	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoWidget, SLOT(realLiveVideoSelected(RealLiveVideo)));
+	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoController, SLOT(realLiveVideoSelected(RealLiveVideo)));
     QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
     QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
     QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
-		     videoWidget, SLOT(courseSelected(int)));
+			 videoController, SLOT(courseSelected(int)));
 
     grabKeyboard();
 }

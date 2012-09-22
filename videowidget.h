@@ -12,29 +12,26 @@ class QThread;
 
 class VideoWidget : public QWidget
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    explicit VideoWidget(QWidget *parent = 0);
-    virtual ~VideoWidget();
+	explicit VideoWidget(QWidget *parent = 0);
+	virtual ~VideoWidget();
 
-signals:
-
-public slots:
-    void realLiveVideoSelected(RealLiveVideo rlv);
-    void courseSelected(int courseNr);
-
-
-private slots:
+	void loadVideo(const QString& videoFilename);
 	void playVideo();
+
+	qint64 videoDuration() const;
+
+	void setPosition(qint64 position);
+signals:
+	void videoDurationAvailable(qint64 durationMs);
 
 private:
 
 	QVideoWidget *_videoWidget;
 	QMediaPlayer *_mediaPlayer;
 
-    RealLiveVideo _currentRealLiveVideo;
-
-    QTimer* _playDelayTimer;
+	RealLiveVideo _currentRealLiveVideo;
 };
 
 #endif // VIDEOWIDGET_H
