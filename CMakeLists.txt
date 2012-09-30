@@ -4,12 +4,12 @@ set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui REQUIRED)
-
-
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
 find_package(FFMPEG REQUIRED)
 include(${QT_USE_FILE})
 
-include_directories(${QT_INCLUDE_DIR} /usr/include/QtMultimediaKit /usr/include/QtMobility ${CMAKE_BINARY_DIR})
+include_directories(${QT_INCLUDE_DIR} /usr/include/QtMultimediaKit /usr/include/QtMobility)
 
 set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS")
 set(SRCS main.cpp
@@ -33,8 +33,7 @@ set(MOC_HEADERS
 set(UI_FILES
     rlvlistwidget.ui)
 
-qt4_wrap_cpp(MOC_SRCS ${MOC_HEADERS})
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
-add_executable(indoorcycling ${SRCS} ${MOC_SRCS} ${UI_SRCS})
+add_executable(indoorcycling ${SRCS} ${UI_SRCS})
 target_link_libraries(indoorcycling ${QT_LIBRARIES} QtMultimediaKit ${FFMPEG_LIBRARIES})
