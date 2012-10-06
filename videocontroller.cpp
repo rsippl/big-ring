@@ -5,9 +5,9 @@
 
 namespace {
 const float SPEED = 15.0f / 3.6f;
-
-const float videoUpdateInterval = 1000; // ms
+const float videoUpdateInterval = 100; // ms
 }
+
 VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
 	QObject(parent),
 	_videoWidget(videoWidget),
@@ -93,6 +93,8 @@ void VideoController::updateVideo()
 	// speed is 30 km/h -> 8.3333 m/s
 	float framesPerSecond = SPEED / metersPerFrame;
 	float rate = framesPerSecond / _currentRlv.videoInformation().frameRate();
+
+	qDebug() << "setting playback rate to " << rate;
 	_videoWidget->setRate(rate);
 }
 

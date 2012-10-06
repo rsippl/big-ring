@@ -17,7 +17,6 @@ RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoI
 	float currentDistance = 0.0f;
 
 	quint32 lastFrameNumber = 0;
-//	float lastMetersPerFrame = 0.0f;
 	QListIterator<DistanceMappingEntry> it(distanceMappings);
 	while(it.hasNext()) {
 		const DistanceMappingEntry& entry = it.next();
@@ -27,7 +26,6 @@ RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoI
 		_distanceMappings[currentDistance] = entry;
 
 		lastFrameNumber = entry.frameNumber();
-//		lastMetersPerFrame = entry.metersPerFrame();
 	}
 
 }
@@ -58,7 +56,6 @@ float RealLiveVideo::slopeForDistance(const float distance) const
 
 		float currentDistance = it.key();
 		ProfileEntry entry = it.value();
-		qDebug() << "distance: " << distance << " entry.distance() = " << currentDistance << " slope = " << entry.slope();
 		if (currentDistance > distance)
 			break;
 		lastSlope = entry.slope();

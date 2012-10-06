@@ -122,15 +122,15 @@ void MainWindow::restoreMargins()
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_F) {
-	rlvListWidget->hide();
-	courseListWidget->hide();
-	removeMargins();
-	showFullScreen();
-    } else if (event->key() == Qt::Key_Escape) {
-	showNormal();
-	restoreMargins();
-	rlvListWidget->show();
-	courseListWidget->show();
-    }
+	if (event->key() == Qt::Key_F) {
+		rlvListWidget->hide();
+		courseListWidget->hide();
+		removeMargins();
+		showFullScreen();
+	} else if (event->key() == Qt::Key_Escape) {
+		showNormal();
+		restoreMargins();
+		rlvListWidget->show();
+		courseListWidget->show();
+	}
 }
