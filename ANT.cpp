@@ -83,13 +83,11 @@ const ant_sensor_type_t ANT::ant_sensor_types[] = {
 // thread and is part of the GC architecture NOT related to the
 // hardware controller.
 //
-ANT::ANT(QObject *parent) : QThread(parent)
+ANT::ANT(QObject *parent): QObject(parent)
 {
 	// device status and settings
-	Status=0;
 	baud=115200;
 	powerchannels=0;
-	configuring = false;
 
 	// state machine
 	state = ST_WAIT_FOR_SYNC;
@@ -152,13 +150,10 @@ double ANT::channelValue(int channel)
  * Main thread functions; start, stop etc
  *====================================================================*/
 
-void ANT::run()
+void ANT::initialize()
 {
-	int status; // control commands from controller
 	powerchannels = 0;
 
-	Status = ANT_RUNNING;
-	QString strBuf;
 #if defined GC_HAVE_LIBUSB
 	usbMode = USBNone;
 #endif
@@ -170,147 +165,56 @@ void ANT::run()
 	length = bytes = 0;
 	checksum = ANT_SYNC_BYTE;
 
-	if (openPort() == 0) {
+	if (openPort() != 0) {
+		emit initializationFailed();
+		return;
+	}
 
-		antlog.setFileName("antlog.bin");
-		antlog.open(QIODevice::WriteOnly | QIODevice::Truncate);
+	antlog.setFileName("antlog.bin");
+	antlog.open(QIODevice::WriteOnly | QIODevice::Truncate);
 
-		sendMessage(ANTMessage::resetSystem());
-		sendMessage(ANTMessage::setNetworkKey(1, key));
+	sendMessage(ANTMessage::resetSystem());
+	sendMessage(ANTMessage::setNetworkKey(1, key));
 
-		// pair with specified devices on next available channel
-		if (antIDs.count()) {
+	// pair with specified devices on next available channel
+	if (antIDs.count()) {
 
-			foreach(QString antid, antIDs) {
+		foreach(QString antid, antIDs) {
 
-				if (antid.length()) {
-					unsigned char c = antid.at(antid.length()-1).toLatin1();
-					int ch_type = interpretSuffix(c);
-					int device_number = antid.mid(0, antid.length()-1).toInt();
+			if (antid.length()) {
+				unsigned char c = antid.at(antid.length()-1).toLatin1();
+				int ch_type = interpretSuffix(c);
+				int device_number = antid.mid(0, antid.length()-1).toInt();
 
-					addDevice(device_number, ch_type, -1);
-				}
-			}
-
-		} else {
-
-			if (!configuring) {
-				// not configured, just pair with whatever you can find
-				addDevice(0, ANTChannel::CHANNEL_TYPE_SPEED, 0);
-				addDevice(0, ANTChannel::CHANNEL_TYPE_POWER, 1);
-				addDevice(0, ANTChannel::CHANNEL_TYPE_CADENCE, 2);
-				addDevice(0, ANTChannel::CHANNEL_TYPE_HR, 3);
-
-				if (channels > 4) addDevice(0, ANTChannel::CHANNEL_TYPE_SandC, 4);
+				addDevice(device_number, ch_type, -1);
 			}
 		}
 
 	} else {
-		quit(0);
-		return;
+		// not configured, just pair with whatever you can find
+		addDevice(0, ANTChannel::CHANNEL_TYPE_SPEED, 0);
+		addDevice(0, ANTChannel::CHANNEL_TYPE_POWER, 1);
+		addDevice(0, ANTChannel::CHANNEL_TYPE_CADENCE, 2);
+		addDevice(0, ANTChannel::CHANNEL_TYPE_HR, 3);
+
+		if (channels > 4) addDevice(0, ANTChannel::CHANNEL_TYPE_SandC, 4);
 	}
+	emit initializationSucceeded();
+}
 
-	while(1)
-	{
-		// read more bytes from the device
-		uint8_t byte;
-		if (rawRead(&byte, 1) > 0) receiveByte((unsigned char)byte);
-		else msleep(5);
+void ANT::readCycle()
+{
+	// read more bytes from the device
+	uint8_t byte;
+	if (rawRead(&byte, 1) > 0) receiveByte((unsigned char)byte);
+	else return;
 
-		//----------------------------------------------------------------------
-		// LISTEN TO CONTROLLER FOR COMMANDS
-		//----------------------------------------------------------------------
-		pvars.lock();
-		status = this->Status;
-		pvars.unlock();
-
-		// do we have a channel to search / stop
-		if (!channelQueue.isEmpty()) {
-			setChannelAtom x = channelQueue.dequeue();
-			if (x.device_number == -1) antChannel[x.channel]->close(); // unassign
-			else addDevice(x.device_number, x.channel_type, x.channel); // assign
-		}
-
-		/* time to shut up shop */
-		if (!(status&ANT_RUNNING)) {
-			// time to stop!
-			quit(0);
-			return;
-		}
+	// do we have a channel to search / stop
+	if (!channelQueue.isEmpty()) {
+		setChannelAtom x = channelQueue.dequeue();
+		if (x.device_number == -1) antChannel[x.channel]->close(); // unassign
+		else addDevice(x.device_number, x.channel_type, x.channel); // assign
 	}
-}
-
-int
-ANT::start()
-{
-	QThread::start();
-	return 0;
-}
-
-int
-ANT::restart()
-{
-	int status;
-
-	// get current status
-	pvars.lock();
-	status = this->Status;
-	pvars.unlock();
-
-	// what state are we in anyway?
-	if (status&ANT_RUNNING && status&ANT_PAUSED) {
-		status &= ~ANT_PAUSED;
-		pvars.lock();
-		this->Status = status;
-		pvars.unlock();
-		return 0; // ok its running again!
-	}
-	return 2;
-}
-
-int
-ANT::pause()
-{
-	int status;
-
-	// get current status
-	pvars.lock();
-	status = this->Status;
-	pvars.unlock();
-
-	if (status&ANT_PAUSED) return 2;
-	else if (!(status&ANT_RUNNING)) return 4;
-	else {
-		// ok we're running and not paused so lets pause
-		status |= ANT_PAUSED;
-		pvars.lock();
-		this->Status = status;
-		pvars.unlock();
-
-		return 0;
-	}
-}
-
-int
-ANT::stop()
-{
-	// what state are we in anyway?
-	pvars.lock();
-	Status = 0; // Terminate it!
-	pvars.unlock();
-
-	// close debug file
-	antlog.close();
-	return 0;
-}
-
-int
-ANT::quit(int code)
-{
-	// event code goes here!
-	closePort();
-	exit(code);
-	return 0;
 }
 
 /*======================================================================
@@ -737,16 +641,6 @@ int ANT::closePort()
 #endif
 }
 
-bool ANT::find()
-{
-	QString errors;
-	QVector<boost::shared_ptr<CommPort> > commPorts = CommPort::listCommPorts(errors);
-	foreach(boost::shared_ptr<CommPort> port, commPorts) {
-		qDebug() << port->name();
-	}
-	return false;
-}
-
 int ANT::openPort()
 {
 #ifdef WIN32
@@ -955,3 +849,6 @@ const char * ANT::deviceTypeDescription(int type)
 	} while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
 	return "Unknown device type";
 }
+
+
+

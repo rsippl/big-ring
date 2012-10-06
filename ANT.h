@@ -23,7 +23,6 @@
 //
 // QT stuff
 //
-#include <QThread>
 #include <QMutex>
 #include <QObject>
 #include <QQueue>
@@ -228,7 +227,7 @@ struct setChannelAtom {
 //======================================================================
 // Worker thread
 //======================================================================
-class ANT : public QThread
+class ANT: public QObject
 {
 	Q_OBJECT
 
@@ -238,6 +237,10 @@ public:
 	~ANT();
 
 signals:
+	void initializationSucceeded();
+	/** Signal failure of initialization */
+	void initializationFailed();
+
 	void foundDevice(int channel, int device_number, int device_id); // channelInfo
 	void lostDevice(int channel);            // dropInfo
 	void searchTimeout(int channel);         // searchTimeount
@@ -247,21 +250,9 @@ signals:
 	void heartRate(quint8);
 
 public slots:
+	void initialize();
+	void readCycle();
 
-	// runtime controls
-	int start();                                // Calls QThread to start
-	int restart();                              // restart after paused
-	int pause();                                // pauses data collection, inbound telemetry is discarded
-	int stop();                                 // stops data collection thread
-	int quit(int error);                        // called by thread before exiting
-
-	// configuration and channel management
-	bool isConfiguring() { return configuring; }
-	void setConfigurationMode(bool x) { configuring = x; }
-	void setChannel(int channel, int device_number, int channel_type) {
-		channelQueue.enqueue(setChannelAtom(channel, device_number, channel_type));
-	}
-	bool find();                              // find usb device
 	bool discover(QString name);              // confirm Server available at portSpec
 
 	int channelCount() { return channels; }   // how many channels we got available?
@@ -323,7 +314,6 @@ private:
 
 	QString deviceFilename;
 	QMutex pvars;  // lock/unlock access to telemetry data between thread and controller
-	int Status;     // what status is the client in?
 	bool configuring; // set to true if we're in configuration mode.
 	int channels;  // how many 4 or 8 ? depends upon the USB stick...
 

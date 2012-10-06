@@ -2,8 +2,11 @@
 #define ANTCONTROLLER_H
 
 #include <QObject>
+#include <QThread>
+#include <QTimer>
 
 #include "ANT.h"
+
 
 class ANTController : public QObject
 {
@@ -18,12 +21,14 @@ public slots:
 	
 private slots:
 	void foundDevice(int channel, int device, int device_type);
-	void receivedHeartRate(quint8 hr);
+	void antInitialized();
 private:
 	void initialize();
+	void createAntThread();
 
-
+	QThread* antThread;
 	ANT* const ant;
+	QTimer* const antTimer;
 };
 
 #endif // ANTCONTROLLER_H

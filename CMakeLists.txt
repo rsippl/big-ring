@@ -30,14 +30,6 @@ set(SRCS main.cpp
 		videocontroller.cpp
 		videowidget.cpp)
 
-set(MOC_HEADERS
-        mainwindow.h
-        reallivevideoimporter.h
-        reallivevideowidget.h
-        rlvlistwidget.h
-		videocontroller.h
-		videowidget.h)
-
 set(UI_FILES
     rlvlistwidget.ui)
 

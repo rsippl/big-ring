@@ -1,27 +1,31 @@
 #include "antcontroller.h"
-
+#include <QMetaObject>
 #include <boost/shared_ptr.hpp>
 #include "CommPort.h"
 
 ANTController::ANTController(QObject *parent) :
-	QObject(parent), ant(new ANT(this))
+	QObject(parent), antThread(NULL), ant(new ANT),
+	antTimer(new QTimer(this))
 {
 	initialize();
-
-	connect(ant, SIGNAL(foundDevice(int,int,int)), SLOT(foundDevice(int,int,int)));
-	connect(ant, SIGNAL(heartRate(quint8)), SIGNAL(heartRate(quint8)));
-	connect(ant, SIGNAL(heartRate(quint8)), SLOT(receivedHeartRate(quint8)));
+	antTimer->setInterval(50);
 }
 
 ANTController::~ANTController() {
-	ant->stop();
-	ant->wait();
+	ant->deleteLater();
+	antThread->quit();
+	antThread->wait();
 }
 
 void ANTController::foundDevice(int, int , int )
 {
 	qDebug() << "found ANT device";
-//	ant->addDevice(device, device_type, channel);
+}
+
+void ANTController::antInitialized()
+{
+	qDebug() << "ANT initialized";
+	antTimer->start();
 }
 
 void ANTController::initialize()
@@ -33,12 +37,24 @@ void ANTController::initialize()
 		if (ant->discover(deviceFile)) {
 			qDebug() << "found device: " << deviceFile;
 			ant->setDevice(deviceFile);
-			ant->start();
+			createAntThread();
 		}
 	}
 }
 
-void ANTController::receivedHeartRate(quint8 hr)
+void ANTController::createAntThread()
 {
-	qDebug() << "received hr: " << hr;
+	antThread = new QThread(this);
+	antThread->start();
+
+	ant->moveToThread(antThread);
+
+	connect(ant, SIGNAL(initializationSucceeded()), SLOT(antInitialized()));
+	connect(ant, SIGNAL(foundDevice(int,int,int)), SLOT(foundDevice(int,int,int)));
+	connect(ant, SIGNAL(heartRate(quint8)), SIGNAL(heartRate(quint8)));
+
+	connect(antTimer, SIGNAL(timeout()), ant, SLOT(readCycle()));
+
+	QMetaObject::invokeMethod(ant, "initialize");
 }
+
