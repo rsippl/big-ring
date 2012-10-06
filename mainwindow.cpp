@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include "antcontroller.h"
 #include "reallivevideoimporter.h"
 #include "rlvlistwidget.h"
 #include "videocontroller.h"
@@ -11,7 +12,7 @@
 #include <QKeyEvent>
 #include <QWidget>
 
-MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
+MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController& controller, QWidget *parent) :
     QMainWindow(parent)
 {
     connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), SIGNAL(importFinished(RealLiveVideoList)));
@@ -33,6 +34,8 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
 
 	connect(videoController, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
 	connect(videoController, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
+	connect(&controller, SIGNAL(heartRate(quint8)), SLOT(hrChanged(quint8)));
+
     grabKeyboard();
 }
 
@@ -52,6 +55,8 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 	dials->addWidget(distanceLabel);
 	slopeLabel = new QLabel("0 %", centralWidget);
 	dials->addWidget(slopeLabel);
+	hrLabel = new QLabel("--", centralWidget);
+	dials->addWidget(hrLabel);
 
 	layout->addLayout(dials);
 
@@ -100,6 +105,11 @@ void MainWindow::distanceChanged(float distance)
 void MainWindow::slopeChanged(float slope)
 {
 	slopeLabel->setText(QString("%1 %%").arg(slope));
+}
+
+void MainWindow::hrChanged(quint8 hr)
+{
+	hrLabel->setText(QString("%1 BPM").arg(hr));
 }
 
 void MainWindow::removeMargins()

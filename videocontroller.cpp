@@ -94,8 +94,8 @@ void VideoController::updateVideo()
 	float framesPerSecond = SPEED / metersPerFrame;
 	float rate = framesPerSecond / _currentRlv.videoInformation().frameRate();
 
-	qDebug() << "setting playback rate to " << rate;
-	_videoWidget->setRate(rate);
+	qDebug() << "setting playback rate to " << rate << " (NOT HAPPENING RIGHT NOW)";
+	_videoWidget->setRate(1.0);
 }
 
 void VideoController::videoDurationAvailable(qint64)

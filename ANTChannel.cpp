@@ -503,6 +503,7 @@ void ANTChannel::open(int device, int chan_type)
 					uint16_t time = antMessage.measurementTime - lastMessage.measurementTime;
 					if (time) {
 						nullCount = 0;
+						emit heartRate(antMessage.instantHeartrate);
 //						parent->setBPM(antMessage.instantHeartrate);
 						value2 = value = antMessage.instantHeartrate;
 					} else {

@@ -181,5 +181,7 @@ class ANTChannel : public QObject {
         void staleInfo(int number);   // the connection is stale
         void searchTimeout(int number); // search timed out
         void searchComplete(int number); // search completed successfully
+
+		void heartRate(quint8);
 };
 #endif

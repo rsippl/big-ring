@@ -25,6 +25,7 @@
 
 #include "ANT.h"
 #include "ANTMessage.h"
+#include "CommPort.h"
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QTime>
@@ -108,6 +109,8 @@ ANT::ANT(QObject *parent) : QThread(parent)
 		connect(antChannel[i], SIGNAL(staleInfo(int)), this, SLOT(staleInfo(int)));
 		connect(antChannel[i], SIGNAL(searchTimeout(int)), this, SLOT(slotSearchTimeout(int)));
 		connect(antChannel[i], SIGNAL(searchComplete(int)), this, SLOT(slotSearchComplete(int)));
+
+		connect(antChannel[i], SIGNAL(heartRate(quint8)), SIGNAL(heartRate(quint8)));
 	}
 
 	// on windows and linux we use libusb to read from USB2
@@ -526,8 +529,8 @@ void
 ANT::channelInfo(int channel, int device_number, int device_id)
 {
 	emit foundDevice(channel, device_number, device_id);
-	//qDebug()<<"found device number"<<device_number<<"type"<<device_id<<"on channel"<<channel
-	//<< "is a "<<deviceTypeDescription(device_id) << "with code"<<deviceTypeCode(device_id);
+	qDebug()<<"found device number"<<device_number<<"type"<<device_id<<"on channel"<<channel
+		<< "is a "<<deviceTypeDescription(device_id) << "with code"<<deviceTypeCode(device_id);
 }
 
 void
@@ -736,12 +739,11 @@ int ANT::closePort()
 
 bool ANT::find()
 {
-#if defined WIN32 || defined GC_HAVE_LIBUSB
-	if (usb2->find() == true) return true;
-#endif
-#ifdef WIN32
-	if (USBXpress::find() == true) return true;
-#endif
+	QString errors;
+	QVector<boost::shared_ptr<CommPort> > commPorts = CommPort::listCommPorts(errors);
+	foreach(boost::shared_ptr<CommPort> port, commPorts) {
+		qDebug() << port->name();
+	}
 	return false;
 }
 

@@ -7,7 +7,7 @@
 
 #include "reallivevideoimporter.h"
 
-#include "ANT.h"
+#include "antcontroller.h"
 
 
 int main(int argc, char *argv[])
@@ -18,11 +18,14 @@ int main(int argc, char *argv[])
 	qDebug() << "starting up";
 	QString filename(argv[1]);
 	RealLiveVideoImporter parser;
-	MainWindow mw(parser);
-	ANT ant(&app);
+	ANTController antController(&app);
+	MainWindow mw(parser, antController);
+
+
+
 	mw.show();
 
-	parser.parseRealLiveVideoFilesFromDir(filename);
+//	parser.parseRealLiveVideoFilesFromDir(filename);
 
 	app.exec();
 }

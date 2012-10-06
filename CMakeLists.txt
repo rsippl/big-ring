@@ -15,7 +15,10 @@ set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS")
 set(ANT_SRCS
 	ANT.cpp
 	ANTChannel.cpp
-	ANTMessage.cpp)
+	antcontroller.cpp
+	ANTMessage.cpp
+	CommPort.cpp
+	Serial.cpp)
 
 set(SRCS main.cpp
         mainwindow.cpp

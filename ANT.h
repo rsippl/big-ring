@@ -244,6 +244,8 @@ signals:
 	void searchComplete(int channel);         // searchComplete
 	void signalStrength(int channel, double reliability);
 
+	void heartRate(quint8);
+
 public slots:
 
 	// runtime controls
