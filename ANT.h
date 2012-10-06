@@ -250,12 +250,13 @@ signals:
 	void heartRate(quint8);
 
 public slots:
+
+	/** Initialize ANT+ device */
 	void initialize();
+	/** Perform a read cycle, should be called every 25 ms or so. */
 	void readCycle();
 
-	bool discover(QString name);              // confirm Server available at portSpec
-
-	int channelCount() { return channels; }   // how many channels we got available?
+private slots:
 	void channelInfo(int number, int device_number, int device_id);  // found a device
 	void dropInfo(int number, int drops, int received);    // we dropped a connection
 	void lostInfo(int number);    // we lost informa
@@ -264,12 +265,6 @@ public slots:
 	void slotSearchComplete(int number); // search completed successfully
 
 public:
-
-	static int interpretSuffix(char c); // utility to convert e.g. 'c' to CHANNEL_TYPE_CADENCE
-	static const char *deviceTypeDescription(int type); // utility to convert CHANNEL_TYPE_XXX to human string
-	static char deviceTypeCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
-	static char deviceIdCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
-
 	// debug enums
 	enum { DEBUG_LEVEL_ERRORS=1,
 		   DEBUG_LEVEL_ANT_CONNECTION=2,
@@ -277,7 +272,6 @@ public:
 		   DEBUG_LEVEL_CONFIG_PARSE=8
 		 };
 
-	static const unsigned char key[8];
 	static const ant_sensor_type_t ant_sensor_types[];
 	ANTChannel *antChannel[ANT_MAX_CHANNELS];
 
@@ -309,8 +303,15 @@ public:
 	double channelValue2(int channel);
 
 private:
+	/** Open connection to the ANT+ device */
+	bool openConnection();
+	bool discover(QString name);
 
-	void run();
+	static int interpretSuffix(char c); // utility to convert e.g. 'c' to CHANNEL_TYPE_CADENCE
+	static const char *deviceTypeDescription(int type); // utility to convert CHANNEL_TYPE_XXX to human string
+	static char deviceTypeCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
+	static char deviceIdCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
+
 
 	QString deviceFilename;
 	QMutex pvars;  // lock/unlock access to telemetry data between thread and controller

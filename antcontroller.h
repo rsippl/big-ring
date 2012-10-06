@@ -21,10 +21,8 @@ public slots:
 	
 private slots:
 	void foundDevice(int channel, int device, int device_type);
-	void antInitialized();
 private:
 	void initialize();
-	void createAntThread();
 
 	QThread* antThread;
 	ANT* const ant;

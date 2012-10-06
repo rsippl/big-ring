@@ -42,9 +42,10 @@
 #define ANT_RUNNING  0x01
 #define ANT_PAUSED   0x02
 
+namespace {
 // network key
-const unsigned char ANT::key[8] = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
-
+const unsigned char networkKey[8] = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
+}
 // supported sensor types
 const ant_sensor_type_t ANT::ant_sensor_types[] = {
 	{ ANTChannel::CHANNEL_TYPE_UNUSED, 0, 0, 0, 0, "Unused", '?', "" },
@@ -154,9 +155,10 @@ void ANT::initialize()
 {
 	powerchannels = 0;
 
-#if defined GC_HAVE_LIBUSB
-	usbMode = USBNone;
-#endif
+	if (!openConnection()) {
+		emit initializationFailed();
+		return;
+	}
 	channels = 0;
 
 	for (int i=0; i<ANT_MAX_CHANNELS; i++) antChannel[i]->init();
@@ -174,7 +176,7 @@ void ANT::initialize()
 	antlog.open(QIODevice::WriteOnly | QIODevice::Truncate);
 
 	sendMessage(ANTMessage::resetSystem());
-	sendMessage(ANTMessage::setNetworkKey(1, key));
+	sendMessage(ANTMessage::setNetworkKey(1, networkKey));
 
 	// pair with specified devices on next available channel
 	if (antIDs.count()) {
@@ -850,5 +852,17 @@ const char * ANT::deviceTypeDescription(int type)
 	return "Unknown device type";
 }
 
-
-
+bool ANT::openConnection()
+{
+	QString errors;
+	QVector<boost::shared_ptr<CommPort> > commPorts = CommPort::listCommPorts(errors);
+	foreach(boost::shared_ptr<CommPort> commPort, commPorts) {
+		QString deviceFile = commPort->name();
+		if (discover(deviceFile)) {
+			qDebug() << "found device: " << deviceFile;
+			deviceFilename = deviceFile;
+			return true;
+		}
+	}
+	return false;
+}
