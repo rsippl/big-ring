@@ -12,6 +12,11 @@ include(${QT_USE_FILE})
 include_directories(${QT_INCLUDE_DIR} /usr/include/QtMultimediaKit /usr/include/QtMobility)
 
 set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS")
+set(ANT_SRCS
+	ANT.cpp
+	ANTChannel.cpp
+	ANTMessage.cpp)
+
 set(SRCS main.cpp
         mainwindow.cpp
 		reallivevideo.cpp
@@ -35,5 +40,5 @@ set(UI_FILES
 
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
-add_executable(indoorcycling ${SRCS} ${UI_SRCS})
+add_executable(indoorcycling ${ANT_SRCS} ${SRCS} ${UI_SRCS})
 target_link_libraries(indoorcycling ${QT_LIBRARIES} QtMultimediaKit ${FFMPEG_LIBRARIES})
