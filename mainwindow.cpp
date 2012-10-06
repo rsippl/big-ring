@@ -21,10 +21,6 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
     QWidget* centralWidget = new QWidget(this);
     _layout = new QHBoxLayout(centralWidget);
 	_layout->addLayout(setupSideBar(centralWidget));
-    //    RlvListWidget* listWidget = new RlvListWidget(centralWidget);
-    //    listWidget->setFixedWidth(300);
-    //    layout->addWidget(listWidget);
-
 	_layout->addLayout(setUpMain(centralWidget));
 
     setCentralWidget(centralWidget);
@@ -42,7 +38,7 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
 
 QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 {
-	QVBoxLayout* layout = new QVBoxLayout(centralWidget);
+	QVBoxLayout* layout = new QVBoxLayout();
 
 	videoWidget = new VideoWidget(centralWidget);
 	videoWidget->setMinimumWidth(800);
@@ -50,7 +46,7 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 
 	layout->addWidget(videoWidget);
 
-	QHBoxLayout* dials = new QHBoxLayout(centralWidget);
+	QHBoxLayout* dials = new QHBoxLayout();
 
 	distanceLabel = new QLabel("0 m", centralWidget);
 	dials->addWidget(distanceLabel);
@@ -66,7 +62,7 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 
 QLayout* MainWindow::setupSideBar(QWidget* centralWidget)
 {
-	QVBoxLayout* layout = new QVBoxLayout(centralWidget);
+	QVBoxLayout* layout = new QVBoxLayout();
 	rlvListWidget = new RlvListWidget(centralWidget);
     rlvListWidget->setFixedWidth(300);
     layout->addWidget(rlvListWidget);
