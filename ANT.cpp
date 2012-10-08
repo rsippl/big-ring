@@ -109,7 +109,9 @@ ANT::ANT(QObject *parent): QObject(parent)
 		connect(antChannel[i], SIGNAL(searchTimeout(int)), this, SLOT(slotSearchTimeout(int)));
 		connect(antChannel[i], SIGNAL(searchComplete(int)), this, SLOT(slotSearchComplete(int)));
 
-		connect(antChannel[i], SIGNAL(heartRate(quint8)), SIGNAL(heartRate(quint8)));
+		connect(antChannel[i], SIGNAL(heartRateMeasured(quint8)), SIGNAL(heartRateMeasured(quint8)));
+		connect(antChannel[i], SIGNAL(powerMeasured(float)), SIGNAL(powerMeasured(float)));
+		connect(antChannel[i], SIGNAL(cadenceMeasured(float)), SIGNAL(cadenceMeasured(float)));
 	}
 
 	// on windows and linux we use libusb to read from USB2

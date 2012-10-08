@@ -182,6 +182,8 @@ class ANTChannel : public QObject {
         void searchTimeout(int number); // search timed out
         void searchComplete(int number); // search completed successfully
 
-		void heartRate(quint8);
+		void heartRateMeasured(quint8);
+		void powerMeasured(float);
+		void cadenceMeasured(float);
 };
 #endif

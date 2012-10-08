@@ -16,7 +16,9 @@ public:
 	virtual ~ANTController();
 	
 signals:
-	void heartRate(quint8);
+	void heartRateMeasured(quint8 bpm);
+	void powerMeasured(float power);
+	void cadenceMeasured(float cadence);
 public slots:
 	
 private slots:

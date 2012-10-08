@@ -34,7 +34,7 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&
 
 	connect(videoController, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
 	connect(videoController, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
-	connect(&controller, SIGNAL(heartRate(quint8)), SLOT(hrChanged(quint8)));
+	connect(&controller, SIGNAL(heartRateMeasured(quint8)), SLOT(hrChanged(quint8)));
 
     grabKeyboard();
 }

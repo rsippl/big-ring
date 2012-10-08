@@ -35,7 +35,9 @@ void ANTController::initialize()
 	connect(antTimer, SIGNAL(timeout()), ant, SLOT(readCycle()));
 	connect(ant, SIGNAL(initializationSucceeded()), antTimer, SLOT(start()));
 	connect(ant, SIGNAL(foundDevice(int,int,int)), SLOT(foundDevice(int,int,int)));
-	connect(ant, SIGNAL(heartRate(quint8)), SIGNAL(heartRate(quint8)));
+	connect(ant, SIGNAL(heartRateMeasured(quint8)), SIGNAL(heartRateMeasured(quint8)));
+	connect(ant, SIGNAL(powerMeasured(float)), SIGNAL(powerMeasured(float)));
+	connect(ant, SIGNAL(cadenceMeasured(float)), SIGNAL(cadenceMeasured(float)));
 
 	QMetaObject::invokeMethod(ant, "initialize");
 }

@@ -334,8 +334,8 @@ void ANTChannel::open(int device, int chan_type)
 								// we should be coasting, so power and cadence
 								// will be zero
 								srm_offset = antMessage.srmOffset;
-//								is_alt ? parent->setAltWatts(0) : parent->setWatts(0);
-//								parent->setCadence(0);
+								emit powerMeasured(0);
+								emit cadenceMeasured(0);
 								value2=value=0;
 								break;
 
@@ -379,8 +379,8 @@ void ANTChannel::open(int device, int chan_type)
 							// ignore the occassional spikes XXX is this a boundary error on event count ?
 							if (power >= 0 && power < 2501 && cadence >=0 && cadence < 256) {
 								value2 = value = power;
-//								is_alt ? parent->setAltWatts(power) : parent->setWatts(power);
-//								parent->setCadence(cadence);
+								emit powerMeasured(power);
+								emit cadenceMeasured(cadence);
 							}
 
 						} else {
@@ -390,8 +390,8 @@ void ANTChannel::open(int device, int chan_type)
 
 							if (nullCount >= 4) { // 4 messages on an SRM
 								value2 = value = 0;
-//								is_alt ? parent->setAltWatts(0) : parent->setWatts(0);
-//								parent->setCadence(0);
+								emit powerMeasured(0.0f);
+								emit cadenceMeasured(0.0f);
 							}
 						}
 					}
@@ -416,7 +416,7 @@ void ANTChannel::open(int device, int chan_type)
 
 							value2 = value = power;
 //							parent->setWheelRpm(wheelRPM);
-//							is_alt ? parent->setAltWatts(power) : parent->setWatts(power);
+							emit powerMeasured(power);
 
 						} else {
 							nullCount++;
@@ -424,7 +424,7 @@ void ANTChannel::open(int device, int chan_type)
 							if (nullCount >= 4) { // 4 messages on Powertap ? XXX validate this
 //								parent->setWheelRpm(0);
 								value2 = value = 0;
-//								is_alt ? parent->setAltWatts(0) : parent->setWatts(0);
+								emit powerMeasured(0.0);
 							}
 						}
 					}
@@ -443,14 +443,14 @@ void ANTChannel::open(int device, int chan_type)
 						uint8_t events = antMessage.eventCount - lastStdPwrMessage.eventCount;
 						if (lastStdPwrMessage.type && events) {
 							stdNullCount = 0;
-//							is_alt ? parent->setAltWatts(antMessage.instantPower) : parent->setWatts(antMessage.instantPower);
+							emit powerMeasured(antMessage.instantPower);
 							value2 = value = antMessage.instantPower;
-//							parent->setCadence(antMessage.instantCadence); // cadence
+							emit cadenceMeasured(antMessage.instantCadence);
 						} else {
 							stdNullCount++;
 							if (stdNullCount >= 6) { //XXX 6 for standard power?
-//								parent->setCadence(0);
-//								is_alt ? parent->setAltWatts(0) : parent->setWatts(0);
+								emit cadenceMeasured(0.0f);
+								emit powerMeasured(0.0f);
 								value2 = value = 0;
 							}
 						}
@@ -476,15 +476,15 @@ void ANTChannel::open(int device, int chan_type)
 							float cadence = 2048.0 * 60.0 * events / period;
 							float power = 3.14159 * nm_torque * cadence / 30;
 
-//							parent->setCadence(cadence);
-//							is_alt ? parent->setAltWatts(power) : parent->setWatts(power);
+							emit cadenceMeasured(cadence);
+							emit powerMeasured(power);
 							value2 = value = power;
 
 						} else {
 							nullCount++;
 							if (nullCount >= 4) { //XXX 4 on a quarq??? validate this
-//								parent->setCadence(0);
-//								is_alt ? parent->setAltWatts(0) : parent->setWatts(0);
+								emit cadenceMeasured(0.0f);
+								emit powerMeasured(0.0f);
 								value2 = value = 0;
 							}
 						}
@@ -503,7 +503,7 @@ void ANTChannel::open(int device, int chan_type)
 					uint16_t time = antMessage.measurementTime - lastMessage.measurementTime;
 					if (time) {
 						nullCount = 0;
-						emit heartRate(antMessage.instantHeartrate);
+						emit heartRateMeasured(antMessage.instantHeartrate);
 //						parent->setBPM(antMessage.instantHeartrate);
 						value2 = value = antMessage.instantHeartrate;
 					} else {
@@ -523,7 +523,7 @@ void ANTChannel::open(int device, int chan_type)
 					uint16_t revs = antMessage.crankRevolutions - lastMessage.crankRevolutions;
 					if (time) {
 						float cadence = 1024*60*revs / time;
-//						parent->setCadence(cadence);
+						emit cadenceMeasured(cadence);
 						value2 = value = cadence;
 					}
 				}
@@ -538,13 +538,14 @@ void ANTChannel::open(int device, int chan_type)
 					if (time) {
 						nullCount = 0;
 						float cadence = 1024*60*revs / time;
-//						parent->setCadence(cadence);
+						emit cadenceMeasured(cadence);
 						value = cadence;
 					} else {
 						nullCount++;
-//						if (nullCount >= 12) { parent->setCadence(0);
-//							value = 0;
-//						}
+						if (nullCount >= 12) {
+							emit cadenceMeasured(0.0f);
+							value = 0;
+						}
 					}
 
 					// now speed ...

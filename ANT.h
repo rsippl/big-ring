@@ -247,7 +247,9 @@ signals:
 	void searchComplete(int channel);         // searchComplete
 	void signalStrength(int channel, double reliability);
 
-	void heartRate(quint8);
+	void heartRateMeasured(quint8);
+	void powerMeasured(float);
+	void cadenceMeasured(float);
 
 public slots:
 
