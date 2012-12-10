@@ -142,7 +142,7 @@ void VideoDecoder::initializeFrames()
 	_swsContext = sws_getContext(_codecContext->width, _codecContext->height,
 								 _codecContext->pix_fmt,
 								 _codecContext->width, _codecContext->height,
-								 PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+								 PIX_FMT_RGB24, SWS_POINT, NULL, NULL, NULL);
 }
 
 void VideoDecoder::nextFrame()

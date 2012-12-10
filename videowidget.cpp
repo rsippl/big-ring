@@ -18,7 +18,7 @@ VideoWidget::VideoWidget(QWidget *parent) :
 	_playDelayTimer->setSingleShot(true);
 	_playDelayTimer->setInterval(250);
 	connect(_playDelayTimer, SIGNAL(timeout()), SLOT(playVideo()));
-	_playTimer->setInterval(20);
+	_playTimer->setInterval(10);
 	connect(_playTimer, SIGNAL(timeout()), _videoDecoder, SLOT(nextFrame()));
 
 	_playThread->start();
@@ -96,67 +96,61 @@ void VideoWidget::resizeGL(int w, int h)
 void VideoWidget::handleImage(const QImage &image)
 {
 	qint64 start = QDateTime::currentMSecsSinceEpoch();
-	QImage glImage = convertToGLFormat(image);
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 	GLfloat width = image.width();
 	GLfloat height = image.height();
 	if (_texture != 0) {
 		deleteTexture(_texture);
 	}
-	_texture = bindTexture(glImage, GL_TEXTURE_RECTANGLE_ARB );
+	_texture = bindTexture(image, GL_TEXTURE_RECTANGLE_ARB,  GL_RGBA, QGLContext::NoBindOption);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
 	GLenum error;
 	if( ( error = glGetError() ) != GL_NO_ERROR )
 	{
 		QString errorstring;
 		switch( error ){
-			case GL_INVALID_ENUM:
-				errorstring = "GL_INVALID_ENUM";
-				break;
-			case GL_INVALID_VALUE:
-				errorstring = "GL_INVALID_VALUE";
-				break;
-			case GL_INVALID_OPERATION:
-				errorstring = "GL_INVALID_OPERATION";
-				break;
-			case GL_STACK_OVERFLOW:
-				errorstring = "GL_STACK_OVERFLOW";
-				break;
-			case GL_STACK_UNDERFLOW:
-				errorstring = "GL_STACK_UNDERFLOW";
-				break;
-			case GL_OUT_OF_MEMORY:
-				errorstring = "GL_OUT_OF_MEMORY";
-				break;
-			default:
-				errorstring = "UNKNOWN";
-				break;
+		case GL_INVALID_ENUM:
+			errorstring = "GL_INVALID_ENUM";
+			break;
+		case GL_INVALID_VALUE:
+			errorstring = "GL_INVALID_VALUE";
+			break;
+		case GL_INVALID_OPERATION:
+			errorstring = "GL_INVALID_OPERATION";
+			break;
+		case GL_STACK_OVERFLOW:
+			errorstring = "GL_STACK_OVERFLOW";
+			break;
+		case GL_STACK_UNDERFLOW:
+			errorstring = "GL_STACK_UNDERFLOW";
+			break;
+		case GL_OUT_OF_MEMORY:
+			errorstring = "GL_OUT_OF_MEMORY";
+			break;
+		default:
+			errorstring = "UNKNOWN";
+			break;
 		}
 		qDebug ("failed to bind texture %d %s",error,errorstring.toAscii().data());
 		return;
 	}
 
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
-	//glEnable(GL_TEXTURE_2D);
+
 
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 
 	glBegin(GL_QUADS);
-		glTexCoord2f( 0.0f, height );     glVertex2f( 0.0f, 0.0f );
-		glTexCoord2f( width, height );     glVertex2f( this->width(), 0.0f );
-		glTexCoord2f( width, 0.0f );     glVertex2f( this->width(), this->height());
-		glTexCoord2f( 0.0f, 0.0f );     glVertex2f( 0.0f, this->height() );
+	glTexCoord2f( 0.0f, height );     glVertex2f( 0.0f, 0.0f );
+	glTexCoord2f( width, height );     glVertex2f( this->width(), 0.0f );
+	glTexCoord2f( width, 0.0f );     glVertex2f( this->width(), this->height());
+	glTexCoord2f( 0.0f, 0.0f );     glVertex2f( 0.0f, this->height() );
 	glEnd();
 
-	//glBindTexture(GL_TEXTURE_2D, 0);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	qDebug() << "painting on thread [" << QThread::currentThreadId() << "] took " << QDateTime::currentMSecsSinceEpoch() - start;
 }
