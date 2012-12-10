@@ -9,7 +9,7 @@ include(${QT_USE_FILE})
 
 include_directories(${QT_INCLUDE_DIR} ${CMAKE_BINARY_DIR})
 
-set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS")
+set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -D__STDC_CONSTANT_MACROS")
 set(SRCS main.cpp
         mainwindow.cpp
 	reallivevideo.cpp

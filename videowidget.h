@@ -40,6 +40,7 @@ private:
     QTimer* _playTimer;
     QThread* _playThread;
     QImage _glImage;
+	GLuint _texture;
 };
 
 #endif // VIDEOWIDGET_H
