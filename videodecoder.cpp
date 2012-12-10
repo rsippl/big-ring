@@ -33,7 +33,6 @@ VideoDecoder::~VideoDecoder()
 
 void VideoDecoder::initialize()
 {
-	avcodec_init();
 	avcodec_register_all();
 	av_register_all();
 }
@@ -63,8 +62,7 @@ void VideoDecoder::close()
 		avcodec_close(_codecContext);
 	_codecContext = NULL;
 	if (_formatContext)
-		av_close_input_file(_formatContext);
-	_formatContext = NULL;
+		avformat_close_input(&_formatContext);
 }
 
 void VideoDecoder::openFile(QString filename)
@@ -75,7 +73,7 @@ void VideoDecoder::openFile(QString filename)
 	if (errorNr != 0) {
 		printError(errorNr, QString("Unable to open %1").arg(filename));
 	}
-	errorNr = av_find_stream_info(_formatContext);
+	errorNr = avformat_find_stream_info(_formatContext, NULL);
 	if (errorNr < 0) {
 		printError(errorNr, QString("Unable to find video stream"));
 		emit error();
@@ -130,7 +128,6 @@ void VideoDecoder::printError(int errorNr, const QString& message)
 
 void VideoDecoder::initializeFrames()
 {
-	calculateSize();
 	_frame = avcodec_alloc_frame();
 	_frameRgb = avcodec_alloc_frame();
 
@@ -182,18 +179,6 @@ void VideoDecoder::decodeNextFrame()
 		}
 	}
 	qDebug() << "decoding on thread [" << QThread::currentThreadId() << "] took " << QDateTime::currentMSecsSinceEpoch() - start;
-}
-
-void VideoDecoder::calculateSize()
-{
-	if (!_codecContext)
-		return;
-	return;
-}
-
-void VideoDecoder::targetSizeChanged(int width, int height)
-{
-
 }
 
 void VideoDecoder::doWithImage(VideoImageHandler &handler)

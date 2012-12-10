@@ -87,9 +87,6 @@ void VideoWidget::resizeGL(int w, int h)
 	glLoadIdentity();
 	glOrtho(0, w,0,h,-1,1);
 	glMatrixMode (GL_MODELVIEW);
-
-	QMetaObject::invokeMethod(_videoDecoder, "targetSizeChanged",
-							  Q_ARG(int, w), Q_ARG(int, h));
 }
 
 /*! This method should only be called from the video decoder. */
@@ -134,9 +131,7 @@ void VideoWidget::handleImage(const QImage &image)
 		qDebug ("failed to bind texture %d %s",error,errorstring.toAscii().data());
 		return;
 	}
-
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
-
 
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR );

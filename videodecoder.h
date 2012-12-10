@@ -35,7 +35,6 @@ signals:
 public slots:
     void nextFrame();
     void openFile(QString filename);
-    void targetSizeChanged(int width, int height);
 
 private:
     void close();
@@ -43,7 +42,6 @@ private:
     void initialize();
     void initializeFrames();
     void decodeNextFrame();
-    void calculateSize();
 
     int findVideoStream();
     void printError(int errorNr, const QString& message);
