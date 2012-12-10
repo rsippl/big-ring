@@ -18,7 +18,7 @@ VideoWidget::VideoWidget(QWidget *parent) :
 	_playDelayTimer->setSingleShot(true);
 	_playDelayTimer->setInterval(250);
 	connect(_playDelayTimer, SIGNAL(timeout()), SLOT(playVideo()));
-	_playTimer->setInterval(40);
+	_playTimer->setInterval(20);
 	connect(_playTimer, SIGNAL(timeout()), _videoDecoder, SLOT(nextFrame()));
 
 	_playThread->start();

@@ -21,7 +21,7 @@ VideoDecoder::VideoDecoder(QObject *parent) :
 	_formatContext(NULL), _codecContext(NULL),
 	_codec(NULL), _frame(NULL), _frameRgb(NULL),
 	_bufferSize(0), _frameBuffer(NULL), _swsContext(NULL),
-	_currentFrame(-1), _targetWidth(100), _targetHeight(100)
+	_currentFrame(-1)
 {
 	initialize();
 }
@@ -134,14 +134,14 @@ void VideoDecoder::initializeFrames()
 	_frame = avcodec_alloc_frame();
 	_frameRgb = avcodec_alloc_frame();
 
-	_bufferSize = avpicture_get_size(PIX_FMT_RGB24, _targetWidth, _targetHeight);
+	_bufferSize = avpicture_get_size(PIX_FMT_RGB24, _codecContext->width, _codecContext->height);
 	_frameBuffer = new quint8[_bufferSize];
 
 	avpicture_fill(reinterpret_cast<AVPicture*>(_frameRgb), _frameBuffer, PIX_FMT_RGB24,
-				   _targetWidth, _targetHeight);
+				   _codecContext->width, _codecContext->height);
 	_swsContext = sws_getContext(_codecContext->width, _codecContext->height,
 								 _codecContext->pix_fmt,
-								 _targetWidth, _targetHeight,
+								 _codecContext->width, _codecContext->height,
 								 PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
 }
 
@@ -169,9 +169,9 @@ void VideoDecoder::decodeNextFrame()
 				{
 					QMutexLocker locker(&_mutex);
 					_currentImage = QImage(_frameRgb->data[0],
-										   _targetWidth,
-										   _targetHeight,
-										   _targetWidth * 3,
+										   _codecContext->width,
+										   _codecContext->height,
+										   _codecContext->width * 3,
 										   QImage::Format_RGB888);
 				}
 
@@ -188,27 +188,12 @@ void VideoDecoder::calculateSize()
 {
 	if (!_codecContext)
 		return;
-
-	float sourceRatio = (float) _codecContext->width / (float) _codecContext->height;
-	float destRatio = (float) _widgetWidth / (float) _widgetHeight;
-
-	if (sourceRatio > destRatio) { // source "wider" than destination
-		_targetWidth = _widgetWidth;
-		_targetHeight = _widgetWidth / sourceRatio;
-	} else {
-		_targetHeight = _widgetHeight;
-		_targetWidth = sourceRatio * _widgetHeight;
-	}
+	return;
 }
 
 void VideoDecoder::targetSizeChanged(int width, int height)
 {
-	_widgetWidth = width;
-	_widgetHeight = height;
-	closeFramesAndBuffers();
-	if (!_formatContext || !_codecContext)
-		return;
-	initializeFrames();
+
 }
 
 void VideoDecoder::doWithImage(VideoImageHandler &handler)

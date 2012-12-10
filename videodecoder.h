@@ -64,8 +64,6 @@ private:
     qint32 _currentFrame;
     int _widgetWidth;
     int _widgetHeight;
-    int _targetWidth;
-    int _targetHeight;
 };
 
 #endif // VIDEODECODER_H
