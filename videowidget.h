@@ -11,36 +11,35 @@ class QThread;
 
 class VideoWidget : public QGLWidget, public VideoImageHandler
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    explicit VideoWidget(QWidget *parent = 0);
-    virtual ~VideoWidget();
+	explicit VideoWidget(QWidget *parent = 0);
+	virtual ~VideoWidget();
 
-    void paintGL();
-    void resizeGL(int w, int h);
-    virtual void handleImage(const QImage& image);
+	void paintGL();
+	void resizeGL(int w, int h);
+	virtual void handleImage(const QImage& image);
+
+	void loadVideo(const QString& filename);
+	void playVideo();
+	void setRate(float rate);
 signals:
-
-public slots:
-    void realLiveVideoSelected(RealLiveVideo rlv);
-    void courseSelected(int courseNr);
 
 protected:
 	virtual void enterEvent(QEvent *);
 	virtual void leaveEvent(QEvent *);
-
 private slots:
-    void playVideo();
-    void frameReady(quint32 frameNr);
+	void frameReady(quint32 frameNr);
 
 private:
-    RealLiveVideo _currentRealLiveVideo;
-    VideoDecoder* _videoDecoder;
+	void drawImage(const QRectF &r, const QImage &image, const QRectF &sr);
 
-    QTimer* _playDelayTimer;
-    QTimer* _playTimer;
+	RealLiveVideo _currentRealLiveVideo;
+	VideoDecoder* _videoDecoder;
+
+	QTimer* _playTimer;
 	QThread* _decoderThread;
-    QImage _glImage;
+	QImage _glImage;
 	GLuint _texture;
 };
 

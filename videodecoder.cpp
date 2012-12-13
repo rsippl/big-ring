@@ -67,18 +67,18 @@ void VideoDecoder::close()
 
 void VideoDecoder::openFile(QString filename)
 {
-	close();
-	int errorNr = avformat_open_input(&_formatContext, filename.toStdString().c_str(),
-									  NULL, NULL);
-	if (errorNr != 0) {
-		printError(errorNr, QString("Unable to open %1").arg(filename));
-	}
-	errorNr = avformat_find_stream_info(_formatContext, NULL);
-	if (errorNr < 0) {
-		printError(errorNr, QString("Unable to find video stream"));
-		emit error();
-	}
-	av_dump_format(_formatContext, 0, filename.toStdString().c_str(), 0);
+    close();
+    int errorNr = avformat_open_input(&_formatContext, filename.toStdString().c_str(),
+				      NULL, NULL);
+    if (errorNr != 0) {
+	printError(errorNr, QString("Unable to open %1").arg(filename));
+    }
+    errorNr = av_find_stream_info(_formatContext);
+    if (errorNr < 0) {
+	printError(errorNr, QString("Unable to find video stream"));
+	emit error();
+    }
+    av_dump_format(_formatContext, 0, filename.toStdString().c_str(), 0);
 
 	_videoStream = findVideoStream();
 	if (_videoStream < 0) {
@@ -144,6 +144,7 @@ void VideoDecoder::initializeFrames()
 
 void VideoDecoder::nextFrame()
 {
+	qDebug() << "decoding frame";
 	decodeNextFrame();
 }
 

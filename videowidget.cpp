@@ -7,6 +7,9 @@
 #include <QResizeEvent>
 #include <QThread>
 #include <QtOpenGL/qgl.h>
+#include <QAbstractAnimation>
+#include <QLabel>
+#include <QVBoxLayout>
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
@@ -25,6 +28,10 @@ VideoWidget::VideoWidget(QWidget *parent) :
 	_videoDecoder->moveToThread(_decoderThread);
 
 	connect(_videoDecoder, SIGNAL(frameReady(quint32)), SLOT(frameReady(quint32)));
+setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+
+	QVBoxLayout *layout = new QVBoxLayout(this);
+
 }
 
 VideoWidget::~VideoWidget()
@@ -182,5 +189,3 @@ void VideoWidget::handleImage(const QImage &image)
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 }
-
-
