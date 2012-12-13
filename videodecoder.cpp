@@ -178,7 +178,7 @@ void VideoDecoder::decodeNextFrame()
 			}
 		}
 	}
-	qDebug() << "decoding on thread [" << QThread::currentThreadId() << "] took " << QDateTime::currentMSecsSinceEpoch() - start;
+//	qDebug() << "decoding on thread [" << QThread::currentThreadId() << "] took " << QDateTime::currentMSecsSinceEpoch() - start;
 }
 
 void VideoDecoder::doWithImage(VideoImageHandler &handler)

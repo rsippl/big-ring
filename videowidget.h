@@ -25,20 +25,21 @@ public slots:
     void realLiveVideoSelected(RealLiveVideo rlv);
     void courseSelected(int courseNr);
 
+protected:
+	virtual void enterEvent(QEvent *);
+	virtual void leaveEvent(QEvent *);
 
 private slots:
     void playVideo();
     void frameReady(quint32 frameNr);
 
 private:
-    void drawImage(const QRectF &r, const QImage &image, const QRectF &sr);
-
     RealLiveVideo _currentRealLiveVideo;
     VideoDecoder* _videoDecoder;
 
     QTimer* _playDelayTimer;
     QTimer* _playTimer;
-    QThread* _playThread;
+	QThread* _decoderThread;
     QImage _glImage;
 	GLuint _texture;
 };

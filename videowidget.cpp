@@ -1,5 +1,6 @@
 #include "videowidget.h"
 
+#include <QApplication>
 #include <QDateTime>
 #include <QMetaObject>
 #include <QtDebug>
@@ -12,25 +13,24 @@ VideoWidget::VideoWidget(QWidget *parent) :
 	QGLWidget(parent), _videoDecoder(new VideoDecoder),
 	_playDelayTimer(new QTimer(this)),
 	_playTimer(new QTimer(this)),
-	_playThread(new QThread(this))
+	_decoderThread(new QThread(this))
 
 {
 	_playDelayTimer->setSingleShot(true);
 	_playDelayTimer->setInterval(250);
 	connect(_playDelayTimer, SIGNAL(timeout()), SLOT(playVideo()));
-	_playTimer->setInterval(10);
 	connect(_playTimer, SIGNAL(timeout()), _videoDecoder, SLOT(nextFrame()));
 
-	_playThread->start();
-	_videoDecoder->moveToThread(_playThread);
+	_decoderThread->start();
+	_videoDecoder->moveToThread(_decoderThread);
 
 	connect(_videoDecoder, SIGNAL(frameReady(quint32)), SLOT(frameReady(quint32)));
 }
 
 VideoWidget::~VideoWidget()
 {
-	_playThread->quit();
-	_playThread->wait();
+	_decoderThread->quit();
+	_decoderThread->wait();
 
 	delete _videoDecoder;
 }
@@ -50,6 +50,8 @@ void VideoWidget::realLiveVideoSelected(RealLiveVideo rlv)
 		_playDelayTimer->stop();
 	_currentRealLiveVideo = rlv;
 
+	int frameDelay = 1000 / rlv.videoInformation().frameRate();
+	_playTimer->setInterval(frameDelay);
 	_playDelayTimer->start();
 }
 
@@ -66,6 +68,16 @@ void VideoWidget::courseSelected(int courseNr)
 	const Course& course = _currentRealLiveVideo.courses()[courseNr];
 	course.start();
 	_playTimer->start();
+}
+
+void VideoWidget::enterEvent(QEvent*)
+{
+	QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+}
+
+void VideoWidget::leaveEvent(QEvent*)
+{
+	QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
 }
 
 void VideoWidget::frameReady(quint32)
@@ -92,10 +104,8 @@ void VideoWidget::resizeGL(int w, int h)
 /*! This method should only be called from the video decoder. */
 void VideoWidget::handleImage(const QImage &image)
 {
-	qint64 start = QDateTime::currentMSecsSinceEpoch();
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
-	GLfloat width = image.width();
-	GLfloat height = image.height();
+
 	if (_texture != 0) {
 		deleteTexture(_texture);
 	}
@@ -139,13 +149,38 @@ void VideoWidget::handleImage(const QImage &image)
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 
+	GLfloat width = image.width();
+	GLfloat height = image.height();
+
+	float imageRatio = width / height;
+	float widgetRatio = (float) this->width() / (float) this->height();
+
+	float clippedBorderWidth = 0;
+	float clippedBorderHeight= 0;
+	if (imageRatio > widgetRatio) {
+		clippedBorderWidth = (width - ((widgetRatio / imageRatio) * width)) / 2;
+	} else if (imageRatio < widgetRatio) {
+		clippedBorderHeight = (height - ((imageRatio / widgetRatio) * height)) /2;
+	}
+
+//	qDebug() << "widget = " << this->width() << "x" << this->height();
+//	qDebug() << "image = " << width << "x" << height;
+//	qDebug() << "borderwidth = " << clippedBorderWidth;
+//	qDebug() << "borderheight = " << clippedBorderHeight;
+
+
 	glBegin(GL_QUADS);
-	glTexCoord2f( 0.0f, height );     glVertex2f( 0.0f, 0.0f );
-	glTexCoord2f( width, height );     glVertex2f( this->width(), 0.0f );
-	glTexCoord2f( width, 0.0f );     glVertex2f( this->width(), this->height());
-	glTexCoord2f( 0.0f, 0.0f );     glVertex2f( 0.0f, this->height() );
+	glTexCoord2f(clippedBorderWidth, height - clippedBorderHeight);
+	glVertex2f( 0.0f, 0.0f );
+	glTexCoord2f(width - clippedBorderWidth, height - clippedBorderHeight);
+	glVertex2f( this->width(), 0.0f );
+	glTexCoord2f(width - clippedBorderWidth, clippedBorderHeight);
+	glVertex2f( this->width(), this->height());
+	glTexCoord2f(clippedBorderWidth, clippedBorderHeight);
+	glVertex2f( 0.0f, this->height() );
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	qDebug() << "painting on thread [" << QThread::currentThreadId() << "] took " << QDateTime::currentMSecsSinceEpoch() - start;
 }
+
+
