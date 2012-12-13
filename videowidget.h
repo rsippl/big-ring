@@ -22,7 +22,8 @@ public:
 
 	void loadVideo(const QString& filename);
 	void playVideo();
-	void setRate(float rate);
+	void setRate(float framesPerSecond);
+	void setPosition(quint32 frameNr, float frameRate);
 signals:
 
 protected:
@@ -32,9 +33,6 @@ private slots:
 	void frameReady(quint32 frameNr);
 
 private:
-	void drawImage(const QRectF &r, const QImage &image, const QRectF &sr);
-
-	RealLiveVideo _currentRealLiveVideo;
 	VideoDecoder* _videoDecoder;
 
 	QTimer* _playTimer;

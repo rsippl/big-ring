@@ -21,7 +21,7 @@ VideoDecoder::VideoDecoder(QObject *parent) :
 	_formatContext(NULL), _codecContext(NULL),
 	_codec(NULL), _frame(NULL), _frameRgb(NULL),
 	_bufferSize(0), _frameBuffer(NULL), _swsContext(NULL),
-	_currentFrame(-1)
+	_currentFrame(-1), doneSeek(false)
 {
 	initialize();
 }
@@ -144,12 +144,19 @@ void VideoDecoder::initializeFrames()
 
 void VideoDecoder::nextFrame()
 {
-	qDebug() << "decoding frame";
 	decodeNextFrame();
+}
+
+void VideoDecoder::seekFrame(quint32 frameNr)
+{
+	qDebug() << "seeking to frame " << _codecContext->frame_number;
+	av_seek_frame(_formatContext, _videoStream, frameNr, AVSEEK_FLAG_FRAME);
+	doneSeek = true;
 }
 
 void VideoDecoder::decodeNextFrame()
 {
+
 	qint64 start = QDateTime::currentMSecsSinceEpoch();
 	int frameFinished = 0;
 	AVPacket packet;
@@ -161,6 +168,10 @@ void VideoDecoder::decodeNextFrame()
 
 			avcodec_decode_video2(_codecContext, _frame,
 								  &frameFinished, &packet);
+			if (doneSeek) {
+				qDebug() << "current frame " << _codecContext->frame_number;
+				doneSeek = false;
+			}
 			if (frameFinished) {
 				sws_scale(_swsContext, _frame->data, _frame->linesize,
 						  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);

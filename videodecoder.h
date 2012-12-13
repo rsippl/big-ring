@@ -34,6 +34,7 @@ signals:
     void error();
 public slots:
     void nextFrame();
+	void seekFrame(quint32 frameNr);
     void openFile(QString filename);
 
 private:
@@ -55,6 +56,7 @@ private:
     quint8 *_frameBuffer;
     SwsContext* _swsContext;
     QImage _currentImage;
+	bool doneSeek;
 
     int _videoStream;
     QMutex _mutex;

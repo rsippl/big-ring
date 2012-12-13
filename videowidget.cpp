@@ -14,24 +14,17 @@
 
 VideoWidget::VideoWidget(QWidget *parent) :
 	QGLWidget(parent), _videoDecoder(new VideoDecoder),
-	_playDelayTimer(new QTimer(this)),
 	_playTimer(new QTimer(this)),
 	_decoderThread(new QThread(this))
 
 {
-	_playDelayTimer->setSingleShot(true);
-	_playDelayTimer->setInterval(250);
-	connect(_playDelayTimer, SIGNAL(timeout()), SLOT(playVideo()));
 	connect(_playTimer, SIGNAL(timeout()), _videoDecoder, SLOT(nextFrame()));
 
 	_decoderThread->start();
 	_videoDecoder->moveToThread(_decoderThread);
 
 	connect(_videoDecoder, SIGNAL(frameReady(quint32)), SLOT(frameReady(quint32)));
-setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-
-	QVBoxLayout *layout = new QVBoxLayout(this);
-
+	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 }
 
 VideoWidget::~VideoWidget()
@@ -44,37 +37,21 @@ VideoWidget::~VideoWidget()
 
 void VideoWidget::playVideo()
 {
-	QMetaObject::invokeMethod(_videoDecoder, "openFile",
-							  Q_ARG(QString, _currentRealLiveVideo.videoInformation().videoFilename()));
-}
-
-
-void VideoWidget::realLiveVideoSelected(RealLiveVideo rlv)
-{
-	if (_playTimer->isActive())
-		_playTimer->stop();
-	if (_playDelayTimer->isActive())
-		_playDelayTimer->stop();
-	_currentRealLiveVideo = rlv;
-
-	int frameDelay = 1000 / rlv.videoInformation().frameRate();
-	_playTimer->setInterval(frameDelay);
-	_playDelayTimer->start();
-}
-
-void VideoWidget::courseSelected(int courseNr)
-{
-	if (courseNr == -1) {
-		_playTimer->stop();
-		return;
-	}
-
-	if (!_currentRealLiveVideo.isValid())
-		return;
-
-	const Course& course = _currentRealLiveVideo.courses()[courseNr];
-	course.start();
+	_playTimer->setInterval(40);
 	_playTimer->start();
+}
+
+void VideoWidget::setRate(float framesPerSecond)
+{
+	int interval = 1000 / framesPerSecond;
+	if (interval != _playTimer->interval())
+		_playTimer->setInterval(1000 / framesPerSecond);
+}
+
+void VideoWidget::setPosition(quint32 frameNr, float frameRate)
+{
+	QMetaObject::invokeMethod(_videoDecoder, "seekFrame",
+							  Q_ARG(quint32, frameNr));
 }
 
 void VideoWidget::enterEvent(QEvent*)
@@ -188,4 +165,10 @@ void VideoWidget::handleImage(const QImage &image)
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+}
+
+void VideoWidget::loadVideo(const QString &filename)
+{
+	QMetaObject::invokeMethod(_videoDecoder, "openFile",
+							  Q_ARG(QString, filename));
 }
