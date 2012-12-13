@@ -29,7 +29,6 @@ protected:
 
 private slots:
     void rlvSelected(RealLiveVideo rlv);
-    void doFullscreen();
 
 	void distanceChanged(float distance);
 	void slopeChanged(float slope);

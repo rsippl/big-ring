@@ -41,6 +41,11 @@ void VideoWidget::playVideo()
 	_playTimer->start();
 }
 
+void VideoWidget::stop()
+{
+	_playTimer->stop();
+}
+
 void VideoWidget::setRate(float framesPerSecond)
 {
 	int interval = 1000 / framesPerSecond;

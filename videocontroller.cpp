@@ -5,40 +5,35 @@
 #include <QTimer>
 
 namespace {
-const float SPEED = 100.0f / 3.6f;
+const float SPEED = 30.0f / 3.6f;
 const float videoUpdateInterval = 1000; // ms
 }
 
 VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
 	QObject(parent),
 	_videoWidget(videoWidget),
-	_playDelayTimer(new QTimer(this)),
 	_updateTimer(new QTimer(this)),
-	_currentDistance(0.0f)
+	_currentDistance(0.0f),
+	_running(false)
 {
-	_playDelayTimer->setSingleShot(true);
-	_playDelayTimer->setInterval(250);
-	connect(_playDelayTimer, SIGNAL(timeout()), SLOT(playVideo()));
-
 	_updateTimer->setInterval(videoUpdateInterval);
 	connect(_updateTimer, SIGNAL(timeout()), SLOT(updateVideo()));
-	_updateTimer->start();
 }
 
 void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
 {
-	if (_playDelayTimer->isActive())
-		_playDelayTimer->stop();
+	_updateTimer->stop();
+	_videoWidget->stop();
 	_currentRlv = rlv;
-
-	_playDelayTimer->start();
-
+	_videoWidget->loadVideo(_currentRlv.videoInformation().videoFilename());
 	setDistance(0.0f);
 	_lastTime = QDateTime::currentMSecsSinceEpoch();
 }
 
 void VideoController::courseSelected(int courseNr)
 {
+	_updateTimer->stop();
+	_videoWidget->stop();
 	if (courseNr == -1) {
 		return;
 	}
@@ -54,13 +49,7 @@ void VideoController::courseSelected(int courseNr)
 
 	_videoWidget->setPosition(frame, _currentRlv.videoInformation().frameRate());
 	_videoWidget->playVideo();
-
-}
-
-void VideoController::playVideo()
-{
-	_videoWidget->loadVideo(_currentRlv.videoInformation().videoFilename());
-	_videoWidget->playVideo();
+	_updateTimer->start();
 }
 
 void VideoController::updateVideo()

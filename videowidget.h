@@ -22,6 +22,7 @@ public:
 
 	void loadVideo(const QString& filename);
 	void playVideo();
+	void stop();
 	void setRate(float framesPerSecond);
 	void setPosition(quint32 frameNr, float frameRate);
 signals:

@@ -21,19 +21,18 @@ public slots:
 	void courseSelected(int courseNr);
 
 private slots:
-	void playVideo();
 	void updateVideo();
 private:
 	void setDistance(float distance);
 
 	VideoWidget* const _videoWidget;
-	QTimer* const _playDelayTimer;
 	QTimer* const _updateTimer;
 
 	RealLiveVideo _currentRlv;
 
 	qint64 _lastTime;
 	float _currentDistance;
+	bool _running;
 };
 
 #endif // VIDEOCONTROLLER_H

@@ -10,6 +10,7 @@
 #include <QListWidget>
 #include <QKeyEvent>
 #include <QWidget>
+#include <cmath>
 
 MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
     QMainWindow(parent)
@@ -51,10 +52,26 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 	layout->addWidget(videoWidget);
 
 	QHBoxLayout* dials = new QHBoxLayout(centralWidget);
+	QFont font;
+	font.setPointSize(32);
+	font.setBold(true);
+	QPalette palette;
+	palette.setColor(QPalette::Window, Qt::black);
+	palette.setColor(QPalette::WindowText, Qt::blue);
 
 	distanceLabel = new QLabel("0 m", centralWidget);
+	distanceLabel->setAlignment(Qt::AlignCenter);
+	distanceLabel->setFont(font);
+	distanceLabel->setAutoFillBackground(true);
+	distanceLabel->setPalette(palette);
+
+	palette.setColor(QPalette::WindowText, Qt::red);
 	dials->addWidget(distanceLabel);
 	slopeLabel = new QLabel("0 %", centralWidget);
+	slopeLabel->setAlignment(Qt::AlignCenter);
+	slopeLabel->setFont(font);
+	slopeLabel->setAutoFillBackground(true);
+	slopeLabel->setPalette(palette);
 	dials->addWidget(slopeLabel);
 
 	layout->addLayout(dials);
@@ -88,22 +105,22 @@ void MainWindow::rlvSelected(RealLiveVideo rlv)
     }
 }
 
-void MainWindow::doFullscreen()
-{
-    rlvListWidget->hide();
-    courseListWidget->hide();
-	showFullScreen();
-}
-
 void MainWindow::distanceChanged(float distance)
 {
+	double exponent = exp10(distance);
+	int width = (exponent > 3) ? 3 : (int) exponent;
 	qint32 distanceInMeters = (qint32) distance;
-	distanceLabel->setText(QString("%1 m").arg(distanceInMeters));
+
+	if (distanceInMeters > 1000)
+		distanceLabel->setText(QString("%1 %2 m").arg(distanceInMeters / 1000)
+							   .arg(distanceInMeters % 1000, width, 10, QLatin1Char('0')));
+	else
+		distanceLabel->setText(QString("%1 m").arg(distanceInMeters % 1000));
 }
 
 void MainWindow::slopeChanged(float slope)
 {
-	slopeLabel->setText(QString("%1 %%").arg(slope));
+	slopeLabel->setText(QString("%1 %").arg(slope, 2, 'f', 1));
 }
 
 void MainWindow::removeMargins()
@@ -123,6 +140,8 @@ void MainWindow::restoreMargins()
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
 	if (event->key() == Qt::Key_F) {
+		rlvListWidget->setDisabled(true);
+		courseListWidget->setDisabled(true);
 		rlvListWidget->hide();
 		courseListWidget->hide();
 		removeMargins();
@@ -132,5 +151,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 		restoreMargins();
 		rlvListWidget->show();
 		courseListWidget->show();
+		rlvListWidget->setEnabled(true);
+		courseListWidget->setEnabled(true);
 	}
 }
