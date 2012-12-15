@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include "antcontroller.h"
 #include "reallivevideoimporter.h"
 #include "rlvlistwidget.h"
 #include "videocontroller.h"
@@ -12,7 +13,7 @@
 #include <QWidget>
 #include <cmath>
 
-MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
+MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController& controller, QWidget *parent) :
     QMainWindow(parent)
 {
     connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), SIGNAL(importFinished(RealLiveVideoList)));
@@ -38,12 +39,14 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, QWidget *parent) :
 
 	connect(videoController, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
 	connect(videoController, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
+	connect(&controller, SIGNAL(heartRateMeasured(quint8)), SLOT(hrChanged(quint8)));
+
     grabKeyboard();
 }
 
 QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 {
-	QVBoxLayout* layout = new QVBoxLayout(centralWidget);
+	QVBoxLayout* layout = new QVBoxLayout();
 
 	videoWidget = new VideoWidget(centralWidget);
 	videoWidget->setMinimumWidth(800);
@@ -51,7 +54,7 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 
 	layout->addWidget(videoWidget);
 
-	QHBoxLayout* dials = new QHBoxLayout(centralWidget);
+	QHBoxLayout* dials = new QHBoxLayout();
 	QFont font;
 	font.setPointSize(32);
 	font.setBold(true);
@@ -73,6 +76,8 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 	slopeLabel->setAutoFillBackground(true);
 	slopeLabel->setPalette(palette);
 	dials->addWidget(slopeLabel);
+	hrLabel = new QLabel("--", centralWidget);
+	dials->addWidget(hrLabel);
 
 	layout->addLayout(dials);
 
@@ -83,7 +88,7 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 
 QLayout* MainWindow::setupSideBar(QWidget* centralWidget)
 {
-	QVBoxLayout* layout = new QVBoxLayout(centralWidget);
+	QVBoxLayout* layout = new QVBoxLayout();
 	rlvListWidget = new RlvListWidget(centralWidget);
     rlvListWidget->setFixedWidth(300);
     layout->addWidget(rlvListWidget);
@@ -121,6 +126,11 @@ void MainWindow::distanceChanged(float distance)
 void MainWindow::slopeChanged(float slope)
 {
 	slopeLabel->setText(QString("%1 %").arg(slope, 2, 'f', 1));
+}
+
+void MainWindow::hrChanged(quint8 hr)
+{
+	hrLabel->setText(QString("%1 BPM").arg(hr));
 }
 
 void MainWindow::removeMargins()

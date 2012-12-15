@@ -53,7 +53,7 @@ void VideoWidget::setRate(float framesPerSecond)
 		_playTimer->setInterval(1000 / framesPerSecond);
 }
 
-void VideoWidget::setPosition(quint32 frameNr, float frameRate)
+void VideoWidget::setPosition(quint32 frameNr)
 {
 	QMetaObject::invokeMethod(_videoDecoder, "seekFrame",
 							  Q_ARG(quint32, frameNr));

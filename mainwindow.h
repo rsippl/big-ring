@@ -7,6 +7,7 @@ class QTimer;
 
 #include "reallivevideo.h"
 
+class ANTController;
 class RealLiveVideoImporter;
 class RlvListWidget;
 class QLabel;
@@ -19,7 +20,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit MainWindow(const RealLiveVideoImporter& parser, QWidget *parent = 0);
+	explicit MainWindow(const RealLiveVideoImporter& parser, const ANTController& antController, QWidget *parent = 0);
 
 signals:
     void importFinished(RealLiveVideoList rlvs);
@@ -32,6 +33,7 @@ private slots:
 
 	void distanceChanged(float distance);
 	void slopeChanged(float slope);
+	void hrChanged(quint8 hr);
 
 private:
 	QLayout* setUpMain(QWidget *centralWidget);
@@ -47,6 +49,7 @@ private:
     QBoxLayout* _layout;
 	QLabel* distanceLabel;
 	QLabel* slopeLabel;
+	QLabel* hrLabel;
 };
 
 #endif // MAINWINDOW_H

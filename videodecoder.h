@@ -56,7 +56,7 @@ private:
     quint8 *_frameBuffer;
     SwsContext* _swsContext;
     QImage _currentImage;
-	bool doneSeek;
+
 
     int _videoStream;
     QMutex _mutex;
@@ -64,6 +64,7 @@ private:
     qint32 _currentFrame;
     int _widgetWidth;
     int _widgetHeight;
+	bool doneSeek;
 };
 
 #endif // VIDEODECODER_H

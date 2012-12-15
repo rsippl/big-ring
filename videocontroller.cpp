@@ -47,7 +47,7 @@ void VideoController::courseSelected(int courseNr)
 	quint32 frame = _currentRlv.frameForDistance(_currentDistance);
 	qDebug() << "slope at start = " << _currentRlv.slopeForDistance(_currentDistance);
 
-	_videoWidget->setPosition(frame, _currentRlv.videoInformation().frameRate());
+	_videoWidget->setPosition(frame);
 	_videoWidget->playVideo();
 	_updateTimer->start();
 }
@@ -63,6 +63,7 @@ void VideoController::updateVideo()
 
 	float distanceTravelled = (SPEED * elapsed) * 0.001;
 
+	qDebug() << elapsed << "  distance travelled = " << distanceTravelled;
 	setDistance(_currentDistance + distanceTravelled);
 
 	_lastTime = currentTime;

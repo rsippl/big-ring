@@ -24,7 +24,7 @@ public:
 	void playVideo();
 	void stop();
 	void setRate(float framesPerSecond);
-	void setPosition(quint32 frameNr, float frameRate);
+	void setPosition(quint32 frameNr);
 signals:
 
 protected:

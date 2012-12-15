@@ -1,24 +1,13 @@
-#include <QtCore/QCoreApplication>
+
 
 #include <QApplication>
-#include <QMainWindow>
-#include <cstddef>
+#include <QtDebug>
 
 #include "mainwindow.h"
-#include <QByteArray>
-#include <QFile>
-#include <QFutureSynchronizer>
-#include <QHBoxLayout>
-#include <QList>
-#include <QString>
-#include <QtDebug>
-#include <QDirIterator>
-#include <QtConcurrentRun>
-#include "reallivevideo.h"
+
 #include "reallivevideoimporter.h"
-#include "reallivevideowidget.h"
-#include "rlvlistwidget.h"
-#include "videowidget.h"
+
+#include "antcontroller.h"
 
 
 int main(int argc, char *argv[])
@@ -29,11 +18,14 @@ int main(int argc, char *argv[])
 	qDebug() << "starting up";
 	QString filename(argv[1]);
 	RealLiveVideoImporter parser;
-	MainWindow mw(parser);
+	ANTController antController(&app);
+	MainWindow mw(parser, antController);
+
+
 
 	mw.show();
 
-	parser.parseRealLiveVideoFilesFromDir(filename);
+//	parser.parseRealLiveVideoFilesFromDir(filename);
 
 	app.exec();
 }

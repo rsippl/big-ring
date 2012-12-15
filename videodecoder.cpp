@@ -73,7 +73,7 @@ void VideoDecoder::openFile(QString filename)
     if (errorNr != 0) {
 	printError(errorNr, QString("Unable to open %1").arg(filename));
     }
-    errorNr = av_find_stream_info(_formatContext);
+	errorNr = avformat_find_stream_info(_formatContext, NULL);
     if (errorNr < 0) {
 	printError(errorNr, QString("Unable to find video stream"));
 	emit error();
@@ -157,7 +157,7 @@ void VideoDecoder::seekFrame(quint32 frameNr)
 void VideoDecoder::decodeNextFrame()
 {
 
-	qint64 start = QDateTime::currentMSecsSinceEpoch();
+//	qint64 start = QDateTime::currentMSecsSinceEpoch();
 	int frameFinished = 0;
 	AVPacket packet;
 	while(!frameFinished) {
