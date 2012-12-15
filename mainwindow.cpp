@@ -14,34 +14,31 @@
 #include <cmath>
 
 MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController& controller, QWidget *parent) :
-    QMainWindow(parent)
+	QMainWindow(parent)
 {
-    connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), SIGNAL(importFinished(RealLiveVideoList)));
+	connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), SIGNAL(importFinished(RealLiveVideoList)));
 
-    setGeometry(0, 0, 1024, 768);
+	setGeometry(0, 0, 1024, 768);
 
-    QWidget* centralWidget = new QWidget(this);
-    _layout = new QHBoxLayout(centralWidget);
+	QWidget* centralWidget = new QWidget(this);
+	_layout = new QHBoxLayout(centralWidget);
 	_layout->addLayout(setupSideBar(centralWidget));
-    //    RlvListWidget* listWidget = new RlvListWidget(centralWidget);
-    //    listWidget->setFixedWidth(300);
-    //    layout->addWidget(listWidget);
 
 	_layout->addLayout(setUpMain(centralWidget));
 
-    setCentralWidget(centralWidget);
+	setCentralWidget(centralWidget);
 
 	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoController, SLOT(realLiveVideoSelected(RealLiveVideo)));
-    QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
-    QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
-    QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
-			 videoController, SLOT(courseSelected(int)));
+	QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
+	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
+	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
+					 videoController, SLOT(courseSelected(int)));
 
 	connect(videoController, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
 	connect(videoController, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
 	connect(&controller, SIGNAL(heartRateMeasured(quint8)), SLOT(hrChanged(quint8)));
 
-    grabKeyboard();
+	grabKeyboard();
 }
 
 QLayout* MainWindow::setUpMain(QWidget* centralWidget)
@@ -55,28 +52,12 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 	layout->addWidget(videoWidget);
 
 	QHBoxLayout* dials = new QHBoxLayout();
-	QFont font;
-	font.setPointSize(32);
-	font.setBold(true);
-	QPalette palette;
-	palette.setColor(QPalette::Window, Qt::black);
-	palette.setColor(QPalette::WindowText, Qt::blue);
 
-	distanceLabel = new QLabel("0 m", centralWidget);
-	distanceLabel->setAlignment(Qt::AlignCenter);
-	distanceLabel->setFont(font);
-	distanceLabel->setAutoFillBackground(true);
-	distanceLabel->setPalette(palette);
-
-	palette.setColor(QPalette::WindowText, Qt::red);
-	dials->addWidget(distanceLabel);
-	slopeLabel = new QLabel("0 %", centralWidget);
-	slopeLabel->setAlignment(Qt::AlignCenter);
-	slopeLabel->setFont(font);
-	slopeLabel->setAutoFillBackground(true);
-	slopeLabel->setPalette(palette);
+	_distanceLabel = createLabel(QString("0 m"), Qt::blue, centralWidget);
+	slopeLabel = createLabel(QString("0 %"), Qt::red, centralWidget);
+	hrLabel = createLabel("-- bpm", Qt::yellow, centralWidget);
+	dials->addWidget(_distanceLabel);
 	dials->addWidget(slopeLabel);
-	hrLabel = new QLabel("--", centralWidget);
 	dials->addWidget(hrLabel);
 
 	layout->addLayout(dials);
@@ -90,24 +71,40 @@ QLayout* MainWindow::setupSideBar(QWidget* centralWidget)
 {
 	QVBoxLayout* layout = new QVBoxLayout();
 	rlvListWidget = new RlvListWidget(centralWidget);
-    rlvListWidget->setFixedWidth(300);
-    layout->addWidget(rlvListWidget);
+	rlvListWidget->setFixedWidth(300);
+	layout->addWidget(rlvListWidget);
 
 	courseListWidget = new QListWidget(centralWidget);
 	courseListWidget->setFixedWidth(300);
-    layout->addWidget(courseListWidget);
+	layout->addWidget(courseListWidget);
 
+	return layout;
+}
 
+QLabel *MainWindow::createLabel(const QString& text, Qt::GlobalColor color, QWidget *centralWidget)
+{
+	QFont font;
+	font.setPointSize(32);
+	font.setBold(true);
+	QPalette palette;
+	palette.setColor(QPalette::Window, Qt::black);
+	palette.setColor(QPalette::WindowText, color);
 
-    return layout;
+	QLabel* label = new QLabel(text, centralWidget);
+	label->setAlignment(Qt::AlignCenter);
+	label->setFont(font);
+	label->setAutoFillBackground(true);
+	label->setPalette(palette);
+
+	return label;
 }
 
 void MainWindow::rlvSelected(RealLiveVideo rlv)
 {
-    courseListWidget->clear();
-    foreach(const Course& course, rlv.courses()) {
-        new QListWidgetItem(course.name(), courseListWidget);
-    }
+	courseListWidget->clear();
+	foreach(const Course& course, rlv.courses()) {
+		new QListWidgetItem(course.name(), courseListWidget);
+	}
 }
 
 void MainWindow::distanceChanged(float distance)
@@ -117,10 +114,10 @@ void MainWindow::distanceChanged(float distance)
 	qint32 distanceInMeters = (qint32) distance;
 
 	if (distanceInMeters > 1000)
-		distanceLabel->setText(QString("%1 %2 m").arg(distanceInMeters / 1000)
+		_distanceLabel->setText(QString("%1 %2 m").arg(distanceInMeters / 1000)
 							   .arg(distanceInMeters % 1000, width, 10, QLatin1Char('0')));
 	else
-		distanceLabel->setText(QString("%1 m").arg(distanceInMeters % 1000));
+		_distanceLabel->setText(QString("%1 m").arg(distanceInMeters % 1000));
 }
 
 void MainWindow::slopeChanged(float slope)
@@ -135,16 +132,16 @@ void MainWindow::hrChanged(quint8 hr)
 
 void MainWindow::removeMargins()
 {
-    int l,t,r,b;
+	int l,t,r,b;
 
-    _layout->getContentsMargins(&l,&t,&r,&b);
-    _margins = QMargins(l,t,r,b);
-    _layout->setContentsMargins(0, 0, 0, 0);
+	_layout->getContentsMargins(&l,&t,&r,&b);
+	_margins = QMargins(l,t,r,b);
+	_layout->setContentsMargins(0, 0, 0, 0);
 }
 
 void MainWindow::restoreMargins()
 {
-    _layout->setContentsMargins(_margins);
+	_layout->setContentsMargins(_margins);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

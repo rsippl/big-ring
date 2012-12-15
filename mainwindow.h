@@ -38,6 +38,7 @@ private slots:
 private:
 	QLayout* setUpMain(QWidget *centralWidget);
 	QLayout* setupSideBar(QWidget *centralWidget);
+	QLabel* createLabel(const QString& text, Qt::GlobalColor color, QWidget* centralWidget);
     void removeMargins();
     void restoreMargins();
 
@@ -47,7 +48,7 @@ private:
     RlvListWidget* rlvListWidget;
     QMargins _margins;
     QBoxLayout* _layout;
-	QLabel* distanceLabel;
+	QLabel* _distanceLabel;
 	QLabel* slopeLabel;
 	QLabel* hrLabel;
 };
