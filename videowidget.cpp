@@ -18,12 +18,13 @@ VideoWidget::VideoWidget(QWidget *parent) :
 	_decoderThread(new QThread(this))
 
 {
-	connect(_playTimer, SIGNAL(timeout()), _videoDecoder, SLOT(nextFrame()));
+	connect(_playTimer, SIGNAL(timeout()), _videoDecoder, SLOT(nextImage()));
 
 	_decoderThread->start();
 	_videoDecoder->moveToThread(_decoderThread);
 
 	connect(_videoDecoder, SIGNAL(frameReady(quint32)), SLOT(frameReady(quint32)));
+	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 }
 
@@ -72,6 +73,12 @@ void VideoWidget::leaveEvent(QEvent*)
 void VideoWidget::frameReady(quint32)
 {
 	repaint();
+}
+
+void VideoWidget::videoLoaded()
+{
+	QMetaObject::invokeMethod(_videoDecoder, "seekFrame",
+							  Q_ARG(quint32, 0u));
 }
 
 void VideoWidget::paintGL()

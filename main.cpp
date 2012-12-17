@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
 	mw.show();
 
-//	parser.parseRealLiveVideoFilesFromDir(filename);
+	parser.parseRealLiveVideoFilesFromDir(filename);
 
 	app.exec();
 }

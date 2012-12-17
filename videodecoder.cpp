@@ -7,10 +7,11 @@ extern "C"
 #include "libavformat/avformat.h"
 #include "libswscale/swscale.h"
 }
-
+#include <cmath>
 #include <QDateTime>
 #include <QFile>
 #include <QThread>
+#include <QTimer>
 #include <QtDebug>
 
 namespace {
@@ -21,13 +22,18 @@ VideoDecoder::VideoDecoder(QObject *parent) :
 	_formatContext(NULL), _codecContext(NULL),
 	_codec(NULL), _frame(NULL), _frameRgb(NULL),
 	_bufferSize(0), _frameBuffer(NULL), _swsContext(NULL),
-	_currentFrame(-1), doneSeek(false)
+	_seekTimer(new QTimer(this)), _seekTargetFrame(0),
+	_currentFrame(-1)
 {
 	initialize();
+	_seekTimer->setSingleShot(true);
+	_seekTimer->setInterval(50);
+	connect(_seekTimer, SIGNAL(timeout()), SLOT(seekDelayFinished()));
 }
 
 VideoDecoder::~VideoDecoder()
 {
+	_seekTimer->stop();
 	close();
 }
 
@@ -106,8 +112,10 @@ void VideoDecoder::openFile(QString filename)
 
 	initializeFrames();
 
-
+	emit videoLoaded();
 }
+
+
 
 int VideoDecoder::findVideoStream()
 {
@@ -142,22 +150,36 @@ void VideoDecoder::initializeFrames()
 								 PIX_FMT_RGB24, SWS_POINT, NULL, NULL, NULL);
 }
 
-void VideoDecoder::nextFrame()
-{
-	decodeNextFrame();
-}
-
 void VideoDecoder::seekFrame(quint32 frameNr)
 {
-	qDebug() << "seeking to frame " << _codecContext->frame_number;
-	av_seek_frame(_formatContext, _videoStream, frameNr, AVSEEK_FLAG_FRAME);
-	doneSeek = true;
+	qDebug() << "seeking to frame " << frameNr;
+	av_seek_frame(_formatContext, _videoStream, frameNr, AVSEEK_FLAG_ANY);
+	_seekTargetFrame = frameNr;
+	_seekTimer->start();
+}
+
+void VideoDecoder::seekDelayFinished()
+{
+	decodeNextFrame();
+	qDebug() << "delay finished, seeking to " << _seekTargetFrame << " got to " << _currentFrame;
+	if (_currentFrame >= static_cast<qint32>(_seekTargetFrame)) {
+		if (!_frame->key_frame)
+			for (int i = 0; i < 10 || !_frame->key_frame; ++i)
+				decodeNextFrame();
+		emit frameReady(_currentFrame);
+	}
+	else
+		_seekTimer->start();
+}
+
+void VideoDecoder::nextImage()
+{
+	decodeNextFrame();
+	emit frameReady(static_cast<quint32>(_currentFrame));
 }
 
 void VideoDecoder::decodeNextFrame()
 {
-
-//	qint64 start = QDateTime::currentMSecsSinceEpoch();
 	int frameFinished = 0;
 	AVPacket packet;
 	while(!frameFinished) {
@@ -168,10 +190,6 @@ void VideoDecoder::decodeNextFrame()
 
 			avcodec_decode_video2(_codecContext, _frame,
 								  &frameFinished, &packet);
-			if (doneSeek) {
-				qDebug() << "current frame " << _codecContext->frame_number;
-				doneSeek = false;
-			}
 			if (frameFinished) {
 				sws_scale(_swsContext, _frame->data, _frame->linesize,
 						  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
@@ -183,9 +201,7 @@ void VideoDecoder::decodeNextFrame()
 										   _codecContext->width * 3,
 										   QImage::Format_RGB888);
 				}
-
-				_currentFrame++;
-				emit frameReady(static_cast<quint32>(_currentFrame));
+				_currentFrame = packet.dts;
 				av_free_packet(&packet);
 			}
 		}

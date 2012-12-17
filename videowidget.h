@@ -25,13 +25,13 @@ public:
 	void stop();
 	void setRate(float framesPerSecond);
 	void setPosition(quint32 frameNr);
-signals:
 
 protected:
 	virtual void enterEvent(QEvent *);
 	virtual void leaveEvent(QEvent *);
 private slots:
 	void frameReady(quint32 frameNr);
+	void videoLoaded();
 
 private:
 	VideoDecoder* _videoDecoder;

@@ -6,6 +6,7 @@
 #include "videocontroller.h"
 #include "videowidget.h"
 
+#include <QPushButton>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
@@ -33,6 +34,7 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&
 	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
 	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
 					 videoController, SLOT(courseSelected(int)));
+	connect(playButton, SIGNAL(clicked(bool)), videoController, SLOT(play(bool)));
 
 	connect(videoController, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
 	connect(videoController, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
@@ -78,6 +80,9 @@ QLayout* MainWindow::setupSideBar(QWidget* centralWidget)
 	courseListWidget->setFixedWidth(300);
 	layout->addWidget(courseListWidget);
 
+	playButton = new QPushButton("Play", centralWidget);
+	playButton->setCheckable(true);
+	layout->addWidget(playButton);
 	return layout;
 }
 
@@ -151,6 +156,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 		courseListWidget->setDisabled(true);
 		rlvListWidget->hide();
 		courseListWidget->hide();
+		playButton->hide();
 		removeMargins();
 		showFullScreen();
 	} else if (event->key() == Qt::Key_Escape) {
@@ -158,7 +164,15 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 		restoreMargins();
 		rlvListWidget->show();
 		courseListWidget->show();
+		playButton->show();
 		rlvListWidget->setEnabled(true);
 		courseListWidget->setEnabled(true);
+	} else if (event->key() == Qt::Key_Space) {
+		if (playButton->isChecked()) {
+			videoController->play(false);
+		} else {
+			videoController->play(true);
+		}
+		playButton->toggle();
 	}
 }

@@ -19,6 +19,7 @@ signals:
 public slots:
 	void realLiveVideoSelected(RealLiveVideo rlv);
 	void courseSelected(int courseNr);
+	void play(bool);
 
 private slots:
 	void updateVideo();

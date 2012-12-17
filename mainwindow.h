@@ -1,9 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-
 #include <QMainWindow>
-class QTimer;
+#include <QPushButton>
+#include <QTimer>
 
 #include "reallivevideo.h"
 
@@ -51,6 +51,7 @@ private:
 	QLabel* _distanceLabel;
 	QLabel* slopeLabel;
 	QLabel* hrLabel;
+	QPushButton* playButton;
 };
 
 #endif // MAINWINDOW_H

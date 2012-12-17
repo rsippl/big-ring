@@ -48,9 +48,21 @@ void VideoController::courseSelected(int courseNr)
 	qDebug() << "slope at start = " << _currentRlv.slopeForDistance(_currentDistance);
 
 	_videoWidget->setPosition(frame);
-	_videoWidget->playVideo();
-	_updateTimer->start();
+//	_videoWidget->playVideo();
+	//	_updateTimer->start();
 }
+
+void VideoController::play(bool doPlay)
+{
+	if (doPlay) {
+		_videoWidget->playVideo();
+		_updateTimer->start();
+	} else {
+		_videoWidget->stop();
+		_updateTimer->stop();
+	}
+}
+
 
 void VideoController::updateVideo()
 {
