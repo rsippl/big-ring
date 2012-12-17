@@ -171,7 +171,7 @@ private:
 class PgmfFileParser: public TacxFileParser
 {
 public:
-	QMap<float,ProfileEntry> readProfile(QFile& pgmfFile);
+	Profile readProfile(QFile& pgmfFile);
 
 private:
 	tacxfile::generalPgmf_t readGeneralPgmfInfo(QFile& pgmfFile);

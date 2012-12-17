@@ -5,7 +5,7 @@
 #include <QTimer>
 
 namespace {
-const float SPEED = 30.0f / 3.6f;
+const float SPEED = 130.0f / 3.6f;
 const float videoUpdateInterval = 1000; // ms
 }
 
@@ -83,6 +83,7 @@ void VideoController::updateVideo()
 	float metersPerFrame = _currentRlv.metersPerFrame(_currentDistance);
 	float slope = _currentRlv.slopeForDistance(_currentDistance);
 	emit slopeChanged(slope);
+	emit altitudeChanged(_currentRlv.altitudeForDistance(_currentDistance));
 
 	// speed is 30 km/h -> 8.3333 m/s
 	float framesPerSecond = SPEED / metersPerFrame;

@@ -33,6 +33,7 @@ private slots:
 
 	void distanceChanged(float distance);
 	void slopeChanged(float slope);
+	void altitudeChanged(float altitude);
 	void hrChanged(quint8 hr);
 
 private:
@@ -51,6 +52,7 @@ private:
 	QLabel* _distanceLabel;
 	QLabel* slopeLabel;
 	QLabel* hrLabel;
+	QLabel* _altitudeLabel;
 	QPushButton* playButton;
 };
 

@@ -38,6 +38,7 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&
 
 	connect(videoController, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
 	connect(videoController, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
+	connect(videoController, SIGNAL(altitudeChanged(float)), SLOT(altitudeChanged(float)));
 	connect(&controller, SIGNAL(heartRateMeasured(quint8)), SLOT(hrChanged(quint8)));
 
 	grabKeyboard();
@@ -57,9 +58,12 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 
 	_distanceLabel = createLabel(QString("0 m"), Qt::blue, centralWidget);
 	slopeLabel = createLabel(QString("0 %"), Qt::red, centralWidget);
+	_altitudeLabel = createLabel(QString("0 m"), Qt::cyan, centralWidget);
 	hrLabel = createLabel("-- bpm", Qt::yellow, centralWidget);
+
 	dials->addWidget(_distanceLabel);
 	dials->addWidget(slopeLabel);
+	dials->addWidget(_altitudeLabel);
 	dials->addWidget(hrLabel);
 
 	layout->addLayout(dials);
@@ -128,6 +132,11 @@ void MainWindow::distanceChanged(float distance)
 void MainWindow::slopeChanged(float slope)
 {
 	slopeLabel->setText(QString("%1 %").arg(slope, 2, 'f', 1));
+}
+
+void MainWindow::altitudeChanged(float altitude)
+{
+	_altitudeLabel->setText(QString("%1 m").arg(altitude, 1, 'f', 1));
 }
 
 void MainWindow::hrChanged(quint8 hr)

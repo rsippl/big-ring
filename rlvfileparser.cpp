@@ -40,7 +40,7 @@ RealLiveVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
 	if (!pgmfFile.open(QIODevice::ReadOnly))
 		return RealLiveVideo();
 
-	QMap<float,ProfileEntry> profile = PgmfFileParser().readProfile(pgmfFile);
+	Profile profile = PgmfFileParser().readProfile(pgmfFile);
 
 	QList<Course> courses;
 	QString name = QFileInfo(rlvFile).baseName();
@@ -126,7 +126,7 @@ QList<DistanceMappingEntry> RlvFileParser::readFrameDistanceMapping(QFile &rlvFi
 }
 
 
-QMap<float, ProfileEntry> PgmfFileParser::readProfile(QFile &pgmfFile)
+Profile PgmfFileParser::readProfile(QFile &pgmfFile)
 {
 	tacxfile::header_t header = readHeaderBlock(pgmfFile);
 	tacxfile::generalPgmf_t generalBlock;
@@ -146,17 +146,16 @@ QMap<float, ProfileEntry> PgmfFileParser::readProfile(QFile &pgmfFile)
 	}
 
 	QMap<float, ProfileEntry> profile;
-	if (generalBlock.powerSlopeOrHr != 1)
-		return profile;
-
-	float currentDistance = 0.0f;
-	QListIterator<tacxfile::program_t> it(profileBlocks);
-	while(it.hasNext()) {
-		tacxfile::program_t item = it.next();
-		profile[currentDistance] = ProfileEntry(item.durationDistance, item.powerSlopeHeartRate);
-		currentDistance += item.durationDistance;
+	if (generalBlock.powerSlopeOrHr == 1) {
+		float currentDistance = 0.0f;
+		QListIterator<tacxfile::program_t> it(profileBlocks);
+		while(it.hasNext()) {
+			tacxfile::program_t item = it.next();
+			profile[currentDistance] = ProfileEntry(item.durationDistance, item.powerSlopeHeartRate);
+			currentDistance += item.durationDistance;
+		}
 	}
-	return profile;
+	return Profile(generalBlock.startAltitude, profile);
 }
 
 tacxfile::generalPgmf_t PgmfFileParser::readGeneralPgmfInfo(QFile &pgmfFile)

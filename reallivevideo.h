@@ -14,9 +14,27 @@ public:
 	float distance() const { return _distance; }
 	float slope() const { return _slope; }
 
+	bool operator ==(const ProfileEntry& other) const;
 private:
 	float _distance;
 	float _slope;
+};
+
+class Profile
+{
+public:
+	explicit Profile(float startAltitude, QMap<float,ProfileEntry>& entries);
+	explicit Profile();
+
+	float startAltitude() const { return _startAltitude; }
+	//! get the slope for a particular distance
+	float slopeForDistance(double distance) const;
+
+	//! get the altitude for a particular distance. The profile always starts at altitude 0.0f
+	float altitudeForDistance(double distance) const;
+private:
+	float _startAltitude;
+	QMap<float,ProfileEntry> _entries;
 };
 
 class DistanceMappingEntry
@@ -69,7 +87,7 @@ class RealLiveVideo
 {
 public:
 	explicit RealLiveVideo(const QString& name, const VideoInformation& videoInformation, QList<Course>& courses,
-						   QList<DistanceMappingEntry> distanceMappings, QMap<float,ProfileEntry> profile);
+						   QList<DistanceMappingEntry> distanceMappings, Profile profile);
 	explicit RealLiveVideo();
 
 	bool isValid() const { return !_name.isEmpty(); }
@@ -83,6 +101,10 @@ public:
 	quint32 frameForDistance(const float distance) const;
 	/** Get the slope for a distance */
 	float slopeForDistance(const float distance) const;
+	//! Get the altitude for a distance */
+	float altitudeForDistance(const float distance) const;
+	/** Total distance */
+	float totalDistance() const;
 
 	static bool compareByName(const RealLiveVideo& rlv1, const RealLiveVideo& rlv2);
 private:
@@ -92,7 +114,7 @@ private:
 	VideoInformation _videoInformation;
 	QList<Course> _courses;
 	QMap<float, DistanceMappingEntry> _distanceMappings;
-	QMap<float, ProfileEntry> _profile;
+	Profile _profile;
 };
 typedef QList<RealLiveVideo> RealLiveVideoList;
 

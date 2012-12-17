@@ -15,6 +15,7 @@ public:
 signals:
 	void distanceChanged(float distance);
 	void slopeChanged(float slope);
+	void altitudeChanged(float altitude);
 
 public slots:
 	void realLiveVideoSelected(RealLiveVideo rlv);
