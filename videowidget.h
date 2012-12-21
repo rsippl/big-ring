@@ -9,7 +9,7 @@
 
 class QThread;
 
-class VideoWidget : public QGLWidget, public VideoImageHandler
+class VideoWidget : public QGLWidget
 {
 	Q_OBJECT
 public:
@@ -18,7 +18,6 @@ public:
 
 	void paintGL();
 	void resizeGL(int w, int h);
-	virtual void handleImage(const QImage& image);
 
 	void loadVideo(const QString& filename);
 	void playVideo();
@@ -30,15 +29,15 @@ protected:
 	virtual void enterEvent(QEvent *);
 	virtual void leaveEvent(QEvent *);
 private slots:
-	void frameReady(quint32 frameNr);
+	void frameTimeout();
 	void videoLoaded();
 
 private:
+	ImageQueue _imageQueue;
 	VideoDecoder* _videoDecoder;
-
 	QTimer* _playTimer;
 	QThread* _decoderThread;
-	QImage _glImage;
+	QImage _currentImage;
 	GLuint _texture;
 };
 

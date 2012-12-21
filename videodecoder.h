@@ -4,12 +4,38 @@
 #include <QObject>
 #include <QImage>
 #include <QMutex>
+#include <QQueue>
+#include <QWaitCondition>
 
 struct AVCodec;
 struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
 struct SwsContext;
+
+struct ImageFrame {
+	quint32 frameNr;
+	QImage image;
+};
+
+class ImageQueue: public QObject
+{
+	Q_OBJECT
+public:
+	ImageQueue(int capacity, int low, QObject *parent);
+	bool offer(ImageFrame& image);
+	ImageFrame take();
+	void drain();
+signals:
+	void lowMarkReached();
+
+private:
+	int _capacity;
+	int _low;
+	QQueue<ImageFrame> _queue;
+	QMutex _mutex;
+	QWaitCondition _condition;
+};
 
 /**
   Pure virtual class which can be implemented by classes which want to handle
@@ -25,10 +51,9 @@ class VideoDecoder : public QObject
 {
 	Q_OBJECT
 public:
-	explicit VideoDecoder(QObject *parent = 0);
+	explicit VideoDecoder(ImageQueue* imageQueue, QObject *parent = 0);
 	~VideoDecoder();
 
-	void doWithImage(VideoImageHandler& handler);
 signals:
 	void frameReady(quint32 frameNr);
 	void error();
@@ -36,20 +61,21 @@ signals:
 public slots:
 	void seekFrame(quint32 frameNr);
 	void openFile(QString filename);
-	void nextImage();
 
 private slots:
+	void refillBuffer();
 	void seekDelayFinished();
 private:
 	void close();
 	void closeFramesAndBuffers();
 	void initialize();
 	void initializeFrames();
-	void decodeNextFrame();
+	QImage decodeNextFrame();
 
 	int findVideoStream();
 	void printError(int errorNr, const QString& message);
 
+	ImageQueue* _imageQueue;
 	AVFormatContext* _formatContext;
 	AVCodecContext* _codecContext;
 	AVCodec* _codec;

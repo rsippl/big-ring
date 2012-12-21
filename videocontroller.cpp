@@ -5,7 +5,7 @@
 #include <QTimer>
 
 namespace {
-const float SPEED = 130.0f / 3.6f;
+const float SPEED = 30.0f / 3.6f;
 const float videoUpdateInterval = 1000; // ms
 }
 

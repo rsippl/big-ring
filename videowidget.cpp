@@ -13,17 +13,17 @@
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent), _videoDecoder(new VideoDecoder),
+	QGLWidget(parent), _imageQueue(50, 25, this),
+	_videoDecoder(new VideoDecoder(&_imageQueue)),
 	_playTimer(new QTimer(this)),
 	_decoderThread(new QThread(this))
 
 {
-	connect(_playTimer, SIGNAL(timeout()), _videoDecoder, SLOT(nextImage()));
+	connect(_playTimer, SIGNAL(timeout()), SLOT(frameTimeout()));
 
 	_decoderThread->start();
 	_videoDecoder->moveToThread(_decoderThread);
 
-	connect(_videoDecoder, SIGNAL(frameReady(quint32)), SLOT(frameReady(quint32)));
 	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 }
@@ -70,7 +70,7 @@ void VideoWidget::leaveEvent(QEvent*)
 	QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
 }
 
-void VideoWidget::frameReady(quint32)
+void VideoWidget::frameTimeout()
 {
 	repaint();
 }
@@ -83,23 +83,11 @@ void VideoWidget::videoLoaded()
 
 void VideoWidget::paintGL()
 {
-	_videoDecoder->doWithImage(*this);
-}
-
-void VideoWidget::resizeGL(int w, int h)
-{
-	glViewport (0, 0, w, h);
-	glMatrixMode (GL_PROJECTION);
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	glOrtho(0, w,0,h,-1,1);
-	glMatrixMode (GL_MODELVIEW);
-}
-
-/*! This method should only be called from the video decoder. */
-void VideoWidget::handleImage(const QImage &image)
-{
+	if (!_playTimer->isActive())
+		return;
+	QImage image = _imageQueue.take();
+	if (image.isNull())
+		return;
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
 	if (_texture != 0) {
@@ -159,12 +147,6 @@ void VideoWidget::handleImage(const QImage &image)
 		clippedBorderHeight = (height - ((imageRatio / widgetRatio) * height)) /2;
 	}
 
-//	qDebug() << "widget = " << this->width() << "x" << this->height();
-//	qDebug() << "image = " << width << "x" << height;
-//	qDebug() << "borderwidth = " << clippedBorderWidth;
-//	qDebug() << "borderheight = " << clippedBorderHeight;
-
-
 	glBegin(GL_QUADS);
 	glTexCoord2f(clippedBorderWidth, height - clippedBorderHeight);
 	glVertex2f( 0.0f, 0.0f );
@@ -177,6 +159,17 @@ void VideoWidget::handleImage(const QImage &image)
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+}
+
+void VideoWidget::resizeGL(int w, int h)
+{
+	glViewport (0, 0, w, h);
+	glMatrixMode (GL_PROJECTION);
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+	glOrtho(0, w,0,h,-1,1);
+	glMatrixMode (GL_MODELVIEW);
 }
 
 void VideoWidget::loadVideo(const QString &filename)
