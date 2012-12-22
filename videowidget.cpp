@@ -13,7 +13,7 @@
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent), _imageQueue(50, 25, this),
+	QGLWidget(parent), _imageQueue(100, 50, this),
 	_videoDecoder(new VideoDecoder(&_imageQueue)),
 	_playTimer(new QTimer(this)),
 	_decoderThread(new QThread(this))
@@ -85,9 +85,13 @@ void VideoWidget::paintGL()
 {
 	if (!_playTimer->isActive())
 		return;
-	QImage image = _imageQueue.take();
-	if (image.isNull())
+	ImageFrame imageFrame = _imageQueue.take();
+	if (imageFrame.image().isNull())
 		return;
+	QImage image = imageFrame.image();
+
+	qDebug() << "showing frame " << imageFrame.frameNr();
+
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
 	if (_texture != 0) {

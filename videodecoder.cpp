@@ -62,6 +62,9 @@ void VideoDecoder::closeFramesAndBuffers()
 
 void VideoDecoder::close()
 {
+	qDebug() << "draining buffer";
+	_imageQueue->drain();
+
 	closeFramesAndBuffers();
 	_currentFrame = -1;
 
@@ -163,67 +166,49 @@ void VideoDecoder::seekFrame(quint32 frameNr)
 void VideoDecoder::seekDelayFinished()
 {
 	_imageQueue->drain();
-//	decodeNextFrame();
-//	qDebug() << "delay finished, seeking to " << _seekTargetFrame << " got to " << _currentFrame;
-//	if (_currentFrame >= static_cast<qint32>(_seekTargetFrame)) {
-//		if (!_frame->key_frame)
-//			for (int i = 0; i < 10 || !_frame->key_frame; ++i)
-//				decodeNextFrame();
-//		emit frameReady(_currentFrame);
-//	}
-//	else
-//		_seekTimer->start();
 }
-
-//void VideoDecoder::nextImage()
-//{
-//	decodeNextFrame();
-//	emit frameReady(static_cast<quint32>(_currentFrame));
-//}
 
 void VideoDecoder::refillBuffer()
 {
+	qDebug() << "refilling buffer";
 	bool bufferFull = false;
 	while(!bufferFull) {
-		QImage newImage = decodeNextFrame();
-		if (!newImage.isNull())
+		ImageFrame newImage = decodeNextFrame();
+		if (!newImage.image().isNull())
 			bufferFull = _imageQueue->offer(newImage);
 	}
+	qDebug() << "refilling buffer finished";
 }
 
-QImage VideoDecoder::decodeNextFrame()
+ImageFrame VideoDecoder::decodeNextFrame()
 {
-	QImage image;
+	ImageFrame imageFrame;
 	int frameFinished = 0;
 	AVPacket packet;
 	while(!frameFinished) {
 		if (av_read_frame(_formatContext, &packet) < 0) {
-			return image;
+			return imageFrame;
 		}
 
 		if (packet.stream_index == _videoStream) {
-
 			avcodec_decode_video2(_codecContext, _frame,
 								  &frameFinished, &packet);
 			if (frameFinished) {
 				sws_scale(_swsContext, _frame->data, _frame->linesize,
 						  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
-				{
-					QMutexLocker locker(&_mutex);
-					_currentImage = QImage(_frameRgb->data[0],
-										   _codecContext->width,
-										   _codecContext->height,
-										   _codecContext->width * 3,
-										   QImage::Format_RGB888);
-					image = _currentImage.copy();
-				}
+				_currentImage = QImage(_frameRgb->data[0],
+									   _codecContext->width,
+									   _codecContext->height,
+									   _codecContext->width * 3,
+									   QImage::Format_RGB888);
+				imageFrame = ImageFrame(packet.dts, _currentImage.copy());
+
 				_currentFrame = packet.dts;
 				av_free_packet(&packet);
 			}
 		}
 	}
-	return image;
-//	qDebug() << "decoding on thread [" << QThread::currentThreadId() << "] took " << QDateTime::currentMSecsSinceEpoch() - start;
+	return imageFrame;
 }
 
 ImageQueue::ImageQueue(int capacity, int low, QObject *parent): QObject(parent),
@@ -231,17 +216,17 @@ ImageQueue::ImageQueue(int capacity, int low, QObject *parent): QObject(parent),
 {
 }
 
-bool ImageQueue::offer(QImage &image)
+bool ImageQueue::offer(ImageFrame &image)
 {
 	QMutexLocker locker(&_mutex);
 	_queue.enqueue(image);
 	_condition.wakeOne();
-	return (_queue.size() == _capacity);
+	return (_queue.size() >= _capacity);
 }
 
-QImage ImageQueue::take()
+ImageFrame ImageQueue::take()
 {
-	QImage image;
+	ImageFrame image;
 	bool lowReached;
 	{
 		QMutexLocker locker(&_mutex);

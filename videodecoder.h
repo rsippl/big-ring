@@ -12,10 +12,19 @@ struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
 struct SwsContext;
+#include <limits>
 
-struct ImageFrame {
-	quint32 frameNr;
-	QImage image;
+const quint32 UNKNOWN_FRAME_NR = std::numeric_limits<quint32>::max();
+
+class ImageFrame {
+public:
+	ImageFrame(): _frameNr(UNKNOWN_FRAME_NR) {}
+	ImageFrame(quint32 frameNr, QImage image): _frameNr(frameNr), _image(image) {}
+	quint32 frameNr() const { return _frameNr; }
+	QImage image() const { return _image; }
+private:
+	quint32 _frameNr;
+	QImage _image;
 };
 
 class ImageQueue: public QObject
@@ -70,7 +79,7 @@ private:
 	void closeFramesAndBuffers();
 	void initialize();
 	void initializeFrames();
-	QImage decodeNextFrame();
+	ImageFrame decodeNextFrame();
 
 	int findVideoStream();
 	void printError(int errorNr, const QString& message);
