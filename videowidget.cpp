@@ -46,8 +46,6 @@ void VideoWidget::paintGL()
 		return;
 	QImage image = _currentImage.image();
 
-	qDebug() << "showing frame " << _currentImage.frameNr();
-
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
 	if (_texture != 0) {

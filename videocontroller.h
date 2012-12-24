@@ -29,10 +29,12 @@ private slots:
 	void updateVideo();
 	void displayFrame();
 private:
+	void updateDistance();
 	void loadVideo(const QString& filename);
 	void setDistance(float distance);
 	void setPosition(quint32 frameNr);
-
+	// reset buffers etc after choosing new video.
+	void reset();
 
 	ImageQueue _imageQueue;
 	VideoDecoder _videoDecoder;
@@ -42,6 +44,7 @@ private:
 	QTimer _playTimer;
 
 	RealLiveVideo _currentRlv;
+	ImageFrame _currentFrame;
 
 	qint64 _lastTime;
 	float _currentDistance;

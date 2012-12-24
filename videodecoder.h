@@ -56,6 +56,7 @@ public:
 signals:
 	void error();
 	void videoLoaded();
+	void bufferFilled();
 public slots:
 	void seekFrame(quint32 frameNr);
 	void openFile(QString filename);

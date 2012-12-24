@@ -18,7 +18,7 @@ public:
 	explicit VideoWidget(QWidget *parent = 0);
 	virtual ~VideoWidget();
 
-
+	/** Display a frame */
 	void displayFrame(ImageFrame &imageFrame);
 
 protected:

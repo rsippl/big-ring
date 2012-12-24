@@ -6,7 +6,7 @@
 
 namespace {
 const float SPEED = 30.0f / 3.6f;
-const float videoUpdateInterval = 1000; // ms
+const float videoUpdateInterval = 100; // ms
 }
 
 VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
@@ -38,8 +38,7 @@ VideoController::~VideoController()
 
 void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
 {
-	_playTimer.stop();
-	_updateTimer.stop();
+	reset();
 	_currentRlv = rlv;
 	loadVideo(_currentRlv.videoInformation().videoFilename());
 	setDistance(0.0f);
@@ -48,8 +47,7 @@ void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
 
 void VideoController::courseSelected(int courseNr)
 {
-	_updateTimer.stop();
-	_playTimer.stop();
+	reset();
 
 	if (courseNr == -1) {
 		return;
@@ -73,28 +71,13 @@ void VideoController::play(bool doPlay)
 		_playTimer.start();
 		_updateTimer.start();
 	} else {
-		_playTimer.stop();
-		_updateTimer.stop();
+		reset();
 	}
 }
 
 
 void VideoController::updateVideo()
 {
-	if (!_currentRlv.isValid())
-		return;
-
-	// update distance
-	qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
-	qint64 elapsed = currentTime - _lastTime;
-
-	float distanceTravelled = (SPEED * elapsed) * 0.001;
-
-	qDebug() << elapsed << "  distance travelled = " << distanceTravelled;
-	setDistance(_currentDistance + distanceTravelled);
-
-	_lastTime = currentTime;
-
 //	float metersPerFrame = _currentRlv.metersPerFrame(_currentDistance);
 	float slope = _currentRlv.slopeForDistance(_currentDistance);
 	emit slopeChanged(slope);
@@ -107,9 +90,42 @@ void VideoController::updateVideo()
 
 void VideoController::displayFrame()
 {
-	ImageFrame currentFrame = _imageQueue.take();
-	if (!currentFrame.image().isNull())
-		_videoWidget->displayFrame(currentFrame);
+	updateDistance();
+	quint32 frameToShow = _currentRlv.frameForDistance(_currentDistance);
+	if (_currentFrame.image().isNull()) {
+		qDebug() << "current frame is null, taking first one";
+		_currentFrame = _imageQueue.take();
+		_videoWidget->displayFrame(_currentFrame);
+	}
+	if (frameToShow == _currentFrame.frameNr())
+		return; // no need to display again.
+	if (frameToShow < _currentFrame.frameNr())
+		return; // wait until playing catches up.
+
+	bool displayed = false;
+	while(!displayed && !_currentFrame.image().isNull()) {
+		_currentFrame = _imageQueue.take();
+		if (_currentFrame.frameNr() == frameToShow) {
+			_videoWidget->displayFrame(_currentFrame);
+			displayed = true;
+		}
+	}
+}
+
+void VideoController::updateDistance()
+{
+	if (!_currentRlv.isValid())
+		return;
+
+	// update distance
+	qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
+	qint64 elapsed = currentTime - _lastTime;
+	_lastTime = currentTime;
+
+	float distanceTravelled = (SPEED * elapsed) * 0.001;
+
+//	qDebug() << elapsed << "  distance travelled = " << distanceTravelled;
+	setDistance(_currentDistance + distanceTravelled);
 }
 
 void VideoController::setDistance(float distance)
@@ -128,4 +144,12 @@ void VideoController::setPosition(quint32 frameNr)
 {
 	QMetaObject::invokeMethod(&_videoDecoder, "seekFrame",
 							  Q_ARG(quint32, frameNr));
+}
+
+void VideoController::reset()
+{
+	_updateTimer.stop();
+	_playTimer.stop();
+	_currentFrame = ImageFrame();
+	_imageQueue.drain();
 }
