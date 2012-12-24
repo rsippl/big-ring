@@ -31,7 +31,7 @@ class ImageQueue: public QObject
 {
 	Q_OBJECT
 public:
-	ImageQueue(int capacity, int low, QObject *parent);
+	ImageQueue(int capacity, int low, QObject *parent = NULL);
 	bool offer(ImageFrame& image);
 	ImageFrame take();
 	void drain();
@@ -46,16 +46,6 @@ private:
 	QWaitCondition _condition;
 };
 
-/**
-  Pure virtual class which can be implemented by classes which want to handle
-  images from the video.
-  */
-class VideoImageHandler
-{
-public:
-	virtual void handleImage(const QImage& image) = 0;
-};
-
 class VideoDecoder : public QObject
 {
 	Q_OBJECT
@@ -64,7 +54,6 @@ public:
 	~VideoDecoder();
 
 signals:
-	void frameReady(quint32 frameNr);
 	void error();
 	void videoLoaded();
 public slots:

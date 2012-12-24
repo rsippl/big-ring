@@ -13,52 +13,16 @@
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent), _imageQueue(100, 50, this),
-	_videoDecoder(new VideoDecoder(&_imageQueue)),
-	_playTimer(new QTimer(this)),
-	_decoderThread(new QThread(this))
-
+	QGLWidget(parent)
 {
-	connect(_playTimer, SIGNAL(timeout()), SLOT(frameTimeout()));
-
-	_decoderThread->start();
-	_videoDecoder->moveToThread(_decoderThread);
-
-	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 }
 
 VideoWidget::~VideoWidget()
 {
-	_decoderThread->quit();
-	_decoderThread->wait();
-
-	delete _videoDecoder;
 }
 
-void VideoWidget::playVideo()
-{
-	_playTimer->setInterval(40);
-	_playTimer->start();
-}
 
-void VideoWidget::stop()
-{
-	_playTimer->stop();
-}
-
-void VideoWidget::setRate(float framesPerSecond)
-{
-	int interval = 1000 / framesPerSecond;
-	if (interval != _playTimer->interval())
-		_playTimer->setInterval(1000 / framesPerSecond);
-}
-
-void VideoWidget::setPosition(quint32 frameNr)
-{
-	QMetaObject::invokeMethod(_videoDecoder, "seekFrame",
-							  Q_ARG(quint32, frameNr));
-}
 
 void VideoWidget::enterEvent(QEvent*)
 {
@@ -70,27 +34,19 @@ void VideoWidget::leaveEvent(QEvent*)
 	QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
 }
 
-void VideoWidget::frameTimeout()
+void VideoWidget::displayFrame(ImageFrame& imageFrame)
 {
+	_currentImage = imageFrame;
 	repaint();
-}
-
-void VideoWidget::videoLoaded()
-{
-	QMetaObject::invokeMethod(_videoDecoder, "seekFrame",
-							  Q_ARG(quint32, 0u));
 }
 
 void VideoWidget::paintGL()
 {
-	if (!_playTimer->isActive())
+	if (_currentImage.image().isNull())
 		return;
-	ImageFrame imageFrame = _imageQueue.take();
-	if (imageFrame.image().isNull())
-		return;
-	QImage image = imageFrame.image();
+	QImage image = _currentImage.image();
 
-	qDebug() << "showing frame " << imageFrame.frameNr();
+	qDebug() << "showing frame " << _currentImage.frameNr();
 
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
@@ -174,10 +130,4 @@ void VideoWidget::resizeGL(int w, int h)
 	glLoadIdentity();
 	glOrtho(0, w,0,h,-1,1);
 	glMatrixMode (GL_MODELVIEW);
-}
-
-void VideoWidget::loadVideo(const QString &filename)
-{
-	QMetaObject::invokeMethod(_videoDecoder, "openFile",
-							  Q_ARG(QString, filename));
 }

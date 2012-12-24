@@ -2,6 +2,8 @@
 #define VIDEOCONTROLLER_H
 
 #include <QObject>
+#include <QThread>
+#include <QTimer>
 
 #include "reallivevideo.h"
 #include "videowidget.h"
@@ -11,6 +13,7 @@ class VideoController : public QObject
 	Q_OBJECT
 public:
 	explicit VideoController(VideoWidget* videoWidget, QObject *parent = 0);
+	~VideoController();
 	
 signals:
 	void distanceChanged(float distance);
@@ -24,11 +27,19 @@ public slots:
 
 private slots:
 	void updateVideo();
+	void displayFrame();
 private:
+	void loadVideo(const QString& filename);
 	void setDistance(float distance);
+	void setPosition(quint32 frameNr);
 
+
+	ImageQueue _imageQueue;
+	VideoDecoder _videoDecoder;
+	QThread _decoderThread;
 	VideoWidget* const _videoWidget;
-	QTimer* const _updateTimer;
+	QTimer _updateTimer;
+	QTimer _playTimer;
 
 	RealLiveVideo _currentRlv;
 
