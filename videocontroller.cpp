@@ -11,7 +11,7 @@ const float videoUpdateInterval = 100; // ms
 
 VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
 	QObject(parent),
-	_imageQueue(100, 50),
+	_imageQueue(200, 175),
 	_videoDecoder(&_imageQueue),
 	_videoWidget(videoWidget),
 	_currentDistance(0.0f),
@@ -68,6 +68,7 @@ void VideoController::courseSelected(int courseNr)
 void VideoController::play(bool doPlay)
 {
 	if (doPlay) {
+		_lastTime = QDateTime::currentMSecsSinceEpoch();
 		_playTimer.start();
 		_updateTimer.start();
 	} else {
@@ -92,6 +93,7 @@ void VideoController::displayFrame()
 {
 	updateDistance();
 	quint32 frameToShow = _currentRlv.frameForDistance(_currentDistance);
+//	qDebug() << "frame to show" << frameToShow;
 	if (_currentFrame.image().isNull()) {
 		qDebug() << "current frame is null, taking first one";
 		_currentFrame = _imageQueue.take();
@@ -99,8 +101,10 @@ void VideoController::displayFrame()
 	}
 	if (frameToShow == _currentFrame.frameNr())
 		return; // no need to display again.
-	if (frameToShow < _currentFrame.frameNr())
+	if (frameToShow < _currentFrame.frameNr()) {
+		qDebug() << "frame to show" << frameToShow << "current" << _currentFrame.frameNr();
 		return; // wait until playing catches up.
+	}
 
 	bool displayed = false;
 	while(!displayed && !_currentFrame.image().isNull()) {

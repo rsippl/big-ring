@@ -24,6 +24,7 @@ VideoDecoder::VideoDecoder(ImageQueue *imageQueue, QObject *parent) :
 	_codec(NULL), _frame(NULL), _frameRgb(NULL),
 	_bufferSize(0), _frameBuffer(NULL), _swsContext(NULL),
 	_seekTimer(new QTimer(this)), _seekTargetFrame(0),
+	_lastFillTime(QDateTime::fromTime_t(0)),
 	_currentFrame(-1)
 {
 	initialize();
@@ -120,8 +121,6 @@ void VideoDecoder::openFile(QString filename)
 	emit videoLoaded();
 }
 
-
-
 int VideoDecoder::findVideoStream()
 {
 	for (quint32 i = 0; i < _formatContext->nb_streams; ++i)
@@ -170,7 +169,11 @@ void VideoDecoder::seekDelayFinished()
 
 void VideoDecoder::refillBuffer()
 {
-	qDebug() << "refilling buffer";
+	// only refill
+	if (_lastFillTime.msecsTo(QDateTime::currentDateTime()) < 1000 && !(_imageQueue->isEmpty()))
+		return;
+	_lastFillTime = QDateTime::currentDateTime();
+
 	bool bufferFull = false;
 	while(!bufferFull) {
 		ImageFrame newImage = decodeNextFrame();
@@ -178,8 +181,10 @@ void VideoDecoder::refillBuffer()
 			return;
 		else
 			bufferFull = _imageQueue->offer(newImage);
+		if (bufferFull) {
+			qDebug() << "last frame into buffer" << newImage.frameNr();
+		}
 	}
-	qDebug() << "refilling buffer finished";
 	emit bufferFilled();
 }
 
@@ -238,14 +243,13 @@ bool ImageQueue::offer(ImageFrame &image)
 ImageFrame ImageQueue::take()
 {
 	ImageFrame image;
-	bool lowReached;
+	bool lowReached = false;
 	{
 		QMutexLocker locker(&_mutex);
+		lowReached = (_queue.size() <= _low);
 		if (_queue.empty())
 			return image;
 		image = _queue.dequeue();
-		lowReached = (_queue.size() <= _low);
-
 	}
 	if (lowReached)
 		emit lowMarkReached();
@@ -260,4 +264,12 @@ void ImageQueue::drain()
 		_queue.clear();
 	}
 	emit lowMarkReached();
+}
+
+bool ImageQueue::isEmpty()
+{
+	{
+		QMutexLocker locker(&_mutex);
+		return _queue.empty();
+	}
 }

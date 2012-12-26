@@ -1,6 +1,7 @@
 #ifndef VIDEODECODER_H
 #define VIDEODECODER_H
 
+#include <QDateTime>
 #include <QObject>
 #include <QImage>
 #include <QMutex>
@@ -35,6 +36,7 @@ public:
 	bool offer(ImageFrame& image);
 	ImageFrame take();
 	void drain();
+	bool isEmpty();
 signals:
 	void lowMarkReached();
 
@@ -89,7 +91,7 @@ private:
 	QTimer* _seekTimer;
 	quint32 _seekTargetFrame;
 
-
+	QDateTime _lastFillTime;
 	int _videoStream;
 	QMutex _mutex;
 
