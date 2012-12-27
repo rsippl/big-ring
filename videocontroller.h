@@ -2,6 +2,8 @@
 #define VIDEOCONTROLLER_H
 
 #include <QObject>
+#include <QPair>
+#include <QQueue>
 #include <QThread>
 #include <QTimer>
 
@@ -26,8 +28,10 @@ public slots:
 	void play(bool);
 
 private slots:
+	void videoLoaded();
 	void updateVideo();
 	void displayFrame();
+	void framesReady(FrameList frames);
 private:
 	void updateDistance();
 	void loadVideo(const QString& filename);
@@ -35,8 +39,10 @@ private:
 	void setPosition(quint32 frameNr);
 	// reset buffers etc after choosing new video.
 	void reset();
+	Frame takeFrame();
+	void requestNewFrames();
 
-	ImageQueue _imageQueue;
+	QQueue<Frame> _imageQueue;
 	VideoDecoder _videoDecoder;
 	QThread _decoderThread;
 	VideoWidget* const _videoWidget;
@@ -44,11 +50,12 @@ private:
 	QTimer _playTimer;
 
 	RealLiveVideo _currentRlv;
-	ImageFrame _currentFrame;
+	quint32 _currentFrameNumber;
 
 	qint64 _lastTime;
 	float _currentDistance;
 	bool _running;
+	bool _newFramesRequested;
 };
 
 #endif // VIDEOCONTROLLER_H

@@ -19,7 +19,7 @@ public:
 	virtual ~VideoWidget();
 
 	/** Display a frame */
-	void displayFrame(ImageFrame &imageFrame);
+	void displayFrame(quint32 frameNr, QImage &imageFrame);
 
 protected:
 	void paintGL();
@@ -29,7 +29,8 @@ protected:
 	virtual void leaveEvent(QEvent *);
 
 private:
-	ImageFrame _currentImage;
+	quint32 _currentFrameNumber;
+	QImage _currentFrame;
 	GLuint _texture;
 };
 

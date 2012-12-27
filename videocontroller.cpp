@@ -7,15 +7,16 @@
 namespace {
 const float SPEED = 30.0f / 3.6f;
 const float videoUpdateInterval = 100; // ms
+const quint32 NR_FRAMES_PER_REQUEST = 200;
+const int NR_FRAMES_BUFFER_LOW = 100;
 }
 
 VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
 	QObject(parent),
-	_imageQueue(200, 175),
-	_videoDecoder(&_imageQueue),
 	_videoWidget(videoWidget),
 	_currentDistance(0.0f),
-	_running(false)
+	_running(false),
+	_newFramesRequested(false)
 {
 	_decoderThread.start();
 	_videoDecoder.moveToThread(&_decoderThread);
@@ -28,6 +29,7 @@ VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
 
 	// set up video decoder
 	connect(&_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
+	connect(&_videoDecoder, SIGNAL(framesReady(FrameList)), SLOT(framesReady(FrameList)));
 }
 
 VideoController::~VideoController()
@@ -63,6 +65,7 @@ void VideoController::courseSelected(int courseNr)
 	qDebug() << "slope at start = " << _currentRlv.slopeForDistance(_currentDistance);
 
 	setPosition(frame);
+	requestNewFrames();
 }
 
 void VideoController::play(bool doPlay)
@@ -74,6 +77,12 @@ void VideoController::play(bool doPlay)
 	} else {
 		reset();
 	}
+}
+
+void VideoController::videoLoaded()
+{
+	qDebug() << "video loaded, loading frames";
+	requestNewFrames();
 }
 
 
@@ -93,27 +102,44 @@ void VideoController::displayFrame()
 {
 	updateDistance();
 	quint32 frameToShow = _currentRlv.frameForDistance(_currentDistance);
-//	qDebug() << "frame to show" << frameToShow;
-	if (_currentFrame.image().isNull()) {
-		qDebug() << "current frame is null, taking first one";
-		_currentFrame = _imageQueue.take();
-		_videoWidget->displayFrame(_currentFrame);
-	}
-	if (frameToShow == _currentFrame.frameNr())
+	Frame frame;
+
+	if (frameToShow == _currentFrameNumber)
 		return; // no need to display again.
-	if (frameToShow < _currentFrame.frameNr()) {
-		qDebug() << "frame to show" << frameToShow << "current" << _currentFrame.frameNr();
+	if (frameToShow < _currentFrameNumber && _currentFrameNumber != UNKNOWN_FRAME_NR) {
+		qDebug() << "frame to show" << frameToShow << "current" << _currentFrameNumber;
 		return; // wait until playing catches up.
 	}
 
+	if (_imageQueue.empty()) {
+		requestNewFrames();
+		qDebug() << "image queue empty, doing nothing";
+		return;
+	}
+
+	if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
+		qDebug() << "current frame is null, taking first one";
+		frame = takeFrame();
+		_currentFrameNumber = frame.first;
+		_videoWidget->displayFrame(frame.first, frame.second);
+		return;
+	}
+
 	bool displayed = false;
-	while(!displayed && !_currentFrame.image().isNull()) {
-		_currentFrame = _imageQueue.take();
-		if (_currentFrame.frameNr() == frameToShow) {
-			_videoWidget->displayFrame(_currentFrame);
+	while(!displayed && _currentFrameNumber != UNKNOWN_FRAME_NR && !_imageQueue.empty()) {
+		frame = takeFrame();
+		_currentFrameNumber = frame.first;
+		if (_currentFrameNumber == frameToShow) {
+			_videoWidget->displayFrame(frame.first, frame.second);
 			displayed = true;
 		}
 	}
+}
+
+void VideoController::framesReady(FrameList frames)
+{
+	_imageQueue.append(frames);
+	_newFramesRequested = false;
 }
 
 void VideoController::updateDistance()
@@ -154,6 +180,25 @@ void VideoController::reset()
 {
 	_updateTimer.stop();
 	_playTimer.stop();
-	_currentFrame = ImageFrame();
-	_imageQueue.drain();
+	_currentFrameNumber = UNKNOWN_FRAME_NR;
+	_imageQueue.clear();
+	_newFramesRequested = false;
+}
+
+Frame VideoController::takeFrame()
+{
+	if (!_newFramesRequested && _imageQueue.size() <= NR_FRAMES_BUFFER_LOW)
+		requestNewFrames();
+
+	if (_imageQueue.empty())
+		return qMakePair(UNKNOWN_FRAME_NR, QImage());
+	else
+		return _imageQueue.dequeue();
+}
+
+void VideoController::requestNewFrames()
+{
+	_newFramesRequested = true;
+	qDebug() << "Requesting frames";
+	QMetaObject::invokeMethod(&_videoDecoder, "loadFrames", Q_ARG(quint32, NR_FRAMES_PER_REQUEST));
 }

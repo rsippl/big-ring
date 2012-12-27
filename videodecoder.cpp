@@ -10,28 +10,28 @@ extern "C"
 #include <cmath>
 #include <QDateTime>
 #include <QFile>
+#include <QMetaType>
 #include <QMutexLocker>
 #include <QThread>
 #include <QTimer>
 #include <QtDebug>
 
+
+
+
 namespace {
 const int ERROR_STR_BUF_SIZE = 128;
 }
-VideoDecoder::VideoDecoder(ImageQueue *imageQueue, QObject *parent) :
-	QObject(parent), _imageQueue(imageQueue),
+VideoDecoder::VideoDecoder(QObject *parent) :
+	QObject(parent),
 	_formatContext(NULL), _codecContext(NULL),
 	_codec(NULL), _frame(NULL), _frameRgb(NULL),
 	_bufferSize(0), _frameBuffer(NULL), _swsContext(NULL),
 	_seekTimer(new QTimer(this)), _seekTargetFrame(0),
-	_lastFillTime(QDateTime::fromTime_t(0)),
-	_currentFrame(-1)
+	_lastFillTime(QDateTime::fromTime_t(0))
 {
+	qRegisterMetaType<FrameList>("FrameList");
 	initialize();
-	_seekTimer->setSingleShot(true);
-	_seekTimer->setInterval(50);
-	connect(_seekTimer, SIGNAL(timeout()), SLOT(seekDelayFinished()));
-	connect(_imageQueue, SIGNAL(lowMarkReached()), SLOT(refillBuffer()), Qt::QueuedConnection);
 }
 
 VideoDecoder::~VideoDecoder()
@@ -63,11 +63,7 @@ void VideoDecoder::closeFramesAndBuffers()
 
 void VideoDecoder::close()
 {
-	qDebug() << "draining buffer";
-	_imageQueue->drain();
-
 	closeFramesAndBuffers();
-	_currentFrame = -1;
 
 	_codec = NULL;
 	if (_codecContext)
@@ -117,8 +113,23 @@ void VideoDecoder::openFile(QString filename)
 	}
 
 	initializeFrames();
-	refillBuffer();
 	emit videoLoaded();
+}
+
+void VideoDecoder::loadFrames(quint32 numberOfFrame)
+{
+	Frame frame;
+	quint32 decoded = 0;
+	FrameList frames;
+	while(decoded < numberOfFrame) {
+		frame = decodeNextFrame();
+		if (frame.first == UNKNOWN_FRAME_NR)
+			break;
+
+		frames << frame;
+		++decoded;
+	}
+	emit framesReady(frames);
 }
 
 int VideoDecoder::findVideoStream()
@@ -159,117 +170,38 @@ void VideoDecoder::seekFrame(quint32 frameNr)
 	qDebug() << "seeking to frame " << frameNr;
 	av_seek_frame(_formatContext, _videoStream, frameNr, AVSEEK_FLAG_ANY);
 	_seekTargetFrame = frameNr;
-	_seekTimer->start();
 }
 
-void VideoDecoder::seekDelayFinished()
+Frame VideoDecoder::decodeNextFrame()
 {
-	_imageQueue->drain();
-}
 
-void VideoDecoder::refillBuffer()
-{
-	// only refill
-	if (_lastFillTime.msecsTo(QDateTime::currentDateTime()) < 1000 && !(_imageQueue->isEmpty()))
-		return;
-	_lastFillTime = QDateTime::currentDateTime();
-
-	bool bufferFull = false;
-	while(!bufferFull) {
-		ImageFrame newImage = decodeNextFrame();
-		if (newImage.image().isNull())
-			return;
-		else
-			bufferFull = _imageQueue->offer(newImage);
-		if (bufferFull) {
-			qDebug() << "last frame into buffer" << newImage.frameNr();
-		}
-	}
-	emit bufferFilled();
-}
-
-ImageFrame VideoDecoder::decodeNextFrame()
-{
-	ImageFrame imageFrame;
-	int frameFinished = 0;
+	QImage nullImage;
+	Frame newImage = qMakePair(UNKNOWN_FRAME_NR, nullImage);
 
 	/** We might get here before having loaded anything */
-	if (_formatContext == NULL) {
-		qDebug() << "formatcontext null";
-		return imageFrame;
-	}
+	if (_formatContext != NULL) {
+		AVPacket packet;
+		int frameFinished = 0;
+		while(!frameFinished) {
+			if (av_read_frame(_formatContext, &packet) < 0)
+				break;
 
-	AVPacket packet;
-
-	while(!frameFinished) {
-		if (av_read_frame(_formatContext, &packet) < 0) {
-			return imageFrame;
-		}
-
-		if (packet.stream_index == _videoStream) {
-			avcodec_decode_video2(_codecContext, _frame,
-								  &frameFinished, &packet);
-			if (frameFinished) {
-				sws_scale(_swsContext, _frame->data, _frame->linesize,
-						  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
-				_currentImage = QImage(_frameRgb->data[0],
-									   _codecContext->width,
-									   _codecContext->height,
-									   _codecContext->width * 3,
-									   QImage::Format_RGB888);
-				imageFrame = ImageFrame(packet.dts, _currentImage.copy());
-
-				_currentFrame = packet.dts;
-				av_free_packet(&packet);
+			if (packet.stream_index == _videoStream) {
+				avcodec_decode_video2(_codecContext, _frame,
+									  &frameFinished, &packet);
+				if (frameFinished) {
+					sws_scale(_swsContext, _frame->data, _frame->linesize,
+							  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
+					_currentImage = QImage(_frameRgb->data[0],
+										   _codecContext->width,
+										   _codecContext->height,
+										   _codecContext->width * 3,
+										   QImage::Format_RGB888);
+					newImage = qMakePair(static_cast<quint32>(packet.dts), _currentImage.copy());
+					av_free_packet(&packet);
+				}
 			}
 		}
 	}
-	return imageFrame;
-}
-
-ImageQueue::ImageQueue(int capacity, int low, QObject *parent): QObject(parent),
-	_capacity(capacity), _low(low)
-{
-}
-
-bool ImageQueue::offer(ImageFrame &image)
-{
-	QMutexLocker locker(&_mutex);
-	_queue.enqueue(image);
-	_condition.wakeOne();
-	return (_queue.size() >= _capacity);
-}
-
-ImageFrame ImageQueue::take()
-{
-	ImageFrame image;
-	bool lowReached = false;
-	{
-		QMutexLocker locker(&_mutex);
-		lowReached = (_queue.size() <= _low);
-		if (_queue.empty())
-			return image;
-		image = _queue.dequeue();
-	}
-	if (lowReached)
-		emit lowMarkReached();
-
-	return image;
-}
-
-void ImageQueue::drain()
-{
-	{
-		QMutexLocker locker(&_mutex);
-		_queue.clear();
-	}
-	emit lowMarkReached();
-}
-
-bool ImageQueue::isEmpty()
-{
-	{
-		QMutexLocker locker(&_mutex);
-		return _queue.empty();
-	}
+	return newImage;
 }

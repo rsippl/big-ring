@@ -34,24 +34,26 @@ void VideoWidget::leaveEvent(QEvent*)
 	QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
 }
 
-void VideoWidget::displayFrame(ImageFrame& imageFrame)
+void VideoWidget::displayFrame(quint32 frameNr, QImage &image)
 {
-	_currentImage = imageFrame;
-	repaint();
+	if (frameNr != UNKNOWN_FRAME_NR) {
+		_currentFrameNumber = frameNr;
+		_currentFrame = image;
+		repaint();
+	}
 }
 
 void VideoWidget::paintGL()
 {
-	if (_currentImage.image().isNull())
+	if (_currentFrame.isNull())
 		return;
-	QImage image = _currentImage.image();
 
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
 	if (_texture != 0) {
 		deleteTexture(_texture);
 	}
-	_texture = bindTexture(image, GL_TEXTURE_RECTANGLE_ARB,  GL_RGBA, QGLContext::NoBindOption);
+	_texture = bindTexture(_currentFrame, GL_TEXTURE_RECTANGLE_ARB,  GL_RGBA, QGLContext::NoBindOption);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
 	GLenum error;
 	if( ( error = glGetError() ) != GL_NO_ERROR )
@@ -91,8 +93,8 @@ void VideoWidget::paintGL()
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 
-	GLfloat width = image.width();
-	GLfloat height = image.height();
+	GLfloat width = _currentFrame.width();
+	GLfloat height = _currentFrame.height();
 
 	float imageRatio = width / height;
 	float widgetRatio = (float) this->width() / (float) this->height();
