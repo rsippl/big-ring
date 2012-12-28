@@ -13,52 +13,16 @@
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent), _videoDecoder(new VideoDecoder),
-	_playTimer(new QTimer(this)),
-	_decoderThread(new QThread(this))
-
+	QGLWidget(parent)
 {
-	connect(_playTimer, SIGNAL(timeout()), _videoDecoder, SLOT(nextImage()));
-
-	_decoderThread->start();
-	_videoDecoder->moveToThread(_decoderThread);
-
-	connect(_videoDecoder, SIGNAL(frameReady(quint32)), SLOT(frameReady(quint32)));
-	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 }
 
 VideoWidget::~VideoWidget()
 {
-	_decoderThread->quit();
-	_decoderThread->wait();
-
-	delete _videoDecoder;
 }
 
-void VideoWidget::playVideo()
-{
-	_playTimer->setInterval(40);
-	_playTimer->start();
-}
 
-void VideoWidget::stop()
-{
-	_playTimer->stop();
-}
-
-void VideoWidget::setRate(float framesPerSecond)
-{
-	int interval = 1000 / framesPerSecond;
-	if (interval != _playTimer->interval())
-		_playTimer->setInterval(1000 / framesPerSecond);
-}
-
-void VideoWidget::setPosition(quint32 frameNr)
-{
-	QMetaObject::invokeMethod(_videoDecoder, "seekFrame",
-							  Q_ARG(quint32, frameNr));
-}
 
 void VideoWidget::enterEvent(QEvent*)
 {
@@ -70,42 +34,26 @@ void VideoWidget::leaveEvent(QEvent*)
 	QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
 }
 
-void VideoWidget::frameReady(quint32)
+void VideoWidget::displayFrame(quint32 frameNr, QImage &image)
 {
-	repaint();
-}
-
-void VideoWidget::videoLoaded()
-{
-	QMetaObject::invokeMethod(_videoDecoder, "seekFrame",
-							  Q_ARG(quint32, 0u));
+	if (frameNr != UNKNOWN_FRAME_NR) {
+		_currentFrameNumber = frameNr;
+		_currentFrame = image;
+		repaint();
+	}
 }
 
 void VideoWidget::paintGL()
 {
-	_videoDecoder->doWithImage(*this);
-}
+	if (_currentFrame.isNull())
+		return;
 
-void VideoWidget::resizeGL(int w, int h)
-{
-	glViewport (0, 0, w, h);
-	glMatrixMode (GL_PROJECTION);
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	glOrtho(0, w,0,h,-1,1);
-	glMatrixMode (GL_MODELVIEW);
-}
-
-/*! This method should only be called from the video decoder. */
-void VideoWidget::handleImage(const QImage &image)
-{
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
 	if (_texture != 0) {
 		deleteTexture(_texture);
 	}
-	_texture = bindTexture(image, GL_TEXTURE_RECTANGLE_ARB,  GL_RGBA, QGLContext::NoBindOption);
+	_texture = bindTexture(_currentFrame, GL_TEXTURE_RECTANGLE_ARB,  GL_RGBA, QGLContext::NoBindOption);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
 	GLenum error;
 	if( ( error = glGetError() ) != GL_NO_ERROR )
@@ -145,8 +93,8 @@ void VideoWidget::handleImage(const QImage &image)
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 
-	GLfloat width = image.width();
-	GLfloat height = image.height();
+	GLfloat width = _currentFrame.width();
+	GLfloat height = _currentFrame.height();
 
 	float imageRatio = width / height;
 	float widgetRatio = (float) this->width() / (float) this->height();
@@ -158,12 +106,6 @@ void VideoWidget::handleImage(const QImage &image)
 	} else if (imageRatio < widgetRatio) {
 		clippedBorderHeight = (height - ((imageRatio / widgetRatio) * height)) /2;
 	}
-
-//	qDebug() << "widget = " << this->width() << "x" << this->height();
-//	qDebug() << "image = " << width << "x" << height;
-//	qDebug() << "borderwidth = " << clippedBorderWidth;
-//	qDebug() << "borderheight = " << clippedBorderHeight;
-
 
 	glBegin(GL_QUADS);
 	glTexCoord2f(clippedBorderWidth, height - clippedBorderHeight);
@@ -179,8 +121,13 @@ void VideoWidget::handleImage(const QImage &image)
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 }
 
-void VideoWidget::loadVideo(const QString &filename)
+void VideoWidget::resizeGL(int w, int h)
 {
-	QMetaObject::invokeMethod(_videoDecoder, "openFile",
-							  Q_ARG(QString, filename));
+	glViewport (0, 0, w, h);
+	glMatrixMode (GL_PROJECTION);
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+	glOrtho(0, w,0,h,-1,1);
+	glMatrixMode (GL_MODELVIEW);
 }

@@ -10,9 +10,14 @@ extern "C"
 #include <cmath>
 #include <QDateTime>
 #include <QFile>
+#include <QMetaType>
+#include <QMutexLocker>
 #include <QThread>
 #include <QTimer>
 #include <QtDebug>
+
+
+
 
 namespace {
 const int ERROR_STR_BUF_SIZE = 128;
@@ -23,12 +28,12 @@ VideoDecoder::VideoDecoder(QObject *parent) :
 	_codec(NULL), _frame(NULL), _frameRgb(NULL),
 	_bufferSize(0), _frameBuffer(NULL), _swsContext(NULL),
 	_seekTimer(new QTimer(this)), _seekTargetFrame(0),
-	_currentFrame(-1)
+	_lastFillTime(QDateTime::fromTime_t(0))
 {
+	qRegisterMetaType<FrameList>("FrameList");
 	initialize();
 	_seekTimer->setSingleShot(true);
-	_seekTimer->setInterval(50);
-	connect(_seekTimer, SIGNAL(timeout()), SLOT(seekDelayFinished()));
+	connect(_seekTimer, SIGNAL(timeout()), SIGNAL(seekFinished()));
 }
 
 VideoDecoder::~VideoDecoder()
@@ -61,7 +66,6 @@ void VideoDecoder::closeFramesAndBuffers()
 void VideoDecoder::close()
 {
 	closeFramesAndBuffers();
-	_currentFrame = -1;
 
 	_codec = NULL;
 	if (_codecContext)
@@ -73,18 +77,18 @@ void VideoDecoder::close()
 
 void VideoDecoder::openFile(QString filename)
 {
-    close();
-    int errorNr = avformat_open_input(&_formatContext, filename.toStdString().c_str(),
-				      NULL, NULL);
-    if (errorNr != 0) {
-	printError(errorNr, QString("Unable to open %1").arg(filename));
-    }
+	close();
+	int errorNr = avformat_open_input(&_formatContext, filename.toStdString().c_str(),
+									  NULL, NULL);
+	if (errorNr != 0) {
+		printError(errorNr, QString("Unable to open %1").arg(filename));
+	}
 	errorNr = avformat_find_stream_info(_formatContext, NULL);
-    if (errorNr < 0) {
-	printError(errorNr, QString("Unable to find video stream"));
-	emit error();
-    }
-    av_dump_format(_formatContext, 0, filename.toStdString().c_str(), 0);
+	if (errorNr < 0) {
+		printError(errorNr, QString("Unable to find video stream"));
+		emit error();
+	}
+	av_dump_format(_formatContext, 0, filename.toStdString().c_str(), 0);
 
 	_videoStream = findVideoStream();
 	if (_videoStream < 0) {
@@ -111,11 +115,27 @@ void VideoDecoder::openFile(QString filename)
 	}
 
 	initializeFrames();
-
 	emit videoLoaded();
 }
 
+void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 requestId)
+{
+	qDebug() << "request" << requestId << "for" << numberOfFrame << "frames";
+	Frame frame;
+	quint32 decoded = 0;
+	FrameList frames;
+	while(decoded < numberOfFrame) {
+		frame = decodeNextFrame();
+		if (frame.first == UNKNOWN_FRAME_NR)
+			break;
 
+		frames << frame;
+		++decoded;
+	}
+	qDebug() << "request" << requestId << "finished. Frames." << frames.first().first << "to" << frames.last().first;
+	emit framesReady(frames, requestId);
+
+}
 
 int VideoDecoder::findVideoStream()
 {
@@ -154,64 +174,41 @@ void VideoDecoder::seekFrame(quint32 frameNr)
 {
 	qDebug() << "seeking to frame " << frameNr;
 	av_seek_frame(_formatContext, _videoStream, frameNr, AVSEEK_FLAG_ANY);
+	avcodec_flush_buffers(_codecContext);
 	_seekTargetFrame = frameNr;
-	_seekTimer->start();
+	_seekTimer->start(500);
 }
 
-void VideoDecoder::seekDelayFinished()
+Frame VideoDecoder::decodeNextFrame()
 {
-	decodeNextFrame();
-	qDebug() << "delay finished, seeking to " << _seekTargetFrame << " got to " << _currentFrame;
-	if (_currentFrame >= static_cast<qint32>(_seekTargetFrame)) {
-		if (!_frame->key_frame)
-			for (int i = 0; i < 10 || !_frame->key_frame; ++i)
-				decodeNextFrame();
-		emit frameReady(_currentFrame);
-	}
-	else
-		_seekTimer->start();
-}
 
-void VideoDecoder::nextImage()
-{
-	decodeNextFrame();
-	emit frameReady(static_cast<quint32>(_currentFrame));
-}
+	QImage nullImage;
+	Frame newImage = qMakePair(UNKNOWN_FRAME_NR, nullImage);
 
-void VideoDecoder::decodeNextFrame()
-{
-	int frameFinished = 0;
-	AVPacket packet;
-	while(!frameFinished) {
-		if (av_read_frame(_formatContext, &packet) < 0)
-			return;
+	/** We might get here before having loaded anything */
+	if (_formatContext != NULL) {
+		AVPacket packet;
+		int frameFinished = 0;
+		while(!frameFinished) {
+			if (av_read_frame(_formatContext, &packet) < 0)
+				break;
 
-		if (packet.stream_index == _videoStream) {
-
-			avcodec_decode_video2(_codecContext, _frame,
-								  &frameFinished, &packet);
-			if (frameFinished) {
-				sws_scale(_swsContext, _frame->data, _frame->linesize,
-						  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
-				{
-					QMutexLocker locker(&_mutex);
+			if (packet.stream_index == _videoStream) {
+				avcodec_decode_video2(_codecContext, _frame,
+									  &frameFinished, &packet);
+				if (frameFinished) {
+					sws_scale(_swsContext, _frame->data, _frame->linesize,
+							  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
 					_currentImage = QImage(_frameRgb->data[0],
 										   _codecContext->width,
 										   _codecContext->height,
 										   _codecContext->width * 3,
 										   QImage::Format_RGB888);
+					newImage = qMakePair(static_cast<quint32>(packet.dts), _currentImage.copy());
+					av_free_packet(&packet);
 				}
-				_currentFrame = packet.dts;
-				av_free_packet(&packet);
 			}
 		}
 	}
-//	qDebug() << "decoding on thread [" << QThread::currentThreadId() << "] took " << QDateTime::currentMSecsSinceEpoch() - start;
+	return newImage;
 }
-
-void VideoDecoder::doWithImage(VideoImageHandler &handler)
-{
-	QMutexLocker lock(&_mutex);
-	handler.handleImage(_currentImage);
-}
-

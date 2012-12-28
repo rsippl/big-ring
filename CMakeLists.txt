@@ -52,4 +52,6 @@ target_link_libraries(indoorcycling ${QT_LIBRARIES} ${FFMPEG_LIBRARIES})
 add_executable(test_modelclasses reallivevideotest.cpp reallivevideo.cpp)
 target_link_libraries(test_modelclasses ${QT_LIBRARIES})
 
+add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp ${ANT_SRCS} ${SRCS} ${UI_SRCS})
+target_link_libraries(rlvtest ${QT_LIBRARIES} ${FFMPEG_LIBRARIES})
 

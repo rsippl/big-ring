@@ -1,25 +1,24 @@
 #ifndef VIDEODECODER_H
 #define VIDEODECODER_H
 
+#include <QDateTime>
 #include <QObject>
 #include <QImage>
-#include <QMutex>
+#include <QPair>
+#include <QQueue>
+#include <QWaitCondition>
 
 struct AVCodec;
 struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
 struct SwsContext;
+#include <limits>
 
-/**
-  Pure virtual class which can be implemented by classes which want to handle
-  images from the video.
-  */
-class VideoImageHandler
-{
-public:
-	virtual void handleImage(const QImage& image) = 0;
-};
+const quint32 UNKNOWN_FRAME_NR = std::numeric_limits<quint32>::max();
+
+typedef QPair<quint32, QImage> Frame;
+typedef QList<Frame> FrameList;
 
 class VideoDecoder : public QObject
 {
@@ -28,24 +27,24 @@ public:
 	explicit VideoDecoder(QObject *parent = 0);
 	~VideoDecoder();
 
-	void doWithImage(VideoImageHandler& handler);
 signals:
-	void frameReady(quint32 frameNr);
 	void error();
 	void videoLoaded();
+	void framesReady(FrameList frames, quint32 requestId);
+	void seekFinished();
+
 public slots:
 	void seekFrame(quint32 frameNr);
 	void openFile(QString filename);
-	void nextImage();
+	/** Load a number of frames from the video file */
+	void loadFrames(quint32 numberOfFrame, quint32 requestId);
 
-private slots:
-	void seekDelayFinished();
 private:
 	void close();
 	void closeFramesAndBuffers();
 	void initialize();
 	void initializeFrames();
-	void decodeNextFrame();
+	Frame decodeNextFrame();
 
 	int findVideoStream();
 	void printError(int errorNr, const QString& message);
@@ -64,11 +63,9 @@ private:
 	QTimer* _seekTimer;
 	quint32 _seekTargetFrame;
 
-
+	QDateTime _lastFillTime;
 	int _videoStream;
-	QMutex _mutex;
 
-	qint32 _currentFrame;
 	int _widgetWidth;
 	int _widgetHeight;
 };

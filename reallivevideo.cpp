@@ -15,36 +15,33 @@ RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoI
 	_name(name), _videoInformation(videoInformation), _courses(courses), _profile(profile)
 {
 	float currentDistance = 0.0f;
+	float lastMetersPerFrame = 0;
 
-	quint32 lastFrameNumber = 0;
+	quint32 lastFrameNumber = distanceMappings[0].frameNumber();
 	QListIterator<DistanceMappingEntry> it(distanceMappings);
 	while(it.hasNext()) {
 		const DistanceMappingEntry& entry = it.next();
 		quint32 nrFrames = entry.frameNumber() - lastFrameNumber;
-		currentDistance += nrFrames * entry.metersPerFrame();
+		currentDistance += nrFrames * lastMetersPerFrame;
+		_distanceMappings.append(qMakePair(currentDistance, entry));
 
-		_distanceMappings[currentDistance] = entry;
-
+		lastMetersPerFrame = entry.metersPerFrame();
 		lastFrameNumber = entry.frameNumber();
 	}
-
 }
 
 RealLiveVideo::RealLiveVideo() {}
 
-float RealLiveVideo::metersPerFrame(const float distance) const
+float RealLiveVideo::metersPerFrame(const float distance)
 {
-	float keyDistance = findDistanceMappingEntryFor(distance);
-	const DistanceMappingEntry entry = _distanceMappings[keyDistance];
-	return entry.metersPerFrame();
+	const QPair<float,DistanceMappingEntry>& entry = findDistanceMappingEntryFor(distance);
+	return entry.second.metersPerFrame();
 }
 
-quint32 RealLiveVideo::frameForDistance(const float distance) const
+quint32 RealLiveVideo::frameForDistance(const float distance)
 {
-	float keyDistance = findDistanceMappingEntryFor(distance);
-	const DistanceMappingEntry entry = _distanceMappings[keyDistance];
-
-	return entry.frameNumber() + (distance - keyDistance) / entry.metersPerFrame();
+	const QPair<float,DistanceMappingEntry>& entry = findDistanceMappingEntryFor(distance);
+	return entry.second.frameNumber() + (distance - entry.first) / entry.second.metersPerFrame();
 }
 
 float RealLiveVideo::slopeForDistance(const float distance) const
@@ -79,18 +76,28 @@ bool RealLiveVideo::compareByName(const RealLiveVideo &rlv1, const RealLiveVideo
 	return rlv1.name().toLower() < rlv2.name().toLower();
 }
 
-float RealLiveVideo::findDistanceMappingEntryFor(const float distance) const
+const QPair<float,DistanceMappingEntry>& RealLiveVideo::findDistanceMappingEntryFor(const float distance)
 {
-	float lastDistance = 0.0f;
-	QMapIterator<float, DistanceMappingEntry> it(_distanceMappings);
-	while(it.hasNext()) {
-		it.next();
-
-		if (it.key() > distance)
-			break;
-		lastDistance = it.key();
+	if (distance > _lastKeyDistance && distance < _nextLastKeyDistance) {
+		return _cachedDistanceMapping;
 	}
-	return lastDistance;
+
+	QPair<float,DistanceMappingEntry> newEntry;
+	QListIterator<QPair<float, DistanceMappingEntry> > it(_distanceMappings);
+	while(it.hasNext()) {
+		newEntry = it.peekNext();
+
+		if (newEntry.first > distance)
+			break;
+		else
+			_cachedDistanceMapping = it.next();
+	}
+	_lastKeyDistance = _cachedDistanceMapping.first;
+	if (it.hasNext())
+		_nextLastKeyDistance = it.peekNext().first;
+	else
+		_nextLastKeyDistance = 0;
+	return _cachedDistanceMapping;
 }
 
 DistanceMappingEntry::DistanceMappingEntry(quint32 frameNumber, float metersPerFrame):

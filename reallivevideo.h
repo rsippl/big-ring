@@ -3,6 +3,7 @@
 
 #include <QList>
 #include <QMap>
+#include <QPair>
 #include <QString>
 
 class ProfileEntry
@@ -96,9 +97,9 @@ public:
 	const QList<Course>& courses() const { return _courses; }
 
 	/** Get the number or frames per meter for a certain distance */
-	float metersPerFrame(const float distance) const;
+	float metersPerFrame(const float distance);
 	/** Get the exact frame for a distance. */
-	quint32 frameForDistance(const float distance) const;
+	quint32 frameForDistance(const float distance);
 	/** Get the slope for a distance */
 	float slopeForDistance(const float distance) const;
 	//! Get the altitude for a distance */
@@ -108,13 +109,16 @@ public:
 
 	static bool compareByName(const RealLiveVideo& rlv1, const RealLiveVideo& rlv2);
 private:
-	float findDistanceMappingEntryFor(const float distance) const;
+	const QPair<float, DistanceMappingEntry> &findDistanceMappingEntryFor(const float distance);
 
 	QString _name;
 	VideoInformation _videoInformation;
 	QList<Course> _courses;
-	QMap<float, DistanceMappingEntry> _distanceMappings;
+	QList<QPair<float,DistanceMappingEntry> > _distanceMappings;
 	Profile _profile;
+	QPair<float,DistanceMappingEntry> _cachedDistanceMapping;
+	float _lastKeyDistance;
+	float _nextLastKeyDistance;
 };
 typedef QList<RealLiveVideo> RealLiveVideoList;
 
