@@ -71,6 +71,7 @@ void RealLiveVideoImporter::importReady()
 
     // sort rlv list by name
     qSort(rlvList.begin(), rlvList.end(), RealLiveVideo::compareByName);
+
     emit importFinished(rlvList);
     watcher->deleteLater();
 }

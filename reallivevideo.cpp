@@ -17,7 +17,7 @@ RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoI
 	float currentDistance = 0.0f;
 	float lastMetersPerFrame = 0;
 
-	quint32 lastFrameNumber = 0;
+	quint32 lastFrameNumber = distanceMappings[0].frameNumber();
 	QListIterator<DistanceMappingEntry> it(distanceMappings);
 	while(it.hasNext()) {
 		const DistanceMappingEntry& entry = it.next();
@@ -82,16 +82,17 @@ const QPair<float,DistanceMappingEntry>& RealLiveVideo::findDistanceMappingEntry
 		return _cachedDistanceMapping;
 	}
 
-	float lastDistance = 0.0f;
+	QPair<float,DistanceMappingEntry> newEntry;
 	QListIterator<QPair<float, DistanceMappingEntry> > it(_distanceMappings);
 	while(it.hasNext()) {
-		_cachedDistanceMapping = it.next();
+		newEntry = it.peekNext();
 
-		if (_cachedDistanceMapping.first > distance)
+		if (newEntry.first > distance)
 			break;
-		lastDistance = _cachedDistanceMapping.first;
+		else
+			_cachedDistanceMapping = it.next();
 	}
-	_lastKeyDistance = lastDistance;
+	_lastKeyDistance = _cachedDistanceMapping.first;
 	if (it.hasNext())
 		_nextLastKeyDistance = it.peekNext().first;
 	else

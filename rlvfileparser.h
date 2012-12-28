@@ -154,7 +154,7 @@ protected:
 class RlvFileParser: public TacxFileParser
 {
 public:
-	RlvFileParser(const QStringList& videoFilenames);
+	RlvFileParser(const QStringList& videoFilenames = QStringList());
 
 	RealLiveVideo parseRlvFile(QFile& rlvFile);
 
