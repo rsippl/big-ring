@@ -31,6 +31,7 @@ VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
 	// set up video decoder
 	connect(&_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
 	connect(&_videoDecoder, SIGNAL(framesReady(FrameList, quint32)), SLOT(framesReady(FrameList, quint32)));
+	connect(&_videoDecoder, SIGNAL(seekFinished()), SLOT(seekFinished()));
 }
 
 VideoController::~VideoController()
@@ -71,7 +72,6 @@ void VideoController::courseSelected(int courseNr)
 	qDebug() << "slope at start = " << _currentRlv.slopeForDistance(_currentDistance);
 
 	setPosition(frame);
-	requestNewFrames();
 }
 
 void VideoController::play(bool doPlay)
@@ -90,20 +90,15 @@ void VideoController::play(bool doPlay)
 void VideoController::videoLoaded()
 {
 	qDebug() << "video loaded, loading frames";
-	requestNewFrames();
+	requestNewFrames(1);
 }
 
 
 void VideoController::updateVideo()
 {
-//	float metersPerFrame = _currentRlv.metersPerFrame(_currentDistance);
 	float slope = _currentRlv.slopeForDistance(_currentDistance);
 	emit slopeChanged(slope);
 	emit altitudeChanged(_currentRlv.altitudeForDistance(_currentDistance));
-
-	// speed is 30 km/h -> 8.3333 m/s
-//	float framesPerSecond = SPEED / metersPerFrame;
-
 }
 
 void VideoController::displayFrame()
@@ -120,7 +115,6 @@ void VideoController::displayFrame()
 	}
 
 	if (_imageQueue.empty()) {
-		requestNewFrames();
 		qDebug() << "image queue empty, doing nothing";
 		return;
 	}
@@ -152,8 +146,14 @@ void VideoController::framesReady(FrameList frames, quint32 requestId)
 		if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
 			displayFrame();
 		}
-		emit bufferFull(true);
+		if (_imageQueue.size() >= NR_FRAMES_BUFFER_LOW)
+			emit bufferFull(true);
 	}
+}
+
+void VideoController::seekFinished()
+{
+	requestNewFrames(1);
 }
 
 void VideoController::updateDistance()
@@ -192,18 +192,21 @@ void VideoController::setPosition(quint32 frameNr)
 
 void VideoController::reset()
 {
+	play(false);
 	emit bufferFull(false);
 	_playTimer.stop();
 	_updateTimer.stop();
 	_currentFrameNumber = UNKNOWN_FRAME_NR;
 	_imageQueue.clear();
 	_newFramesRequested = false;
+	_frameRequestId = 0;
 }
 
 Frame VideoController::takeFrame()
 {
-	if (!_newFramesRequested && _imageQueue.size() <= NR_FRAMES_BUFFER_LOW)
-		requestNewFrames();
+	if (!_newFramesRequested && _imageQueue.size() <= NR_FRAMES_BUFFER_LOW) {
+		requestNewFrames(NR_FRAMES_PER_REQUEST);
+	}
 
 	if (_imageQueue.empty())
 		return qMakePair(UNKNOWN_FRAME_NR, QImage());
@@ -211,10 +214,9 @@ Frame VideoController::takeFrame()
 		return _imageQueue.dequeue();
 }
 
-void VideoController::requestNewFrames()
+void VideoController::requestNewFrames(quint32 numberOfFrames)
 {
 	_newFramesRequested = true;
-	qDebug() << "Requesting frames";
 	_frameRequestId++;
-	QMetaObject::invokeMethod(&_videoDecoder, "loadFrames", Q_ARG(quint32, NR_FRAMES_PER_REQUEST), Q_ARG(quint32, _frameRequestId));
+	QMetaObject::invokeMethod(&_videoDecoder, "loadFrames", Q_ARG(quint32, numberOfFrames), Q_ARG(quint32, _frameRequestId));
 }

@@ -32,6 +32,8 @@ VideoDecoder::VideoDecoder(QObject *parent) :
 {
 	qRegisterMetaType<FrameList>("FrameList");
 	initialize();
+	_seekTimer->setSingleShot(true);
+	connect(_seekTimer, SIGNAL(timeout()), SIGNAL(seekFinished()));
 }
 
 VideoDecoder::~VideoDecoder()
@@ -171,8 +173,10 @@ void VideoDecoder::initializeFrames()
 void VideoDecoder::seekFrame(quint32 frameNr)
 {
 	qDebug() << "seeking to frame " << frameNr;
-	av_seek_frame(_formatContext, _videoStream, frameNr, AVSEEK_FLAG_FRAME);
+	av_seek_frame(_formatContext, _videoStream, frameNr, AVSEEK_FLAG_ANY);
+	avcodec_flush_buffers(_codecContext);
 	_seekTargetFrame = frameNr;
+	_seekTimer->start(500);
 }
 
 Frame VideoDecoder::decodeNextFrame()

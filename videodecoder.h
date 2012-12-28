@@ -31,6 +31,8 @@ signals:
 	void error();
 	void videoLoaded();
 	void framesReady(FrameList frames, quint32 requestId);
+	void seekFinished();
+
 public slots:
 	void seekFrame(quint32 frameNr);
 	void openFile(QString filename);

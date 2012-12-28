@@ -31,11 +31,13 @@ public slots:
 	void courseSelected(int courseNr);
 	void play(bool);
 
+
 private slots:
 	void videoLoaded();
 	void updateVideo();
 	void displayFrame();
 	void framesReady(FrameList frames, quint32 requestId);
+	void seekFinished();
 private:
 	void updateDistance();
 	void loadVideo(const QString& filename);
@@ -44,7 +46,7 @@ private:
 	// reset buffers etc after choosing new video.
 	void reset();
 	Frame takeFrame();
-	void requestNewFrames();
+	void requestNewFrames(quint32 numberOfFrames);
 
 	QQueue<Frame> _imageQueue;
 	VideoDecoder _videoDecoder;
