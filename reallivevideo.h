@@ -3,6 +3,7 @@
 
 #include <QList>
 #include <QMap>
+#include <QPair>
 #include <QString>
 
 class ProfileEntry
@@ -108,13 +109,14 @@ public:
 
 	static bool compareByName(const RealLiveVideo& rlv1, const RealLiveVideo& rlv2);
 private:
-	float findDistanceMappingEntryFor(const float distance);
+	const QPair<float, DistanceMappingEntry> &findDistanceMappingEntryFor(const float distance);
 
 	QString _name;
 	VideoInformation _videoInformation;
 	QList<Course> _courses;
-	QMap<float, DistanceMappingEntry> _distanceMappings;
+	QList<QPair<float,DistanceMappingEntry> > _distanceMappings;
 	Profile _profile;
+	QPair<float,DistanceMappingEntry> _cachedDistanceMapping;
 	float _lastKeyDistance;
 	float _nextLastKeyDistance;
 };
