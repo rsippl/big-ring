@@ -15,7 +15,7 @@
 #include <cmath>
 
 MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController& controller, QWidget *parent) :
-	QMainWindow(parent)
+	QMainWindow(parent), videoWidget(new VideoWidget(this)), videoController(new VideoController(videoWidget, this))
 {
 	connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), SIGNAL(importFinished(RealLiveVideoList)));
 
@@ -39,6 +39,8 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&
 	connect(videoController, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
 	connect(videoController, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
 	connect(videoController, SIGNAL(altitudeChanged(float)), SLOT(altitudeChanged(float)));
+
+
 	connect(&controller, SIGNAL(heartRateMeasured(quint8)), SLOT(hrChanged(quint8)));
 
 	grabKeyboard();
@@ -48,7 +50,6 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 {
 	QVBoxLayout* layout = new QVBoxLayout();
 
-	videoWidget = new VideoWidget(centralWidget);
 	videoWidget->setMinimumWidth(800);
 	videoWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -68,7 +69,7 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 
 	layout->addLayout(dials);
 
-	videoController = new VideoController(videoWidget, this);
+
 
 	return layout;
 }
@@ -86,6 +87,9 @@ QLayout* MainWindow::setupSideBar(QWidget* centralWidget)
 
 	playButton = new QPushButton("Play", centralWidget);
 	playButton->setCheckable(true);
+	playButton->setEnabled(videoController->isBufferFull());
+	connect(videoController, SIGNAL(bufferFull(bool)), playButton, SLOT(setEnabled(bool)));
+	connect(videoController, SIGNAL(playing(bool)), playButton, SLOT(setChecked(bool)));
 	layout->addWidget(playButton);
 	return layout;
 }
@@ -179,9 +183,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 	} else if (event->key() == Qt::Key_Space) {
 		if (playButton->isChecked()) {
 			videoController->play(false);
-		} else {
+		} else if (videoController->isBufferFull()) {
 			videoController->play(true);
 		}
-		playButton->toggle();
 	}
 }

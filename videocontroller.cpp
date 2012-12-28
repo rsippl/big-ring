@@ -39,6 +39,11 @@ VideoController::~VideoController()
 	_decoderThread.wait(1000); // wait for a maximum of 1 second.
 }
 
+bool VideoController::isBufferFull()
+{
+	return !_imageQueue.empty();
+}
+
 void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
 {
 	reset();
@@ -79,6 +84,7 @@ void VideoController::play(bool doPlay)
 		_updateTimer.stop();
 		_playTimer.stop();
 	}
+	emit playing(_playTimer.isActive());
 }
 
 void VideoController::videoLoaded()
@@ -146,6 +152,7 @@ void VideoController::framesReady(FrameList frames, quint32 requestId)
 		if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
 			displayFrame();
 		}
+		emit bufferFull(true);
 	}
 }
 
@@ -185,6 +192,7 @@ void VideoController::setPosition(quint32 frameNr)
 
 void VideoController::reset()
 {
+	emit bufferFull(false);
 	_playTimer.stop();
 	_updateTimer.stop();
 	_currentFrameNumber = UNKNOWN_FRAME_NR;

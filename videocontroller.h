@@ -17,10 +17,14 @@ public:
 	explicit VideoController(VideoWidget* videoWidget, QObject *parent = 0);
 	~VideoController();
 	
+	bool isBufferFull();
+
 signals:
 	void distanceChanged(float distance);
 	void slopeChanged(float slope);
 	void altitudeChanged(float altitude);
+	void bufferFull(bool full);
+	void playing(bool playing);
 
 public slots:
 	void realLiveVideoSelected(RealLiveVideo rlv);
