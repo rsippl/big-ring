@@ -5,10 +5,10 @@
 #include <QTimer>
 
 namespace {
-const float SPEED = 25.0f / 3.6f;
+const float SPEED = 50.0f / 3.6f;
 const float videoUpdateInterval = 100; // ms
 const quint32 NR_FRAMES_PER_REQUEST = 200;
-const int NR_FRAMES_BUFFER_LOW = 100;
+const int NR_FRAMES_BUFFER_LOW = 150;
 }
 
 VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
@@ -76,7 +76,8 @@ void VideoController::play(bool doPlay)
 		_playTimer.start();
 		_updateTimer.start();
 	} else {
-		reset();
+		_updateTimer.stop();
+		_playTimer.stop();
 	}
 }
 
@@ -139,7 +140,7 @@ void VideoController::displayFrame()
 
 void VideoController::framesReady(FrameList frames, quint32 requestId)
 {
-	if (requestId == _frameRequestId) {
+	if (_newFramesRequested && requestId == _frameRequestId) {
 		_imageQueue.append(frames);
 		_newFramesRequested = false;
 		if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
@@ -184,8 +185,8 @@ void VideoController::setPosition(quint32 frameNr)
 
 void VideoController::reset()
 {
-	_updateTimer.stop();
 	_playTimer.stop();
+	_updateTimer.stop();
 	_currentFrameNumber = UNKNOWN_FRAME_NR;
 	_imageQueue.clear();
 	_newFramesRequested = false;
