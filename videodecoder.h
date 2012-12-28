@@ -30,12 +30,12 @@ public:
 signals:
 	void error();
 	void videoLoaded();
-	void framesReady(FrameList);
+	void framesReady(FrameList frames, quint32 requestId);
 public slots:
 	void seekFrame(quint32 frameNr);
 	void openFile(QString filename);
 	/** Load a number of frames from the video file */
-	void loadFrames(quint32 numberOfFrame);
+	void loadFrames(quint32 numberOfFrame, quint32 requestId);
 
 private:
 	void close();

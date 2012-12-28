@@ -116,7 +116,7 @@ void VideoDecoder::openFile(QString filename)
 	emit videoLoaded();
 }
 
-void VideoDecoder::loadFrames(quint32 numberOfFrame)
+void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 requestId)
 {
 	Frame frame;
 	quint32 decoded = 0;
@@ -129,7 +129,7 @@ void VideoDecoder::loadFrames(quint32 numberOfFrame)
 		frames << frame;
 		++decoded;
 	}
-	emit framesReady(frames);
+	emit framesReady(frames, requestId);
 }
 
 int VideoDecoder::findVideoStream()

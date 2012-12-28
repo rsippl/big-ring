@@ -31,7 +31,7 @@ private slots:
 	void videoLoaded();
 	void updateVideo();
 	void displayFrame();
-	void framesReady(FrameList frames);
+	void framesReady(FrameList frames, quint32 requestId);
 private:
 	void updateDistance();
 	void loadVideo(const QString& filename);
@@ -51,11 +51,13 @@ private:
 
 	RealLiveVideo _currentRlv;
 	quint32 _currentFrameNumber;
-
-	qint64 _lastTime;
 	float _currentDistance;
 	bool _running;
 	bool _newFramesRequested;
+	quint32 _frameRequestId;
+
+	qint64 _lastTime;
+
 };
 
 #endif // VIDEOCONTROLLER_H

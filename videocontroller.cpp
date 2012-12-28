@@ -5,7 +5,7 @@
 #include <QTimer>
 
 namespace {
-const float SPEED = 30.0f / 3.6f;
+const float SPEED = 25.0f / 3.6f;
 const float videoUpdateInterval = 100; // ms
 const quint32 NR_FRAMES_PER_REQUEST = 200;
 const int NR_FRAMES_BUFFER_LOW = 100;
@@ -16,7 +16,8 @@ VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
 	_videoWidget(videoWidget),
 	_currentDistance(0.0f),
 	_running(false),
-	_newFramesRequested(false)
+	_newFramesRequested(false),
+	_frameRequestId(0)
 {
 	_decoderThread.start();
 	_videoDecoder.moveToThread(&_decoderThread);
@@ -29,7 +30,7 @@ VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
 
 	// set up video decoder
 	connect(&_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
-	connect(&_videoDecoder, SIGNAL(framesReady(FrameList)), SLOT(framesReady(FrameList)));
+	connect(&_videoDecoder, SIGNAL(framesReady(FrameList, quint32)), SLOT(framesReady(FrameList, quint32)));
 }
 
 VideoController::~VideoController()
@@ -136,10 +137,15 @@ void VideoController::displayFrame()
 	}
 }
 
-void VideoController::framesReady(FrameList frames)
+void VideoController::framesReady(FrameList frames, quint32 requestId)
 {
-	_imageQueue.append(frames);
-	_newFramesRequested = false;
+	if (requestId == _frameRequestId) {
+		_imageQueue.append(frames);
+		_newFramesRequested = false;
+		if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
+			displayFrame();
+		}
+	}
 }
 
 void VideoController::updateDistance()
@@ -200,5 +206,6 @@ void VideoController::requestNewFrames()
 {
 	_newFramesRequested = true;
 	qDebug() << "Requesting frames";
-	QMetaObject::invokeMethod(&_videoDecoder, "loadFrames", Q_ARG(quint32, NR_FRAMES_PER_REQUEST));
+	_frameRequestId++;
+	QMetaObject::invokeMethod(&_videoDecoder, "loadFrames", Q_ARG(quint32, NR_FRAMES_PER_REQUEST), Q_ARG(quint32, _frameRequestId));
 }
