@@ -53,9 +53,6 @@ private:
 	AVCodecContext* _codecContext;
 	AVCodec* _codec;
 	AVFrame* _frame;
-	AVFrame* _frameRgb;
-	int _bufferSize;
-	quint8 *_frameBuffer;
 	SwsContext* _swsContext;
 	QImage _currentImage;
 
@@ -63,11 +60,9 @@ private:
 	QTimer* _seekTimer;
 	quint32 _seekTargetFrame;
 
-	QDateTime _lastFillTime;
 	int _videoStream;
 
-	int _widgetWidth;
-	int _widgetHeight;
+    QScopedArrayPointer<int> _lineSizes;
 };
 
 #endif // VIDEODECODER_H

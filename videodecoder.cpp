@@ -25,10 +25,9 @@ const int ERROR_STR_BUF_SIZE = 128;
 VideoDecoder::VideoDecoder(QObject *parent) :
 	QObject(parent),
 	_formatContext(NULL), _codecContext(NULL),
-	_codec(NULL), _frame(NULL), _frameRgb(NULL),
-	_bufferSize(0), _frameBuffer(NULL), _swsContext(NULL),
-	_seekTimer(new QTimer(this)), _seekTargetFrame(0),
-	_lastFillTime(QDateTime::fromTime_t(0))
+    _codec(NULL), _frame(NULL),
+    _swsContext(NULL),
+    _seekTimer(new QTimer(this)), _seekTargetFrame(0)
 {
 	qRegisterMetaType<FrameList>("FrameList");
 	initialize();
@@ -52,12 +51,6 @@ void VideoDecoder::closeFramesAndBuffers()
 {
 	if (_swsContext)
 		sws_freeContext(_swsContext);
-	if (_frameBuffer)
-		delete[] _frameBuffer;
-	_frameBuffer = NULL;
-	if (_frameRgb)
-		av_free(_frameRgb);
-	_frameRgb = NULL;
 	if (_frame)
 		av_free(_frame);
 	_frame = NULL;
@@ -157,17 +150,15 @@ void VideoDecoder::printError(int errorNr, const QString& message)
 void VideoDecoder::initializeFrames()
 {
 	_frame = avcodec_alloc_frame();
-	_frameRgb = avcodec_alloc_frame();
 
-	_bufferSize = avpicture_get_size(PIX_FMT_RGB24, _codecContext->width, _codecContext->height);
-	_frameBuffer = new quint8[_bufferSize];
-
-	avpicture_fill(reinterpret_cast<AVPicture*>(_frameRgb), _frameBuffer, PIX_FMT_RGB24,
-				   _codecContext->width, _codecContext->height);
 	_swsContext = sws_getContext(_codecContext->width, _codecContext->height,
 								 _codecContext->pix_fmt,
 								 _codecContext->width, _codecContext->height,
 								 PIX_FMT_RGB24, SWS_POINT, NULL, NULL, NULL);
+    QImage emptyImage(_codecContext->width, _codecContext->height, QImage::Format_RGB888);
+    _lineSizes.reset(new int[_codecContext->height]);
+    for (int line = 0; line < _codecContext->height; ++line)
+        _lineSizes[line] = emptyImage.bytesPerLine();
 }
 
 void VideoDecoder::seekFrame(quint32 frameNr)
@@ -181,7 +172,6 @@ void VideoDecoder::seekFrame(quint32 frameNr)
 
 Frame VideoDecoder::decodeNextFrame()
 {
-
 	QImage nullImage;
 	Frame newImage = qMakePair(UNKNOWN_FRAME_NR, nullImage);
 
@@ -197,14 +187,18 @@ Frame VideoDecoder::decodeNextFrame()
 				avcodec_decode_video2(_codecContext, _frame,
 									  &frameFinished, &packet);
 				if (frameFinished) {
-					sws_scale(_swsContext, _frame->data, _frame->linesize,
-							  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
-					_currentImage = QImage(_frameRgb->data[0],
-										   _codecContext->width,
-										   _codecContext->height,
-										   _codecContext->width * 3,
-										   QImage::Format_RGB888);
-					newImage = qMakePair(static_cast<quint32>(packet.dts), _currentImage.copy());
+                    QImage image(_codecContext->width, _codecContext->height, QImage::Format_RGB888);
+                    uint8_t* data = image.scanLine(0);
+                    sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height,
+                              &data, _lineSizes.data());
+//					sws_scale(_swsContext, _frame->data, _frame->linesize,
+//							  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
+//					_currentImage = QImage(_frameRgb->data[0],
+//										   _codecContext->width,
+//										   _codecContext->height,
+//										   _codecContext->width * 3,
+//										   QImage::Format_RGB888);
+                    newImage = qMakePair(static_cast<quint32>(packet.dts), image);
 					av_free_packet(&packet);
 				}
 			}
