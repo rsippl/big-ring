@@ -155,7 +155,9 @@ Profile PgmfFileParser::readProfile(QFile &pgmfFile)
 			currentDistance += item.durationDistance;
 		}
 	}
-	return Profile(generalBlock.startAltitude, profile);
+	ProfileType type = (ProfileType) generalBlock.powerSlopeOrHr;
+
+	return Profile(type, generalBlock.startAltitude, profile);
 }
 
 tacxfile::generalPgmf_t PgmfFileParser::readGeneralPgmfInfo(QFile &pgmfFile)

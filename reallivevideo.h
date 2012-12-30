@@ -21,12 +21,17 @@ private:
 	float _slope;
 };
 
+enum ProfileType {
+	POWER, SLOPE, HEART_RATE
+};
+
 class Profile
 {
 public:
-	explicit Profile(float startAltitude, QMap<float,ProfileEntry>& entries);
+	explicit Profile(ProfileType type, float startAltitude, QMap<float,ProfileEntry>& entries);
 	explicit Profile();
 
+	ProfileType type() const { return _type; }
 	float startAltitude() const { return _startAltitude; }
 	//! get the slope for a particular distance
 	float slopeForDistance(double distance) const;
@@ -34,6 +39,7 @@ public:
 	//! get the altitude for a particular distance. The profile always starts at altitude 0.0f
 	float altitudeForDistance(double distance) const;
 private:
+	ProfileType _type;
 	float _startAltitude;
 	QMap<float,ProfileEntry> _entries;
 };
@@ -92,6 +98,7 @@ public:
 	explicit RealLiveVideo();
 
 	bool isValid() const { return !_name.isEmpty(); }
+	ProfileType type() const { return _profile.type(); }
 	const QString name() const { return _name; }
 	const VideoInformation& videoInformation() const { return _videoInformation; }
 	const QList<Course>& courses() const { return _courses; }

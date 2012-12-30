@@ -127,12 +127,13 @@ bool ProfileEntry::operator ==(const ProfileEntry &other) const
 }
 
 
-Profile::Profile(float startAltitude, QMap<float, ProfileEntry> &entries):
+Profile::Profile(ProfileType type, float startAltitude, QMap<float, ProfileEntry> &entries):
+	_type(type),
 	_startAltitude(startAltitude), _entries(entries)
 {
 }
 
-Profile::Profile():_startAltitude(0.0f)
+Profile::Profile(): _type(SLOPE), _startAltitude(0.0f)
 {
 }
 

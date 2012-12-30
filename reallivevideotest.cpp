@@ -43,7 +43,7 @@ void TestQString::testProfile()
 	QMap<float,ProfileEntry> entries;
 	entries[0.0] = ProfileEntry(0.0, 1.0);
 	entries[1.0] = ProfileEntry(1.0, 2.0);
-	Profile profile(12, entries);
+	Profile profile(SLOPE, 12, entries);
 
 	QCOMPARE(profile.startAltitude(), 12.0f);
 
