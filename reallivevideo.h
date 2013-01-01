@@ -97,7 +97,7 @@ public:
 						   QList<DistanceMappingEntry> distanceMappings, Profile profile);
 	explicit RealLiveVideo();
 
-	bool isValid() const { return !_name.isEmpty(); }
+	bool isValid() const { return (!_name.isEmpty() && !_videoInformation.videoFilename().isEmpty()); }
 	ProfileType type() const { return _profile.type(); }
 	const QString name() const { return _name; }
 	const VideoInformation& videoInformation() const { return _videoInformation; }

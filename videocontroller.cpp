@@ -49,7 +49,8 @@ void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
 {
 	reset();
 	_currentRlv = rlv;
-	loadVideo(_currentRlv.videoInformation().videoFilename());
+	if (!_currentRlv.videoInformation().videoFilename().isEmpty())
+		loadVideo(_currentRlv.videoInformation().videoFilename());
 	setDistance(0.0f);
 	_lastTime = QDateTime::currentMSecsSinceEpoch();
 }
@@ -168,7 +169,6 @@ void VideoController::updateDistance()
 
 	float distanceTravelled = (SPEED * elapsed) * 0.001;
 
-//	qDebug() << elapsed << "  distance travelled = " << distanceTravelled;
 	setDistance(_currentDistance + distanceTravelled);
 }
 
