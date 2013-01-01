@@ -9,7 +9,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 find_package(FFMPEG REQUIRED)
 include(${QT_USE_FILE})
-
 include_directories(${QT_INCLUDE_DIR})
 
 set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS")
@@ -31,27 +30,20 @@ set(SRCS mainwindow.cpp
 		videodecoder.cpp
 		videowidget.cpp)
 
-set(MOC_HEADERS
-        mainwindow.h
-        reallivevideoimporter.h
-        reallivevideowidget.h
-        rlvlistwidget.h
-		videocontroller.h
-		videodecoder.h
-		videowidget.h)
-
 set(UI_FILES
     rlvlistwidget.ui)
 
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
-add_executable(indoorcycling main.cpp ${ANT_SRCS} ${SRCS} ${UI_SRCS})
-target_link_libraries(indoorcycling ${QT_LIBRARIES} ${FFMPEG_LIBRARIES})
+add_library(mainlib ${ANT_SRCS} ${SRCS} ${UI_SRCS})
+
+add_executable(indoorcycling main.cpp)
+target_link_libraries(indoorcycling mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES})
 
 # test executables
-add_executable(test_modelclasses reallivevideotest.cpp reallivevideo.cpp)
-target_link_libraries(test_modelclasses ${QT_LIBRARIES})
+add_executable(test_modelclasses reallivevideotest.cpp)
+target_link_libraries(test_modelclasses mainlib ${QT_LIBRARIES})
 
-add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp ${ANT_SRCS} ${SRCS} ${UI_SRCS})
-target_link_libraries(rlvtest ${QT_LIBRARIES} ${FFMPEG_LIBRARIES})
+add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp)
+target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES})
 
