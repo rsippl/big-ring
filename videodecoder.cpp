@@ -173,7 +173,7 @@ void VideoDecoder::seekFrame(quint32 frameNr)
 Frame VideoDecoder::decodeNextFrame()
 {
 	QImage nullImage;
-	Frame newImage = qMakePair(UNKNOWN_FRAME_NR, nullImage);
+    Frame newFrame = qMakePair(UNKNOWN_FRAME_NR, nullImage);
 
 	/** We might get here before having loaded anything */
 	if (_formatContext != NULL) {
@@ -191,18 +191,11 @@ Frame VideoDecoder::decodeNextFrame()
                     uint8_t* data = image.scanLine(0);
                     sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height,
                               &data, _lineSizes.data());
-//					sws_scale(_swsContext, _frame->data, _frame->linesize,
-//							  0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
-//					_currentImage = QImage(_frameRgb->data[0],
-//										   _codecContext->width,
-//										   _codecContext->height,
-//										   _codecContext->width * 3,
-//										   QImage::Format_RGB888);
-                    newImage = qMakePair(static_cast<quint32>(packet.dts), image);
+                    newFrame = qMakePair(static_cast<quint32>(packet.dts), image);
 					av_free_packet(&packet);
 				}
 			}
 		}
 	}
-	return newImage;
+    return newFrame;
 }
