@@ -14,8 +14,9 @@
 #include <QWidget>
 #include <cmath>
 
-MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController& controller, QWidget *parent) :
-	QMainWindow(parent), videoWidget(new VideoWidget(this)), videoController(new VideoController(videoWidget, this))
+MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&, QWidget *parent) :
+	QMainWindow(parent), _simulation(_cyclist), videoWidget(new VideoWidget(this)),
+	videoController(new VideoController(_cyclist, videoWidget, this))
 {
 	connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), SIGNAL(importFinished(RealLiveVideoList)));
 
@@ -29,19 +30,23 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&
 
 	setCentralWidget(centralWidget);
 
+	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), &_simulation, SLOT(rlvSelected(RealLiveVideo)));
 	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoController, SLOT(realLiveVideoSelected(RealLiveVideo)));
 	QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
 	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
 	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
 					 videoController, SLOT(courseSelected(int)));
-	connect(playButton, SIGNAL(clicked(bool)), videoController, SLOT(play(bool)));
+	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
+					 &_simulation, SLOT(courseSelected(int)));
 
-	connect(videoController, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
-	connect(videoController, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
-	connect(videoController, SIGNAL(altitudeChanged(float)), SLOT(altitudeChanged(float)));
+	connect(playButton, SIGNAL(clicked(bool)), &_simulation, SLOT(play(bool)));
 
+	connect(&_cyclist, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
+	connect(&_simulation, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
+	connect(&_simulation, SIGNAL(altitudeChanged(float)), SLOT(altitudeChanged(float)));
+	connect(&_simulation, SIGNAL(playing(bool)), videoController, SLOT(play(bool)));
 
-	connect(&controller, SIGNAL(heartRateMeasured(quint8)), SLOT(hrChanged(quint8)));
+	connect(&_cyclist, SIGNAL(speedChanged(float)), SLOT(speedChanged(float)));
 
 	grabKeyboard();
 }
@@ -60,12 +65,12 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 	_distanceLabel = createLabel(QString("0 m"), Qt::blue, centralWidget);
 	slopeLabel = createLabel(QString("0 %"), Qt::red, centralWidget);
 	_altitudeLabel = createLabel(QString("0 m"), Qt::cyan, centralWidget);
-	hrLabel = createLabel("-- bpm", Qt::yellow, centralWidget);
+	_speedLabel = createLabel("-- km/h", Qt::yellow, centralWidget);
 
 	dials->addWidget(_distanceLabel);
 	dials->addWidget(slopeLabel);
 	dials->addWidget(_altitudeLabel);
-	dials->addWidget(hrLabel);
+	dials->addWidget(_speedLabel);
 
 	layout->addLayout(dials);
 
@@ -143,9 +148,10 @@ void MainWindow::altitudeChanged(float altitude)
 	_altitudeLabel->setText(QString("%1 m").arg(altitude, 1, 'f', 1));
 }
 
-void MainWindow::hrChanged(quint8 hr)
+void MainWindow::speedChanged(float speed)
 {
-	hrLabel->setText(QString("%1 BPM").arg(hr));
+	float speedKmPH = speed * 3.6;
+	_speedLabel->setText(QString("%1 km/h").arg(speedKmPH, 1, 'f', 1));
 }
 
 void MainWindow::removeMargins()
@@ -182,9 +188,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 		courseListWidget->setEnabled(true);
 	} else if (event->key() == Qt::Key_Space) {
 		if (playButton->isChecked()) {
-			videoController->play(false);
+			_simulation.play(false);
 		} else if (videoController->isBufferFull()) {
-			videoController->play(true);
+			_simulation.play(true);
 		}
 	}
 }

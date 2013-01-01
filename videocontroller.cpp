@@ -5,16 +5,16 @@
 #include <QTimer>
 
 namespace {
-const float SPEED = 50.0f / 3.6f;
+
 const float videoUpdateInterval = 100; // ms
 const quint32 NR_FRAMES_PER_REQUEST = 200;
 const int NR_FRAMES_BUFFER_LOW = 150;
 }
 
-VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
+VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QObject *parent) :
 	QObject(parent),
+	_cyclist(cyclist),
 	_videoWidget(videoWidget),
-	_currentDistance(0.0f),
 	_running(false),
 	_newFramesRequested(false),
 	_frameRequestId(0)
@@ -25,8 +25,6 @@ VideoController::VideoController(VideoWidget* videoWidget, QObject *parent) :
 	// set up timers
 	_playTimer.setInterval(40);
 	connect(&_playTimer, SIGNAL(timeout()), SLOT(displayFrame()));
-	_updateTimer.setInterval(videoUpdateInterval);
-	connect(&_updateTimer, SIGNAL(timeout()), SLOT(updateVideo()));
 
 	// set up video decoder
 	connect(&_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
@@ -51,8 +49,6 @@ void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
 	_currentRlv = rlv;
 	if (!_currentRlv.videoInformation().videoFilename().isEmpty())
 		loadVideo(_currentRlv.videoInformation().videoFilename());
-	setDistance(0.0f);
-	_lastTime = QDateTime::currentMSecsSinceEpoch();
 }
 
 void VideoController::courseSelected(int courseNr)
@@ -66,11 +62,7 @@ void VideoController::courseSelected(int courseNr)
 	if (!_currentRlv.isValid())
 		return;
 
-	const Course& course = _currentRlv.courses()[courseNr];
-	setDistance(course.start());
-	_lastTime = QDateTime::currentMSecsSinceEpoch();
-	quint32 frame = _currentRlv.frameForDistance(_currentDistance);
-	qDebug() << "slope at start = " << _currentRlv.slopeForDistance(_currentDistance);
+	quint32 frame = _currentRlv.frameForDistance(_cyclist.distance());
 
 	setPosition(frame);
 }
@@ -78,11 +70,8 @@ void VideoController::courseSelected(int courseNr)
 void VideoController::play(bool doPlay)
 {
 	if (doPlay) {
-		_lastTime = QDateTime::currentMSecsSinceEpoch();
 		_playTimer.start();
-		_updateTimer.start();
 	} else {
-		_updateTimer.stop();
 		_playTimer.stop();
 	}
 	emit playing(_playTimer.isActive());
@@ -94,18 +83,9 @@ void VideoController::videoLoaded()
 	requestNewFrames(1);
 }
 
-
-void VideoController::updateVideo()
-{
-	float slope = _currentRlv.slopeForDistance(_currentDistance);
-	emit slopeChanged(slope);
-	emit altitudeChanged(_currentRlv.altitudeForDistance(_currentDistance));
-}
-
 void VideoController::displayFrame()
 {
-	updateDistance();
-	quint32 frameToShow = _currentRlv.frameForDistance(_currentDistance);
+	quint32 frameToShow = _currentRlv.frameForDistance(_cyclist.distance());
 	Frame frame;
 
 	if (frameToShow == _currentFrameNumber)
@@ -157,27 +137,6 @@ void VideoController::seekFinished()
 	requestNewFrames(1);
 }
 
-void VideoController::updateDistance()
-{
-	if (!_currentRlv.isValid())
-		return;
-
-	// update distance
-	qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
-	qint64 elapsed = currentTime - _lastTime;
-	_lastTime = currentTime;
-
-	float distanceTravelled = (SPEED * elapsed) * 0.001;
-
-	setDistance(_currentDistance + distanceTravelled);
-}
-
-void VideoController::setDistance(float distance)
-{
-	_currentDistance = distance;
-	emit distanceChanged(distance);
-}
-
 void VideoController::loadVideo(const QString &filename)
 {
 	QMetaObject::invokeMethod(&_videoDecoder, "openFile",
@@ -195,7 +154,6 @@ void VideoController::reset()
 	play(false);
 	emit bufferFull(false);
 	_playTimer.stop();
-	_updateTimer.stop();
 	_currentFrameNumber = UNKNOWN_FRAME_NR;
 	_imageQueue.clear();
 	_newFramesRequested = false;

@@ -5,7 +5,9 @@
 #include <QPushButton>
 #include <QTimer>
 
+#include "cyclist.h"
 #include "reallivevideo.h"
+#include "simulation.h"
 
 class ANTController;
 class RealLiveVideoImporter;
@@ -34,7 +36,7 @@ private slots:
 	void distanceChanged(float distance);
 	void slopeChanged(float slope);
 	void altitudeChanged(float altitude);
-	void hrChanged(quint8 hr);
+	void speedChanged(float speed);
 
 private:
 	QLayout* setUpMain(QWidget *centralWidget);
@@ -43,6 +45,8 @@ private:
 	void removeMargins();
 	void restoreMargins();
 
+	Cyclist _cyclist;
+	Simulation _simulation;
 	VideoWidget* videoWidget;
 	VideoController* videoController;
 	QListWidget* courseListWidget;
@@ -51,7 +55,7 @@ private:
 	QBoxLayout* _layout;
 	QLabel* _distanceLabel;
 	QLabel* slopeLabel;
-	QLabel* hrLabel;
+	QLabel* _speedLabel;
 	QLabel* _altitudeLabel;
 	QPushButton* playButton;
 };

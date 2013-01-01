@@ -20,15 +20,18 @@ set(ANT_SRCS
 	CommPort.cpp
 	Serial.cpp)
 
-set(SRCS mainwindow.cpp
-		reallivevideo.cpp
-        reallivevideoimporter.cpp
-        reallivevideowidget.cpp
-        rlvfileparser.cpp
-        rlvlistwidget.cpp
-		videocontroller.cpp
-		videodecoder.cpp
-		videowidget.cpp)
+set(SRCS
+	 cyclist.cpp
+	 mainwindow.cpp
+	 reallivevideo.cpp
+	 reallivevideoimporter.cpp
+	 reallivevideowidget.cpp
+	 rlvfileparser.cpp
+	 rlvlistwidget.cpp
+	 simulation.cpp
+	 videocontroller.cpp
+	 videodecoder.cpp
+	 videowidget.cpp)
 
 set(UI_FILES
     rlvlistwidget.ui)
