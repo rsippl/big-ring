@@ -11,11 +11,16 @@ RlvFileParser::RlvFileParser(const QStringList& videoFilenames): TacxFileParser(
 
 QString RlvFileParser::findVideoFilename(const QStringList& videoFilenames, const QString& rlvVideoFilename)
 {
-	foreach(QString videoFilename, videoFilenames) {
+	QString normalizedVideoFilename;
+	// if rlv video filename contains a path, get only the last part of it.
+	normalizedVideoFilename = rlvVideoFilename.split("\\").last();
+
+	foreach(const QString& videoFilename, videoFilenames) {
 		QFileInfo fileInfo(videoFilename);
-		if (fileInfo.fileName().toLower() == rlvVideoFilename.toLower())
+		if (fileInfo.fileName().toLower() == normalizedVideoFilename.toLower())
 			return videoFilename;
 	}
+
 	return QString();
 }
 
@@ -28,8 +33,6 @@ QString RlvFileParser::findPgmfFilename(QFile &rlvFile)
 
 	return pgmfFileInfo.filePath();
 }
-
-
 
 RealLiveVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
 {
@@ -92,7 +95,6 @@ tacxfile::generalRlv_t RlvFileParser::readGeneralRlvBlock(QFile &rlvFile)
 	rlvFile.read((char*) &generalBlock.frameRate, sizeof(float));
 	rlvFile.read((char*) &generalBlock.originalRunWeight, sizeof(float));
 	rlvFile.read((char*) &generalBlock.frameOffset, sizeof(qint32));
-	//    qDebug() << generalBlock.toString();
 
 	return generalBlock;
 }
@@ -167,10 +169,7 @@ tacxfile::generalPgmf_t PgmfFileParser::readGeneralPgmfInfo(QFile &pgmfFile)
 	pgmfFile.read((char*) &generalBlock._courseName, 34);
 	pgmfFile.read((char*) &generalBlock.powerSlopeOrHr, sizeof(generalBlock) - offsetof(tacxfile::generalPgmf_t, powerSlopeOrHr));
 
-	qDebug() << generalBlock.toString();
-
 	return generalBlock;
-
 }
 
 QList<tacxfile::program_t> PgmfFileParser::readProgram(QFile &pgmfFile, quint32 count)
