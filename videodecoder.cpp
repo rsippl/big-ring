@@ -164,7 +164,7 @@ void VideoDecoder::initializeFrames()
 void VideoDecoder::seekFrame(quint32 frameNr)
 {
 	qDebug() << "seeking to frame " << frameNr;
-	av_seek_frame(_formatContext, _videoStream, frameNr, AVSEEK_FLAG_ANY);
+	av_seek_frame(_formatContext, _videoStream, frameNr, AVSEEK_FLAG_FRAME);
 	avcodec_flush_buffers(_codecContext);
 	_seekTargetFrame = frameNr;
 	_seekTimer->start(500);

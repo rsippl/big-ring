@@ -1,7 +1,7 @@
 #include "simulation.h"
 
 namespace {
-const float SPEED = 25.0f / 3.6f;
+const float SPEED = 50.0f / 3.6f;
 }
 
 Simulation::Simulation(Cyclist &cyclist, QObject *parent) :
@@ -56,6 +56,7 @@ void Simulation::simulationStep()
 
 void Simulation::rlvSelected(RealLiveVideo rlv)
 {
+	reset();
 	_currentRlv = rlv;
 }
 
@@ -74,6 +75,7 @@ void Simulation::courseSelected(int courseNr)
 
 void Simulation::reset()
 {
+	play(false);
 	_cyclist.setSpeed(0);
 	_cyclist.setDistance(0);
 	_cyclist.setDistanceTravelled(0);

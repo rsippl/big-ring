@@ -35,9 +35,9 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&
 	QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
 	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
 	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
-					 videoController, SLOT(courseSelected(int)));
-	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
 					 &_simulation, SLOT(courseSelected(int)));
+	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
+					 videoController, SLOT(courseSelected(int)));
 
 	connect(playButton, SIGNAL(clicked(bool)), &_simulation, SLOT(play(bool)));
 
