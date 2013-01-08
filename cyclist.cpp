@@ -1,5 +1,9 @@
 #include "cyclist.h"
 
+namespace {
+const float POWER = 300;
+const float WEIGHT = 82.0f;
+}
 Cyclist::Cyclist(QObject *parent) :
 	QObject(parent),  _speed(0), _distance(0), _distanceTravelled(0)
 {
@@ -35,4 +39,14 @@ float Cyclist::distanceTravelled() const
 float Cyclist::speed() const
 {
 	return _speed;
+}
+
+float Cyclist::power() const
+{
+	return POWER;
+}
+
+float Cyclist::weight() const
+{
+	return WEIGHT;
 }

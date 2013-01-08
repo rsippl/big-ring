@@ -28,6 +28,7 @@ public slots:
 	void courseSelected(int courseNr);
 
 private:
+	float calculateSpeed(quint64 timeDelta);
 	void reset();
 
 	QDateTime _lastUpdateTime;

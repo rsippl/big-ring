@@ -15,6 +15,8 @@ public:
 	float distance() const;
 	float distanceTravelled() const;
 	float speed() const;
+	float power() const;
+	float weight() const;
 
 signals:
 	void speedChanged(float speed);
