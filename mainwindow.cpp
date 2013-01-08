@@ -43,7 +43,7 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&
 
 	connect(&_cyclist, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
 	connect(&_simulation, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
-	connect(&_simulation, SIGNAL(altitudeChanged(float)), SLOT(altitudeChanged(float)));
+	connect(&_simulation, SIGNAL(runTimeChanged(QTime)), SLOT(runTimeChanged(QTime)));
 	connect(&_simulation, SIGNAL(playing(bool)), videoController, SLOT(play(bool)));
 
 	connect(&_cyclist, SIGNAL(speedChanged(float)), SLOT(speedChanged(float)));
@@ -63,13 +63,13 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 	QHBoxLayout* dials = new QHBoxLayout();
 
 	_distanceLabel = createLabel(QString("0 m"), Qt::blue, centralWidget);
+	_timeLabel = createLabel(QString("--:--.--"), Qt::cyan, centralWidget);
 	slopeLabel = createLabel(QString("0 %"), Qt::red, centralWidget);
-	_altitudeLabel = createLabel(QString("0 m"), Qt::cyan, centralWidget);
 	_speedLabel = createLabel("-- km/h", Qt::yellow, centralWidget);
 
 	dials->addWidget(_distanceLabel);
+	dials->addWidget(_timeLabel);
 	dials->addWidget(slopeLabel);
-	dials->addWidget(_altitudeLabel);
 	dials->addWidget(_speedLabel);
 
 	layout->addLayout(dials);
@@ -143,9 +143,9 @@ void MainWindow::slopeChanged(float slope)
 	slopeLabel->setText(QString("%1 %").arg(slope, 2, 'f', 1));
 }
 
-void MainWindow::altitudeChanged(float altitude)
+void MainWindow::runTimeChanged(QTime runTime)
 {
-	_altitudeLabel->setText(QString("%1 m").arg(altitude, 1, 'f', 1));
+	_timeLabel->setText(runTime.toString("hh:mm.ss"));
 }
 
 void MainWindow::speedChanged(float speed)

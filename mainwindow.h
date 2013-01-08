@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QPushButton>
+#include <QTime>
 #include <QTimer>
 
 #include "cyclist.h"
@@ -35,7 +36,7 @@ private slots:
 
 	void distanceChanged(float distance);
 	void slopeChanged(float slope);
-	void altitudeChanged(float altitude);
+	void runTimeChanged(QTime runTime);
 	void speedChanged(float speed);
 
 private:
@@ -56,7 +57,7 @@ private:
 	QLabel* _distanceLabel;
 	QLabel* slopeLabel;
 	QLabel* _speedLabel;
-	QLabel* _altitudeLabel;
+	QLabel* _timeLabel;
 	QPushButton* playButton;
 };
 

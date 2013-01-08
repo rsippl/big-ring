@@ -70,6 +70,8 @@ void Simulation::simulationStep()
 	qint64 elapsed = _lastUpdateTime.msecsTo(currentTime);
 	_lastUpdateTime = currentTime;
 
+	_runTime = _runTime.addMSecs(elapsed);
+	emit runTimeChanged(_runTime);
 	float speed = calculateSpeed(elapsed);
 	float distanceTravelled = (speed * elapsed) * 0.001;
 
@@ -118,6 +120,8 @@ float Simulation::calculateSpeed(quint64 timeDelta)
 void Simulation::reset()
 {
 	play(false);
+	_runTime = QTime();
+	emit runTimeChanged(_runTime);
 	_cyclist.setSpeed(0);
 	_cyclist.setDistance(0);
 	_cyclist.setDistanceTravelled(0);

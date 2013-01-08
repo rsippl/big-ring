@@ -3,6 +3,7 @@
 
 #include <QDateTime>
 #include <QObject>
+#include <QTime>
 #include <QTimer>
 #include "cyclist.h"
 #include "reallivevideo.h"
@@ -18,6 +19,7 @@ public:
 signals:
 	void slopeChanged(float slope);
 	void altitudeChanged(float altitude);
+	void runTimeChanged(QTime runTime);
 
 	void playing(bool playing);
 
@@ -32,6 +34,7 @@ private:
 	void reset();
 
 	QDateTime _lastUpdateTime;
+	QTime _runTime;
 	Cyclist& _cyclist;
 	RealLiveVideo _currentRlv;
 	QTimer _simulationTimer;
