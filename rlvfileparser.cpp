@@ -144,7 +144,6 @@ Profile PgmfFileParser::readProfile(QFile &pgmfFile)
 			profileBlocks = readProgram(pgmfFile, infoBlock.numberOfRecords);
 		else
 			pgmfFile.read(infoBlock.numberOfRecords * infoBlock.recordSize);
-
 	}
 
 	QMap<float, ProfileEntry> profile;

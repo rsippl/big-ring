@@ -63,7 +63,7 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 	QHBoxLayout* dials = new QHBoxLayout();
 
 	_distanceLabel = createLabel(QString("0 m"), Qt::blue, centralWidget);
-	_timeLabel = createLabel(QString("--:--.--"), Qt::cyan, centralWidget);
+	_timeLabel = createLabel(QString("--:--:--"), Qt::cyan, centralWidget);
 	slopeLabel = createLabel(QString("0 %"), Qt::red, centralWidget);
 	_speedLabel = createLabel("-- km/h", Qt::yellow, centralWidget);
 
@@ -145,7 +145,7 @@ void MainWindow::slopeChanged(float slope)
 
 void MainWindow::runTimeChanged(QTime runTime)
 {
-	_timeLabel->setText(runTime.toString("hh:mm.ss"));
+	_timeLabel->setText(runTime.toString(Qt::ISODate));
 }
 
 void MainWindow::speedChanged(float speed)
