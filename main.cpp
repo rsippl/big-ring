@@ -28,6 +28,13 @@ int main(int argc, char *argv[])
 	app.connect(&antController, SIGNAL(cadenceMeasured(float)), &cyclist, SLOT(setCadence(float)));
 	app.connect(&antController, SIGNAL(powerMeasured(float)), &cyclist, SLOT(setPower(float)));
 
+	if (argc >= 3) {
+		QString robot(argv[2]);
+		if (robot == "robot") {
+			cyclist.setPower(300);
+		}
+	}
+
 	mw.show();
 
 	parser.parseRealLiveVideoFilesFromDir(filename);
