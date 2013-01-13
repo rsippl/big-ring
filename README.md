@@ -21,13 +21,20 @@ Current Status
 
 Indoor Cycling currently does the following:
 
+* Works on Ubuntu Linux. It's a goal to support Windows and OS X,
+  but I've done no work to support them yet.
 * Get information from ANT+ Sensors
     - Power meters
+    - Cadence meter (including cadence from power meters)
     - Heart rate meters
 * Show current values for:
     - Power
     - Cadence
     - Heart Rate
+* Play a Real Life Video with video frames mapped to the distance
+  the cyclist has travelled. The distance is determined by calculating
+  (approximating) the speed of the cyclist several times per second, 
+  and changing the travelled distance according to the speed.
 
 Dependencies
 ------------
@@ -39,56 +46,45 @@ and a [Garmin](http://www.garmin.com/garmin/cms/site/us)
 heart rate strap.
 * An [ANT+ USB stick](https://buy.garmin.com/shop/shop.do?pID=10997).
 I have the USB 1.0 variant. There is also
-a USB 2.0 variant. I do not know if this last variant works with Quarqd.
-* [Quarqd](http://opensource.quarq.us/quarqd/), a daemon program written
-by the [Quarq](http://www.quarq.com/),
-makers of the Quarq Cinqo power meter. Quarqd connects to the
-ANT+ USB stick to connect to the sensors.
-* A [Python](http://www.python.org) runtime, as Indoor Cycling is written
-in Python.
-* [Python Twisted](http://twistedmatrix.com/trac/) library, used for the
-connection to quarqd.
-* [PySide](http://www.pyside.org/), a Python Qt binding, used for the GUI.
-
+a USB 2.0 variant. This is not supported yet. 
+* [Qt][http://qt.digia.com] 4.8. This library is used throughout the program.
+* [Libav][http://libav.org] for video decoding.
+* [Libusb][http://www.libusb.org]. Not really used yet.
+* [CMake][http://www.cmake.org], for building.
+* [G++][http://gcc.gnu.org], the compiler.
 
 Limitations
 -----------
 
-* Only runs on systems supporting Quarqd. So to my knowledge, that means just
-Linux and Max OS X.
-* Quarqd needs to be started before Indoor Cycling is started.
-* If sensors time out, no connection is made to them again.
+* Only runs on Ubuntu Linux.
 * No recording of data.
+* Tacx videos have some problem with the position of the frames. Not all
+  videos have the correct mapping from distance to frames. Will need to look
+  into this.
 
 Building
 --------
 
-A binary version of Quarqd for Linux i386, x86_64 and OS X can be downloaded
-from the [Quarqd](http://opensource.quarq.us/quarqd/) site. Look inside the
-build- directories for the binaries. An example configuration file is
-distributed with Indoor Cycling, under the name `example_quarqd_config`.
-Save this file under the name `.quarqd_config` in your home directory.
+1. Create a build directory, for instance next to the source directory.
+2. Run cmake <source directory> from the build directory.
+3. make
+4. All executables should build.
 
 Usage
 -----
 
-* Start Quarqd
-* Start Indoor Cycling, using the executable file `main.py`. A connection
-to Quarqd will be made and the values from the sensors will be shown
-immediately.
+Run `indoorcycling` with the folder containing your real life video files (.rlv, .pgmf and .avi) as the argument. The program will start and try to find your videos. The files will be parsed and when ready, the list of videos will be populated. The program starts looking for ANT+ sensors right away. If you have no power meter, it cannot determine the cyclists speed. Restart the program with the word "robot" as the second parameter. This will give the cyclist a constant power of 300W.
+
+Choose a video, and a course. Press play or press the space bar to play and pause. Use 'F' to go full screen, 'ESC' to go back to windowed mode.
 
 Roadmap
 -------
 
-* Before everything else, the tests need to be improved, to make it easier to
-make changes to the software. Because it takes quite some time to do a manual
-test (setup bike and trainer, hook up computer etc), the test suite should
-find as many errors and problems as possible. This saves a lot of time.
-* Reconnect to sensors when they're lost, for example from inactivity. #3
-* Record data to files.
-* Start Quarqd from within Indoor Cycling if it is not running yet.
-* (Longer term): Replace Quarqd by an internal mechanism for connecting with
-the ANT+ stick. For now, Quarqd is the easiest way to connect to the stick.
-Replacing it will cost quite a lot of time.
-* Be able to play Tacx real life video. The video should run at the correct
-speed for the power that is produced and the (virtual) slope of the road.
+* Support Windows.
+* Support OS/X.
+* Support USB2 sticks.
+* Record data to files (FIT/Powertap CSV/.. ?)
+* Show elevation graph and current position.
+* Improve user management.
+* Many more.
+
