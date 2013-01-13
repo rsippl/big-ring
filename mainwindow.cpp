@@ -14,7 +14,7 @@
 #include <QWidget>
 #include <cmath>
 
-MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&, QWidget *parent) :
+MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController& antController, QWidget *parent) :
 	QMainWindow(parent), _simulation(_cyclist), videoWidget(new VideoWidget(this)),
 	videoController(new VideoController(_cyclist, videoWidget, this))
 {
@@ -48,6 +48,9 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&
 
 	connect(&_cyclist, SIGNAL(speedChanged(float)), SLOT(speedChanged(float)));
 
+	connect(&antController, SIGNAL(heartRateMeasured(quint8)), SLOT(hrChanged(quint8)));
+	connect(&antController, SIGNAL(cadenceMeasured(float)), SLOT(cadenceChanged(float)));
+	connect(&antController, SIGNAL(powerMeasured(float)), SLOT(powerChanged(float)));
 	grabKeyboard();
 }
 
@@ -153,6 +156,23 @@ void MainWindow::speedChanged(float speed)
 	float speedKmPH = speed * 3.6;
 	_speedLabel->setText(QString("%1 km/h").arg(speedKmPH, 1, 'f', 1));
 }
+
+void MainWindow::hrChanged(quint8 heartRate)
+{
+	qDebug() << "Heart rate" << heartRate;
+}
+
+void MainWindow::powerChanged(float power)
+{
+	qDebug() << "Power" << power;
+}
+
+void MainWindow::cadenceChanged(float cadence)
+{
+	qDebug() << "Cadence" << cadence;
+}
+
+
 
 void MainWindow::removeMargins()
 {

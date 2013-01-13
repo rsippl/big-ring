@@ -423,6 +423,8 @@ ANT::discover(QString name)
 	int min = minor(s.st_rdev);
 	QString sysFile = QString("/sys/dev/char/%1:%2/device/driver/module/drivers/usb:cp210x").arg(maj).arg(min);
 	if (QFileInfo(sysFile).exists()) return true;
+	sysFile = QString("/sys/dev/char/%1:%2/device/driver/module/drivers/usb-serial:cp210x").arg(maj).arg(min);
+	if (QFileInfo(sysFile).exists()) return true;
 #endif
 
 #ifdef Q_OS_MAC
@@ -859,6 +861,7 @@ bool ANT::openConnection()
 	QString errors;
 	QVector<boost::shared_ptr<CommPort> > commPorts = CommPort::listCommPorts(errors);
 	foreach(boost::shared_ptr<CommPort> commPort, commPorts) {
+		qDebug() << "Trying device" << commPort->name();
 		QString deviceFile = commPort->name();
 		if (discover(deviceFile)) {
 			qDebug() << "found device: " << deviceFile;

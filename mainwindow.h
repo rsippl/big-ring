@@ -39,6 +39,10 @@ private slots:
 	void runTimeChanged(QTime runTime);
 	void speedChanged(float speed);
 
+	void hrChanged(quint8 heartRate);
+	void powerChanged(float power);
+	void cadenceChanged(float cadence);
+
 private:
 	QLayout* setUpMain(QWidget *centralWidget);
 	QLayout* setupSideBar(QWidget *centralWidget);
