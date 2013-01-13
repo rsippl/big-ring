@@ -8,6 +8,8 @@ const float FRONTAL_AREA = 0.5f;
 const float DRAG_COEFFICIENT = 0.5f;
 const float AIR_DENSITY = 1.226f; // Sea level
 
+const QTime MAX_IDLE_TIME(0, 0, 3);
+
 /** Calculate drag from wind resistance */
 float calculateAeroDrag(const Cyclist& cyclist)
 {
@@ -33,7 +35,7 @@ float calculateGravityForce(const Cyclist& cyclist, float grade)
 
 
 Simulation::Simulation(Cyclist &cyclist, QObject *parent) :
-	QObject(parent), _cyclist(cyclist)
+	QObject(parent), _idleTime(), _cyclist(cyclist)
 {
 	_simulationTimer.setInterval(20);
 	connect(&_simulationTimer, SIGNAL(timeout()), SLOT(simulationStep()));
@@ -104,6 +106,21 @@ void Simulation::courseSelected(int courseNr)
 
 float Simulation::calculateSpeed(quint64 timeDelta)
 {
+	if (_cyclist.power() < 1.0f) {
+		// if there is no power input and current speed is zero, assume we have no input.
+		if (_cyclist.speed() < 0.1)
+			return 0;
+
+		// let the cyclist slow down and stop running after 3 seconds.
+		_idleTime = _idleTime.addMSecs(timeDelta);
+
+		qDebug() << "idle:" << _idleTime << MAX_IDLE_TIME;
+		if (_idleTime > MAX_IDLE_TIME)
+			return 0;
+	} else {
+		_idleTime = QTime();
+	}
+
 	float force = (_cyclist.speed() > 0.5) ? _cyclist.power() / _cyclist.speed() : _cyclist.weight();
 
 	float resistantForce = calculateAeroDrag(_cyclist) +

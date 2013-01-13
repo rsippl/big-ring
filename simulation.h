@@ -35,6 +35,7 @@ private:
 
 	QDateTime _lastUpdateTime;
 	QTime _runTime;
+	QTime _idleTime;
 	Cyclist& _cyclist;
 	RealLiveVideo _currentRlv;
 	QTimer _simulationTimer;
