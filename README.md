@@ -47,11 +47,11 @@ heart rate strap.
 * An [ANT+ USB stick](https://buy.garmin.com/shop/shop.do?pID=10997).
 I have the USB 1.0 variant. There is also
 a USB 2.0 variant. This is not supported yet. 
-* [Qt][http://qt.digia.com] 4.8. This library is used throughout the program.
-* [Libav][http://libav.org] for video decoding.
-* [Libusb][http://www.libusb.org]. Not really used yet.
-* [CMake][http://www.cmake.org], for building.
-* [G++][http://gcc.gnu.org], the compiler.
+* [Qt](http://qt.digia.com) 4.8. This library is used throughout the program.
+* [Libav](http://libav.org) for video decoding.
+* [Libusb](http://www.libusb.org). Not really used yet.
+* [CMake](http://www.cmake.org), for building.
+* [G++](http://gcc.gnu.org), the compiler.
 
 Limitations
 -----------
