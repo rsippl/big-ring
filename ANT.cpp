@@ -438,9 +438,13 @@ ANT::discover(QString name)
 void
 ANT::channelInfo(int channel, int device_number, int device_id)
 {
-	emit foundDevice(channel, device_number, device_id);
+	QString description(deviceTypeDescription(device_id));
+	QString typeCode(device_id);
+
 	qDebug()<<"found device number"<<device_number<<"type"<<device_id<<"on channel"<<channel
-		<< "is a "<<deviceTypeDescription(device_id) << "with code"<<deviceTypeCode(device_id);
+		<< "is a "<< description << "with code"<< typeCode;
+
+	emit foundDevice(channel, device_number, device_id, description, typeCode);
 }
 
 void

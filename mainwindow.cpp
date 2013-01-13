@@ -14,8 +14,8 @@
 #include <QWidget>
 #include <cmath>
 
-MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController& antController, QWidget *parent) :
-	QMainWindow(parent), _simulation(_cyclist), videoWidget(new VideoWidget(this)),
+MainWindow::MainWindow(const RealLiveVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent) :
+	QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new VideoWidget(this)),
 	videoController(new VideoController(_cyclist, videoWidget, this))
 {
 	connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), SIGNAL(importFinished(RealLiveVideoList)));
@@ -41,6 +41,9 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&
 
 	connect(playButton, SIGNAL(clicked(bool)), &_simulation, SLOT(play(bool)));
 
+	connect(&_cyclist, SIGNAL(heartRateChanged(quint8)), SLOT(hrChanged(quint8)));
+	connect(&_cyclist, SIGNAL(cadenceChanged(float)), SLOT(cadenceChanged(float)));
+	connect(&_cyclist, SIGNAL(powerChanged(float)), SLOT(powerChanged(float)));
 	connect(&_cyclist, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
 	connect(&_simulation, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
 	connect(&_simulation, SIGNAL(runTimeChanged(QTime)), SLOT(runTimeChanged(QTime)));
@@ -48,10 +51,11 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, const ANTController&
 
 	connect(&_cyclist, SIGNAL(speedChanged(float)), SLOT(speedChanged(float)));
 
-	connect(&antController, SIGNAL(heartRateMeasured(quint8)), SLOT(hrChanged(quint8)));
-	connect(&antController, SIGNAL(cadenceMeasured(float)), SLOT(cadenceChanged(float)));
-	connect(&antController, SIGNAL(powerMeasured(float)), SLOT(powerChanged(float)));
+	connect(&antController, SIGNAL(deviceFound(QString)), SLOT(antDeviceFound(QString)));
 	grabKeyboard();
+
+	_trayIcon = new QSystemTrayIcon(this);
+	_trayIcon->show();
 }
 
 QLayout* MainWindow::setUpMain(QWidget* centralWidget)
@@ -65,19 +69,23 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 
 	QHBoxLayout* dials = new QHBoxLayout();
 
+	_heartRateLabel = createLabel(QString("0 bpm"), Qt::green, centralWidget);
+	_cadenceLabel = createLabel(QString("0 rpm"), Qt::white, centralWidget);
+	_powerLabel = createLabel(QString("0 W"), QColor::fromRgb(255, 69, 0), centralWidget);
 	_distanceLabel = createLabel(QString("0 m"), Qt::blue, centralWidget);
 	_timeLabel = createLabel(QString("--:--:--"), Qt::cyan, centralWidget);
-	slopeLabel = createLabel(QString("0 %"), Qt::red, centralWidget);
+	_slopeLabel = createLabel(QString("0 %"), Qt::red, centralWidget);
 	_speedLabel = createLabel("-- km/h", Qt::yellow, centralWidget);
 
+	dials->addWidget(_heartRateLabel);
+	dials->addWidget(_cadenceLabel);
+	dials->addWidget(_powerLabel);
 	dials->addWidget(_distanceLabel);
 	dials->addWidget(_timeLabel);
-	dials->addWidget(slopeLabel);
+	dials->addWidget(_slopeLabel);
 	dials->addWidget(_speedLabel);
 
 	layout->addLayout(dials);
-
-
 
 	return layout;
 }
@@ -102,7 +110,7 @@ QLayout* MainWindow::setupSideBar(QWidget* centralWidget)
 	return layout;
 }
 
-QLabel *MainWindow::createLabel(const QString& text, Qt::GlobalColor color, QWidget *centralWidget)
+QLabel *MainWindow::createLabel(const QString& text, QColor color, QWidget *centralWidget)
 {
 	QFont font;
 	font.setPointSize(32);
@@ -143,7 +151,7 @@ void MainWindow::distanceChanged(float distance)
 
 void MainWindow::slopeChanged(float slope)
 {
-	slopeLabel->setText(QString("%1 %").arg(slope, 2, 'f', 1));
+	_slopeLabel->setText(QString("%1 %").arg(slope, 2, 'f', 1));
 }
 
 void MainWindow::runTimeChanged(QTime runTime)
@@ -159,17 +167,26 @@ void MainWindow::speedChanged(float speed)
 
 void MainWindow::hrChanged(quint8 heartRate)
 {
+	_heartRateLabel->setText(QString("%1 bpm").arg(heartRate));
 	qDebug() << "Heart rate" << heartRate;
 }
 
 void MainWindow::powerChanged(float power)
 {
+	_powerLabel->setText(QString("%1 W").arg(power, 0, 'f', 0));
 	qDebug() << "Power" << power;
 }
 
 void MainWindow::cadenceChanged(float cadence)
 {
+	_cadenceLabel->setText(QString("%1 W").arg(cadence, 0, 'f', 0));
 	qDebug() << "Cadence" << cadence;
+}
+
+void MainWindow::antDeviceFound(QString description)
+{
+	qDebug() << "ANT+ device found" << description;
+	_trayIcon->showMessage("ANT+ device found", description);
 }
 
 

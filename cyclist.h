@@ -15,10 +15,21 @@ public:
 	float distance() const;
 	float distanceTravelled() const;
 	float speed() const;
+	float heartRate() const;
+	float cadence() const;
 	float power() const;
 	float weight() const;
 
+public slots:
+	void setHeartRate(quint8 heartRate);
+	void setCadence(float cadence);
+	void setPower(float power);
+
 signals:
+	void heartRateChanged(quint8 heartRate);
+	void cadenceChanged(float cadence);
+	void powerChanged(float power);
+
 	void speedChanged(float speed);
 	/** distance on track changed */
 	void distanceChanged(float distance);
@@ -26,6 +37,10 @@ signals:
 	void distanceTravelledChanged(float distanceTravelled);
 
 private:
+	quint8 _heartRate;
+	float _cadence;
+	float _power;
+
 	float _speed;
 	float _distance;
 	float _distanceTravelled;

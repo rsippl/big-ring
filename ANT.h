@@ -241,7 +241,7 @@ signals:
 	/** Signal failure of initialization */
 	void initializationFailed();
 
-	void foundDevice(int channel, int device_number, int device_id); // channelInfo
+	void foundDevice(int channel, int device_number, int device_id, QString description, QString typeCode); // channelInfo
 	void lostDevice(int channel);            // dropInfo
 	void searchTimeout(int channel);         // searchTimeount
 	void searchComplete(int channel);         // searchComplete

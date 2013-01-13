@@ -10,12 +10,14 @@
 #include "reallivevideo.h"
 #include "simulation.h"
 
+#include <QLabel>
+#include <QListWidget>
+#include <QBoxLayout>
+#include <QSystemTrayIcon>
+
 class ANTController;
 class RealLiveVideoImporter;
 class RlvListWidget;
-class QLabel;
-class QListWidget;
-class QBoxLayout;
 class VideoController;
 class VideoWidget;
 
@@ -23,7 +25,7 @@ class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 public:
-	explicit MainWindow(const RealLiveVideoImporter& parser, const ANTController& antController, QWidget *parent = 0);
+	explicit MainWindow(const RealLiveVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent = 0);
 
 signals:
 	void importFinished(RealLiveVideoList rlvs);
@@ -43,14 +45,16 @@ private slots:
 	void powerChanged(float power);
 	void cadenceChanged(float cadence);
 
+	void antDeviceFound(QString description);
+
 private:
 	QLayout* setUpMain(QWidget *centralWidget);
 	QLayout* setupSideBar(QWidget *centralWidget);
-	QLabel* createLabel(const QString& text, Qt::GlobalColor color, QWidget* centralWidget);
+	QLabel* createLabel(const QString& text, QColor color, QWidget* centralWidget);
 	void removeMargins();
 	void restoreMargins();
 
-	Cyclist _cyclist;
+	Cyclist& _cyclist;
 	Simulation _simulation;
 	VideoWidget* videoWidget;
 	VideoController* videoController;
@@ -59,10 +63,15 @@ private:
 	QMargins _margins;
 	QBoxLayout* _layout;
 	QLabel* _distanceLabel;
-	QLabel* slopeLabel;
+	QLabel* _slopeLabel;
 	QLabel* _speedLabel;
 	QLabel* _timeLabel;
+	QLabel* _heartRateLabel;
+	QLabel* _cadenceLabel;
+	QLabel* _powerLabel;
 	QPushButton* playButton;
+
+	QSystemTrayIcon* _trayIcon;
 };
 
 #endif // MAINWINDOW_H

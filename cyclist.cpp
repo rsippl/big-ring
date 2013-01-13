@@ -41,12 +41,40 @@ float Cyclist::speed() const
 	return _speed;
 }
 
+float Cyclist::heartRate() const
+{
+	return _heartRate;
+}
+
 float Cyclist::power() const
 {
-	return POWER;
+	return _power;
+}
+
+float Cyclist::cadence() const
+{
+	return _cadence;
 }
 
 float Cyclist::weight() const
 {
 	return WEIGHT;
+}
+
+void Cyclist::setHeartRate(quint8 heartRate)
+{
+	_heartRate = heartRate;
+	emit heartRateChanged(heartRate);
+}
+
+void Cyclist::setCadence(float cadence)
+{
+	_cadence = cadence;
+	emit cadenceChanged(cadence);
+}
+
+void Cyclist::setPower(float power)
+{
+	_power = power;
+	emit powerChanged(power);
 }

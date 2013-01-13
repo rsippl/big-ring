@@ -19,10 +19,12 @@ signals:
 	void heartRateMeasured(quint8 bpm);
 	void powerMeasured(float power);
 	void cadenceMeasured(float cadence);
+
+	void deviceFound(QString description);
 public slots:
 	
 private slots:
-	void foundDevice(int channel, int device, int device_type);
+	void foundDevice(int channel, int device, int device_type, QString description, QString typeCode);
 private:
 	void initialize();
 

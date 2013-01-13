@@ -3,7 +3,6 @@
 #include <QApplication>
 #include <QtDebug>
 
-
 #include "antcontroller.h"
 #include "CommPort.h"
 #include "reallivevideoimporter.h"
@@ -21,9 +20,13 @@ int main(int argc, char *argv[])
 	QString filename(argv[1]);
 	RealLiveVideoImporter parser;
 	ANTController antController(&app);
-	MainWindow mw(parser, antController);
 
+	Cyclist cyclist;
+	MainWindow mw(parser, cyclist, antController);
 
+	app.connect(&antController, SIGNAL(heartRateMeasured(quint8)), &cyclist, SLOT(setHeartRate(quint8)));
+	app.connect(&antController, SIGNAL(cadenceMeasured(float)), &cyclist, SLOT(setCadence(float)));
+	app.connect(&antController, SIGNAL(powerMeasured(float)), &cyclist, SLOT(setPower(float)));
 
 	mw.show();
 
