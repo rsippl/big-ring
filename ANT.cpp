@@ -208,10 +208,16 @@ void ANT::initialize()
 
 void ANT::readCycle()
 {
-	// read more bytes from the device
+	bool bytesRead = false;
 	uint8_t byte;
-	if (rawRead(&byte, 1) > 0) receiveByte((unsigned char)byte);
-	else return;
+	// read more bytes from the device
+	while (rawRead(&byte, 1) > 0) {
+		receiveByte((unsigned char) byte);
+		bytesRead = true;
+	}
+
+	if (!bytesRead)
+		return;
 
 	// do we have a channel to search / stop
 	if (!channelQueue.isEmpty()) {
