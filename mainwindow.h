@@ -27,6 +27,8 @@ class MainWindow : public QMainWindow
 public:
 	explicit MainWindow(const RealLiveVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent = 0);
 
+	void restoreWindow();
+	void gotoFullScreen();
 signals:
 	void importFinished(RealLiveVideoList rlvs);
 
@@ -61,6 +63,7 @@ private:
 	QListWidget* courseListWidget;
 	RlvListWidget* rlvListWidget;
 	QMargins _margins;
+	QRect _cachedGeometry;
 	QBoxLayout* _layout;
 	QLabel* _distanceLabel;
 	QLabel* _slopeLabel;

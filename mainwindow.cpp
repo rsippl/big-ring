@@ -18,11 +18,11 @@
 
 MainWindow::MainWindow(const RealLiveVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent) :
 	QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new VideoWidget(this)),
-	videoController(new VideoController(_cyclist, videoWidget, this))
+	videoController(new VideoController(_cyclist, videoWidget, this)), _cachedGeometry(0, 0, 1024, 768)
 {
 	connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), SIGNAL(importFinished(RealLiveVideoList)));
 
-	setGeometry(0, 0, 1024, 768);
+	setGeometry(_cachedGeometry);
 
 	QWidget* centralWidget = new QWidget(this);
 	_layout = new QHBoxLayout(centralWidget);
@@ -207,24 +207,38 @@ void MainWindow::restoreMargins()
 	_layout->setContentsMargins(_margins);
 }
 
-void MainWindow::keyPressEvent(QKeyEvent *event)
+void MainWindow::restoreWindow()
 {
-	if (event->key() == Qt::Key_F) {
-		rlvListWidget->setDisabled(true);
-		courseListWidget->setDisabled(true);
-		rlvListWidget->hide();
-		courseListWidget->hide();
-		playButton->hide();
-		removeMargins();
-		showFullScreen();
-	} else if (event->key() == Qt::Key_Escape) {
+	if (isFullScreen()) {
 		showNormal();
+		setGeometry(_cachedGeometry);
 		restoreMargins();
 		rlvListWidget->show();
 		courseListWidget->show();
 		playButton->show();
 		rlvListWidget->setEnabled(true);
 		courseListWidget->setEnabled(true);
+	}
+}
+
+void MainWindow::gotoFullScreen()
+{
+	rlvListWidget->setDisabled(true);
+	courseListWidget->setDisabled(true);
+	rlvListWidget->hide();
+	courseListWidget->hide();
+	playButton->hide();
+	removeMargins();
+	_cachedGeometry = geometry();
+	showFullScreen();
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+	if (event->key() == Qt::Key_F) {
+		gotoFullScreen();
+	} else if (event->key() == Qt::Key_Escape) {
+		restoreWindow();
 	} else if (event->key() == Qt::Key_Space) {
 		if (playButton->isChecked()) {
 			_simulation.play(false);
