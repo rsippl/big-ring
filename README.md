@@ -56,6 +56,7 @@ Limitations
 -----------
 
 * Only runs on Ubuntu Linux.
+* Only works with Garmin USB1 Stick.
 * No recording of data.
 * Tacx videos have some problem with the position of the frames. Not all
   videos have the correct mapping from distance to frames. Will need to look
