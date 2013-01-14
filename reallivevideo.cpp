@@ -44,12 +44,12 @@ quint32 RealLiveVideo::frameForDistance(const float distance)
 	return entry.second.frameNumber() + (distance - entry.first) / entry.second.metersPerFrame();
 }
 
-float RealLiveVideo::slopeForDistance(const float distance) const
+float RealLiveVideo::slopeForDistance(const float distance)
 {
 	return _profile.slopeForDistance(distance);
 }
 
-float RealLiveVideo::altitudeForDistance(const float distance) const
+float RealLiveVideo::altitudeForDistance(const float distance)
 {
 	return _profile.altitudeForDistance(distance);
 }
@@ -111,8 +111,8 @@ DistanceMappingEntry::DistanceMappingEntry():
 }
 
 
-ProfileEntry::ProfileEntry(float distance, float slope):
-	_distance(distance), _slope(slope)
+ProfileEntry::ProfileEntry(float distance, float totalDistance, float slope, float altitude):
+     _distance(distance), _totalDistance(totalDistance),_altitude(altitude), _slope(slope)
 {
 }
 
@@ -127,9 +127,9 @@ bool ProfileEntry::operator ==(const ProfileEntry &other) const
 }
 
 
-Profile::Profile(ProfileType type, float startAltitude, QMap<float, ProfileEntry> &entries):
+Profile::Profile(ProfileType type, float startAltitude, QList<ProfileEntry>& entries):
 	_type(type),
-	_startAltitude(startAltitude), _entries(entries)
+    _startAltitude(startAltitude), _entries(entries), _lastKeyDistance(0), _nextLastKeyDistance(0)
 {
 }
 
@@ -137,41 +137,35 @@ Profile::Profile(): _type(SLOPE), _startAltitude(0.0f)
 {
 }
 
-float Profile::slopeForDistance(double distance) const
+float Profile::slopeForDistance(double distance)
 {
-	float lastSlope = 0.0f;
-	QMapIterator<float, ProfileEntry> it(_entries);
-	while(it.hasNext()) {
-		it.next();
-
-		float currentDistance = it.key();
-		ProfileEntry entry = it.value();
-		if (currentDistance > distance)
-			break;
-		lastSlope = entry.slope();
-	}
-	return lastSlope;
+    return entryForDistance(distance).slope();
 }
 
-float Profile::altitudeForDistance(double distance) const
+float Profile::altitudeForDistance(double distance)
 {
-	float lastDistance = 0.0f;
-	float altitude = _startAltitude;
-	float lastSlope = 0.0f;
-	QMapIterator<float, ProfileEntry> it(_entries);
-	while(it.hasNext()) {
-		it.next();
+    return entryForDistance(distance).altitude();
+}
 
-		float currentDistance = it.key();
-		ProfileEntry entry = it.value();
-		if (currentDistance > distance)
-			break;
+ProfileEntry &Profile::entryForDistance(double distance)
+{
+    if (distance < _lastKeyDistance || distance > _nextLastKeyDistance) {
+        QListIterator<ProfileEntry> it(_entries);
+        while(it.hasNext()) {
+            const ProfileEntry& newEntry = it.peekNext();
 
-		altitude += (lastSlope / 100.0f) * (currentDistance - lastDistance);
+            if (newEntry.totalDistance() > distance)
+                break;
+            else {
+                _cachedProfileEntry = it.next();
+            }
+        }
 
-		lastDistance = currentDistance;
-		lastSlope = entry.slope();
-	}
-	altitude += (lastSlope / 100.0f) * (distance - lastDistance);
-	return altitude;
+        _lastKeyDistance = _cachedProfileEntry.totalDistance();
+        if (it.hasNext())
+            _nextLastKeyDistance = it.peekNext().totalDistance();
+        else
+            _nextLastKeyDistance = 0;
+    }
+    return _cachedProfileEntry;
 }

@@ -11,7 +11,7 @@ find_package(FFMPEG REQUIRED)
 include(${QT_USE_FILE})
 include_directories(${QT_INCLUDE_DIR})
 
-set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS")
+set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS -pg")
 set(ANT_SRCS
 	ANT.cpp
 	ANTChannel.cpp

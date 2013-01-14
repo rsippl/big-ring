@@ -146,14 +146,16 @@ Profile PgmfFileParser::readProfile(QFile &pgmfFile)
 			pgmfFile.read(infoBlock.numberOfRecords * infoBlock.recordSize);
 	}
 
-	QMap<float, ProfileEntry> profile;
+    QList<ProfileEntry> profile;
 	if (generalBlock.powerSlopeOrHr == 1) {
-		float currentDistance = 0.0f;
+        float currentDistance = 0;
+        float currentAltitude = 0;
 		QListIterator<tacxfile::program_t> it(profileBlocks);
 		while(it.hasNext()) {
 			tacxfile::program_t item = it.next();
-			profile[currentDistance] = ProfileEntry(item.durationDistance, item.powerSlopeHeartRate);
+            profile << ProfileEntry(item.durationDistance, currentDistance, item.powerSlopeHeartRate, currentAltitude);
 			currentDistance += item.durationDistance;
+            currentAltitude += item.powerSlopeHeartRate * .01f * item.durationDistance;
 		}
 	}
 	ProfileType type = (ProfileType) generalBlock.powerSlopeOrHr;

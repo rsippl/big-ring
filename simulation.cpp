@@ -37,7 +37,7 @@ float calculateGravityForce(const Cyclist& cyclist, float grade)
 Simulation::Simulation(Cyclist &cyclist, QObject *parent) :
 	QObject(parent), _idleTime(), _cyclist(cyclist)
 {
-	_simulationTimer.setInterval(20);
+    _simulationTimer.setInterval(40);
 	connect(&_simulationTimer, SIGNAL(timeout()), SLOT(simulationStep()));
 }
 
@@ -82,7 +82,7 @@ void Simulation::simulationStep()
 
 
 	emit slopeChanged(_currentRlv.slopeForDistance(_cyclist.distance()));
-	emit altitudeChanged(_currentRlv.altitudeForDistance(_cyclist.distance()));
+    emit altitudeChanged(_currentRlv.altitudeForDistance(_cyclist.distance()));
 }
 
 void Simulation::rlvSelected(RealLiveVideo rlv)

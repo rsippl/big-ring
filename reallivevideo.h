@@ -9,15 +9,19 @@
 class ProfileEntry
 {
 public:
-	explicit ProfileEntry(float distance, float slope);
+    explicit ProfileEntry(float distance, float totalDistance, float slope, float altitude);
 	explicit ProfileEntry();
 
 	float distance() const { return _distance; }
 	float slope() const { return _slope; }
+    float totalDistance() const { return _totalDistance; }
+    float altitude() const { return _altitude; }
 
 	bool operator ==(const ProfileEntry& other) const;
 private:
 	float _distance;
+    float _totalDistance;
+    float _altitude;
 	float _slope;
 };
 
@@ -28,20 +32,26 @@ enum ProfileType {
 class Profile
 {
 public:
-	explicit Profile(ProfileType type, float startAltitude, QMap<float,ProfileEntry>& entries);
+    explicit Profile(ProfileType type, float startAltitude, QList<ProfileEntry> &entries);
 	explicit Profile();
 
 	ProfileType type() const { return _type; }
 	float startAltitude() const { return _startAltitude; }
 	//! get the slope for a particular distance
-	float slopeForDistance(double distance) const;
+    float slopeForDistance(double distance);
 
 	//! get the altitude for a particular distance. The profile always starts at altitude 0.0f
-	float altitudeForDistance(double distance) const;
+    float altitudeForDistance(double distance);
 private:
+    ProfileEntry& entryForDistance(double distance);
+
+
 	ProfileType _type;
 	float _startAltitude;
-	QMap<float,ProfileEntry> _entries;
+    QList<ProfileEntry> _entries;
+    ProfileEntry _cachedProfileEntry;
+    float _lastKeyDistance;
+    float _nextLastKeyDistance;
 };
 
 class DistanceMappingEntry
@@ -108,9 +118,9 @@ public:
 	/** Get the exact frame for a distance. */
 	quint32 frameForDistance(const float distance);
 	/** Get the slope for a distance */
-	float slopeForDistance(const float distance) const;
+    float slopeForDistance(const float distance);
 	//! Get the altitude for a distance */
-	float altitudeForDistance(const float distance) const;
+    float altitudeForDistance(const float distance);
 	/** Total distance */
 	float totalDistance() const;
 
@@ -119,7 +129,7 @@ private:
 	const QPair<float, DistanceMappingEntry> &findDistanceMappingEntryFor(const float distance);
 
 	QString _name;
-	VideoInformation _videoInformation;
+    VideoInformation _videoInformation;
 	QList<Course> _courses;
 	QList<QPair<float,DistanceMappingEntry> > _distanceMappings;
 	Profile _profile;
