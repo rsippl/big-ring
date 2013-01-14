@@ -24,7 +24,7 @@ void TestQString::testProfileEntryDefault()
 
 void TestQString::testProfileEntry()
 {
-	ProfileEntry entry(1.23f, 8.23f);
+	ProfileEntry entry(1.23f, 0, 8.23f, .25f);
 	QCOMPARE(entry.distance(), 1.23f);
 	QCOMPARE(entry.slope(), 8.23f);
 }
@@ -40,9 +40,9 @@ void TestQString::testProfileDefault()
 
 void TestQString::testProfile()
 {
-	QMap<float,ProfileEntry> entries;
-	entries[0.0] = ProfileEntry(0.0, 1.0);
-	entries[1.0] = ProfileEntry(1.0, 2.0);
+	QList<ProfileEntry> entries;
+	entries << ProfileEntry(1.0, 0.0, 1.0, 0.0);
+	entries << ProfileEntry(1.0, 1.0, 2.0, 0.01);
 	Profile profile(SLOPE, 12, entries);
 
 	QCOMPARE(profile.startAltitude(), 12.0f);
