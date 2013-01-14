@@ -14,8 +14,6 @@
 #include <QWidget>
 #include <cmath>
 
-#include <X11/Xlib.h>
-
 MainWindow::MainWindow(const RealLiveVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent) :
 	QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new VideoWidget(this)),
 	videoController(new VideoController(_cyclist, videoWidget, this)), _cachedGeometry(0, 0, 1024, 768)
