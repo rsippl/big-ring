@@ -14,6 +14,8 @@
 #include <QWidget>
 #include <cmath>
 
+#include <X11/Xlib.h>
+
 MainWindow::MainWindow(const RealLiveVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent) :
 	QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new VideoWidget(this)),
 	videoController(new VideoController(_cyclist, videoWidget, this))
@@ -179,7 +181,7 @@ void MainWindow::powerChanged(float power)
 
 void MainWindow::cadenceChanged(float cadence)
 {
-	_cadenceLabel->setText(QString("%1 W").arg(cadence, 0, 'f', 0));
+	_cadenceLabel->setText(QString("%1 rpm").arg(cadence, 0, 'f', 0));
 	qDebug() << "Cadence" << cadence;
 }
 
