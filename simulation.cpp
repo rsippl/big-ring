@@ -37,7 +37,7 @@ float calculateGravityForce(const Cyclist& cyclist, float grade)
 Simulation::Simulation(Cyclist &cyclist, QObject *parent) :
 	QObject(parent), _idleTime(), _cyclist(cyclist)
 {
-    _simulationTimer.setInterval(40);
+	_simulationTimer.setInterval(20);
 	connect(&_simulationTimer, SIGNAL(timeout()), SLOT(simulationStep()));
 }
 
