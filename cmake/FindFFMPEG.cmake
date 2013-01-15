@@ -1,117 +1,111 @@
 # - Try to find FFMPEG
 # Once done this will define
-#
-#  FFMPEG_FOUND - system has FFMPEG
-#  FFMPEG_INCLUDE_DIRS - the FFMPEG include directory
-#  FFMPEG_LIBRARIES - Link these to use FFMPEG
-#  FFMPEG_DEFINITIONS - Compiler switches required for using FFMPEG
-#
-#  Copyright (c) 2006 Andreas Schneider <mail@cynapses.org>
-#
-#  Redistribution and use is allowed according to the terms of the New
-#  BSD license.
-#  For details see the accompanying COPYING-CMAKE-SCRIPTS file.
-#
+#  
+#  FFMPEG_FOUND		 - system has FFMPEG
+#  FFMPEG_INCLUDE_DIR	 - the include directories
+#  FFMPEG_LIBRARY_DIR	 - the directory containing the libraries
+#  FFMPEG_LIBRARIES	 - link these to use FFMPEG
+#  FFMPEG_SWSCALE_FOUND	 - FFMPEG also has SWSCALE
+#   
 
+SET( FFMPEG_HEADERS avformat.h avcodec.h avutil.h avdevice.h )
+SET( FFMPEG_PATH_SUFFIXES libavformat libavcodec libavutil libavdevice libffmpeg )
+SET( FFMPEG_SWS_HEADERS swscale.h )
+SET( FFMPEG_SWS_PATH_SUFFIXES libswscale )
 
-if (FFMPEG_LIBRARIES AND FFMPEG_INCLUDE_DIRS)
-  # in cache already
-  set(FFMPEG_FOUND TRUE)
-else (FFMPEG_LIBRARIES AND FFMPEG_INCLUDE_DIRS)
-  # use pkg-config to get the directories and then use these values
-  # in the FIND_PATH() and FIND_LIBRARY() calls
-  include(FindPkgConfig)
+if( WIN32 )
+   SET( FFMPEG_LIBRARIES avformat-52.lib avcodec-51.lib avutil-49.lib avdevice-52.lib )
+   SET( FFMPEG_SWS_LIBRARIES swscale-0.lib )
+   SET( FFMPEG_LIBRARY_DIR $ENV{FFMPEGDIR}\\lib )
+   SET( FFMPEG_INCLUDE_PATHS $ENV{FFMPEGDIR}\\include )
 
-  pkg_check_modules(ffmpeg libavcodec libavutil libavformat libswscale)
+   # check to see if we can find swscale
+   SET( TMP_ TMP-NOTFOUND )
+   FIND_PATH( TMP_ ${FFMPEG_SWS_LIBRARIES}
+	      PATHS ${FFMPEG_LIBRARY_DIR} )
+   IF ( TMP_ )
+      SET( SWSCALE_FOUND TRUE )
+   ENDIF( TMP_ )
+else( WIN32 )
+   SET( FFMPEG_LIBRARIES avformat avcodec avutil avdevice )
+   SET( FFMPEG_SWS_LIBRARIES swscale )
+   INCLUDE(FindPkgConfig)
+   if ( PKG_CONFIG_FOUND )
+      pkg_check_modules( AVFORMAT libavformat )
+      pkg_check_modules( AVCODEC libavcodec )
+      pkg_check_modules( AVUTIL libavutil )
+      pkg_check_modules( AVDEVICE libavdevice )
+      pkg_check_modules( SWSCALE libswscale )
+   endif ( PKG_CONFIG_FOUND )
 
-  find_path(FFMPEG_INCLUDE_DIR
-    NAMES
-      libavcodec/avcodec.h 
-    PATHS
-      ${_FFMPEGIncDir}
-      /usr/include
-      /usr/local/include
-      /opt/local/include
-      /sw/include
-    PATH_SUFFIXES
-      ffmpeg
-  )
-  MESSAGE("ffmpeg include dir = ${FFMPEG_INCLUDE_DIR}")
+   SET( FFMPEG_LIBRARY_DIR   ${AVFORMAT_LIBRARY_DIRS}
+			     ${AVCODEC_LIBRARY_DIRS}
+			     ${AVUTIL_LIBRARY_DIRS}
+			     ${AVDEVICE_LIBRARY_DIRS} )
+   SET( FFMPEG_INCLUDE_PATHS ${AVFORMAT_INCLUDE_DIRS}
+			     ${AVCODEC_INCLUDE_DIRS}
+			     ${AVUTIL_INCLUDE_DIRS}
+			     ${AVDEVICE_INCLUDE_DIRS} )
+endif( WIN32 )
 
-  if (NOT APPLE)
-    find_library(AVUTIL_LIBRARY
-      NAMES
-        avutil
-      PATHS
-        ${_FFMPEGLinkDir}
-        /usr/lib
-        /usr/local/lib
-        /opt/local/lib
-        /sw/lib
-    )
-  endif (NOT APPLE)
+# add in swscale if found
+IF ( SWSCALE_FOUND )
+   SET( FFMPEG_LIBRARY_DIR   ${FFMPEG_LIBRARY_DIR}
+     			     ${SWSCALE_LIBRARY_DIRS} )
+   SET( FFMPEG_INCLUDE_PATHS ${FFMPEG_INCLUDE_PATHS}
+     			     ${SWSCALE_INCLUDE_DIRS} )
+   SET( FFMPEG_HEADERS	     ${FFMPEG_HEADERS}
+     			     ${FFMPEG_SWS_HEADERS} )
+   SET( FFMPEG_PATH_SUFFIXES ${FFMPEG_PATH_SUFFIXES}
+     			     ${FFMPEG_SWS_PATH_SUFFIXES} )
+   SET( FFMPEG_LIBRARIES     ${FFMPEG_LIBRARIES}
+     			     ${FFMPEG_SWS_LIBRARIES} )
+ENDIF ( SWSCALE_FOUND )
 
-  find_library(AVCODEC_LIBRARY
-    NAMES
-      avcodec
-    PATHS
-      ${_FFMPEGLinkDir}
-      /usr/lib
-      /usr/local/lib
-      /opt/local/lib
-      /sw/lib
-  )
+# find includes
+SET( INC_SUCCESS 0 )
+SET( TMP_ TMP-NOTFOUND )
+SET( FFMPEG_INCLUDE_DIR ${FFMPEG_INCLUDE_PATHS} )
+FOREACH( INC_ ${FFMPEG_HEADERS} )
+   message( "checking: " ${INC_} )
 
-  find_library(AVFORMAT_LIBRARY
-    NAMES
-      avformat
-    PATHS
-      ${_FFMPEGLinkDir}
-      /usr/lib
-      /usr/local/lib
-      /opt/local/lib
-      /sw/lib
-  )
-	
-   find_library(SWSCALE_LIBRARY
-    NAMES
-      swscale
-    PATHS
-      ${_FFMPEGLinkDir}
-      /usr/lib
-      /usr/local/lib
-      /opt/local/lib
-      /sw/lib
-  )
+   FIND_PATH( TMP_ ${INC_}
+	      PATHS ${FFMPEG_INCLUDE_PATHS}
+	      PATH_SUFFIXES ${FFMPEG_PATH_SUFFIXES} )
+   IF ( TMP_ )
+      message( "found: " ${TMP_} )
+      MATH( EXPR INC_SUCCESS ${INC_SUCCESS}+1 )
+      SET( FFMPEG_INCLUDE_DIR ${FFMPEG_INCLUDE_DIR} ${TMP_} )
+   ENDIF ( TMP_ )
+   SET( TMP_ TMP-NOTFOUND )
+ENDFOREACH( INC_ )
 
+# clear out duplicates
+if(NOT "${FFMPEG_INCLUDE_DIR}" MATCHES "")
+	LIST( REMOVE_DUPLICATES FFMPEG_INCLUDE_DIR )
+endif(NOT "${FFMPEG_INCLUDE_DIR}" MATCHES "")
+if(NOT "${FFMPEG_LIBRARY_DIR}" MATCHES "")
+	LIST( REMOVE_DUPLICATES FFMPEG_LIBRARY_DIR )
+endif(NOT "${FFMPEG_LIBRARY_DIR}" MATCHES "")
 
-  set(FFMPEG_INCLUDE_DIRS
-    ${FFMPEG_INCLUDE_DIR}
-  )
- 
-  set(FFMPEG_LIBRARIES
-    ${AVUTIL_LIBRARY}
-    ${AVCODEC_LIBRARY}
-    ${AVFORMAT_LIBRARY}
-    ${SWSCALE_LIBRARY}
-  )
+# find the full paths of the libraries
+SET( TMP_ TMP-NOTFOUND )
+IF ( NOT WIN32 )
+   FOREACH( LIB_ ${FFMPEG_LIBRARIES} )
+      FIND_LIBRARY( TMP_ NAMES ${LIB_} PATHS ${FFMPEG_LIBRARY_DIR} )
+      IF ( TMP_ )
+	 SET( FFMPEG_LIBRARIES_FULL ${FFMPEG_LIBRARIES_FULL} ${TMP_} )
+      ENDIF ( TMP_ )
+      SET( TMP_ TMP-NOTFOUND )
+   ENDFOREACH( LIB_ )
+   SET ( FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES_FULL} )
+ENDIF( NOT WIN32 )
 
-  if (FFMPEG_INCLUDE_DIRS AND FFMPEG_LIBRARIES)
-     set(FFMPEG_FOUND TRUE)
-  endif (FFMPEG_INCLUDE_DIRS AND FFMPEG_LIBRARIES)
+LIST( LENGTH FFMPEG_HEADERS LIST_SIZE_ )
 
-  if (FFMPEG_FOUND)
-    if (NOT FFMPEG_FIND_QUIETLY)
-      message(STATUS "Found FFMPEG: ${FFMPEG_LIBRARIES}")
-    endif (NOT FFMPEG_FIND_QUIETLY)
-  else (FFMPEG_FOUND)
-    if (FFMPEG_FIND_REQUIRED)
-      message(FATAL_ERROR "Could not find FFMPEG")
-    endif (FFMPEG_FIND_REQUIRED)
-  endif (FFMPEG_FOUND)
-
-  # show the FFMPEG_INCLUDE_DIRS and FFMPEG_LIBRARIES variables only in the advanced view
-  mark_as_advanced(FFMPEG_INCLUDE_DIRS FFMPEG_LIBRARIES)
-
-endif (FFMPEG_LIBRARIES AND FFMPEG_INCLUDE_DIRS)
-
+SET( FFMPEG_FOUND FALSE )
+SET( FFMPEG_SWSCALE_FOUND FALSE )
+IF ( ${INC_SUCCESS} EQUAL ${LIST_SIZE_} )
+   SET( FFMPEG_FOUND TRUE )
+   SET( FFMPEG_SWSCALE_FOUND ${SWSCALE_FOUND} )
+ENDIF ( ${INC_SUCCESS} EQUAL ${LIST_SIZE_} )
