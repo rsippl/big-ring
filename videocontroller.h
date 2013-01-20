@@ -44,7 +44,7 @@ private:
 	void requestNewFrames(quint32 numberOfFrames);
 
 	Cyclist& _cyclist;
-	QQueue<Frame> _imageQueue;
+	QLinkedList<Frame> _imageQueue;
 	VideoDecoder _videoDecoder;
 	QThread _decoderThread;
 	VideoWidget* const _videoWidget;

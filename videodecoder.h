@@ -2,6 +2,7 @@
 #define VIDEODECODER_H
 
 #include <QDateTime>
+#include <QLinkedList>
 #include <QObject>
 #include <QImage>
 #include <QPair>
@@ -18,7 +19,7 @@ struct SwsContext;
 const quint32 UNKNOWN_FRAME_NR = std::numeric_limits<quint32>::max();
 
 typedef QPair<quint32, QImage> Frame;
-typedef QList<Frame> FrameList;
+typedef QLinkedList<Frame> FrameList;
 
 class VideoDecoder : public QObject
 {

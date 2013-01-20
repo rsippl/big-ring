@@ -122,7 +122,7 @@ void VideoController::displayFrame()
 void VideoController::framesReady(FrameList frames, quint32 requestId)
 {
 	if (_newFramesRequested && requestId == _frameRequestId) {
-		_imageQueue.append(frames);
+		_imageQueue = _imageQueue + frames;
 		_newFramesRequested = false;
 		if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
 			displayFrame();
@@ -169,7 +169,7 @@ Frame VideoController::takeFrame()
 	if (_imageQueue.empty())
 		return qMakePair(UNKNOWN_FRAME_NR, QImage());
 	else
-		return _imageQueue.dequeue();
+		return _imageQueue.takeFirst();
 }
 
 void VideoController::requestNewFrames(quint32 numberOfFrames)
