@@ -23,43 +23,15 @@
 //
 // QT stuff
 //
-#include <QMutex>
 #include <QObject>
 #include <QQueue>
 #include <QStringList>
-#include <QTime>
-#include <QProgressDialog>
 #include <QFile>
 
 //
 // Time
 //
 #include <sys/time.h>
-
-//
-// Serial i/o stuff
-//
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <sys/types.h>
-
-#ifdef WIN32
-#include <windows.h>
-#include <winbase.h>
-#include "USBXpress.h" // for Garmin USB1 sticks
-#else
-#include <termios.h> // unix!!
-#include <unistd.h> // unix!!
-#include <sys/ioctl.h>
-#endif
-
-#if defined GC_HAVE_LIBUSB
-#include "LibUsb.h"    // for Garmin USB2 sticks
-#endif
 
 #include <QDebug>
 
@@ -85,13 +57,6 @@ typedef struct ant_sensor_type {
 #define DEFAULT_NETWORK_NUMBER 0
 #define ANT_SPORT_NETWORK_NUMBER 1
 #define RX_BURST_DATA_LEN 128
-
-static inline double get_timestamp( void ) {
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return tv.tv_sec * 1.0 + tv.tv_usec * 1.0e-6;
-}
-
 
 struct setChannelAtom {
 	setChannelAtom() : channel(0), device_number(0), channel_type(0) {}
@@ -282,7 +247,6 @@ public:
 	int removeDevice(int device_number, int channel_type);
 	ANTChannel *findDevice(int device_number, int channel_type);
 	int startWaitingSearch();
-	void report();
 	void associateControlChannels();
 
 	// transmission
@@ -293,12 +257,8 @@ public:
 
 
 	// serial i/o lifted from Computrainer.cpp
-	void setDevice(QString devname);
-	void setBaud(int baud);
-	int openPort();
-	int closePort();
-	int rawRead(uint8_t bytes[], int size);
-	int rawWrite(uint8_t *bytes, int size);
+	int rawRead(quint8 bytes[], int size);
+	int rawWrite(quint8 *bytes, int size);
 
 	// channels update our telemetry
 	double channelValue(int channel);
@@ -307,39 +267,17 @@ public:
 private:
 	/** Open connection to the ANT+ device */
 	bool openConnection();
-	bool discover(QString name);
 
 	static int interpretSuffix(char c); // utility to convert e.g. 'c' to CHANNEL_TYPE_CADENCE
 	static const char *deviceTypeDescription(int type); // utility to convert CHANNEL_TYPE_XXX to human string
 	static char deviceTypeCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
 	static char deviceIdCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
 
-
-	QString deviceFilename;
-	QMutex pvars;  // lock/unlock access to telemetry data between thread and controller
 	bool configuring; // set to true if we're in configuration mode.
 	int channels;  // how many 4 or 8 ? depends upon the USB stick...
 
-	int baud;
-#ifdef WIN32
-	HANDLE devicePort;              // file descriptor for reading from com3
-	DCB deviceSettings;             // serial port settings baud rate et al
-#else
-	int devicePort;                 // unix!!
-	struct termios deviceSettings;  // unix!!
-#endif
-
-#if defined GC_HAVE_LIBUSB
-	LibUsb *usb2;                   // used for USB2 support
-	enum UsbMode { USBNone, USB1, USB2 };
-	enum UsbMode usbMode;
-#endif
-
 	// telemetry and state
 	QStringList antIDs;
-#if 0
-	QTime elapsedTime;
-#endif
 
 	UnixSerialUsbAnt* unixSerialUsbAnt;
 	unsigned char rxMessage[ANT_MAX_MESSAGE_SIZE];

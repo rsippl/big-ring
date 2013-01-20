@@ -25,19 +25,9 @@
 
 #include "ANT.h"
 #include "ANTMessage.h"
-#include "CommPort.h"
 #include "unixserialusbant.h"
-#include <QFileInfo>
-#include <QMessageBox>
-#include <QTime>
-#include <QProgressDialog>
-#include <QtDebug>
 
-#ifdef Q_OS_LINUX // to get stat /dev/xxx for major/minor
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
+#include <QtDebug>
 
 /* Control status */
 #define ANT_RUNNING  0x01
@@ -87,8 +77,6 @@ const ant_sensor_type_t ANT::ant_sensor_types[] = {
 //
 ANT::ANT(QObject *parent): QObject(parent)
 {
-	// device status and settings
-	baud=115200;
 	powerchannels=0;
 
 	// state machine
@@ -115,32 +103,13 @@ ANT::ANT(QObject *parent): QObject(parent)
 		connect(antChannel[i], SIGNAL(cadenceMeasured(float)), SIGNAL(cadenceMeasured(float)));
 	}
 
-	// on windows and linux we use libusb to read from USB2
-	// sticks, if it is not available we use stubs
-#if defined GC_HAVE_LIBUSB
-	usbMode = USBNone;
-	usb2 = new LibUsb(TYPE_ANT);
-#endif
 	channels = 0;
 }
 
 ANT::~ANT()
 {
-#if defined GC_HAVE_LIBUSB
-	delete usb2;
-#endif
 	if (unixSerialUsbAnt)
 		unixSerialUsbAnt->deleteLater();
-}
-
-void ANT::setDevice(QString x)
-{
-	deviceFilename = x;
-}
-
-void ANT::setBaud(int x)
-{
-	baud = x;
 }
 
 double ANT::channelValue2(int channel)
@@ -173,7 +142,9 @@ void ANT::initialize()
 	checksum = ANT_SYNC_BYTE;
 
 	unixSerialUsbAnt = new UnixSerialUsbAnt;
-	if (!unixSerialUsbAnt->isValid()) {
+	if (unixSerialUsbAnt->isValid()) {
+		channels = 4;
+	} else {
 		emit initializationFailed();
 		return;
 	}
@@ -200,12 +171,10 @@ void ANT::initialize()
 
 	} else {
 		// not configured, just pair with whatever you can find
-		addDevice(0, ANTChannel::CHANNEL_TYPE_SPEED, 0);
+		addDevice(0, ANTChannel::CHANNEL_TYPE_SandC, 0);
 		addDevice(0, ANTChannel::CHANNEL_TYPE_POWER, 1);
 		addDevice(0, ANTChannel::CHANNEL_TYPE_CADENCE, 2);
 		addDevice(0, ANTChannel::CHANNEL_TYPE_HR, 3);
-
-		if (channels > 4) addDevice(0, ANTChannel::CHANNEL_TYPE_SandC, 4);
 	}
 	emit initializationSucceeded();
 }
@@ -355,14 +324,6 @@ ANT::startWaitingSearch()
 }
 
 void
-ANT::report()
-{
-	for (int i=0; i<channels; i++)
-		//XXX antChannel[i]->channelInfo();
-		;
-}
-
-void
 ANT::associateControlChannels() {
 
 	// first, unassociate all control channels
@@ -414,35 +375,6 @@ ANT::associateControlChannels() {
 			;
 		} // channel_type case
 	} // for-loop
-}
-
-// For serial device discovery
-bool
-ANT::discover(QString name)
-{
-#ifdef Q_OS_LINUX
-
-	// All we can do for USB1 sticks is see if the cp210x driver module
-	// is loaded for this device, and if it is, we will use the device
-	// XXX need a better way of probing this device, but USB1 sticks
-	//     are getting rarer, so maybe we can just make do with this
-	//     until we deprecate them altogether
-	struct stat s;
-	if (stat(name.toLatin1(), &s) == -1) return false;
-	int maj = major(s.st_rdev);
-	int min = minor(s.st_rdev);
-	QString sysFile = QString("/sys/dev/char/%1:%2/device/driver/module/drivers/usb:cp210x").arg(maj).arg(min);
-	if (QFileInfo(sysFile).exists()) return true;
-	sysFile = QString("/sys/dev/char/%1:%2/device/driver/module/drivers/usb-serial:cp210x").arg(maj).arg(min);
-	if (QFileInfo(sysFile).exists()) return true;
-#endif
-
-#ifdef Q_OS_MAC
-	// On MAC we only support the SILabs Virtual Com Port Drivers
-	// which will leave a device file /dev/cu.ANTUSBStick.slabvcp
-	if (name == "/dev/cu.ANTUSBStick.slabvcp") return true;
-#endif
-	return false;
 }
 
 void
@@ -629,125 +561,12 @@ ANT::processMessage(void) {
 	}
 }
 
-/*======================================================================
- * Serial I/O
- *====================================================================*/
-
-int ANT::closePort()
-{
-#ifdef WIN32
-	switch (usbMode) {
-	case USB2 :
-		usb2->close();
-		return 0;
-		break;
-	case USB1 :
-		return (int)!CloseHandle(devicePort);
-		break;
-	default :
-		return -1;
-		break;
-	}
-#else
-
-#ifdef GC_HAVE_LIBUSB
-	if (usbMode == USB2) {
-		usb2->close();
-		return 0;
-	}
-#endif
-	tcflush(devicePort, TCIOFLUSH); // clear out the garbage
-	return close(devicePort);
-#endif
-}
-
-int ANT::openPort()
-{
-#ifdef WIN32
-	int rc;
-
-	// on windows we try on USB2 then on USB1 then fail...
-	if ((rc=usb2->open()) != -1) {
-		usbMode = USB2;
-		channels = 8;
-		return rc;
-	} else if ((rc= USBXpress::open(&devicePort)) != -1) {
-		usbMode = USB1;
-		channels = 4;
-		return rc;
-	} else {
-		usbMode = USBNone;
-		channels = 0;
-		return -1;
-	}
-
-#else
-	// LINUX AND MAC USES TERMIO / IOCTL / STDIO
-
-#if defined(Q_OS_MACX)
-	int ldisc=TTYDISC;
-#else
-	int ldisc=N_TTY; // LINUX
-#endif
-
-#ifdef GC_HAVE_LIBUSB
-	int rc;
-	if ((rc=usb2->open()) != -1) {
-		usbMode = USB2;
-		channels = 8;
-		return rc;
-	}
-	usbMode = USB1;
-#endif
-
-	// if usb2 failed / not compiled in, we must be using
-	// a USB1 stick so default to 4 channels
-	channels = 4;
-
-	if ((devicePort=open(deviceFilename.toAscii(),O_RDWR | O_NOCTTY | O_NONBLOCK)) == -1)
-		return errno;
-
-	tcflush(devicePort, TCIOFLUSH); // clear out the garbage
-
-	if (ioctl(devicePort, TIOCSETD, &ldisc) == -1) return errno;
-
-	// get current settings for the port
-	tcgetattr(devicePort, &deviceSettings);
-
-	// set raw mode i.e. ignbrk, brkint, parmrk, istrip, inlcr, igncr, icrnl, ixon
-	//                   noopost, cs8, noecho, noechonl, noicanon, noisig, noiexn
-	cfmakeraw(&deviceSettings);
-	cfsetspeed(&deviceSettings, B115200);
-
-	// further attributes
-	deviceSettings.c_iflag= IGNPAR;
-	deviceSettings.c_oflag=0;
-	deviceSettings.c_cflag &= (~CSIZE & ~CSTOPB);
-#if defined(Q_OS_MACX)
-	deviceSettings.c_cflag |= (CS8 | CREAD | HUPCL | CCTS_OFLOW | CRTS_IFLOW);
-#else
-	deviceSettings.c_cflag |= (CS8 | CREAD | HUPCL | CRTSCTS);
-#endif
-	deviceSettings.c_lflag=0;
-	deviceSettings.c_cc[VMIN]=0;
-	deviceSettings.c_cc[VTIME]=0;
-
-	// set those attributes
-	if(tcsetattr(devicePort, TCSANOW, &deviceSettings) == -1) return errno;
-	tcgetattr(devicePort, &deviceSettings);
-
-#endif
-
-	// success
-	return 0;
-}
-
-int ANT::rawWrite(uint8_t *bytes, int size) // unix!!
+int ANT::rawWrite(quint8 *bytes, int size) // unix!!
 {
 	return unixSerialUsbAnt->writeBytes(bytes, size);
 }
 
-int ANT::rawRead(uint8_t bytes[], int size)
+int ANT::rawRead(quint8 bytes[], int size)
 {
 	return unixSerialUsbAnt->readBytes(bytes, size);
 }
@@ -797,18 +616,3 @@ const char * ANT::deviceTypeDescription(int type)
 	return "Unknown device type";
 }
 
-bool ANT::openConnection()
-{
-	QString errors;
-	QVector<boost::shared_ptr<CommPort> > commPorts = CommPort::listCommPorts(errors);
-	foreach(boost::shared_ptr<CommPort> commPort, commPorts) {
-		qDebug() << "Trying device" << commPort->name();
-		QString deviceFile = commPort->name();
-		if (discover(deviceFile)) {
-			qDebug() << "found device: " << deviceFile;
-			deviceFilename = deviceFile;
-			return true;
-		}
-	}
-	return false;
-}

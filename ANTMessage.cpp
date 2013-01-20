@@ -532,7 +532,7 @@ ANTMessage::ANTMessage(const unsigned char len,
                        const unsigned char b10,
                        const unsigned char b11)
 {
-    timestamp = get_timestamp();
+	timestamp = QDateTime::currentMSecsSinceEpoch();
 
     // encode the message
     data[0] = ANT_SYNC_BYTE;
@@ -559,7 +559,7 @@ ANTMessage::ANTMessage(const unsigned char len,
 
 void ANTMessage::init()
 {
-    timestamp = get_timestamp();
+	timestamp = QDateTime::currentMSecsSinceEpoch();
     data_page = frequency = deviceType = transmitPower = searchTimeout = 0;
     transmissionType = networkNumber = channelType = channel = 0;
     channelPeriod = deviceNumber = 0;

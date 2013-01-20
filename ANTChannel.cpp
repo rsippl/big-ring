@@ -19,11 +19,14 @@
 
 #include "ANTChannel.h"
 #include <QDebug>
+#include <QTime>
 
-static float timeout_blanking=2.0;  // time before reporting stale data, seconds
-static float timeout_drop=2.0; // time before reporting dropped message
-static float timeout_scan=10.0; // time to do initial scan
-static float timeout_lost=30.0; // time to do more thorough scan
+namespace {
+const quint32 timeout_blanking = 2000; // ms
+const quint32 timeout_drop = 2000; // ms
+const quint32 timeout_scan = 10000; // ms
+const quint32 timeout_lost = 30000; // ms
+}
 
 ANTChannel::ANTChannel(int number, ANT *parent) : parent(parent), number(number)
 {
@@ -142,7 +145,7 @@ void ANTChannel::open(int device, int chan_type)
 			break; //XXX should trap error here, but silently ignored for now
 		}
 
-		if (get_timestamp() > blanking_timestamp + timeout_blanking) {
+		if (QDateTime::currentDateTime().toMSecsSinceEpoch() > blanking_timestamp + timeout_blanking) {
 			if (!blanked) {
 				blanked=1;
 				value2=value=0;
@@ -197,7 +200,7 @@ void ANTChannel::open(int device, int chan_type)
 		} else if (MESSAGE_IS_EVENT_RX_FAIL(message)) {
 
 			messages_dropped++;
-			double t=get_timestamp();
+			qint64 t = QDateTime::currentMSecsSinceEpoch();
 
 			if (t > (last_message_timestamp + timeout_drop)) {
 				if (channel_type != CHANNEL_TYPE_UNUSED) emit dropInfo(number, messages_dropped, messages_received);
@@ -257,7 +260,7 @@ void ANTChannel::open(int device, int chan_type)
 		// messages
 
 		unsigned char *message=ant_message+2;
-		double timestamp=get_timestamp();
+		double timestamp= QDateTime::currentMSecsSinceEpoch();
 
 		messages_received++;
 		last_message_timestamp=timestamp;
@@ -274,7 +277,7 @@ void ANTChannel::open(int device, int chan_type)
 			// pretty critical) -- because the USB stick needed a USB reset which we know
 			// do every time we open the USB device
 			parent->sendMessage(ANTMessage::requestMessage(number, ANT_CHANNEL_ID));
-			blanking_timestamp=get_timestamp();
+			blanking_timestamp=QDateTime::currentMSecsSinceEpoch();
 			blanked=0;
 			return; // because we can't associate a channel id with the message yet
 		}
@@ -621,7 +624,7 @@ void ANTChannel::open(int device, int chan_type)
 
 		// if we were searching,
 		if (channel_type_flags & CHANNEL_TYPE_QUICK_SEARCH) {
-			parent->sendMessage(ANTMessage::setSearchTimeout(number, (int)(timeout_lost/2.5)));
+			parent->sendMessage(ANTMessage::setSearchTimeout(number, (unsigned char)(timeout_lost/2.5)));
 		}
 		channel_type_flags &= ~CHANNEL_TYPE_QUICK_SEARCH;
 
@@ -722,9 +725,9 @@ void ANTChannel::open(int device, int chan_type)
 
 		case ANT_CHANNEL_ID:
 			if (channel_type & CHANNEL_TYPE_QUICK_SEARCH) {
-				parent->sendMessage(ANTMessage::setSearchTimeout(number, (int)(timeout_scan/2.5)));
+				parent->sendMessage(ANTMessage::setSearchTimeout(number, (unsigned char)(timeout_scan/2.5)));
 			} else {
-				parent->sendMessage(ANTMessage::setSearchTimeout(number, (int)(timeout_lost/2.5)));
+				parent->sendMessage(ANTMessage::setSearchTimeout(number, (unsigned char)(timeout_lost/2.5)));
 			}
 			break;
 

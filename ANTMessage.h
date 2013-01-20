@@ -23,6 +23,10 @@
 #ifndef gc_ANTMessage_h
 #define gc_ANTMessage_h
 
+extern "C" {
+#include <stdint.h>
+}
+
 class ANTMessage {
 
     public:
@@ -83,7 +87,7 @@ class ANTMessage {
         // Standard ANT values
         int length;
         unsigned char data[ANT_MAX_MESSAGE_SIZE+1]; // include sync byte at front
-        double timestamp;
+		qint64 timestamp;
         uint8_t sync, type;
         uint8_t transmitPower, searchTimeout, transmissionType, networkNumber,
                 channelType, channel, deviceType, frequency;

@@ -23,6 +23,7 @@
 #include "ANT.h"
 #include "ANTMessage.h"
 #include <QObject>
+#include <QDateTime>
 
 #define CHANNEL_TYPE_QUICK_SEARCH 0x10 // or'ed with current channel type
 /* after fast search, wait for slow search.  Otherwise, starting slow
@@ -82,8 +83,8 @@ class ANTChannel : public QObject {
 
         ANTMessage lastMessage, lastStdPwrMessage;
         int dualNullCount, nullCount, stdNullCount;
-        double last_message_timestamp;
-        double blanking_timestamp;
+		qint64 last_message_timestamp;
+		qint64 blanking_timestamp;
         int blanked;
         char id[10]; // short identifier
         bool channel_assigned;
