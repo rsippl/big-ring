@@ -1,4 +1,5 @@
 #include "antcontroller.h"
+#include "ANT.h"
 #include <QMetaObject>
 #include <boost/shared_ptr.hpp>
 #include "CommPort.h"

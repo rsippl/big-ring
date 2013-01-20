@@ -5,8 +5,8 @@
 #include <QThread>
 #include <QTimer>
 
-#include "ANT.h"
 
+class ANT;
 
 class ANTController : public QObject
 {
