@@ -26,6 +26,7 @@
 #include "ANT.h"
 #include "ANTMessage.h"
 #include "CommPort.h"
+#include "unixserialusbant.h"
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QTime>
@@ -128,6 +129,8 @@ ANT::~ANT()
 #if defined GC_HAVE_LIBUSB
 	delete usb2;
 #endif
+	if (unixSerialUsbAnt)
+		unixSerialUsbAnt->deleteLater();
 }
 
 void ANT::setDevice(QString x)
@@ -157,7 +160,7 @@ void ANT::initialize()
 {
 	powerchannels = 0;
 
-	if (!openConnection()) {
+	if (!UnixSerialUsbAnt::isAntUsb1StickPresent()) {
 		emit initializationFailed();
 		return;
 	}
@@ -169,11 +172,12 @@ void ANT::initialize()
 	length = bytes = 0;
 	checksum = ANT_SYNC_BYTE;
 
-	if (openPort() != 0) {
+	unixSerialUsbAnt = new UnixSerialUsbAnt;
+	if (!unixSerialUsbAnt->isValid()) {
 		emit initializationFailed();
 		return;
 	}
-
+	qDebug() << "valid";
 	antlog.setFileName("antlog.bin");
 	antlog.open(QIODevice::WriteOnly | QIODevice::Truncate);
 
@@ -740,85 +744,12 @@ int ANT::openPort()
 
 int ANT::rawWrite(uint8_t *bytes, int size) // unix!!
 {
-	int rc=0;
-
-#ifdef WIN32
-	switch (usbMode) {
-	case USB1:
-		rc = USBXpress::write(&devicePort, bytes, size);
-		break;
-	case USB2:
-		rc = usb2->write((char *)bytes, size);
-		break;
-	default:
-		rc = 0;
-		break;
-	}
-
-	if (!rc) rc = -1; // return -1 if nothing written
-	return rc;
-
-#else
-
-#ifdef GC_HAVE_LIBUSB
-	if (usbMode == USB2) {
-		return usb2->write((char *)bytes, size);
-	}
-#endif
-
-	int ibytes;
-
-	ioctl(devicePort, FIONREAD, &ibytes);
-
-	// timeouts are less critical for writing, since vols are low
-	rc= write(devicePort, bytes, size);
-
-	if (rc != -1) tcdrain(devicePort); // wait till its gone.
-
-	ioctl(devicePort, FIONREAD, &ibytes);
-	return rc;
-#endif
-
-
+	return unixSerialUsbAnt->writeBytes(bytes, size);
 }
 
 int ANT::rawRead(uint8_t bytes[], int size)
 {
-	int rc=0;
-
-#ifdef WIN32
-	switch (usbMode) {
-	case USB1:
-		return USBXpress::read(&devicePort, bytes, size);
-		break;
-	case USB2:
-		return usb2->read((char *)bytes, size);
-		break;
-	default:
-		rc = 0;
-		break;
-	}
-
-#else
-
-#ifdef GC_HAVE_LIBUSB
-	if (usbMode == USB2) {
-		return usb2->read((char *)bytes, size);
-	}
-#endif
-	int i=0;
-	uint8_t byte;
-
-	// read one byte at a time sleeping when no data ready
-	// until we timeout waiting then return error
-	for (i=0; i<size; i++) {
-		rc = read(devicePort, &byte, 1);
-		if (rc == -1 || rc == 0) return -1; // error!
-		else bytes[i] = byte;
-	}
-	return i;
-
-#endif
+	return unixSerialUsbAnt->readBytes(bytes, size);
 }
 
 // convert 'p' 'c' etc into ANT values for device type

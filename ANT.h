@@ -69,7 +69,7 @@
 
 class ANTMessage;
 class ANTChannel;
-
+class UnixSerialUsbAnt;
 typedef struct ant_sensor_type {
 	int type;
 	int period;
@@ -341,6 +341,7 @@ private:
 	QTime elapsedTime;
 #endif
 
+	UnixSerialUsbAnt* unixSerialUsbAnt;
 	unsigned char rxMessage[ANT_MAX_MESSAGE_SIZE];
 
 	// state machine whilst receiving bytes

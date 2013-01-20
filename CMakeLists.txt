@@ -18,7 +18,8 @@ set(ANT_SRCS
 	antcontroller.cpp
 	ANTMessage.cpp
 	CommPort.cpp
-	Serial.cpp)
+	Serial.cpp
+	unixserialusbant.cpp)
 
 set(SRCS
 	 cyclist.cpp
