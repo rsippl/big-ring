@@ -1,6 +1,7 @@
 #ifndef UNIXSERIALUSBANT_H
 #define UNIXSERIALUSBANT_H
 
+#include <QByteArray>
 #include <QFileInfo>
 #include <QFileInfoList>
 #include <QObject>
@@ -17,8 +18,8 @@ public:
 
 	bool isValid();
 
-	int writeBytes(quint8 *bytes, int size);
-	int readBytes(quint8 *bytes, int size);
+	int writeBytes(QByteArray& bytes);
+	QByteArray readBytes();
 signals:
 	
 public slots:

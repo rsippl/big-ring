@@ -27,6 +27,7 @@
 #include "ANTMessage.h"
 #include "unixserialusbant.h"
 
+#include <QByteArray>
 #include <QtDebug>
 
 /* Control status */
@@ -182,11 +183,16 @@ void ANT::initialize()
 void ANT::readCycle()
 {
 	bool bytesRead = false;
-	uint8_t byte;
-	// read more bytes from the device
-	while (rawRead(&byte, 1) > 0) {
-		receiveByte((unsigned char) byte);
+
+	while (true) {
+		QByteArray bytes = rawRead();
+		if (bytes.isEmpty())
+			break;
+
 		bytesRead = true;
+		for (int i = 0; i < bytes.size(); ++i) {
+			receiveByte((unsigned char) bytes.at(i));
+		}
 	}
 
 	if (!bytesRead)
@@ -438,16 +444,15 @@ ANT::slotSearchComplete(int number) // search completed successfully
  *--------------------------------------------------------------------*/
 void
 ANT::sendMessage(ANTMessage m) {
-	static const unsigned char padding[5] = { '\0', '\0', '\0', '\0', '\0' };
 
-	//fprintf(stderr, ">> send: ");
-	//for(int i=0; i<m.length+3; i++) fprintf(stderr, "%02x ", m.data[i]);
-	//fprintf(stderr, "\n");
-
-	rawWrite((uint8_t*)m.data, m.length);
+	QByteArray bytes((const char*) m.data, m.length);
+	rawWrite(bytes);
 
 	// this padding is important, for some reason XXX find out why?
-	rawWrite((uint8_t*)padding, 5);
+
+	static const char padding[5] = { '\0', '\0', '\0', '\0', '\0' };
+	QByteArray paddingBytes(padding, 5);
+	rawWrite(paddingBytes);
 }
 
 void
@@ -561,14 +566,14 @@ ANT::processMessage(void) {
 	}
 }
 
-int ANT::rawWrite(quint8 *bytes, int size) // unix!!
+int ANT::rawWrite(QByteArray &bytes) // unix!!
 {
-	return unixSerialUsbAnt->writeBytes(bytes, size);
+	return unixSerialUsbAnt->writeBytes(bytes);
 }
 
-int ANT::rawRead(quint8 bytes[], int size)
+QByteArray ANT::rawRead()
 {
-	return unixSerialUsbAnt->readBytes(bytes, size);
+	return unixSerialUsbAnt->readBytes();
 }
 
 // convert 'p' 'c' etc into ANT values for device type

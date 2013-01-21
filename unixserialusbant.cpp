@@ -13,6 +13,10 @@ extern "C" {
 #include <unistd.h>
 }
 
+namespace {
+const quint8 READ_SIZE = 64;
+}
+
 UnixSerialUsbAnt::UnixSerialUsbAnt(QObject *parent) :
 	QObject(parent)
 {
@@ -25,8 +29,7 @@ UnixSerialUsbAnt::UnixSerialUsbAnt(QObject *parent) :
 		}
 	}
 	if (isValid()) {
-		int rc = openConnection();
-		qDebug() << "rc=" << rc;
+		openConnection();
 	}
 }
 
@@ -57,15 +60,15 @@ bool UnixSerialUsbAnt::isValid()
 	return !_deviceFileInfo.fileName().isEmpty();
 }
 
-int UnixSerialUsbAnt::writeBytes(quint8 *bytes, int size)
+int UnixSerialUsbAnt::writeBytes(QByteArray &bytes)
 {
 	int rc;
 	int ibytes;
-	qDebug() << "native device handle" << _nativeDeviceHandle;
+
 	ioctl(_nativeDeviceHandle, FIONREAD, &ibytes);
 
 	// timeouts are less critical for writing, since vols are low
-	rc= write(_nativeDeviceHandle, bytes, size);
+	rc= write(_nativeDeviceHandle, bytes.data(), bytes.size());
 
 	if (rc != -1) tcdrain(_nativeDeviceHandle); // wait till its gone.
 
@@ -73,20 +76,18 @@ int UnixSerialUsbAnt::writeBytes(quint8 *bytes, int size)
 	return rc;
 }
 
-int UnixSerialUsbAnt::readBytes(quint8 *bytes, int size)
+QByteArray UnixSerialUsbAnt::readBytes()
 {
-	int rc;
-	int i=0;
-	quint8 byte;
-
-	// read one byte at a time sleeping when no data ready
-	// until we timeout waiting then return error
-	for (i=0; i<size; i++) {
-		rc = read(_nativeDeviceHandle, &byte, 1);
-		if (rc == -1 || rc == 0) return -1; // error!
-		else bytes[i] = byte;
+	QByteArray allBytes;
+	while(true) {
+		QByteArray readBytes(READ_SIZE, '\0');
+		int result = read(_nativeDeviceHandle, readBytes.data(), READ_SIZE);
+		if (result == -1 || result == 0)
+			break;
+		allBytes.append(readBytes.left(result));
 	}
-	return i;
+
+	return allBytes;
 }
 
 QFileInfoList UnixSerialUsbAnt::findUsbSerialDevices()

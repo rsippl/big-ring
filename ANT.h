@@ -255,10 +255,8 @@ public:
 	void handleChannelEvent(void);
 	void processMessage(void);
 
-
-	// serial i/o lifted from Computrainer.cpp
-	int rawRead(quint8 bytes[], int size);
-	int rawWrite(quint8 *bytes, int size);
+	QByteArray rawRead();
+	int rawWrite(QByteArray& bytes);
 
 	// channels update our telemetry
 	double channelValue(int channel);
