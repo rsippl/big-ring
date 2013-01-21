@@ -17,8 +17,6 @@ set(ANT_SRCS
 	ANTChannel.cpp
 	antcontroller.cpp
 	ANTMessage.cpp
-	CommPort.cpp
-	Serial.cpp
 	unixserialusbant.cpp)
 
 set(SRCS

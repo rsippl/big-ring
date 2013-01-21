@@ -1,7 +1,6 @@
 #include "antcontroller.h"
 #include "ANT.h"
 #include <QMetaObject>
-#include "CommPort.h"
 
 namespace {
 const int TIMER_INTERVAL = 10; // ms
