@@ -1,6 +1,7 @@
 #ifndef VIDEOWIDGET_H
 #define VIDEOWIDGET_H
 
+#include <GL/glew.h>
 #include <QTimer>
 #include <QGLWidget>
 
@@ -22,8 +23,9 @@ public:
 	void displayFrame(quint32 frameNr, QImage &imageFrame);
 
 protected:
-	void paintGL();
-	void resizeGL(int w, int h);
+	virtual void initializeGL();
+	virtual void paintGL();
+	virtual void resizeGL(int w, int h);
 
 	virtual void enterEvent(QEvent *);
 	virtual void leaveEvent(QEvent *);

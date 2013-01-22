@@ -43,6 +43,19 @@ void VideoWidget::displayFrame(quint32 frameNr, QImage &image)
 	}
 }
 
+void VideoWidget::initializeGL()
+{
+	qDebug() << "Running glew init";
+	GLenum error = glewInit();
+	if (GLEW_OK != error)
+	{
+	  /* Problem: glewInit failed, something is seriously wrong. */
+	  qDebug() << "Error:" << glewGetErrorString(error);
+	}
+	if (GLEW_EXT_texture_rectangle)
+		qDebug() << "texture_rectangle";
+}
+
 void VideoWidget::paintGL()
 {
 	if (_currentFrame.isNull())
