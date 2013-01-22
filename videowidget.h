@@ -1,8 +1,10 @@
 #ifndef VIDEOWIDGET_H
 #define VIDEOWIDGET_H
-
+#include <../glew-1.9.0/include/GL/glew.h>
 #include <QTimer>
 #include <QGLWidget>
+#include <GL/gl.h>
+#include <GL/glext.h>
 
 #include "videodecoder.h"
 /**
@@ -13,25 +15,25 @@
  */
 class VideoWidget : public QGLWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	explicit VideoWidget(QWidget *parent = 0);
-	virtual ~VideoWidget();
+    explicit VideoWidget(QWidget *parent = 0);
+    virtual ~VideoWidget();
 
-	/** Display a frame */
-	void displayFrame(quint32 frameNr, QImage &imageFrame);
+    /** Display a frame */
+    void displayFrame(quint32 frameNr, QImage &imageFrame);
 
 protected:
-	void paintGL();
-	void resizeGL(int w, int h);
+    void paintGL();
+    void resizeGL(int w, int h);
 
-	virtual void enterEvent(QEvent *);
-	virtual void leaveEvent(QEvent *);
+    virtual void enterEvent(QEvent *);
+    virtual void leaveEvent(QEvent *);
 
 private:
-	quint32 _currentFrameNumber;
-	QImage _currentFrame;
-	GLuint _texture;
+    quint32 _currentFrameNumber;
+    QImage _currentFrame;
+    GLuint _texture;
 };
 
 #endif // VIDEOWIDGET_H

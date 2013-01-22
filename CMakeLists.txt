@@ -4,20 +4,28 @@ set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 SET(QT_USE_QTOPENGL TRUE)
 SET(QT_USE_QTTEST TRUE)
-find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui REQUIRED)
+find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui QtOpenGl REQUIRED)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 find_package(FFMPEG REQUIRED)
 include(${QT_USE_FILE})
-include_directories(${QT_INCLUDE_DIR})
+include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS})
+link_directories(${FFMPEG_LIBRARY_DIR})
 
 set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS -pg")
 set(ANT_SRCS
+	antdevice.cpp
 	ANT.cpp
 	ANTChannel.cpp
 	antcontroller.cpp
-	ANTMessage.cpp
-	unixserialusbant.cpp)
+	ANTMessage.cpp)
+
+if (WIN32)
+	set(ANT_SRCS ${ANT_SRCS} usbexpressantdevice.cpp)
+	set(EXTRA_LIBRARIES opengl32)
+else()
+	set(ANT_SRCS ${ANT_SRCS} unixserialusbant.cpp)
+endif()
 
 set(SRCS
 	 cyclist.cpp
@@ -33,19 +41,19 @@ set(SRCS
 	 videowidget.cpp)
 
 set(UI_FILES
-    rlvlistwidget.ui)
+	rlvlistwidget.ui)
 
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
 add_library(mainlib ${ANT_SRCS} ${SRCS} ${UI_SRCS})
 
 add_executable(indoorcycling main.cpp)
-target_link_libraries(indoorcycling mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES})
+target_link_libraries(indoorcycling mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
 
 # test executables
 add_executable(test_modelclasses reallivevideotest.cpp)
-target_link_libraries(test_modelclasses mainlib ${QT_LIBRARIES})
+target_link_libraries(test_modelclasses mainlib ${QT_LIBRARIES} ${EXTRA_LIBRARIES})
 
 add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp)
-target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES})
+target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} avformat ${EXTRA_LIBRARIES})
 
