@@ -21,11 +21,16 @@ set(ANT_SRCS
 	ANTMessage.cpp)
 
 if (WIN32)
+	set(USBXPRESS_INCLUDE_PATH "D:/SiLabs/MCU/USBXpress/USBXpress_API/Host")
+	set(USBXPRESS_LIB_DIR "D:/SiLabs/MCU/USBXpress/USBXpress_API/Host/x86")
 	set(ANT_SRCS ${ANT_SRCS} usbexpressantdevice.cpp)
-	set(EXTRA_LIBRARIES opengl32)
+	set(EXTRA_LIBRARIES opengl32 SiUSBXp)
 else()
 	set(ANT_SRCS ${ANT_SRCS} unixserialusbant.cpp)
 endif()
+
+include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS} ${USBXPRESS_INCLUDE_PATH})
+link_directories(${FFMPEG_LIBRARY_DIR} ${USBXPRESS_LIB_DIR})
 
 set(SRCS
 	 cyclist.cpp
@@ -55,5 +60,5 @@ add_executable(test_modelclasses reallivevideotest.cpp)
 target_link_libraries(test_modelclasses mainlib ${QT_LIBRARIES} ${EXTRA_LIBRARIES})
 
 add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp)
-target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} avformat ${EXTRA_LIBRARIES})
+target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
 
