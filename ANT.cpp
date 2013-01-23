@@ -128,7 +128,7 @@ bool ANT::isDevicePresent()
 #ifdef Q_OS_WIN
     return UsbExpressAntDevice::isDevicePresent();
 #else
-#error "Not implemented"
+	return UnixSerialUsbAnt::isDevicePresent();
 #endif
 }
 double ANT::channelValue(int channel)

@@ -1,10 +1,7 @@
 #ifndef VIDEOWIDGET_H
 #define VIDEOWIDGET_H
-#include <../glew-1.9.0/include/GL/glew.h>
 #include <QTimer>
 #include <QGLWidget>
-#include <GL/gl.h>
-#include <GL/glext.h>
 
 #include "videodecoder.h"
 /**
