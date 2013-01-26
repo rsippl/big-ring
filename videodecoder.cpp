@@ -125,7 +125,10 @@ void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 requestId)
 		frames << frame;
 		++decoded;
 	}
-	qDebug() << "request" << requestId << "finished. Frames." << frames.first().first << "to" << frames.last().first;
+	if (frames.isEmpty())
+		qDebug() << "request finished. No frames found.";
+	else
+		qDebug() << "request" << requestId << "finished. Frames." << frames.first().first << "to" << frames.last().first;
 	emit framesReady(frames, requestId);
 
 }
