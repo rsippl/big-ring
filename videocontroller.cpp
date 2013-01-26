@@ -29,7 +29,7 @@ VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QOb
 	// set up video decoder
 	connect(&_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
 	connect(&_videoDecoder, SIGNAL(framesReady(FrameList, quint32)), SLOT(framesReady(FrameList, quint32)));
-	connect(&_videoDecoder, SIGNAL(seekFinished()), SLOT(seekFinished()));
+	connect(&_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
 }
 
 VideoController::~VideoController()
@@ -132,9 +132,10 @@ void VideoController::framesReady(FrameList frames, quint32 requestId)
 	}
 }
 
-void VideoController::seekFinished()
+void VideoController::seekFinished(Frame frame)
 {
-	requestNewFrames(1);
+	_imageQueue.append(frame);
+	displayFrame();
 }
 
 void VideoController::loadVideo(const QString &filename)

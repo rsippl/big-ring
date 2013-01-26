@@ -34,7 +34,7 @@ private slots:
 	void videoLoaded();
 	void displayFrame();
 	void framesReady(FrameList frames, quint32 requestId);
-	void seekFinished();
+	void seekFinished(Frame frame);
 private:
 	void loadVideo(const QString& filename);
 	void setPosition(quint32 frameNr);
