@@ -4,8 +4,8 @@
 namespace {
 
 /** Frontal area of a cyclist is around .5 m*m */
-const float FRONTAL_AREA = 0.5f;
-const float DRAG_COEFFICIENT = 0.5f;
+const float FRONTAL_AREA = 0.58f;
+const float DRAG_COEFFICIENT = 0.63f;
 const float AIR_DENSITY = 1.226f; // Sea level
 
 const QTime MAX_IDLE_TIME(0, 0, 5);
