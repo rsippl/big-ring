@@ -12,7 +12,11 @@ include(${QT_USE_FILE})
 include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS})
 link_directories(${FFMPEG_LIBRARY_DIR})
 
-set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS -pg")
+set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS")
+if(NOT WIN32)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+endif()
+
 set(ANT_SRCS
 	antdevice.cpp
 	ANT.cpp
