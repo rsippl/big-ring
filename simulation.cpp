@@ -38,15 +38,15 @@ float calculateGravityForce(const Cyclist& cyclist, float grade)
 
 
 Simulation::Simulation(Cyclist &cyclist, QObject *parent) :
-	QObject(parent), _idleTime(), _cyclist(cyclist)
+	QObject(parent), _lastElapsed(0), _idleTime(),_cyclist(cyclist)
 {
-	_simulationTimer.setInterval(20);
-	connect(&_simulationTimer, SIGNAL(timeout()), SLOT(simulationStep()));
+	_simulationUpdateTimer.setInterval(20);
+	connect(&_simulationUpdateTimer, SIGNAL(timeout()), SLOT(simulationStep()));
 }
 
 Simulation::~Simulation()
 {
-	_simulationTimer.stop();
+	_simulationUpdateTimer.stop();
 }
 
 Cyclist &Simulation::cyclist() const
@@ -57,10 +57,11 @@ Cyclist &Simulation::cyclist() const
 void Simulation::play(bool play)
 {
 	if (play) {
-		_lastUpdateTime = QDateTime::currentDateTime();
-		_simulationTimer.start();
+		_simulationUpdateTimer.start();
+		_simulationTime.restart();
+		_lastElapsed = 0;
 	} else {
-		_simulationTimer.stop();
+		_simulationUpdateTimer.stop();
 	}
 	emit playing(play);
 }
@@ -70,9 +71,9 @@ void Simulation::simulationStep()
 	if (!_currentRlv.isValid())
 		return;
 
-	QDateTime currentTime = QDateTime::currentDateTime();
-	qint64 elapsed = _lastUpdateTime.msecsTo(currentTime);
-	_lastUpdateTime = currentTime;
+	qint64 currentElapsed = _simulationTime.elapsed();
+	qint64 elapsed = currentElapsed - _lastElapsed;
+	_lastElapsed = currentElapsed;
 
 	_runTime = _runTime.addMSecs(elapsed);
 	emit runTimeChanged(_runTime);
@@ -132,6 +133,8 @@ float Simulation::calculateSpeed(quint64 timeDelta)
 	float accelaration = resultingForce / _cyclist.weight();
 	float speedChange = accelaration * timeDelta * 0.001;
 	float speed = _cyclist.speed() + speedChange;
+
+	// If there's power applied, always return at least MINIMUM_SPEED.
 	return qMax(MINIMUM_SPEED, speed);
 }
 
