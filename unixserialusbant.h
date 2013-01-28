@@ -7,19 +7,22 @@
 #include <QObject>
 #include <QStringList>
 
-class UnixSerialUsbAnt : public QObject
+#include "antdevice.h"
+
+class UnixSerialUsbAnt : public AntDevice
 {
 	Q_OBJECT
 public:
 	explicit UnixSerialUsbAnt(QObject *parent = 0);
 	virtual ~UnixSerialUsbAnt();
+
 	/** Find a Garmin USB1 Stick. If found, returns true, false otherwise */
-	static bool isAntUsb1StickPresent();
+	static bool isDevicePresent();
 
-	bool isValid();
+	virtual bool isValid();
 
-	int writeBytes(QByteArray& bytes);
-	QByteArray readBytes();
+	virtual int writeBytes(QByteArray& bytes);
+	virtual QByteArray readBytes();
 signals:
 	
 public slots:

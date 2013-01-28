@@ -3,7 +3,7 @@ extern "C"
 {
 #include <limits.h>
 #include <stdint.h>
-#include "libavcodec/avcodec.h"
+#include <libavcodec/avcodec.h>
 #include "libavformat/avformat.h"
 #include "libswscale/swscale.h"
 }
@@ -25,14 +25,15 @@ const int ERROR_STR_BUF_SIZE = 128;
 VideoDecoder::VideoDecoder(QObject *parent) :
 	QObject(parent),
 	_formatContext(NULL), _codecContext(NULL),
-    _codec(NULL), _frame(NULL),
-    _swsContext(NULL),
-    _seekTimer(new QTimer(this)), _seekTargetFrame(0)
+	_codec(NULL), _frame(NULL),
+	_swsContext(NULL),
+	_seekTimer(new QTimer(this)), _seekTargetFrame(0)
 {
+	qRegisterMetaType<Frame>("Frame");
 	qRegisterMetaType<FrameList>("FrameList");
 	initialize();
 	_seekTimer->setSingleShot(true);
-	connect(_seekTimer, SIGNAL(timeout()), SIGNAL(seekFinished()));
+	connect(_seekTimer, SIGNAL(timeout()), SLOT(decodeUntilCorrectFrame()));
 }
 
 VideoDecoder::~VideoDecoder()
@@ -125,9 +126,28 @@ void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 requestId)
 		frames << frame;
 		++decoded;
 	}
-	qDebug() << "request" << requestId << "finished. Frames." << frames.first().first << "to" << frames.last().first;
+	if (frames.isEmpty())
+		qDebug() << "request finished. No frames found.";
+	else
+		qDebug() << "request" << requestId << "finished. Frames." << frames.first().first << "to" << frames.last().first;
 	emit framesReady(frames, requestId);
 
+}
+
+// Find the target frame of a seek.
+void VideoDecoder::decodeUntilCorrectFrame()
+{
+	AVPacket packet;
+	quint32 frameNr = 0;
+	while(frameNr <= _seekTargetFrame) {
+		if (!decodeNextAVFrame(packet))
+			return;
+
+		frameNr = packet.dts;
+	}
+
+	emit seekFinished(convertFrameToQImage(packet));
+	av_free_packet(&packet);
 }
 
 int VideoDecoder::findVideoStream()
@@ -155,47 +175,59 @@ void VideoDecoder::initializeFrames()
 								 _codecContext->pix_fmt,
 								 _codecContext->width, _codecContext->height,
 								 PIX_FMT_RGB24, SWS_POINT, NULL, NULL, NULL);
-    QImage emptyImage(_codecContext->width, _codecContext->height, QImage::Format_RGB888);
-    _lineSizes.reset(new int[_codecContext->height]);
-    for (int line = 0; line < _codecContext->height; ++line)
-        _lineSizes[line] = emptyImage.bytesPerLine();
+	QImage emptyImage(_codecContext->width, _codecContext->height, QImage::Format_RGB888);
+	_lineSizes.reset(new int[_codecContext->height]);
+	for (int line = 0; line < _codecContext->height; ++line)
+		_lineSizes[line] = emptyImage.bytesPerLine();
 }
 
 void VideoDecoder::seekFrame(quint32 frameNr)
 {
-	qDebug() << "seeking to frame " << frameNr;
-	av_seek_frame(_formatContext, _videoStream, frameNr, AVSEEK_FLAG_FRAME);
+
+	quint32 frameToSeek = (frameNr > 250) ? frameNr - 250: 0;
+	qDebug() << "need to seek to frame" << frameNr << "but seeking shorter to hopefully get a key frame before:" << frameToSeek;
+	av_seek_frame(_formatContext, _videoStream, frameToSeek, AVSEEK_FLAG_FRAME);
 	avcodec_flush_buffers(_codecContext);
 	_seekTargetFrame = frameNr;
 	_seekTimer->start(500);
 }
 
+Frame VideoDecoder::convertFrameToQImage(AVPacket& packet)
+{
+	QImage image(_codecContext->width, _codecContext->height, QImage::Format_RGB888);
+	uint8_t* data = image.scanLine(0);
+	sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height,
+			  &data, _lineSizes.data());
+	return qMakePair(static_cast<quint32>(packet.dts), image);
+}
+
 Frame VideoDecoder::decodeNextFrame()
 {
 	QImage nullImage;
-    Frame newFrame = qMakePair(UNKNOWN_FRAME_NR, nullImage);
+	Frame newFrame = qMakePair(UNKNOWN_FRAME_NR, nullImage);
 
 	/** We might get here before having loaded anything */
 	if (_formatContext != NULL) {
 		AVPacket packet;
-		int frameFinished = 0;
-		while(!frameFinished) {
-			if (av_read_frame(_formatContext, &packet) < 0)
-				break;
 
-			if (packet.stream_index == _videoStream) {
-				avcodec_decode_video2(_codecContext, _frame,
-									  &frameFinished, &packet);
-				if (frameFinished) {
-                    QImage image(_codecContext->width, _codecContext->height, QImage::Format_RGB888);
-                    uint8_t* data = image.scanLine(0);
-                    sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height,
-                              &data, _lineSizes.data());
-                    newFrame = qMakePair(static_cast<quint32>(packet.dts), image);
-					av_free_packet(&packet);
-				}
-			}
+		if (decodeNextAVFrame(packet)) {
+			newFrame = convertFrameToQImage(packet);
+		}
+		av_free_packet(&packet);
+	}
+	return newFrame;
+}
+
+bool VideoDecoder::decodeNextAVFrame(AVPacket& packet)
+{
+	int frameFinished = 0;
+	while (!frameFinished) {
+		if (av_read_frame(_formatContext, &packet) < 0)
+			return false;
+		if (packet.stream_index == _videoStream) {
+			avcodec_decode_video2(_codecContext, _frame,
+								  &frameFinished, &packet);
 		}
 	}
-    return newFrame;
+	return true;
 }

@@ -2,13 +2,13 @@
 
 #include <QApplication>
 #include <QtDebug>
-
 #include "antcontroller.h"
 #include "reallivevideoimporter.h"
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])
 {
+	qDebug() << "starting up";
 	QApplication app(argc, argv);
 	app.setApplicationName("Indoor Cycling");
 

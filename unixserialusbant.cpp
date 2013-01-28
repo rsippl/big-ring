@@ -18,7 +18,7 @@ const quint8 READ_SIZE = 64;
 }
 
 UnixSerialUsbAnt::UnixSerialUsbAnt(QObject *parent) :
-	QObject(parent)
+	AntDevice(parent)
 {
 	QFileInfoList entries = findUsbSerialDevices();
 
@@ -41,7 +41,7 @@ UnixSerialUsbAnt::~UnixSerialUsbAnt()
 	}
 }
 
-bool UnixSerialUsbAnt::isAntUsb1StickPresent()
+bool UnixSerialUsbAnt::isDevicePresent()
 {
 	QFileInfoList entries = findUsbSerialDevices();
 

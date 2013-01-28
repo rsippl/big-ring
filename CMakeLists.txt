@@ -10,15 +10,28 @@ set(CMAKE_AUTOMOC ON)
 find_package(FFMPEG REQUIRED)
 find_package(GLEW REQUIRED)
 include(${QT_USE_FILE})
-include_directories(${QT_INCLUDE_DIR} ${GLEW_INCLUDE_PATH})
+include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS} ${GLEW_INCLUDE_PATH})
+link_directories(${FFMPEG_LIBRARY_DIR})
 
 set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS -pg")
 set(ANT_SRCS
+	antdevice.cpp
 	ANT.cpp
 	ANTChannel.cpp
 	antcontroller.cpp
-	ANTMessage.cpp
-	unixserialusbant.cpp)
+	ANTMessage.cpp)
+
+if (WIN32)
+	set(USBXPRESS_INCLUDE_PATH "D:/SiLabs/MCU/USBXpress/USBXpress_API/Host")
+	set(USBXPRESS_LIB_DIR "D:/SiLabs/MCU/USBXpress/USBXpress_API/Host/x86")
+	set(ANT_SRCS ${ANT_SRCS} usbexpressantdevice.cpp)
+	set(EXTRA_LIBRARIES opengl32 SiUSBXp)
+else()
+	set(ANT_SRCS ${ANT_SRCS} unixserialusbant.cpp)
+endif()
+
+include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS} ${USBXPRESS_INCLUDE_PATH})
+link_directories(${FFMPEG_LIBRARY_DIR} ${USBXPRESS_LIB_DIR})
 
 set(SRCS
 	 cyclist.cpp
@@ -41,12 +54,12 @@ qt4_wrap_ui(UI_SRCS ${UI_FILES})
 add_library(mainlib ${ANT_SRCS} ${SRCS} ${UI_SRCS})
 
 add_executable(indoorcycling main.cpp)
-target_link_libraries(indoorcycling mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${GLEW_LIBRARIES})
+target_link_libraries(indoorcycling mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${GLEW_LIBRARIES} ${EXTRA_LIBRARIES})
 
 # test executables
 add_executable(test_modelclasses reallivevideotest.cpp)
-target_link_libraries(test_modelclasses mainlib ${QT_LIBRARIES} ${GLEW_LIBRARIES})
+target_link_libraries(test_modelclasses mainlib ${QT_LIBRARIES} ${GLEW_LIBRARIES} ${EXTRA_LIBRARIES})
 
 add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp)
-target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${GLEW_LIBRARIES})
+target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${GLEW_LIBRARIES} ${EXTRA_LIBRARIES})
 

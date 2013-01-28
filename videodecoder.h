@@ -13,6 +13,7 @@ struct AVCodec;
 struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
+struct AVPacket;
 struct SwsContext;
 #include <limits>
 
@@ -28,11 +29,12 @@ public:
 	explicit VideoDecoder(QObject *parent = 0);
 	~VideoDecoder();
 
+	Frame convertFrameToQImage(AVPacket &packet);
 signals:
 	void error();
 	void videoLoaded();
 	void framesReady(FrameList frames, quint32 requestId);
-	void seekFinished();
+	void seekFinished(Frame frame);
 
 public slots:
 	void seekFrame(quint32 frameNr);
@@ -40,12 +42,16 @@ public slots:
 	/** Load a number of frames from the video file */
 	void loadFrames(quint32 numberOfFrame, quint32 requestId);
 
+private slots:
+	void decodeUntilCorrectFrame();
+
 private:
 	void close();
 	void closeFramesAndBuffers();
 	void initialize();
 	void initializeFrames();
 	Frame decodeNextFrame();
+	bool decodeNextAVFrame(AVPacket& packet);
 
 	int findVideoStream();
 	void printError(int errorNr, const QString& message);

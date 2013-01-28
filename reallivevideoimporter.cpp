@@ -73,7 +73,7 @@ void RealLiveVideoImporter::importReady()
 	QMutableListIterator<RealLiveVideo> it(rlvList);
 	while(it.hasNext()) {
 		const RealLiveVideo& rlv = it.next();
-		if (!(rlv.isValid() && it.next().type() == SLOPE))
+		if (!(rlv.isValid() && rlv.type() == SLOPE))
 			it.remove();
 	}
 

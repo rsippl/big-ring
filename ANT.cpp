@@ -25,7 +25,11 @@
 
 #include "ANT.h"
 #include "ANTMessage.h"
+#ifdef Q_OS_WIN
+#include "usbexpressantdevice.h"
+#else
 #include "unixserialusbant.h"
+#endif
 
 #include <QByteArray>
 #include <QtDebug>
@@ -76,7 +80,8 @@ const ant_sensor_type_t ANT::ant_sensor_types[] = {
 // thread and is part of the GC architecture NOT related to the
 // hardware controller.
 //
-ANT::ANT(QObject *parent): QObject(parent)
+ANT::ANT(QObject *parent): QObject(parent),
+	antDevice(NULL)
 {
 	powerchannels=0;
 
@@ -109,13 +114,22 @@ ANT::ANT(QObject *parent): QObject(parent)
 
 ANT::~ANT()
 {
-	if (unixSerialUsbAnt)
-		unixSerialUsbAnt->deleteLater();
+	if (antDevice)
+		antDevice->deleteLater();
 }
 
 double ANT::channelValue2(int channel)
 {
 	return antChannel[channel]->channelValue2();
+}
+
+bool ANT::isDevicePresent()
+{
+#ifdef Q_OS_WIN
+	return UsbExpressAntDevice::isDevicePresent();
+#else
+	return UnixSerialUsbAnt::isDevicePresent();
+#endif
 }
 double ANT::channelValue(int channel)
 {
@@ -130,7 +144,7 @@ void ANT::initialize()
 {
 	powerchannels = 0;
 
-	if (!UnixSerialUsbAnt::isAntUsb1StickPresent()) {
+	if (!isDevicePresent()) {
 		emit initializationFailed();
 		return;
 	}
@@ -142,8 +156,12 @@ void ANT::initialize()
 	length = bytes = 0;
 	checksum = ANT_SYNC_BYTE;
 
-	unixSerialUsbAnt = new UnixSerialUsbAnt;
-	if (unixSerialUsbAnt->isValid()) {
+#ifdef Q_OS_WIN
+	antDevice = new UsbExpressAntDevice;
+#else
+	antDevice = new UnixSerialUsbAnt;
+#endif
+	if (antDevice->isValid()) {
 		channels = 4;
 	} else {
 		emit initializationFailed();
@@ -390,7 +408,7 @@ ANT::channelInfo(int channel, int device_number, int device_id)
 	QString typeCode(device_id);
 
 	qDebug()<<"found device number"<<device_number<<"type"<<device_id<<"on channel"<<channel
-		<< "is a "<< description << "with code"<< typeCode;
+		   << "is a "<< description << "with code"<< typeCode;
 
 	emit foundDevice(channel, device_number, device_id, description, typeCode);
 }
@@ -568,12 +586,12 @@ ANT::processMessage(void) {
 
 int ANT::rawWrite(QByteArray &bytes) // unix!!
 {
-	return unixSerialUsbAnt->writeBytes(bytes);
+	return antDevice->writeBytes(bytes);
 }
 
 QByteArray ANT::rawRead()
 {
-	return unixSerialUsbAnt->readBytes();
+	return antDevice->readBytes();
 }
 
 // convert 'p' 'c' etc into ANT values for device type

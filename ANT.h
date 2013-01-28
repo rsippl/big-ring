@@ -28,11 +28,6 @@
 #include <QStringList>
 #include <QFile>
 
-//
-// Time
-//
-#include <sys/time.h>
-
 #include <QDebug>
 
 // timeouts for read/write of serial port in ms
@@ -41,7 +36,7 @@
 
 class ANTMessage;
 class ANTChannel;
-class UnixSerialUsbAnt;
+class AntDevice;
 typedef struct ant_sensor_type {
 	int type;
 	int period;
@@ -263,6 +258,7 @@ public:
 	double channelValue2(int channel);
 
 private:
+	bool isDevicePresent();
 	/** Open connection to the ANT+ device */
 	bool openConnection();
 
@@ -277,7 +273,7 @@ private:
 	// telemetry and state
 	QStringList antIDs;
 
-	UnixSerialUsbAnt* unixSerialUsbAnt;
+	AntDevice* antDevice;
 	unsigned char rxMessage[ANT_MAX_MESSAGE_SIZE];
 
 	// state machine whilst receiving bytes

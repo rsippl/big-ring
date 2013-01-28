@@ -4,11 +4,11 @@
 namespace {
 
 /** Frontal area of a cyclist is around .5 m*m */
-const float FRONTAL_AREA = 0.5f;
-const float DRAG_COEFFICIENT = 0.5f;
+const float FRONTAL_AREA = 0.58f;
+const float DRAG_COEFFICIENT = 0.63f;
 const float AIR_DENSITY = 1.226f; // Sea level
 
-const QTime MAX_IDLE_TIME(0, 0, 3);
+const QTime MAX_IDLE_TIME(0, 0, 5);
 
 /** Calculate drag from wind resistance */
 float calculateAeroDrag(const Cyclist& cyclist)
@@ -64,7 +64,6 @@ void Simulation::play(bool play)
 
 void Simulation::simulationStep()
 {
-	//	qDebug() << "simulation step";
 	if (!_currentRlv.isValid())
 		return;
 
@@ -114,7 +113,6 @@ float Simulation::calculateSpeed(quint64 timeDelta)
 		// let the cyclist slow down and stop running after 3 seconds.
 		_idleTime = _idleTime.addMSecs(timeDelta);
 
-		qDebug() << "idle:" << _idleTime << MAX_IDLE_TIME;
 		if (_idleTime > MAX_IDLE_TIME)
 			return 0;
 	} else {
