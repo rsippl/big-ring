@@ -1,7 +1,6 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
-#include <QDateTime>
 #include <QObject>
 #include <QTime>
 #include <QTimer>
@@ -33,12 +32,13 @@ private:
 	float calculateSpeed(quint64 timeDelta);
 	void reset();
 
-	QDateTime _lastUpdateTime;
+	qint64 _lastElapsed;
 	QTime _runTime;
+	QTime _simulationTime;
 	QTime _idleTime;
 	Cyclist& _cyclist;
 	RealLiveVideo _currentRlv;
-	QTimer _simulationTimer;
+	QTimer _simulationUpdateTimer;
 };
 
 #endif // SIMULATION_H

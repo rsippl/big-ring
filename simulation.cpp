@@ -8,7 +8,10 @@ const float FRONTAL_AREA = 0.58f;
 const float DRAG_COEFFICIENT = 0.63f;
 const float AIR_DENSITY = 1.226f; // Sea level
 
+const float MINIMUM_SPEED = 0.5f; // m/s
+
 const QTime MAX_IDLE_TIME(0, 0, 5);
+
 
 /** Calculate drag from wind resistance */
 float calculateAeroDrag(const Cyclist& cyclist)
@@ -35,15 +38,15 @@ float calculateGravityForce(const Cyclist& cyclist, float grade)
 
 
 Simulation::Simulation(Cyclist &cyclist, QObject *parent) :
-	QObject(parent), _idleTime(), _cyclist(cyclist)
+	QObject(parent), _lastElapsed(0), _idleTime(),_cyclist(cyclist)
 {
-	_simulationTimer.setInterval(20);
-	connect(&_simulationTimer, SIGNAL(timeout()), SLOT(simulationStep()));
+	_simulationUpdateTimer.setInterval(20);
+	connect(&_simulationUpdateTimer, SIGNAL(timeout()), SLOT(simulationStep()));
 }
 
 Simulation::~Simulation()
 {
-	_simulationTimer.stop();
+	_simulationUpdateTimer.stop();
 }
 
 Cyclist &Simulation::cyclist() const
@@ -54,23 +57,23 @@ Cyclist &Simulation::cyclist() const
 void Simulation::play(bool play)
 {
 	if (play) {
-		_lastUpdateTime = QDateTime::currentDateTime();
-		_simulationTimer.start();
+		_simulationUpdateTimer.start();
+		_simulationTime.restart();
+		_lastElapsed = 0;
 	} else {
-		_simulationTimer.stop();
+		_simulationUpdateTimer.stop();
 	}
 	emit playing(play);
 }
 
 void Simulation::simulationStep()
 {
-	//	qDebug() << "simulation step";
 	if (!_currentRlv.isValid())
 		return;
 
-	QDateTime currentTime = QDateTime::currentDateTime();
-	qint64 elapsed = _lastUpdateTime.msecsTo(currentTime);
-	_lastUpdateTime = currentTime;
+	qint64 currentElapsed = _simulationTime.elapsed();
+	qint64 elapsed = currentElapsed - _lastElapsed;
+	_lastElapsed = currentElapsed;
 
 	_runTime = _runTime.addMSecs(elapsed);
 	emit runTimeChanged(_runTime);
@@ -108,7 +111,7 @@ float Simulation::calculateSpeed(quint64 timeDelta)
 {
 	if (_cyclist.power() < 1.0f) {
 		// if there is no power input and current speed is zero, assume we have no input.
-		if (_cyclist.speed() < 0.1)
+		if (_cyclist.speed() < MINIMUM_SPEED)
 			return 0;
 
 		// let the cyclist slow down and stop running after 3 seconds.
@@ -120,7 +123,7 @@ float Simulation::calculateSpeed(quint64 timeDelta)
 		_idleTime = QTime();
 	}
 
-	float force = (_cyclist.speed() > 0.5) ? _cyclist.power() / _cyclist.speed() : _cyclist.weight();
+	float force = (_cyclist.speed() > MINIMUM_SPEED) ? _cyclist.power() / _cyclist.speed() : _cyclist.weight();
 
 	float resistantForce = calculateAeroDrag(_cyclist) +
 			calculateGravityForce(_cyclist, _currentRlv.slopeForDistance(_cyclist.distance())) +
@@ -130,7 +133,9 @@ float Simulation::calculateSpeed(quint64 timeDelta)
 	float accelaration = resultingForce / _cyclist.weight();
 	float speedChange = accelaration * timeDelta * 0.001;
 	float speed = _cyclist.speed() + speedChange;
-	return speed;
+
+	// If there's power applied, always return at least MINIMUM_SPEED.
+	return qMax(MINIMUM_SPEED, speed);
 }
 
 void Simulation::reset()
