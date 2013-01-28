@@ -47,13 +47,15 @@ void VideoWidget::initializeGL()
 {
 	qDebug() << "Running glew init";
 	GLenum error = glewInit();
-	if (GLEW_OK != error)
-	{
+	if (GLEW_OK != error) {
 	  /* Problem: glewInit failed, something is seriously wrong. */
 	  qDebug() << "Error:" << glewGetErrorString(error);
+	  qFatal("Exiting.");
 	}
-	if (GLEW_EXT_texture_rectangle)
-		qDebug() << "texture_rectangle";
+	if (!GL_ARB_texture_rectangle) {
+		qDebug() << "This program needs the GL_ARB_texture_rectangle extension, but it seems to be disabled.";
+		qFatal("exiting..");
+	}
 }
 
 void VideoWidget::paintGL()
@@ -69,8 +71,7 @@ void VideoWidget::paintGL()
 	_texture = bindTexture(_currentFrame, GL_TEXTURE_RECTANGLE_ARB,  GL_RGBA, QGLContext::NoBindOption);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
 	GLenum error;
-	if( ( error = glGetError() ) != GL_NO_ERROR )
-	{
+	if( ( error = glGetError() ) != GL_NO_ERROR ) {
 		QString errorstring;
 		switch( error ){
 		case GL_INVALID_ENUM:
