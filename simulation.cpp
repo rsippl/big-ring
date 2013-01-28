@@ -64,7 +64,6 @@ void Simulation::play(bool play)
 
 void Simulation::simulationStep()
 {
-	//	qDebug() << "simulation step";
 	if (!_currentRlv.isValid())
 		return;
 
