@@ -49,6 +49,7 @@ I have the USB 1.0 variant. There is also
 a USB 2.0 variant. This is not supported yet. 
 * [Qt](http://qt.digia.com) 4.8. This library is used throughout the program.
 * [Libav](http://libav.org) for video decoding.
+* [GLEW](http://glew.sourceforge.net/) for OpenGL.
 * [CMake](http://www.cmake.org), for building.
 * [G++](http://gcc.gnu.org), the compiler.
 
