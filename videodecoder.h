@@ -33,14 +33,14 @@ public:
 signals:
 	void error();
 	void videoLoaded();
-	void framesReady(FrameList frames, quint32 requestId);
+	void framesReady(FrameList frames);
 	void seekFinished(Frame frame);
 
 public slots:
 	void seekFrame(quint32 frameNr);
 	void openFile(QString filename);
 	/** Load a number of frames from the video file */
-	void loadFrames(quint32 numberOfFrame, quint32 requestId);
+	void loadFrames(quint32 numberOfFrame);
 
 private slots:
 	void decodeUntilCorrectFrame();
