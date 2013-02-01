@@ -29,13 +29,19 @@ public slots:
 	void courseSelected(int courseNr);
 	void play(bool);
 
-
 private slots:
 	void videoLoaded();
-	void displayFrame();
-	void framesReady(FrameList frames, quint32 requestId);
+	void playNextFrame();
+
+	void framesReady(FrameList frames);
 	void seekFinished(Frame frame);
 private:
+	struct FrameRequest {
+		quint32 startFrame;
+		quint32 nrOfFrames;
+	};
+
+	void displayFrame(quint32 frameToShow);
 	void loadVideo(const QString& filename);
 	void setPosition(quint32 frameNr);
 	// reset buffers etc after choosing new video.
@@ -49,12 +55,11 @@ private:
 	QThread _decoderThread;
 	VideoWidget* const _videoWidget;
 	QTimer _playTimer;
+	QList<FrameRequest> _frameRequests;
 
 	RealLiveVideo _currentRlv;
 	quint32 _currentFrameNumber;
 	bool _running;
-	bool _newFramesRequested;
-	quint32 _frameRequestId;
 };
 
 #endif // VIDEOCONTROLLER_H

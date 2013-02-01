@@ -136,6 +136,8 @@ void MainWindow::rlvSelected(RealLiveVideo rlv)
     foreach(const Course& course, rlv.courses()) {
         new QListWidgetItem(course.name(), courseListWidget);
     }
+	if (courseListWidget->count() > 0)
+		courseListWidget->setCurrentRow(0);
 }
 
 void MainWindow::distanceChanged(float distance)

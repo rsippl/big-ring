@@ -112,9 +112,9 @@ void VideoDecoder::openFile(QString filename)
 	emit videoLoaded();
 }
 
-void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 requestId)
+void VideoDecoder::loadFrames(quint32 numberOfFrame)
 {
-	qDebug() << "request" << requestId << "for" << numberOfFrame << "frames";
+	qDebug() << "request for" << numberOfFrame << "frames";
 	Frame frame;
 	quint32 decoded = 0;
 	FrameList frames;
@@ -129,8 +129,8 @@ void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 requestId)
 	if (frames.isEmpty())
 		qDebug() << "request finished. No frames found.";
 	else
-		qDebug() << "request" << requestId << "finished. Frames." << frames.first().first << "to" << frames.last().first;
-	emit framesReady(frames, requestId);
+		qDebug() << "request finished. Frames." << frames.first().first << "to" << frames.last().first;
+	emit framesReady(frames);
 
 }
 
@@ -183,7 +183,6 @@ void VideoDecoder::initializeFrames()
 
 void VideoDecoder::seekFrame(quint32 frameNr)
 {
-
 	quint32 frameToSeek = (frameNr > 250) ? frameNr - 250: 0;
 	qDebug() << "need to seek to frame" << frameNr << "but seeking shorter to hopefully get a key frame before:" << frameToSeek;
 	av_seek_frame(_formatContext, _videoStream, frameToSeek, AVSEEK_FLAG_FRAME);
