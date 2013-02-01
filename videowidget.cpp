@@ -45,6 +45,7 @@ void VideoWidget::displayFrame(quint32 frameNr, QImage &image)
 
 void VideoWidget::initializeGL()
 {
+#ifndef Q_OS_WIN
 	qDebug() << "Running glew init";
 	GLenum error = glewInit();
 	if (GLEW_OK != error) {
@@ -56,6 +57,7 @@ void VideoWidget::initializeGL()
 		qDebug() << "This program needs the GL_ARB_texture_rectangle extension, but it seems to be disabled.";
 		qFatal("exiting..");
 	}
+#endif
 }
 
 void VideoWidget::paintGL()
