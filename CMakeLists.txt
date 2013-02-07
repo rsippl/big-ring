@@ -8,8 +8,9 @@ find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui REQUIRED)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 find_package(FFMPEG REQUIRED)
+find_package(LIBUSB-1 REQUIRED)
 include(${QT_USE_FILE})
-include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS} ${CMAKE_SOURCE_DIR}/thirdparty/include)
+include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS} ${GLEW_INCLUDE_PATH})
 link_directories(${FFMPEG_LIBRARY_DIR})
 
 set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS -DGLEW_STATIC")
@@ -19,6 +20,7 @@ endif()
 
 set(ANT_SRCS
 	antdevice.cpp
+	antdevicefinder.cpp
 	ANT.cpp
 	ANTChannel.cpp
 	antcontroller.cpp
@@ -33,6 +35,7 @@ else()
 	set(ANT_SRCS ${ANT_SRCS} unixserialusbant.cpp)
 endif()
 
+set(EXTRA_LIBRARIES "${EXTRA_LIBRARIES} ${LIBUSB_1_LIBRARIES}")
 include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS} ${USBXPRESS_INCLUDE_PATH})
 link_directories(${FFMPEG_LIBRARY_DIR} ${USBXPRESS_LIB_DIR})
 

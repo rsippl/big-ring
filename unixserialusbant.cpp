@@ -55,9 +55,14 @@ bool UnixSerialUsbAnt::isDevicePresent()
 	return false;
 }
 
-bool UnixSerialUsbAnt::isValid()
+bool UnixSerialUsbAnt::isValid() const
 {
 	return !_deviceFileInfo.fileName().isEmpty();
+}
+
+int UnixSerialUsbAnt::numberOfChannels() const
+{
+	return 4;
 }
 
 int UnixSerialUsbAnt::writeBytes(QByteArray &bytes)

@@ -34,6 +34,9 @@
 #define ANT_READTIMEOUT    1000
 #define ANT_WRITETIMEOUT   2000
 
+namespace indoorcycling {
+class AntDeviceFinder;
+}
 class ANTMessage;
 class ANTChannel;
 class AntDevice;
@@ -273,6 +276,7 @@ private:
 	// telemetry and state
 	QStringList antIDs;
 
+	indoorcycling::AntDeviceFinder* _antDeviceFinder;
 	AntDevice* antDevice;
 	unsigned char rxMessage[ANT_MAX_MESSAGE_SIZE];
 

@@ -25,6 +25,9 @@
 
 #include "ANT.h"
 #include "ANTMessage.h"
+
+#include "antdevicefinder.h"
+#include "antdevice.h"
 #ifdef Q_OS_WIN
 #include "usbexpressantdevice.h"
 #else
@@ -81,6 +84,7 @@ const ant_sensor_type_t ANT::ant_sensor_types[] = {
 // hardware controller.
 //
 ANT::ANT(QObject *parent): QObject(parent),
+	_antDeviceFinder(new indoorcycling::AntDeviceFinder),
 	antDevice(NULL)
 {
 	powerchannels=0;
@@ -125,10 +129,14 @@ double ANT::channelValue2(int channel)
 
 bool ANT::isDevicePresent()
 {
+	bool present = (_antDeviceFinder->findAntDevice() != indoorcycling::ANT_DEVICE_NONE);
+	if (!present)
+		qDebug() << "no ANT+ stick found.";
+	return present;
 #ifdef Q_OS_WIN
-	return UsbExpressAntDevice::isDevicePresent();
+//	return UsbExpressAntDevice::isDevicePresent();
 #else
-	return UnixSerialUsbAnt::isDevicePresent();
+//	return UnixSerialUsbAnt::isDevicePresent();
 #endif
 }
 double ANT::channelValue(int channel)
@@ -143,6 +151,7 @@ double ANT::channelValue(int channel)
 void ANT::initialize()
 {
 	powerchannels = 0;
+
 
 	if (!isDevicePresent()) {
 		emit initializationFailed();
