@@ -38,7 +38,6 @@ set(SRCS
 	 mainwindow.cpp
 	 reallivevideo.cpp
 	 reallivevideoimporter.cpp
-	 reallivevideowidget.cpp
 	 rlvfileparser.cpp
 	 rlvlistwidget.cpp
 	 simulation.cpp
