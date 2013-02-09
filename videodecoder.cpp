@@ -112,24 +112,28 @@ void VideoDecoder::openFile(QString filename)
 	emit videoLoaded();
 }
 
-void VideoDecoder::loadFrames(quint32 numberOfFrame)
+void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 skip)
 {
 	qDebug() << "request for" << numberOfFrame << "frames";
 	Frame frame;
 	quint32 decoded = 0;
+	quint32 skipped = 0;
 	FrameList frames;
-	while(decoded < numberOfFrame) {
-		frame = decodeNextFrame();
-		if (frame.first == UNKNOWN_FRAME_NR)
-			break;
-
-		frames << frame;
+	while(frames.size() < (int) numberOfFrame) {
+		if (decoded % skip == 0) {
+			frame = decodeNextFrame();
+			if (frame.first == UNKNOWN_FRAME_NR)
+				break;
+			frames << frame;
+		} else {
+			++skipped;
+		}
 		++decoded;
 	}
 	if (frames.isEmpty())
 		qDebug() << "request finished. No frames found.";
 	else
-		qDebug() << "request finished. Frames." << frames.first().first << "to" << frames.last().first;
+		qDebug() << "request finished. Frames." << frames.first().first << "to" << frames.last().first << "skipped" << skipped << "frames";
 	emit framesReady(frames);
 
 }
@@ -215,6 +219,12 @@ Frame VideoDecoder::decodeNextFrame()
 		av_free_packet(&packet);
 	}
 	return newFrame;
+}
+
+void VideoDecoder::skipNextFrame()
+{
+	AVPacket packet;
+	decodeNextAVFrame(packet);
 }
 
 bool VideoDecoder::decodeNextAVFrame(AVPacket& packet)

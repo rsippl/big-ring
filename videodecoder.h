@@ -40,7 +40,7 @@ public slots:
 	void seekFrame(quint32 frameNr);
 	void openFile(QString filename);
 	/** Load a number of frames from the video file */
-	void loadFrames(quint32 numberOfFrame);
+	void loadFrames(quint32 numberOfFrame, quint32 skip);
 
 private slots:
 	void decodeUntilCorrectFrame();
@@ -51,6 +51,7 @@ private:
 	void initialize();
 	void initializeFrames();
 	Frame decodeNextFrame();
+	void skipNextFrame();
 	bool decodeNextAVFrame(AVPacket& packet);
 
 	int findVideoStream();
