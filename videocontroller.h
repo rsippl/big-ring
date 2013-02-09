@@ -23,6 +23,7 @@ public:
 signals:
 	void bufferFull(bool full);
 	void playing(bool playing);
+	void currentFrameRate(quint32 frameRate);
 
 public slots:
 	void realLiveVideoSelected(RealLiveVideo rlv);
@@ -55,11 +56,13 @@ private:
 	QThread _decoderThread;
 	VideoWidget* const _videoWidget;
 	QTimer _playTimer;
-	QList<FrameRequest> _frameRequests;
+	bool _requestBusy;
+	QDateTime _lastFrameRateSample;
+	quint32 _currentFrameRate;
+	quint32 _framesThisSecond;
 
 	RealLiveVideo _currentRlv;
 	quint32 _currentFrameNumber;
-	bool _running;
 };
 
 #endif // VIDEOCONTROLLER_H
