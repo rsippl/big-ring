@@ -43,14 +43,19 @@ void VideoWidget::displayFrame(quint32 frameNr, QImage &image)
 	}
 }
 
+void VideoWidget::setFrameRate(quint32 frameRate)
+{
+	_frameRate = frameRate;
+}
+
 void VideoWidget::initializeGL()
 {
-	qDebug() << "Running glew init";
 	GLenum error = glewInit();
+
 	if (GLEW_OK != error) {
-	  /* Problem: glewInit failed, something is seriously wrong. */
-	  qDebug() << "Error:" << glewGetErrorString(error);
-	  qFatal("Exiting.");
+		/* Problem: glewInit failed, something is seriously wrong. */
+		qDebug() << "Error:" << glewGetErrorString(error);
+		qFatal("Exiting.");
 	}
 	if (!GL_ARB_texture_rectangle) {
 		qDebug() << "This program needs the GL_ARB_texture_rectangle extension, but it seems to be disabled.";
@@ -60,6 +65,8 @@ void VideoWidget::initializeGL()
 
 void VideoWidget::paintGL()
 {
+	QPainter p(this);
+	p.beginNativePainting();
 	if (_currentFrame.isNull())
 		return;
 
@@ -68,7 +75,7 @@ void VideoWidget::paintGL()
 	if (_texture != 0) {
 		deleteTexture(_texture);
 	}
-	_texture = bindTexture(_currentFrame, GL_TEXTURE_RECTANGLE_ARB,  GL_RGBA, QGLContext::NoBindOption);
+	_texture = bindTexture(_currentFrame, GL_TEXTURE_RECTANGLE_ARB,  GL_RGBA, QGLContext::DefaultBindOption);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
 	GLenum error;
 	if( ( error = glGetError() ) != GL_NO_ERROR ) {
@@ -133,6 +140,11 @@ void VideoWidget::paintGL()
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+
+	p.endNativePainting();
+#ifdef DEBUG_OUTPUT
+	p.drawText(100, 100, QString("FrameRate: %1").arg(_frameRate));
+#endif
 }
 
 void VideoWidget::resizeGL(int w, int h)

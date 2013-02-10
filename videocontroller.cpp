@@ -7,29 +7,31 @@
 namespace {
 
 const float videoUpdateInterval = 100; // ms
-const quint32 NR_FRAMES_PER_REQUEST = 200;
-const int NR_FRAMES_BUFFER_LOW = 150;
+const quint32 NR_FRAMES_PER_REQUEST = 25;
+const int NR_FRAMES_BUFFER_LOW = 40;
 }
 
 VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QObject *parent) :
 	QObject(parent),
 	_cyclist(cyclist),
 	_videoWidget(videoWidget),
-	_running(false),
-	_newFramesRequested(false),
-	_frameRequestId(0)
+	_requestBusy(false),
+	_lastFrameRateSample(QDateTime::currentDateTime()),
+	_currentFrameRate(0u)
 {
 	_decoderThread.start();
 	_videoDecoder.moveToThread(&_decoderThread);
 
 	// set up timers
 	_playTimer.setInterval(40);
-	connect(&_playTimer, SIGNAL(timeout()), SLOT(displayFrame()));
+	connect(&_playTimer, SIGNAL(timeout()), SLOT(playNextFrame()));
 
 	// set up video decoder
 	connect(&_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
-	connect(&_videoDecoder, SIGNAL(framesReady(FrameList, quint32)), SLOT(framesReady(FrameList, quint32)));
+	connect(&_videoDecoder, SIGNAL(framesReady(FrameList)), SLOT(framesReady(FrameList)));
 	connect(&_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
+
+	connect(this, SIGNAL(currentFrameRate(quint32)), _videoWidget, SLOT(setFrameRate(quint32)));
 }
 
 VideoController::~VideoController()
@@ -79,15 +81,26 @@ void VideoController::play(bool doPlay)
 
 void VideoController::videoLoaded()
 {
-	qDebug() << "video loaded, loading frames";
-	requestNewFrames(1);
+	qDebug() << "video loaded";
 }
 
-void VideoController::displayFrame()
+void VideoController::playNextFrame()
 {
-	quint32 frameToShow = _currentRlv.frameForDistance(_cyclist.distance());
-	Frame frame;
+	// keep track of frame rate
+	QDateTime now = QDateTime::currentDateTime();
+	if (_lastFrameRateSample.addSecs(1) < now) {
+		_currentFrameRate = _framesThisSecond;
+		_framesThisSecond = 0;
+		_lastFrameRateSample = now;
+		emit(currentFrameRate(_currentFrameRate));
+	}
 
+	quint32 frameToShow = _currentRlv.frameForDistance(_cyclist.distance());
+	displayFrame(frameToShow);
+}
+
+void VideoController::displayFrame(quint32 frameToShow)
+{
 	if (frameToShow == _currentFrameNumber)
 		return; // no need to display again.
 	if (frameToShow < _currentFrameNumber && _currentFrameNumber != UNKNOWN_FRAME_NR) {
@@ -100,6 +113,8 @@ void VideoController::displayFrame()
 		return;
 	}
 
+	Frame frame;
+
 	if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
 		qDebug() << "current frame is null, taking first one";
 		frame = takeFrame();
@@ -111,6 +126,7 @@ void VideoController::displayFrame()
 	bool displayed = false;
 	while(!displayed && _currentFrameNumber != UNKNOWN_FRAME_NR && !_imageQueue.empty()) {
 		frame = takeFrame();
+		_framesThisSecond += frame.first - _currentFrameNumber;
 		_currentFrameNumber = frame.first;
 		if (_currentFrameNumber == frameToShow) {
 			_videoWidget->displayFrame(frame.first, frame.second);
@@ -119,23 +135,30 @@ void VideoController::displayFrame()
 	}
 }
 
-void VideoController::framesReady(FrameList frames, quint32 requestId)
+void VideoController::framesReady(FrameList frames)
 {
-	if (_newFramesRequested && requestId == _frameRequestId) {
-		_imageQueue = _imageQueue + frames;
-		_newFramesRequested = false;
-		if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
-			displayFrame();
-		}
+	_requestBusy = false;
+	if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
+		_currentFrameNumber = 1;
+	}
+
+	if (frames.first().first >= _currentFrameNumber) {
+		_imageQueue += frames;
+
 		if (_imageQueue.size() >= NR_FRAMES_BUFFER_LOW)
 			emit bufferFull(true);
 	}
+
+	// check if we need some new frames ASAP
+	if (_imageQueue.size() <= NR_FRAMES_BUFFER_LOW)
+		requestNewFrames(NR_FRAMES_PER_REQUEST);
 }
 
 void VideoController::seekFinished(Frame frame)
 {
+	_imageQueue.clear();
 	_imageQueue.append(frame);
-	displayFrame();
+	displayFrame(frame.first);
 }
 
 void VideoController::loadVideo(const QString &filename)
@@ -157,25 +180,26 @@ void VideoController::reset()
 	_playTimer.stop();
 	_currentFrameNumber = UNKNOWN_FRAME_NR;
 	_imageQueue.clear();
-	_newFramesRequested = false;
-	_frameRequestId = 0;
+	_requestBusy = false;
 }
 
 Frame VideoController::takeFrame()
 {
-	if (!_newFramesRequested && _imageQueue.size() <= NR_FRAMES_BUFFER_LOW) {
+	if (!_requestBusy && _imageQueue.size() <= NR_FRAMES_BUFFER_LOW) {
 		requestNewFrames(NR_FRAMES_PER_REQUEST);
 	}
 
 	if (_imageQueue.empty())
 		return qMakePair(UNKNOWN_FRAME_NR, QImage());
-	else
-		return _imageQueue.takeFirst();
+
+	return _imageQueue.takeFirst();
 }
 
 void VideoController::requestNewFrames(quint32 numberOfFrames)
 {
-	_newFramesRequested = true;
-	_frameRequestId++;
-	QMetaObject::invokeMethod(&_videoDecoder, "loadFrames", Q_ARG(quint32, numberOfFrames), Q_ARG(quint32, _frameRequestId));
+	_requestBusy = true;
+
+	// when framerate is > 30, skip every second frame.
+	int skip = (_currentFrameRate > 30) ? 2: 1;
+	QMetaObject::invokeMethod(&_videoDecoder, "loadFrames", Q_ARG(quint32, numberOfFrames), Q_ARG(quint32, skip));
 }

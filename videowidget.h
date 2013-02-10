@@ -22,6 +22,9 @@ public:
 	/** Display a frame */
 	void displayFrame(quint32 frameNr, QImage &imageFrame);
 
+public slots:
+	void setFrameRate(quint32 frameRate);
+
 protected:
 	virtual void initializeGL();
 	virtual void paintGL();
@@ -34,6 +37,8 @@ private:
 	quint32 _currentFrameNumber;
 	QImage _currentFrame;
 	GLuint _texture;
+
+	quint32 _frameRate;
 };
 
 #endif // VIDEOWIDGET_H
