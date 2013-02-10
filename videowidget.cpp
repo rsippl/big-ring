@@ -50,8 +50,8 @@ void VideoWidget::setFrameRate(quint32 frameRate)
 
 void VideoWidget::initializeGL()
 {
-	qDebug() << "Running glew init";
 	GLenum error = glewInit();
+
 	if (GLEW_OK != error) {
 		/* Problem: glewInit failed, something is seriously wrong. */
 		qDebug() << "Error:" << glewGetErrorString(error);
@@ -142,8 +142,9 @@ void VideoWidget::paintGL()
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 
 	p.endNativePainting();
-
+#ifdef DEBUG_OUTPUT
 	p.drawText(100, 100, QString("FrameRate: %1").arg(_frameRate));
+#endif
 }
 
 void VideoWidget::resizeGL(int w, int h)
