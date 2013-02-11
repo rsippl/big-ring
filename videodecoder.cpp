@@ -120,12 +120,13 @@ void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 skip)
 	quint32 skipped = 0;
 	FrameList frames;
 	while(frames.size() < (int) numberOfFrame) {
-		if (decoded % skip == 0) {
+		if (decoded % (skip + 1) == 0) {
 			frame = decodeNextFrame();
 			if (frame.first == UNKNOWN_FRAME_NR)
 				break;
 			frames << frame;
 		} else {
+			skipNextFrame();
 			++skipped;
 		}
 		++decoded;

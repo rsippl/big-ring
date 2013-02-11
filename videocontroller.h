@@ -48,6 +48,7 @@ private:
 	// reset buffers etc after choosing new video.
 	void reset();
 	Frame takeFrame();
+	int determineFramesToSkip();
 	void requestNewFrames(quint32 numberOfFrames);
 
 	Cyclist& _cyclist;
