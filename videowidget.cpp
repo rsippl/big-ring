@@ -13,7 +13,7 @@
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent)
+	QGLWidget(parent), _texture(0)
 {
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 }

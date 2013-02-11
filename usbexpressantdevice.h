@@ -9,15 +9,21 @@ extern "C" {
 }
 class UsbExpressAntDevice: public AntDevice
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    UsbExpressAntDevice(QObject* parent = 0);
-    virtual ~UsbExpressAntDevice() {}
+	UsbExpressAntDevice(QObject* parent = 0);
+	virtual ~UsbExpressAntDevice();
 
-    static bool isDevicePresent();
-    virtual bool isValid();
-    virtual int writeBytes(QByteArray &bytes);
-    virtual QByteArray readBytes();
+	static bool isDevicePresent();
+	virtual bool isValid();
+	virtual int writeBytes(QByteArray &bytes);
+	virtual QByteArray readBytes();
+
+private:
+	static int findDevice();
+	bool openConnection();
+
+	Qt::HANDLE _deviceHandle;
 };
 
 #endif // USBEXPRESSANTDEVICE_H

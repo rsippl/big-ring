@@ -7,7 +7,7 @@
 namespace {
 
 const float videoUpdateInterval = 100; // ms
-const quint32 NR_FRAMES_PER_REQUEST = 15;
+const quint32 NR_FRAMES_PER_REQUEST = 25;
 const int NR_FRAMES_BUFFER_LOW = 40;
 }
 
@@ -101,6 +101,7 @@ void VideoController::playNextFrame()
 
 void VideoController::displayFrame(quint32 frameToShow)
 {
+
 	if (frameToShow == _currentFrameNumber)
 		return; // no need to display again.
 	if (frameToShow < _currentFrameNumber && _currentFrameNumber != UNKNOWN_FRAME_NR) {

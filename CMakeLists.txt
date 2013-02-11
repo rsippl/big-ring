@@ -8,12 +8,15 @@ find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui REQUIRED)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 find_package(FFMPEG REQUIRED)
-find_package(GLEW REQUIRED)
 include(${QT_USE_FILE})
-include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS} ${GLEW_INCLUDE_PATH})
+include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS} ${CMAKE_SOURCE_DIR}/thirdparty/include)
 link_directories(${FFMPEG_LIBRARY_DIR})
 
-set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS -pg")
+set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS -DGLEW_STATIC")
+if(NOT WIN32)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+endif()
+
 set(ANT_SRCS
 	antdevice.cpp
 	ANT.cpp
@@ -43,22 +46,25 @@ set(SRCS
 	 simulation.cpp
 	 videocontroller.cpp
 	 videodecoder.cpp
-	 videowidget.cpp)
+	 videowidget.cpp
+
+	 thirdparty/src/glew.c)
 
 set(UI_FILES
-    rlvlistwidget.ui)
+	rlvlistwidget.ui)
 
+add_definitions(-DGLEW_STATIC)
 qt4_wrap_ui(UI_SRCS ${UI_FILES})
 
 add_library(mainlib ${ANT_SRCS} ${SRCS} ${UI_SRCS})
 
 add_executable(indoorcycling main.cpp)
-target_link_libraries(indoorcycling mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${GLEW_LIBRARIES} ${EXTRA_LIBRARIES})
+target_link_libraries(indoorcycling mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
 
 # test executables
 add_executable(test_modelclasses reallivevideotest.cpp)
-target_link_libraries(test_modelclasses mainlib ${QT_LIBRARIES} ${GLEW_LIBRARIES} ${EXTRA_LIBRARIES})
+target_link_libraries(test_modelclasses mainlib ${QT_LIBRARIES} ${EXTRA_LIBRARIES})
 
 add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp)
-target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${GLEW_LIBRARIES} ${EXTRA_LIBRARIES})
+target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
 

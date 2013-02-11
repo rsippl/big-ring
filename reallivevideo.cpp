@@ -12,7 +12,8 @@ Course::Course(const QString &name, float start, float end):
 
 RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoInformation,
 							 QList<Course>& courses, QList<DistanceMappingEntry> distanceMappings, Profile profile):
-	_name(name), _videoInformation(videoInformation), _courses(courses), _profile(profile)
+	_name(name), _videoInformation(videoInformation), _courses(courses), _profile(profile),
+	_lastKeyDistance(0), _nextLastKeyDistance(0)
 {
 	float currentDistance = 0.0f;
 	float lastMetersPerFrame = 0;
