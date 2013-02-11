@@ -7,7 +7,7 @@
 namespace {
 
 const float videoUpdateInterval = 100; // ms
-const quint32 NR_FRAMES_PER_REQUEST = 25;
+const quint32 NR_FRAMES_PER_REQUEST = 15;
 const int NR_FRAMES_BUFFER_LOW = 40;
 }
 
@@ -128,7 +128,7 @@ void VideoController::displayFrame(quint32 frameToShow)
 		frame = takeFrame();
 		_framesThisSecond += frame.first - _currentFrameNumber;
 		_currentFrameNumber = frame.first;
-		if (_currentFrameNumber == frameToShow) {
+		if (_currentFrameNumber >= frameToShow) {
 			_videoWidget->displayFrame(frame.first, frame.second);
 			displayed = true;
 		}
@@ -195,11 +195,20 @@ Frame VideoController::takeFrame()
 	return _imageQueue.takeFirst();
 }
 
+int VideoController::determineFramesToSkip()
+{
+	if (_currentFrameRate < 30)
+		return 0; // skip no frames when (virtual) frame rate below 30 frames/s.
+	else if (_currentFrameRate < 40)
+		return 1; // skip 1 frame for every decoded frame.
+	else
+		return 2; // skip 2 frames for every decoded frame
+}
+
 void VideoController::requestNewFrames(quint32 numberOfFrames)
 {
 	_requestBusy = true;
 
-	// when framerate is > 30, skip every second frame.
-	int skip = (_currentFrameRate > 30) ? 2: 1;
+	int skip = determineFramesToSkip();
 	QMetaObject::invokeMethod(&_videoDecoder, "loadFrames", Q_ARG(quint32, numberOfFrames), Q_ARG(quint32, skip));
 }
