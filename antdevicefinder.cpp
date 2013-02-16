@@ -39,4 +39,5 @@ AntDeviceType AntDeviceFinder::findAntDevice()
 	libusb_free_device_list(device_list, 1);
 	return type;
 }
+
 }
