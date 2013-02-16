@@ -61,22 +61,34 @@ void VideoWidget::initializeGL()
 		qDebug() << "This program needs the GL_ARB_texture_rectangle extension, but it seems to be disabled.";
 		qFatal("exiting..");
 	}
+	glViewport (0, 0, width(), height());
+	glMatrixMode (GL_PROJECTION);
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+	glOrtho(0, width(),0,height(),-1,1);
+	glMatrixMode (GL_MODELVIEW);
 }
 
 void VideoWidget::paintGL()
 {
 	QPainter p(this);
-	p.beginNativePainting();
+
 	if (_currentFrame.isNull())
 		return;
-
+	p.beginNativePainting();
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
 	if (_texture != 0) {
-		deleteTexture(_texture);
+		glDeleteTextures(1, &_texture);
 	}
-	_texture = bindTexture(_currentFrame, GL_TEXTURE_RECTANGLE_ARB,  GL_RGBA, QGLContext::DefaultBindOption);
+	QTime timer;
+	timer.start();
+	QImage glImage = convertToGLFormat(_currentFrame);
+	glGenTextures(1, &_texture);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
+	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, glImage.width(), glImage.height(),
+				 0, GL_RGBA, GL_UNSIGNED_BYTE, glImage.scanLine(0));
 	GLenum error;
 	if( ( error = glGetError() ) != GL_NO_ERROR ) {
 		QString errorstring;
@@ -106,14 +118,13 @@ void VideoWidget::paintGL()
 		qDebug ("failed to bind texture %d %s",error,errorstring.toAscii().data());
 		return;
 	}
-	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
-
+	qDebug() << "binding texture took" << timer.elapsed() << "ms";
 	GLfloat width = _currentFrame.width();
 	GLfloat height = _currentFrame.height();
 
@@ -146,6 +157,7 @@ void VideoWidget::paintGL()
 	p.drawText(100, 100, QString("FrameRate: %1").arg(_frameRate));
 #endif
 }
+
 
 void VideoWidget::resizeGL(int w, int h)
 {
