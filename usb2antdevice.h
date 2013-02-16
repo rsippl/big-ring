@@ -2,6 +2,13 @@
 #define USB2ANTDEVICE_H
 #include "antdevice.h"
 
+extern "C" {
+#include <libusb-1.0/libusb.h>
+}
+
+namespace indoorcycling
+{
+
 class Usb2AntDevice : public AntDevice
 {
 	Q_OBJECT
@@ -12,10 +19,12 @@ public:
 	virtual int numberOfChannels() const;
 	virtual int writeBytes(QByteArray& bytes);
 	virtual QByteArray readBytes();
-signals:
-	
-public slots:
-	
-};
 
+private:
+	libusb_context* _context;
+	libusb_device_handle* _deviceHandle;
+	bool _wasAttached;
+	bool _setupComplete;
+};
+}
 #endif // USB2ANTDEVICE_H

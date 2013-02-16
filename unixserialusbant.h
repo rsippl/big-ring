@@ -9,6 +9,9 @@
 
 #include "antdevice.h"
 
+namespace indoorcycling
+{
+
 class UnixSerialUsbAnt : public AntDevice
 {
 	Q_OBJECT
@@ -37,5 +40,5 @@ private:
 	QFileInfo _deviceFileInfo;
 	int _nativeDeviceHandle;
 };
-
+}
 #endif // UNIXSERIALUSBANT_H

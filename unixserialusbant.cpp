@@ -16,6 +16,8 @@ extern "C" {
 namespace {
 const quint8 READ_SIZE = 64;
 }
+namespace indoorcycling
+{
 
 UnixSerialUsbAnt::UnixSerialUsbAnt(QObject *parent) :
 	AntDevice(parent)
@@ -160,4 +162,5 @@ int UnixSerialUsbAnt::openConnection()
 
 	// success
 	return 0;
+}
 }

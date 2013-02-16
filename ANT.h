@@ -37,6 +37,7 @@
 
 namespace indoorcycling {
 class AntDeviceFinder;
+class AntDevice;
 }
 class ANTMessage;
 class ANTChannel;
@@ -274,7 +275,7 @@ private:
 	QStringList antIDs;
 
 	indoorcycling::AntDeviceFinder* _antDeviceFinder;
-	QSharedPointer<AntDevice> antDevice;
+	QSharedPointer<indoorcycling::AntDevice> antDevice;
 	unsigned char rxMessage[ANT_MAX_MESSAGE_SIZE];
 
 	// state machine whilst receiving bytes
