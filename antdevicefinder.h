@@ -2,7 +2,8 @@
 #define ANTDEVICEFINDER_H
 
 #include <QObject>
-
+#include <QSharedPointer>
+#include "antdevice.h"
 struct libusb_context;
 
 namespace indoorcycling {
@@ -25,6 +26,8 @@ public:
 	
 	AntDeviceType findAntDevice();
 
+	/** Open an AntDevice. Returns an invalid pointer if no device can be found. */
+	QSharedPointer<AntDevice> openAntDevice();
 private:
 	libusb_context* _context;
 };

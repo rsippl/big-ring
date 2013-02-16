@@ -84,8 +84,7 @@ const ant_sensor_type_t ANT::ant_sensor_types[] = {
 // hardware controller.
 //
 ANT::ANT(QObject *parent): QObject(parent),
-	_antDeviceFinder(new indoorcycling::AntDeviceFinder),
-	antDevice(NULL)
+	_antDeviceFinder(new indoorcycling::AntDeviceFinder)
 {
 	powerchannels=0;
 
@@ -118,8 +117,6 @@ ANT::ANT(QObject *parent): QObject(parent),
 
 ANT::~ANT()
 {
-	if (antDevice)
-		antDevice->deleteLater();
 }
 
 double ANT::channelValue2(int channel)
@@ -127,18 +124,6 @@ double ANT::channelValue2(int channel)
 	return antChannel[channel]->channelValue2();
 }
 
-bool ANT::isDevicePresent()
-{
-	bool present = (_antDeviceFinder->findAntDevice() != indoorcycling::ANT_DEVICE_NONE);
-	if (!present)
-		qDebug() << "no ANT+ stick found.";
-	return present;
-#ifdef Q_OS_WIN
-//	return UsbExpressAntDevice::isDevicePresent();
-#else
-//	return UnixSerialUsbAnt::isDevicePresent();
-#endif
-}
 double ANT::channelValue(int channel)
 {
 	return antChannel[channel]->channelValue();
@@ -152,8 +137,8 @@ void ANT::initialize()
 {
 	powerchannels = 0;
 
-
-	if (!isDevicePresent()) {
+	antDevice = _antDeviceFinder->openAntDevice();
+	if (antDevice.isNull()) {
 		emit initializationFailed();
 		return;
 	}
@@ -165,11 +150,6 @@ void ANT::initialize()
 	length = bytes = 0;
 	checksum = ANT_SYNC_BYTE;
 
-#ifdef Q_OS_WIN
-	antDevice = new UsbExpressAntDevice;
-#else
-	antDevice = new UnixSerialUsbAnt;
-#endif
 	if (antDevice->isValid()) {
 		channels = 4;
 	} else {

@@ -1,4 +1,10 @@
 #include "antdevicefinder.h"
+#ifdef Q_OS_WIN
+#include "usbexpressantdevice.h"
+#else
+#include "unixserialusbant.h"
+#endif
+#include "usb2antdevice.h"
 #include <QtDebug>
 extern "C" {
 #include <libusb-1.0/libusb.h>
@@ -38,6 +44,23 @@ AntDeviceType AntDeviceFinder::findAntDevice()
 
 	libusb_free_device_list(device_list, 1);
 	return type;
+}
+
+QSharedPointer<AntDevice> AntDeviceFinder::openAntDevice()
+{
+	AntDeviceType type = findAntDevice();
+	switch(type) {
+	case ANT_DEVICE_USB_1:
+#ifdef Q_OS_LINUX
+		return QSharedPointer<AntDevice>(new UnixSerialUsbAnt);
+#else
+		return QSharedPointer<AntDevice>(new UsbExpressAntDevice);
+#endif
+	case ANT_DEVICE_USB_2:
+		return QSharedPointer<AntDevice>(new Usb2AntDevice);
+	default:
+		return QSharedPointer<AntDevice>();
+	}
 }
 
 }

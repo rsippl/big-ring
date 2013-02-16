@@ -24,7 +24,8 @@ set(ANT_SRCS
 	ANT.cpp
 	ANTChannel.cpp
 	antcontroller.cpp
-	ANTMessage.cpp)
+	ANTMessage.cpp
+	usb2antdevice.cpp)
 
 if (WIN32)
 	set(USBXPRESS_INCLUDE_PATH "D:/SiLabs/MCU/USBXpress/USBXpress_API/Host")

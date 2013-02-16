@@ -27,6 +27,7 @@
 #include <QQueue>
 #include <QStringList>
 #include <QFile>
+#include <QSharedPointer>
 
 #include <QDebug>
 
@@ -261,10 +262,6 @@ public:
 	double channelValue2(int channel);
 
 private:
-	bool isDevicePresent();
-	/** Open connection to the ANT+ device */
-	bool openConnection();
-
 	static int interpretSuffix(char c); // utility to convert e.g. 'c' to CHANNEL_TYPE_CADENCE
 	static const char *deviceTypeDescription(int type); // utility to convert CHANNEL_TYPE_XXX to human string
 	static char deviceTypeCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
@@ -277,7 +274,7 @@ private:
 	QStringList antIDs;
 
 	indoorcycling::AntDeviceFinder* _antDeviceFinder;
-	AntDevice* antDevice;
+	QSharedPointer<AntDevice> antDevice;
 	unsigned char rxMessage[ANT_MAX_MESSAGE_SIZE];
 
 	// state machine whilst receiving bytes
