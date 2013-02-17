@@ -67,10 +67,7 @@ int Usb2AntDevice::writeBytes(QByteArray &bytes) {
 										 bytesLeftToWrite.size(), &transferred, 100);
 		if (error) {
 			qDebug() << "usb write error" << libusb_error_name(error) << transferred;
-		} else {
-			qDebug() << "wrote" << transferred << "bytes";
 		}
-
 		bytesLeftToWrite.remove(0, transferred);
 	}
 	return bytes.size();
