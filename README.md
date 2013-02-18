@@ -21,8 +21,7 @@ Current Status
 
 Indoor Cycling currently does the following:
 
-* Works on Ubuntu Linux. It's a goal to support Windows and OS X,
-  but I've done no work to support them yet.
+* Works on Linux. On Windows, video is not smooth for HD movies. For some reason, loading a video frame as an OpenGL texture is much too slow on Windows. I'm probably doing something wrong.
 * Get information from ANT+ Sensors
     - Power meters
     - Cadence meter (including cadence from power meters)
