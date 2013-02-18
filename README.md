@@ -56,7 +56,7 @@ I have the USB 1 variant from Garmin and a USB 2 from Suunto, the MoveStick Mini
 Limitations
 -----------
 
-* Only runs on Ubuntu Linux.
+* Only runs well on Linux. Video on Windows is not yet smooth, because loading video frames to OpenGL textures takes too long for large resolutions.
 * No recording of data.
 * Tacx videos have some problem with the position of the frames. Not all
   videos have the correct mapping from distance to frames. Will need to look
