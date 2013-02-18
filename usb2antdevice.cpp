@@ -38,6 +38,8 @@ Usb2AntDevice::Usb2AntDevice(QObject *parent) :
 	}
 	libusb_clear_halt(_deviceHandle, ENDPOINT_IN);
 	libusb_clear_halt(_deviceHandle, ENDPOINT_OUT);
+	// read device buffer to clear it.
+	readBytes();
 	_setupComplete = true;
 }
 
