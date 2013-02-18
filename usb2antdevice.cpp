@@ -12,20 +12,25 @@ namespace indoorcycling
 {
 
 Usb2AntDevice::Usb2AntDevice(QObject *parent) :
-	AntDevice(parent), _setupComplete(false)
+	AntDevice(parent), _wasAttached(false), _setupComplete(false)
 {
 	libusb_init(&_context);
-	libusb_set_debug(_context, 3);
+	libusb_set_debug(_context, 4);
 	_deviceHandle = libusb_open_device_with_vid_pid(_context, GARMIN_USB_VENDOR_ID, GARMIN_USB2_PRODUCT_ID);
-	if (!_deviceHandle)
+	if (!_deviceHandle) {
+		qDebug() << "no device handle";
 		return;
+	}
+#ifdef Q_OS_LINUX
 	if (libusb_kernel_driver_active(_deviceHandle, INTERFACE_NR)) {
 		qDebug() << "detaching kernel driver";
-		libusb_detach_kernel_driver(_deviceHandle, INTERFACE_NR);
+		int error = libusb_detach_kernel_driver(_deviceHandle, INTERFACE_NR);
+		if (error) {
+			qDebug() << "Unable to detach kernel driver" << libusb_error_name(error);
+		}
 		_wasAttached = true;
-	} else {
-		_wasAttached = false;
 	}
+#endif
 	int err = libusb_claim_interface(_deviceHandle, 0);
 	if (err){
 		qDebug() << "Unable to claim interface" << libusb_error_name(err);
@@ -66,7 +71,7 @@ int Usb2AntDevice::writeBytes(QByteArray &bytes) {
 		int error = libusb_bulk_transfer(_deviceHandle, ENDPOINT_OUT, reinterpret_cast<unsigned char*>(bytesLeftToWrite.data()),
 										 bytesLeftToWrite.size(), &transferred, 100);
 		if (error) {
-			qDebug() << "usb write error" << libusb_error_name(error) << transferred;
+			qDebug() << "usb write error" << libusb_error_name(error);
 		}
 		bytesLeftToWrite.remove(0, transferred);
 	}
@@ -81,7 +86,7 @@ QByteArray Usb2AntDevice::readBytes() {
 		int error = libusb_bulk_transfer(_deviceHandle, ENDPOINT_IN, reinterpret_cast<unsigned char*>(readBytes.data()),
 										 READ_SIZE, &transferred, 10);
 		if (error && error != LIBUSB_ERROR_TIMEOUT) {
-			qDebug() << "usb read error" << libusb_error_name(error) << transferred;
+			qDebug() << "usb read error" << libusb_error_name(error);
 		}
 		if (transferred == 0)
 			break;

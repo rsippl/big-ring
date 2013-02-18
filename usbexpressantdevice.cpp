@@ -8,6 +8,10 @@ const quint16 GARMIN_USB1_VID = 0x1004;
 
 const quint8 READ_SIZE = 64;
 }
+namespace indoorcycling
+{
+
+
 UsbExpressAntDevice::UsbExpressAntDevice(QObject *parent):
 	AntDevice(parent), _deviceHandle(0)
 {
@@ -26,7 +30,12 @@ bool UsbExpressAntDevice::isDevicePresent()
 	return (findDevice() != -1);
 }
 
-bool UsbExpressAntDevice::isValid()
+int UsbExpressAntDevice::numberOfChannels() const
+{
+	return 4;
+}
+
+bool UsbExpressAntDevice::isValid() const
 {
 	return (_deviceHandle);
 }
@@ -115,4 +124,5 @@ bool UsbExpressAntDevice::openConnection()
 		return true;
 	}
 	return false;
+}
 }

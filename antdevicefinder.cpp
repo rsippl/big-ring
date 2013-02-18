@@ -7,7 +7,7 @@
 #include "usb2antdevice.h"
 #include <QtDebug>
 extern "C" {
-#include <libusb-1.0/libusb.h>
+#include <libusb.h>
 }
 namespace indoorcycling {
 

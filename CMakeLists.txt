@@ -10,7 +10,7 @@ set(CMAKE_AUTOMOC ON)
 find_package(FFMPEG REQUIRED)
 find_package(LIBUSB-1 REQUIRED)
 include(${QT_USE_FILE})
-include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS} ${CMAKE_SOURCE_DIR}/thirdparty/include)
+include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS} ${CMAKE_SOURCE_DIR}/thirdparty/include ${LIBUSB_1_INCLUDE_DIRS})
 link_directories(${FFMPEG_LIBRARY_DIR})
 
 set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -D__STDC_CONSTANT_MACROS -DGLEW_STATIC")
