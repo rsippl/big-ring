@@ -16,6 +16,8 @@ extern "C" {
 namespace {
 const quint8 READ_SIZE = 64;
 }
+namespace indoorcycling
+{
 
 UnixSerialUsbAnt::UnixSerialUsbAnt(QObject *parent) :
 	AntDevice(parent)
@@ -55,9 +57,14 @@ bool UnixSerialUsbAnt::isDevicePresent()
 	return false;
 }
 
-bool UnixSerialUsbAnt::isValid()
+bool UnixSerialUsbAnt::isValid() const
 {
 	return !_deviceFileInfo.fileName().isEmpty();
+}
+
+int UnixSerialUsbAnt::numberOfChannels() const
+{
+	return 4;
 }
 
 int UnixSerialUsbAnt::writeBytes(QByteArray &bytes)
@@ -155,4 +162,5 @@ int UnixSerialUsbAnt::openConnection()
 
 	// success
 	return 0;
+}
 }

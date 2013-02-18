@@ -45,19 +45,18 @@ Indoor Cycling uses the following components to work:
 and a [Garmin](http://www.garmin.com/garmin/cms/site/us)
 heart rate strap.
 * An [ANT+ USB stick](https://buy.garmin.com/shop/shop.do?pID=10997).
-I have the USB 1.0 variant. There is also
-a USB 2.0 variant. This is not supported yet. 
+I have the USB 1 variant from Garmin and a USB 2 from Suunto, the MoveStick Mini. The Suunto MoveStick Mini is internally just a Garmin USB 2 Stick, so that one should also work. 
 * [Qt](http://qt.digia.com) 4.8. This library is used throughout the program.
 * [Libav](http://libav.org) for video decoding.
-* [GLEW](http://glew.sourceforge.net/) for OpenGL.
 * [CMake](http://www.cmake.org), for building.
 * [G++](http://gcc.gnu.org), the compiler.
+* [libusbx](http://libusbx.org), for handling of the usb device. On Ubuntu, installing libusb-dev will install libusbx.
+* And OpenGL capable system for the graphics.
 
 Limitations
 -----------
 
 * Only runs on Ubuntu Linux.
-* Only works with Garmin USB1 Stick.
 * No recording of data.
 * Tacx videos have some problem with the position of the frames. Not all
   videos have the correct mapping from distance to frames. Will need to look
@@ -83,7 +82,6 @@ Roadmap
 
 * Support Windows.
 * Support OS/X.
-* Support USB2 sticks.
 * Record data to files (FIT/Powertap CSV/.. ?)
 * Show elevation graph and current position.
 * Improve user management.

@@ -9,6 +9,9 @@
 
 #include "antdevice.h"
 
+namespace indoorcycling
+{
+
 class UnixSerialUsbAnt : public AntDevice
 {
 	Q_OBJECT
@@ -19,7 +22,9 @@ public:
 	/** Find a Garmin USB1 Stick. If found, returns true, false otherwise */
 	static bool isDevicePresent();
 
-	virtual bool isValid();
+	virtual bool isValid() const;
+
+	virtual int numberOfChannels() const;
 
 	virtual int writeBytes(QByteArray& bytes);
 	virtual QByteArray readBytes();
@@ -35,5 +40,5 @@ private:
 	QFileInfo _deviceFileInfo;
 	int _nativeDeviceHandle;
 };
-
+}
 #endif // UNIXSERIALUSBANT_H
