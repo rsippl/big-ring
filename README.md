@@ -50,6 +50,7 @@ I have the USB 1 variant from Garmin and a USB 2 from Suunto, the MoveStick Mini
 * [Libav](http://libav.org) for video decoding.
 * [CMake](http://www.cmake.org), for building.
 * [G++](http://gcc.gnu.org), the compiler.
+* [libusbx](http://libusbx.org), for handling of the usb device. On Ubuntu, installing libusb-dev will install libusbx.
 * And OpenGL capable system for the graphics.
 
 Limitations
