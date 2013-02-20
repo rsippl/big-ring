@@ -11,7 +11,6 @@ extern "C"
 #include <QDateTime>
 #include <QFile>
 #include <QMetaType>
-#include <QMutexLocker>
 #include <QThread>
 #include <QTimer>
 #include <QtDebug>
@@ -122,7 +121,7 @@ void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 skip)
 	while(frames.size() < (int) numberOfFrame) {
 		if (decoded % (skip + 1) == 0) {
 			frame = decodeNextFrame();
-			if (frame.first == UNKNOWN_FRAME_NR)
+			if (frame.frameNr == UNKNOWN_FRAME_NR)
 				break;
 			frames << frame;
 		} else {
@@ -134,7 +133,8 @@ void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 skip)
 	if (frames.isEmpty())
 		qDebug() << "request finished. No frames found.";
 	else
-		qDebug() << "request finished. Frames." << frames.first().first << "to" << frames.last().first << "skipped" << skipped << "frames";
+		qDebug() << "request finished. Frames." << frames.first().frameNr
+				 << "to" << frames.last().frameNr << "skipped" << skipped << "frames";
 	emit framesReady(frames);
 
 }
@@ -151,7 +151,7 @@ void VideoDecoder::decodeUntilCorrectFrame()
 		frameNr = packet.dts;
 	}
 
-	emit seekFinished(convertFrameToQImage(packet));
+	emit seekFinished(convertFrame(packet));
 	av_free_packet(&packet);
 }
 
@@ -179,11 +179,10 @@ void VideoDecoder::initializeFrames()
 	_swsContext = sws_getContext(_codecContext->width, _codecContext->height,
 								 _codecContext->pix_fmt,
 								 _codecContext->width, _codecContext->height,
-								 PIX_FMT_RGB24, SWS_POINT, NULL, NULL, NULL);
-	QImage emptyImage(_codecContext->width, _codecContext->height, QImage::Format_RGB888);
+								 PIX_FMT_BGRA, SWS_POINT, NULL, NULL, NULL);
 	_lineSizes.reset(new int[_codecContext->height]);
 	for (int line = 0; line < _codecContext->height; ++line)
-		_lineSizes[line] = emptyImage.bytesPerLine();
+		_lineSizes[line] = _codecContext->width * 4;
 }
 
 void VideoDecoder::seekFrame(quint32 frameNr)
@@ -196,26 +195,33 @@ void VideoDecoder::seekFrame(quint32 frameNr)
 	_seekTimer->start(500);
 }
 
-Frame VideoDecoder::convertFrameToQImage(AVPacket& packet)
+Frame VideoDecoder::convertFrame(AVPacket& packet)
 {
-	QImage image(_codecContext->width, _codecContext->height, QImage::Format_RGB888);
-	uint8_t* data = image.scanLine(0);
+	quint8* ptr = (quint8*)malloc(_lineSizes[0] * _codecContext->height);
+
 	sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height,
-			  &data, _lineSizes.data());
-	return qMakePair(static_cast<quint32>(packet.dts), image);
+			  &ptr, _lineSizes.data());
+	Frame frame;
+	frame.frameNr = packet.dts;
+	frame.width = _codecContext->width;
+	frame.height = _codecContext->height;
+	frame.numBytes = _lineSizes[0] * _codecContext->height;
+	frame.data = QSharedPointer<quint8>(ptr);
+
+	return frame;
 }
 
 Frame VideoDecoder::decodeNextFrame()
 {
-	QImage nullImage;
-	Frame newFrame = qMakePair(UNKNOWN_FRAME_NR, nullImage);
+	Frame newFrame;
+	newFrame.frameNr = UNKNOWN_FRAME_NR;
 
 	/** We might get here before having loaded anything */
 	if (_formatContext != NULL) {
 		AVPacket packet;
 
 		if (decodeNextAVFrame(packet)) {
-			newFrame = convertFrameToQImage(packet);
+			newFrame = convertFrame(packet);
 		}
 		av_free_packet(&packet);
 	}

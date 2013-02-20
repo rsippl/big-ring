@@ -1,12 +1,11 @@
 #ifndef VIDEODECODER_H
 #define VIDEODECODER_H
-
 #include <QDateTime>
 #include <QLinkedList>
 #include <QObject>
-#include <QImage>
 #include <QPair>
 #include <QQueue>
+#include <QTimer>
 #include <QWaitCondition>
 
 struct AVCodec;
@@ -19,7 +18,15 @@ struct SwsContext;
 
 const quint32 UNKNOWN_FRAME_NR = std::numeric_limits<quint32>::max();
 
-typedef QPair<quint32, QImage> Frame;
+struct Frame
+{
+	quint32 frameNr;
+	quint32 width;
+	quint32 height;
+	quint32 numBytes;
+	QSharedPointer<quint8> data;
+};
+
 typedef QLinkedList<Frame> FrameList;
 
 class VideoDecoder : public QObject
@@ -29,7 +36,7 @@ public:
 	explicit VideoDecoder(QObject *parent = 0);
 	~VideoDecoder();
 
-	Frame convertFrameToQImage(AVPacket &packet);
+	Frame convertFrame(AVPacket &packet);
 signals:
 	void error();
 	void videoLoaded();
@@ -62,7 +69,6 @@ private:
 	AVCodec* _codec;
 	AVFrame* _frame;
 	SwsContext* _swsContext;
-	QImage _currentImage;
 
 	// seeking
 	QTimer* _seekTimer;

@@ -5,31 +5,31 @@
 #include <QTimer>
 
 namespace {
-
-const float videoUpdateInterval = 100; // ms
 const quint32 NR_FRAMES_PER_REQUEST = 25;
 const int NR_FRAMES_BUFFER_LOW = 40;
+const int FRAME_INTERVAL = 1000/30;
 }
 
 VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QObject *parent) :
 	QObject(parent),
 	_cyclist(cyclist),
+	_videoDecoder(new VideoDecoder),
 	_videoWidget(videoWidget),
 	_requestBusy(false),
 	_lastFrameRateSample(QDateTime::currentDateTime()),
 	_currentFrameRate(0u)
 {
 	_decoderThread.start();
-	_videoDecoder.moveToThread(&_decoderThread);
+	_videoDecoder->moveToThread(&_decoderThread);
 
 	// set up timers
-	_playTimer.setInterval(40);
+	_playTimer.setInterval(FRAME_INTERVAL);
 	connect(&_playTimer, SIGNAL(timeout()), SLOT(playNextFrame()));
 
 	// set up video decoder
-	connect(&_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
-	connect(&_videoDecoder, SIGNAL(framesReady(FrameList)), SLOT(framesReady(FrameList)));
-	connect(&_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
+	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
+	connect(_videoDecoder, SIGNAL(framesReady(FrameList)), SLOT(framesReady(FrameList)));
+	connect(_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
 
 	connect(this, SIGNAL(currentFrameRate(quint32)), _videoWidget, SLOT(setFrameRate(quint32)));
 }
@@ -38,6 +38,7 @@ VideoController::~VideoController()
 {
 	_decoderThread.quit();
 	_decoderThread.wait(1000); // wait for a maximum of 1 second.
+	delete _videoDecoder;
 }
 
 bool VideoController::isBufferFull()
@@ -119,18 +120,18 @@ void VideoController::displayFrame(quint32 frameToShow)
 	if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
 		qDebug() << "current frame is null, taking first one";
 		frame = takeFrame();
-		_currentFrameNumber = frame.first;
-		_videoWidget->displayFrame(frame.first, frame.second);
+		_currentFrameNumber = frame.frameNr;
+		_videoWidget->displayFrame(frame);
 		return;
 	}
 
 	bool displayed = false;
 	while(!displayed && _currentFrameNumber != UNKNOWN_FRAME_NR && !_imageQueue.empty()) {
 		frame = takeFrame();
-		_framesThisSecond += frame.first - _currentFrameNumber;
-		_currentFrameNumber = frame.first;
+		_framesThisSecond += frame.frameNr - _currentFrameNumber;
+		_currentFrameNumber = frame.frameNr;
 		if (_currentFrameNumber >= frameToShow) {
-			_videoWidget->displayFrame(frame.first, frame.second);
+			_videoWidget->displayFrame(frame);
 			displayed = true;
 		}
 	}
@@ -143,7 +144,7 @@ void VideoController::framesReady(FrameList frames)
 		_currentFrameNumber = 1;
 	}
 
-	if (frames.first().first >= _currentFrameNumber) {
+	if (frames.first().frameNr >= _currentFrameNumber) {
 		_imageQueue += frames;
 
 		if (_imageQueue.size() >= NR_FRAMES_BUFFER_LOW)
@@ -159,23 +160,24 @@ void VideoController::seekFinished(Frame frame)
 {
 	_imageQueue.clear();
 	_imageQueue.append(frame);
-	displayFrame(frame.first);
+	displayFrame(frame.frameNr);
 }
 
 void VideoController::loadVideo(const QString &filename)
 {
-	QMetaObject::invokeMethod(&_videoDecoder, "openFile",
+	QMetaObject::invokeMethod(_videoDecoder, "openFile",
 							  Q_ARG(QString, filename));
 }
 
 void VideoController::setPosition(quint32 frameNr)
 {
-	QMetaObject::invokeMethod(&_videoDecoder, "seekFrame",
+	QMetaObject::invokeMethod(_videoDecoder, "seekFrame",
 							  Q_ARG(quint32, frameNr));
 }
 
 void VideoController::reset()
 {
+	_videoWidget->clearOpenGLBuffers();
 	play(false);
 	emit bufferFull(false);
 	_playTimer.stop();
@@ -190,8 +192,11 @@ Frame VideoController::takeFrame()
 		requestNewFrames(NR_FRAMES_PER_REQUEST);
 	}
 
-	if (_imageQueue.empty())
-		return qMakePair(UNKNOWN_FRAME_NR, QImage());
+	if (_imageQueue.empty()) {
+		Frame frame;
+		frame.frameNr = UNKNOWN_FRAME_NR;
+		return frame;
+	}
 
 	return _imageQueue.takeFirst();
 }
@@ -211,5 +216,5 @@ void VideoController::requestNewFrames(quint32 numberOfFrames)
 	_requestBusy = true;
 
 	int skip = determineFramesToSkip();
-	QMetaObject::invokeMethod(&_videoDecoder, "loadFrames", Q_ARG(quint32, numberOfFrames), Q_ARG(quint32, skip));
+	QMetaObject::invokeMethod(_videoDecoder, "loadFrames", Q_ARG(quint32, numberOfFrames), Q_ARG(quint32, skip));
 }
