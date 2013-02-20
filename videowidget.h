@@ -20,8 +20,8 @@ public:
 	virtual ~VideoWidget();
 
 	/** Display a frame */
-	void displayFrame(quint32 frameNr, QImage &imageFrame);
-
+	void displayFrame(Frame &frame);
+	void clearOpenGLBuffers();
 public slots:
 	void setFrameRate(quint32 frameRate);
 
@@ -35,10 +35,13 @@ protected:
 
 private:
 	quint32 _currentFrameNumber;
-	QImage _currentFrame;
+	Frame _currentFrame;
 	GLuint _texture;
 
+	GLuint* _pbos;
+
 	quint32 _frameRate;
+	quint32 _index, _nextIndex;
 };
 
 #endif // VIDEOWIDGET_H

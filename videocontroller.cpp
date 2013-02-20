@@ -5,10 +5,9 @@
 #include <QTimer>
 
 namespace {
-
-const float videoUpdateInterval = 100; // ms
 const quint32 NR_FRAMES_PER_REQUEST = 25;
 const int NR_FRAMES_BUFFER_LOW = 40;
+const int FRAME_INTERVAL = 1000/30;
 }
 
 VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QObject *parent) :
@@ -23,7 +22,7 @@ VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QOb
 	_videoDecoder.moveToThread(&_decoderThread);
 
 	// set up timers
-	_playTimer.setInterval(40);
+	_playTimer.setInterval(FRAME_INTERVAL);
 	connect(&_playTimer, SIGNAL(timeout()), SLOT(playNextFrame()));
 
 	// set up video decoder
@@ -119,18 +118,18 @@ void VideoController::displayFrame(quint32 frameToShow)
 	if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
 		qDebug() << "current frame is null, taking first one";
 		frame = takeFrame();
-		_currentFrameNumber = frame.first;
-		_videoWidget->displayFrame(frame.first, frame.second);
+		_currentFrameNumber = frame.frameNr;
+		_videoWidget->displayFrame(frame);
 		return;
 	}
 
 	bool displayed = false;
 	while(!displayed && _currentFrameNumber != UNKNOWN_FRAME_NR && !_imageQueue.empty()) {
 		frame = takeFrame();
-		_framesThisSecond += frame.first - _currentFrameNumber;
-		_currentFrameNumber = frame.first;
+		_framesThisSecond += frame.frameNr - _currentFrameNumber;
+		_currentFrameNumber = frame.frameNr;
 		if (_currentFrameNumber >= frameToShow) {
-			_videoWidget->displayFrame(frame.first, frame.second);
+			_videoWidget->displayFrame(frame);
 			displayed = true;
 		}
 	}
@@ -143,7 +142,7 @@ void VideoController::framesReady(FrameList frames)
 		_currentFrameNumber = 1;
 	}
 
-	if (frames.first().first >= _currentFrameNumber) {
+	if (frames.first().frameNr >= _currentFrameNumber) {
 		_imageQueue += frames;
 
 		if (_imageQueue.size() >= NR_FRAMES_BUFFER_LOW)
@@ -159,7 +158,7 @@ void VideoController::seekFinished(Frame frame)
 {
 	_imageQueue.clear();
 	_imageQueue.append(frame);
-	displayFrame(frame.first);
+	displayFrame(frame.frameNr);
 }
 
 void VideoController::loadVideo(const QString &filename)
@@ -176,6 +175,7 @@ void VideoController::setPosition(quint32 frameNr)
 
 void VideoController::reset()
 {
+	_videoWidget->clearOpenGLBuffers();
 	play(false);
 	emit bufferFull(false);
 	_playTimer.stop();
@@ -190,8 +190,11 @@ Frame VideoController::takeFrame()
 		requestNewFrames(NR_FRAMES_PER_REQUEST);
 	}
 
-	if (_imageQueue.empty())
-		return qMakePair(UNKNOWN_FRAME_NR, QImage());
+	if (_imageQueue.empty()) {
+		Frame frame;
+		frame.frameNr = UNKNOWN_FRAME_NR;
+		return frame;
+	}
 
 	return _imageQueue.takeFirst();
 }

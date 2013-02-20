@@ -13,13 +13,19 @@
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent), _texture(0)
+	QGLWidget(parent), _texture(0), _pbos(new GLuint[2]),
+	_index(0), _nextIndex(1)
 {
+
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 }
 
 VideoWidget::~VideoWidget()
 {
+	if (_texture) {
+		glDeleteTextures(1, &_texture);
+	}
+	delete[] _pbos;
 }
 
 
@@ -34,13 +40,22 @@ void VideoWidget::leaveEvent(QEvent*)
 	QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
 }
 
-void VideoWidget::displayFrame(quint32 frameNr, QImage &image)
+void VideoWidget::displayFrame(Frame& frame)
 {
-	if (frameNr != UNKNOWN_FRAME_NR) {
-		_currentFrameNumber = frameNr;
-		_currentFrame = image;
+	if (frame.frameNr != UNKNOWN_FRAME_NR) {
+		_currentFrameNumber = frame.frameNr;
+		_currentFrame = frame;
 		repaint();
 	}
+}
+
+void VideoWidget::clearOpenGLBuffers()
+{
+	if (_texture) {
+		glDeleteTextures(1, &_texture);
+		_texture = 0;
+	}
+
 }
 
 void VideoWidget::setFrameRate(quint32 frameRate)
@@ -61,34 +76,53 @@ void VideoWidget::initializeGL()
 		qDebug() << "This program needs the GL_ARB_texture_rectangle extension, but it seems to be disabled.";
 		qFatal("exiting..");
 	}
+	if (!GL_ARB_pixel_buffer_object) {
+		qDebug() << "This program needs the GL_ARB_pixel_buffer_object extension, but it seems to be disabled.";
+		qFatal("exiting..");
+	}
 	glViewport (0, 0, width(), height());
 	glMatrixMode (GL_PROJECTION);
+	glDisable(GL_DEPTH_TEST);
 	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 	glLoadIdentity();
 	glOrtho(0, width(),0,height(),-1,1);
 	glMatrixMode (GL_MODELVIEW);
+
+	glGenBuffersARB(2, &_pbos[0]);
 }
 
 void VideoWidget::paintGL()
 {
-	QPainter p(this);
+	_index = (_index + 1) % 2;
+	_nextIndex = (_nextIndex + 1) % 2;
 
-	if (_currentFrame.isNull())
-		return;
+	QPainter p(this);
 	p.beginNativePainting();
+	glClear(GL_COLOR_BUFFER_BIT);
+	if (_currentFrame.data.isNull()) {
+		p.endNativePainting();
+		return;
+	}
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
-	if (_texture != 0) {
-		glDeleteTextures(1, &_texture);
-	}
 	QTime timer;
 	timer.start();
-	QImage glImage = convertToGLFormat(_currentFrame);
-	glGenTextures(1, &_texture);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
-	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, glImage.width(), glImage.height(),
-				 0, GL_RGBA, GL_UNSIGNED_BYTE, glImage.scanLine(0));
+	if (_texture) {
+		qDebug() << "using TexSubImage";
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
+		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pbos[_index]);
+		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, _currentFrame.width, _currentFrame.height,
+						GL_BGRA, GL_UNSIGNED_BYTE, 0);
+	} else {
+		glGenTextures(1, &_texture);
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, _currentFrame.width, _currentFrame.height,
+					 0, GL_BGRA, GL_UNSIGNED_BYTE, _currentFrame.data.data());
+	}
+
+
+
 	GLenum error;
 	if( ( error = glGetError() ) != GL_NO_ERROR ) {
 		QString errorstring;
@@ -125,8 +159,8 @@ void VideoWidget::paintGL()
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 	qDebug() << "binding texture took" << timer.elapsed() << "ms";
-	GLfloat width = _currentFrame.width();
-	GLfloat height = _currentFrame.height();
+	GLfloat width = _currentFrame.width;
+	GLfloat height = _currentFrame.height;
 
 	float imageRatio = width / height;
 	float widgetRatio = (float) this->width() / (float) this->height();
@@ -140,15 +174,41 @@ void VideoWidget::paintGL()
 	}
 
 	glBegin(GL_QUADS);
-	glTexCoord2f(clippedBorderWidth, height - clippedBorderHeight);
-	glVertex2f( 0.0f, 0.0f );
-	glTexCoord2f(width - clippedBorderWidth, height - clippedBorderHeight);
-	glVertex2f( this->width(), 0.0f );
-	glTexCoord2f(width - clippedBorderWidth, clippedBorderHeight);
-	glVertex2f( this->width(), this->height());
 	glTexCoord2f(clippedBorderWidth, clippedBorderHeight);
-	glVertex2f( 0.0f, this->height() );
+	glVertex2f(0,0);
+	glTexCoord2f(clippedBorderWidth, height - clippedBorderHeight);
+	glVertex2f(0,this->height());
+	glTexCoord2f(width - clippedBorderWidth, height - clippedBorderHeight);
+	glVertex2f(this->width(), this->height());
+	glTexCoord2f(width - clippedBorderWidth, clippedBorderHeight);
+	glVertex2f(this->width(), 0);
 	glEnd();
+
+
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pbos[_nextIndex]);
+
+	// Note that glMapBufferARB() causes sync issue.
+	// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
+	// until GPU to finish its job. To avoid waiting (idle), you can call
+	// first glBufferDataARB() with NULL pointer before glMapBufferARB().
+	// If you do that, the previous data in PBO will be discarded and
+	// glMapBufferARB() returns a new allocated pointer immediately
+	// even if GPU is still working with the previous data.
+	glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, _currentFrame.numBytes, 0, GL_STREAM_DRAW_ARB);
+
+	// map the buffer object into client's memory
+	GLubyte* ptr = (GLubyte*)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB,
+											GL_WRITE_ONLY_ARB);
+	if(ptr)
+	{
+		// update data directly on the mapped buffer
+		memcpy(ptr, _currentFrame.data.data(), _currentFrame.numBytes);
+		glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB); // release the mapped buffer
+	}
+
+	// it is good idea to release PBOs with ID 0 after use.
+	// Once bound with 0, all pixel operations are back to normal ways.
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 
