@@ -1,8 +1,6 @@
 #ifndef VIDEODECODER_H
 #define VIDEODECODER_H
-
 #include <QDateTime>
-#include <QGLWidget>
 #include <QLinkedList>
 #include <QObject>
 #include <QPair>
@@ -35,7 +33,7 @@ class VideoDecoder : public QObject
 {
 	Q_OBJECT
 public:
-	explicit VideoDecoder(QGLWidget* glWidget, QObject *parent = 0);
+	explicit VideoDecoder(QObject *parent = 0);
 	~VideoDecoder();
 
 	Frame convertFrame(AVPacket &packet);
@@ -66,7 +64,6 @@ private:
 	int findVideoStream();
 	void printError(int errorNr, const QString& message);
 
-	QGLWidget* _glWidget;
 	AVFormatContext* _formatContext;
 	AVCodecContext* _codecContext;
 	AVCodec* _codec;

@@ -13,7 +13,7 @@ const int FRAME_INTERVAL = 1000/30;
 VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QObject *parent) :
 	QObject(parent),
 	_cyclist(cyclist),
-	_videoDecoder(new VideoDecoder(new QGLWidget(0, videoWidget))),
+	_videoDecoder(new VideoDecoder),
 	_videoWidget(videoWidget),
 	_requestBusy(false),
 	_lastFrameRateSample(QDateTime::currentDateTime()),
@@ -38,6 +38,7 @@ VideoController::~VideoController()
 {
 	_decoderThread.quit();
 	_decoderThread.wait(1000); // wait for a maximum of 1 second.
+	delete _videoDecoder;
 }
 
 bool VideoController::isBufferFull()
