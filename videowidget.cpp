@@ -17,10 +17,12 @@ VideoWidget::VideoWidget(QWidget *parent) :
 	_index(0), _nextIndex(1)
 {
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+	setAutoBufferSwap(true);
 }
 
 VideoWidget::~VideoWidget()
 {
+	makeCurrent();
 	if (_texture) {
 		glDeleteTextures(1, &_texture);
 	}
@@ -50,6 +52,7 @@ void VideoWidget::displayFrame(Frame& frame)
 
 void VideoWidget::clearOpenGLBuffers()
 {
+	makeCurrent();
 	if (_texture) {
 		glDeleteTextures(1, &_texture);
 		_texture = 0;
@@ -107,7 +110,6 @@ void VideoWidget::paintGL()
 	QTime timer;
 	timer.start();
 	if (_texture) {
-		qDebug() << "using TexSubImage";
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_index));
 		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, _currentFrame.width, _currentFrame.height,
