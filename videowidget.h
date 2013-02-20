@@ -23,6 +23,9 @@ public:
 	/** Display a frame */
 	void displayFrame(Frame &frame);
 	void clearOpenGLBuffers();
+        void paintFrame();
+        void loadNextFrameToPixelBuffer();
+        void loadTexture();
 public slots:
 	void setFrameRate(quint32 frameRate);
 
