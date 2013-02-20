@@ -13,10 +13,9 @@
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent), _texture(0), _pbos(new GLuint[2]),
+	QGLWidget(parent), _texture(0), _pixelBufferObjects(10, 0),
 	_index(0), _nextIndex(1)
 {
-
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 }
 
@@ -25,7 +24,7 @@ VideoWidget::~VideoWidget()
 	if (_texture) {
 		glDeleteTextures(1, &_texture);
 	}
-	delete[] _pbos;
+	glDeleteBuffersARB(_pixelBufferObjects.size(), _pixelBufferObjects.data());
 }
 
 
@@ -55,7 +54,6 @@ void VideoWidget::clearOpenGLBuffers()
 		glDeleteTextures(1, &_texture);
 		_texture = 0;
 	}
-
 }
 
 void VideoWidget::setFrameRate(quint32 frameRate)
@@ -89,13 +87,13 @@ void VideoWidget::initializeGL()
 	glOrtho(0, width(),0,height(),-1,1);
 	glMatrixMode (GL_MODELVIEW);
 
-	glGenBuffersARB(2, &_pbos[0]);
+	glGenBuffersARB(_pixelBufferObjects.size(), _pixelBufferObjects.data());
 }
 
 void VideoWidget::paintGL()
 {
-	_index = (_index + 1) % 2;
-	_nextIndex = (_nextIndex + 1) % 2;
+	_index = (_index + 1) % _pixelBufferObjects.size();
+	_nextIndex = (_nextIndex + 1) % _pixelBufferObjects.size();
 
 	QPainter p(this);
 	p.beginNativePainting();
@@ -111,7 +109,7 @@ void VideoWidget::paintGL()
 	if (_texture) {
 		qDebug() << "using TexSubImage";
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
-		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pbos[_index]);
+		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_index));
 		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, _currentFrame.width, _currentFrame.height,
 						GL_BGRA, GL_UNSIGNED_BYTE, 0);
 	} else {
@@ -185,7 +183,7 @@ void VideoWidget::paintGL()
 	glEnd();
 
 
-	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pbos[_nextIndex]);
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_nextIndex));
 
 	// Note that glMapBufferARB() causes sync issue.
 	// If GPU is working with this buffer, glMapBufferARB() will wait(stall)

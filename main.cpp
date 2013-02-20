@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 	if (argc >= 3) {
 		QString robot(argv[2]);
 		if (robot == "robot") {
-			cyclist.setPower(300);
+			cyclist.setPower(600);
 		}
 	}
 

@@ -53,7 +53,7 @@ private:
 
 	Cyclist& _cyclist;
 	QLinkedList<Frame> _imageQueue;
-	VideoDecoder _videoDecoder;
+	VideoDecoder* _videoDecoder;
 	QThread _decoderThread;
 	VideoWidget* const _videoWidget;
 	QTimer _playTimer;

@@ -13,22 +13,23 @@ const int FRAME_INTERVAL = 1000/30;
 VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QObject *parent) :
 	QObject(parent),
 	_cyclist(cyclist),
+	_videoDecoder(new VideoDecoder(new QGLWidget(0, videoWidget))),
 	_videoWidget(videoWidget),
 	_requestBusy(false),
 	_lastFrameRateSample(QDateTime::currentDateTime()),
 	_currentFrameRate(0u)
 {
 	_decoderThread.start();
-	_videoDecoder.moveToThread(&_decoderThread);
+	_videoDecoder->moveToThread(&_decoderThread);
 
 	// set up timers
 	_playTimer.setInterval(FRAME_INTERVAL);
 	connect(&_playTimer, SIGNAL(timeout()), SLOT(playNextFrame()));
 
 	// set up video decoder
-	connect(&_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
-	connect(&_videoDecoder, SIGNAL(framesReady(FrameList)), SLOT(framesReady(FrameList)));
-	connect(&_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
+	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
+	connect(_videoDecoder, SIGNAL(framesReady(FrameList)), SLOT(framesReady(FrameList)));
+	connect(_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
 
 	connect(this, SIGNAL(currentFrameRate(quint32)), _videoWidget, SLOT(setFrameRate(quint32)));
 }
@@ -163,13 +164,13 @@ void VideoController::seekFinished(Frame frame)
 
 void VideoController::loadVideo(const QString &filename)
 {
-	QMetaObject::invokeMethod(&_videoDecoder, "openFile",
+	QMetaObject::invokeMethod(_videoDecoder, "openFile",
 							  Q_ARG(QString, filename));
 }
 
 void VideoController::setPosition(quint32 frameNr)
 {
-	QMetaObject::invokeMethod(&_videoDecoder, "seekFrame",
+	QMetaObject::invokeMethod(_videoDecoder, "seekFrame",
 							  Q_ARG(quint32, frameNr));
 }
 
@@ -214,5 +215,5 @@ void VideoController::requestNewFrames(quint32 numberOfFrames)
 	_requestBusy = true;
 
 	int skip = determineFramesToSkip();
-	QMetaObject::invokeMethod(&_videoDecoder, "loadFrames", Q_ARG(quint32, numberOfFrames), Q_ARG(quint32, skip));
+	QMetaObject::invokeMethod(_videoDecoder, "loadFrames", Q_ARG(quint32, numberOfFrames), Q_ARG(quint32, skip));
 }

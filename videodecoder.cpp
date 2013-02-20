@@ -21,8 +21,9 @@ extern "C"
 namespace {
 const int ERROR_STR_BUF_SIZE = 128;
 }
-VideoDecoder::VideoDecoder(QObject *parent) :
+VideoDecoder::VideoDecoder(QGLWidget* glWidget, QObject *parent) :
 	QObject(parent),
+	_glWidget(glWidget),
 	_formatContext(NULL), _codecContext(NULL),
 	_codec(NULL), _frame(NULL),
 	_swsContext(NULL),
@@ -196,7 +197,8 @@ void VideoDecoder::seekFrame(quint32 frameNr)
 }
 
 Frame VideoDecoder::convertFrame(AVPacket& packet)
-{
+{	
+	_glWidget->makeCurrent();
 	quint8* ptr = (quint8*)malloc(_lineSizes[0] * _codecContext->height);
 
 	sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height,
@@ -207,6 +209,7 @@ Frame VideoDecoder::convertFrame(AVPacket& packet)
 	frame.height = _codecContext->height;
 	frame.numBytes = _lineSizes[0] * _codecContext->height;
 	frame.data = QSharedPointer<quint8>(ptr);
+
 	return frame;
 }
 

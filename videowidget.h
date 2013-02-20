@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <QTimer>
 #include <QGLWidget>
+#include <QVector>
 
 #include "videodecoder.h"
 /**
@@ -38,7 +39,7 @@ private:
 	Frame _currentFrame;
 	GLuint _texture;
 
-	GLuint* _pbos;
+	QVector<GLuint> _pixelBufferObjects;
 
 	quint32 _frameRate;
 	quint32 _index, _nextIndex;
