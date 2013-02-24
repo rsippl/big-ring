@@ -75,14 +75,16 @@ void Simulation::simulationStep()
 	qint64 elapsed = currentElapsed - _lastElapsed;
 	_lastElapsed = currentElapsed;
 
-	_runTime = _runTime.addMSecs(elapsed);
-	emit runTimeChanged(_runTime);
+	if (_cyclist.speed() > 0) {
+		_runTime = _runTime.addMSecs(elapsed);
+		emit runTimeChanged(_runTime);
+	}
+
 	float speed = calculateSpeed(elapsed);
 	float distanceTravelled = (speed * elapsed) * 0.001;
 
 	_cyclist.setSpeed(speed);
 	_cyclist.setDistance(_cyclist.distance() + distanceTravelled);
-
 
 	emit slopeChanged(_currentRlv.slopeForDistance(_cyclist.distance()));
     emit altitudeChanged(_currentRlv.altitudeForDistance(_cyclist.distance()));
