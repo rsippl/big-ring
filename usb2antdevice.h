@@ -2,6 +2,9 @@
 #define USB2ANTDEVICE_H
 #include "antdevice.h"
 
+#include <QList>
+#include <QSharedPointer>
+
 extern "C" {
 #include <libusb.h>
 }
@@ -21,8 +24,22 @@ public:
 	virtual QByteArray readBytes();
 
 private:
+	static void writeCallback(libusb_transfer* transfer);
+	static void readCallback(libusb_transfer* transfer);
+
+	void writeReady(libusb_transfer* transfer);
+	void readReady(libusb_transfer* transfer);
+
 	libusb_context* _context;
 	libusb_device_handle* _deviceHandle;
+	libusb_transfer* _writeTransfer;
+	libusb_transfer* _readTransfer;
+	QByteArray _writeBuffer;
+	QByteArray _readBuffer;
+
+	QByteArray _bytesRead;
+	QByteArray _bytesToWrite;
+	bool _readBusy;
 	bool _wasAttached;
 	bool _setupComplete;
 };
