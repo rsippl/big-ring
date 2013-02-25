@@ -125,7 +125,9 @@ float Simulation::calculateSpeed(quint64 timeDelta)
 		_idleTime = QTime();
 	}
 
-	float force = (_cyclist.speed() > MINIMUM_SPEED) ? _cyclist.power() / _cyclist.speed() : _cyclist.weight();
+	// if speed is very low, use cyclist weight, otherwise force gets very high. Is there
+	// a better way to do this?
+	float force = (_cyclist.speed() > (MINIMUM_SPEED - 0.1)) ? _cyclist.power() / _cyclist.speed() : _cyclist.weight();
 
 	float resistantForce = calculateAeroDrag(_cyclist) +
 			calculateGravityForce(_cyclist, _currentRlv.slopeForDistance(_cyclist.distance())) +
