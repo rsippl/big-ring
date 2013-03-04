@@ -6,13 +6,15 @@ const int INTERFACE_NR = 0;
 const int ENDPOINT_IN = 0x81; /* endpoint 0x81 address for IN */
 const int ENDPOINT_OUT = 0x01; /* endpoint 1 address for OUT */
 const quint8 READ_SIZE = 64;
-const int TIMEOUT = 10; // ms
+const int TIMEOUT = 250; // ms
+const int READ_INTERVAL = 10;
 }
 namespace indoorcycling
 {
 
 Usb2AntDevice::Usb2AntDevice(QObject *parent) :
-	AntDevice(parent), _writeTransfer(NULL), _readTransfer(NULL), _readBuffer(READ_SIZE, '\0'), _readBusy(false), _wasAttached(false), _setupComplete(false)
+	AntDevice(parent), _currentTransfer(NULL), _readBuffer(READ_SIZE, '\0'),
+	_transferTimer(new QTimer(this)), _wasAttached(false), _setupComplete(false)
 {
 	libusb_init(&_context);
 	libusb_set_debug(_context, 4);
@@ -38,17 +40,20 @@ Usb2AntDevice::Usb2AntDevice(QObject *parent) :
 	}
 	libusb_clear_halt(_deviceHandle, ENDPOINT_IN);
 	libusb_clear_halt(_deviceHandle, ENDPOINT_OUT);
+
+	connect(_transferTimer, SIGNAL(timeout()), SLOT(doTransfer()));
+	_transferTimer->setInterval(READ_INTERVAL);
+	_transferTimer->start();
+
 	// read device buffer to clear it.
-	readBytes();
+	doRead();
 	_setupComplete = true;
 }
 
 Usb2AntDevice::~Usb2AntDevice()
 {
-	if (_readTransfer)
-		libusb_cancel_transfer(_readTransfer);
-	if (_writeTransfer)
-		libusb_cancel_transfer(_writeTransfer);
+	if (_currentTransfer)
+		libusb_cancel_transfer(_currentTransfer);
 	// cancel all pending transfers.
 	if (_deviceHandle) {
 		libusb_release_interface(_deviceHandle, INTERFACE_NR);
@@ -71,44 +76,53 @@ int Usb2AntDevice::writeBytes(QByteArray &bytes) {
 	if (!_deviceHandle)
 		return -1;
 
-	_bytesToWrite.append(bytes);
-
-	if (_writeTransfer != NULL)
-		return 0;
-
-	if (!_readTransfer) {
-	qDebug() << "issuing write";
-	_writeBuffer = _bytesToWrite;
-	_bytesToWrite.clear();
-	_writeTransfer = libusb_alloc_transfer(0);
-
-	libusb_fill_bulk_transfer(_writeTransfer, _deviceHandle, ENDPOINT_OUT, (unsigned char*) _writeBuffer.data(), _writeBuffer.size(),
-							  Usb2AntDevice::writeCallback, this, 100);
-
-	libusb_submit_transfer(_writeTransfer);
-	qDebug() << "finished issuing write";
-	}
+	_messagesToWrite.append(bytes);
 	return 0;
+}
+
+void Usb2AntDevice::doWrite()
+{
+	_writeBuffer = _messagesToWrite.first();
+	_messagesToWrite.removeFirst();
+	_currentTransfer = libusb_alloc_transfer(0);
+
+	libusb_fill_bulk_transfer(_currentTransfer, _deviceHandle, ENDPOINT_OUT, (unsigned char*) _writeBuffer.data(), _writeBuffer.size(),
+							  Usb2AntDevice::writeCallback, this, TIMEOUT);
+
+	libusb_submit_transfer(_currentTransfer);
 }
 
 QByteArray Usb2AntDevice::readBytes() {
 	if (!_deviceHandle)
 		return QByteArray();
+
+	QByteArray copy(_bytesRead);
+	_bytesRead.clear();
+	return copy;
+}
+
+void Usb2AntDevice::doRead()
+{
 	struct timeval tv;
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
 	libusb_handle_events_locked(_context, &tv);
-	// no current read, make a new one.
-	if (!_readTransfer) {
-		qDebug() << "issueing read";
-		_readTransfer = libusb_alloc_transfer(0);
-		libusb_fill_bulk_transfer(_readTransfer, _deviceHandle, ENDPOINT_IN, (unsigned char*) _readBuffer.data(), _readBuffer.size(),
-								  readCallback, this, 500);
-		libusb_submit_transfer(_readTransfer);
-	}
-	QByteArray bytes(_bytesRead);
-	_bytesRead.clear();
-	return bytes;
+	_currentTransfer = libusb_alloc_transfer(0);
+	libusb_fill_bulk_transfer(_currentTransfer, _deviceHandle, ENDPOINT_IN, (unsigned char*) _readBuffer.data(), _readBuffer.size(),
+							  readCallback, this, TIMEOUT);
+	libusb_submit_transfer(_currentTransfer);
+}
+
+void Usb2AntDevice::doTransfer()
+{
+	libusb_handle_events_completed(_context, NULL);
+	if (_currentTransfer)
+		return;
+
+	if (_messagesToWrite.isEmpty())
+		doRead();
+	else
+		doWrite();
 }
 
 void Usb2AntDevice::writeCallback(libusb_transfer *transfer)
@@ -127,31 +141,17 @@ void Usb2AntDevice::readCallback(libusb_transfer *transfer)
 
 void Usb2AntDevice::writeReady(libusb_transfer *)
 {
-	if (_writeTransfer->status == LIBUSB_TRANSFER_COMPLETED) {
-		qDebug() << "transfer completed";
-	} else {
-		qDebug() << "transfer error";
-	}
-
-	libusb_free_transfer(_writeTransfer);
-	_writeTransfer = NULL;
+	libusb_free_transfer(_currentTransfer);
+	_currentTransfer = NULL;
 	_writeBuffer.clear();
 }
 
 void Usb2AntDevice::readReady(libusb_transfer *)
 {
-	switch (_readTransfer->status) {
-	case LIBUSB_TRANSFER_COMPLETED:
-		qDebug() << "read transfer completed";
-		break;
-	default:
-		qDebug() << "read status:" << _readTransfer->status << LIBUSB_TRANSFER_COMPLETED;
-	}
-
-	_bytesRead.append(_readBuffer.left(_readTransfer->actual_length));
+	_bytesRead.append(_readBuffer.left(_currentTransfer->actual_length));
 	_readBuffer.fill('\0');
 
-	libusb_free_transfer(_readTransfer);
-	_readTransfer = NULL;
+	libusb_free_transfer(_currentTransfer);
+	_currentTransfer = NULL;
 }
 }

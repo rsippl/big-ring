@@ -3,7 +3,7 @@
 #include "antdevice.h"
 
 #include <QList>
-#include <QSharedPointer>
+#include <QTimer>
 
 extern "C" {
 #include <libusb.h>
@@ -23,23 +23,30 @@ public:
 	virtual int writeBytes(QByteArray& bytes);
 	virtual QByteArray readBytes();
 
+private slots:
+	void doTransfer();
+
 private:
+	/** callback functions */
 	static void writeCallback(libusb_transfer* transfer);
 	static void readCallback(libusb_transfer* transfer);
-
 	void writeReady(libusb_transfer* transfer);
 	void readReady(libusb_transfer* transfer);
 
+	/** internal read and write functions */
+	void doWrite();
+	void doRead();
+
 	libusb_context* _context;
 	libusb_device_handle* _deviceHandle;
-	libusb_transfer* _writeTransfer;
-	libusb_transfer* _readTransfer;
+	libusb_transfer* _currentTransfer;
+
 	QByteArray _writeBuffer;
 	QByteArray _readBuffer;
 
+	QTimer *_transferTimer;
 	QByteArray _bytesRead;
-	QByteArray _bytesToWrite;
-	bool _readBusy;
+	QList<QByteArray> _messagesToWrite;
 	bool _wasAttached;
 	bool _setupComplete;
 };
