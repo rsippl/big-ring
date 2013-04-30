@@ -37,6 +37,7 @@ VideoDecoder::VideoDecoder(QObject *parent) :
 
 VideoDecoder::~VideoDecoder()
 {
+	qDebug() << "destroying videodecoder" << QThread::currentThreadId();
 	_seekTimer->stop();
 	close();
 }

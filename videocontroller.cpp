@@ -1,6 +1,7 @@
 #include "videocontroller.h"
 
 #include <QtDebug>
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QTimer>
 
@@ -32,13 +33,16 @@ VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QOb
 	connect(_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
 
 	connect(this, SIGNAL(currentFrameRate(quint32)), _videoWidget, SLOT(setFrameRate(quint32)));
+
+	connect(_videoDecoder, SIGNAL(destroyed()), &_decoderThread, SLOT(quit()));
 }
 
 VideoController::~VideoController()
 {
-	_decoderThread.quit();
-	_decoderThread.wait(1000); // wait for a maximum of 1 second.
-	delete _videoDecoder;
+	qDebug() << "destroying video controller" << QThread::currentThreadId();
+	_videoDecoder->deleteLater();
+	while (_decoderThread.isRunning())
+		QCoreApplication::processEvents();
 }
 
 bool VideoController::isBufferFull()

@@ -1,6 +1,6 @@
 #include "antcontroller.h"
 #include "ANT.h"
-#include <QMetaObject>
+#include <QCoreApplication>
 
 namespace {
 const int TIMER_INTERVAL = 10; // ms
@@ -15,8 +15,9 @@ ANTController::ANTController(QObject *parent) :
 
 ANTController::~ANTController() {
 	ant->deleteLater();
-	antThread->quit();
-	antThread->wait();
+	/* busy waiting for antThread to shutdown. */
+	while(antThread->isRunning())
+		QCoreApplication::processEvents();
 }
 
 void ANTController::foundDevice(int, int , int , QString description, QString)
@@ -28,9 +29,12 @@ void ANTController::foundDevice(int, int , int , QString description, QString)
 void ANTController::initialize()
 {
 	antThread = new QThread(this);
-	antThread->start();
+
 
 	ant->moveToThread(antThread);
+
+	connect(antThread, SIGNAL(started()), ant, SLOT(initialize()));
+	connect(ant, SIGNAL(destroyed()), antThread, SLOT(quit()));
 
 	connect(antTimer, SIGNAL(timeout()), ant, SLOT(readCycle()));
 	connect(ant, SIGNAL(initializationSucceeded()), antTimer, SLOT(start()));
@@ -39,6 +43,6 @@ void ANTController::initialize()
 	connect(ant, SIGNAL(powerMeasured(float)), SIGNAL(powerMeasured(float)));
 	connect(ant, SIGNAL(cadenceMeasured(float)), SIGNAL(cadenceMeasured(float)));
 
-	QMetaObject::invokeMethod(ant, "initialize");
+	antThread->start();
 }
 

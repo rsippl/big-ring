@@ -36,6 +36,7 @@
 
 #include <QByteArray>
 #include <QtDebug>
+#include <QThread>
 
 /* Control status */
 #define ANT_RUNNING  0x01
@@ -117,6 +118,7 @@ ANT::ANT(QObject *parent): QObject(parent),
 
 ANT::~ANT()
 {
+	qDebug() << "destroying ant" << QThread::currentThreadId();
 }
 
 double ANT::channelValue2(int channel)
