@@ -31,6 +31,7 @@ set(ANT_SRCS
 	ANTChannel.cpp
 	antcontroller.cpp
 	ANTMessage.cpp
+	bytearraytoantmessageconverter.cpp
 	usb2antdevice.cpp)
 
 if (WIN32)
@@ -73,10 +74,21 @@ add_executable(indoorcycling main.cpp)
 qt5_use_modules(indoorcycling Widgets)
 target_link_libraries(indoorcycling mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
 
-# test executables
-add_executable(test_modelclasses reallivevideotest.cpp)
-target_link_libraries(test_modelclasses mainlib ${QT_LIBRARIES} ${Qt5Test_LIBRARIES} ${EXTRA_LIBRARIES})
-
 add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp)
 target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
+
+# Prepare for testing.
+add_subdirectory(ext/gtest)
+enable_testing()
+include_directories(${GTEST_INCLUDE_DIRS})
+
+file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/*test.cpp)
+add_executable(indoorcycling_tests ${TEST_SRC_FILES})
+add_dependencies(indoorcycling_tests googletest)
+target_link_libraries(indoorcycling_tests mainlib
+	${GTEST_LIBS_DIR}/libgtest.a
+	${GTEST_LIBS_DIR}/libgtest_main.a
+	${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
+add_test(indoorcycling_tests indoorcycling_tests)
+
 

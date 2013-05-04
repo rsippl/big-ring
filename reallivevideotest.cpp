@@ -1,10 +1,11 @@
-#include <QtTest/QTest>
+#include "gtest/gtest.h"
+
 #include "reallivevideo.h"
 
-class TestQString: public QObject
+class RealLiveVideoTest: public ::testing::Test
  {
-	 Q_OBJECT
- private slots:
+public:
+
 	void testProfileEntryDefault();
 	void testProfileEntry();
 
@@ -15,60 +16,60 @@ class TestQString: public QObject
 	void testVideoInformation();
 };
 
-void TestQString::testProfileEntryDefault()
+TEST_F(RealLiveVideoTest, testProfileEntryDefault)
 {
 	ProfileEntry entry;
-	QCOMPARE(entry.distance(), 0.0f);
-	QCOMPARE(entry.slope(), 0.0f);
+	EXPECT_FLOAT_EQ(0, entry.distance());
+	EXPECT_FLOAT_EQ(0, entry.slope());
 }
 
-void TestQString::testProfileEntry()
+TEST_F(RealLiveVideoTest, testProfileEntry)
 {
 	ProfileEntry entry(1.23f, 0, 8.23f, .25f);
-	QCOMPARE(entry.distance(), 1.23f);
-	QCOMPARE(entry.slope(), 8.23f);
+	EXPECT_FLOAT_EQ(1.23f, entry.distance());
+	EXPECT_FLOAT_EQ(8.23f, entry.slope());
+	EXPECT_FLOAT_EQ(0, entry.totalDistance());
+	EXPECT_FLOAT_EQ(.25f, entry.altitude());
 }
 
-void TestQString::testProfileDefault()
+TEST_F(RealLiveVideoTest, testProfileDefault)
 {
 	Profile profile;
 
-	QCOMPARE(profile.startAltitude(), 0.0f);
-	QCOMPARE(profile.slopeForDistance(0.0), 0.0f);
-	QCOMPARE(profile.slopeForDistance(10.0), 0.0f);
+	EXPECT_FLOAT_EQ(0, profile.startAltitude());
+	EXPECT_FLOAT_EQ(0, profile.slopeForDistance(0.0));
+	EXPECT_FLOAT_EQ(0, profile.slopeForDistance(10.0));
 }
 
-void TestQString::testProfile()
+TEST_F(RealLiveVideoTest, testProfile)
 {
 	QList<ProfileEntry> entries;
 	entries << ProfileEntry(1.0, 0.0, 1.0, 0.0);
 	entries << ProfileEntry(1.0, 1.0, 2.0, 0.01);
 	Profile profile(SLOPE, 12, entries);
 
-	QCOMPARE(profile.startAltitude(), 12.0f);
+	EXPECT_FLOAT_EQ(12.0f, profile.startAltitude());
 
-	QCOMPARE(profile.slopeForDistance(1.1), 2.0f);
-	QCOMPARE(profile.slopeForDistance(0.5), 1.0f);
+	EXPECT_FLOAT_EQ(2.0f, profile.slopeForDistance(1.1));
+	EXPECT_FLOAT_EQ( 1.0f,profile.slopeForDistance(0.5));
 
-	QCOMPARE(profile.altitudeForDistance(0.0f), 12.0f);
-	QCOMPARE(profile.altitudeForDistance(1.0f), 12.01f);
-	QCOMPARE(profile.altitudeForDistance(2.0f), 12 + 0.01f + 0.02f);
-	QCOMPARE(profile.altitudeForDistance(1.5f), 12 + 0.01f + 0.01f);
+	EXPECT_FLOAT_EQ(12.0f, profile.altitudeForDistance(0.0f));
+	EXPECT_FLOAT_EQ(12.01f, profile.altitudeForDistance(1.0f));
+	EXPECT_FLOAT_EQ(12 + 0.01f + 0.02f, profile.altitudeForDistance(2.0f));
+	EXPECT_FLOAT_EQ(12 + 0.01f + 0.01f, profile.altitudeForDistance(1.5f));
 }
 
-void TestQString::testVideoInformationDefault()
+TEST_F(RealLiveVideoTest, testVideoInformationDefault)
 {
 	VideoInformation info;
-	QCOMPARE(0.0f, info.frameRate());
-	QCOMPARE(info.videoFilename(), QString(""));
+	EXPECT_FLOAT_EQ(0.0f, info.frameRate());
+	EXPECT_EQ(QString(""), info.videoFilename());
 }
 
-void TestQString::testVideoInformation()
+TEST_F(RealLiveVideoTest, testVideoInformation)
 {
 	VideoInformation info("VideoFile", 29.97f);
-	QCOMPARE(29.97f, info.frameRate());
-	QCOMPARE(info.videoFilename(), QString("VideoFile"));
+	EXPECT_FLOAT_EQ(29.97f, info.frameRate());
+	EXPECT_EQ(QString("VideoFile"), info.videoFilename());
 }
 
-QTEST_MAIN(TestQString)
-#include "reallivevideotest.moc"
