@@ -28,6 +28,7 @@
 #include <QStringList>
 #include <QFile>
 #include <QSharedPointer>
+#include <QTimer>
 
 #include <QDebug>
 
@@ -220,25 +221,19 @@ public slots:
 
 	/** Initialize ANT+ device */
 	void initialize();
+
 	/** Perform a read cycle, should be called every 25 ms or so. */
 	void readCycle();
 
 private slots:
+	void sendNetworkKey();
 	void channelInfo(int number, int device_number, int device_id);  // found a device
 	void dropInfo(int number, int drops, int received);    // we dropped a connection
 	void lostInfo(int number);    // we lost informa
 	void staleInfo(int number);   // info is now stale
 	void slotSearchTimeout(int number); // search timed out
 	void slotSearchComplete(int number); // search completed successfully
-
 public:
-	// debug enums
-	enum { DEBUG_LEVEL_ERRORS=1,
-		   DEBUG_LEVEL_ANT_CONNECTION=2,
-		   DEBUG_LEVEL_ANT_MESSAGES=4,
-		   DEBUG_LEVEL_CONFIG_PARSE=8
-		 };
-
 	static const ant_sensor_type_t ant_sensor_types[];
 	ANTChannel *antChannel[ANT_MAX_CHANNELS];
 
@@ -258,21 +253,16 @@ public:
 	QByteArray rawRead();
 	int rawWrite(QByteArray& bytes);
 
-	// channels update our telemetry
-	double channelValue(int channel);
-	double channelValue2(int channel);
 
 private:
+	void configureDeviceChannels();
+
 	static int interpretSuffix(char c); // utility to convert e.g. 'c' to CHANNEL_TYPE_CADENCE
 	static const char *deviceTypeDescription(int type); // utility to convert CHANNEL_TYPE_XXX to human string
 	static char deviceTypeCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
 	static char deviceIdCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
 
-	bool configuring; // set to true if we're in configuration mode.
 	int channels;  // how many 4 or 8 ? depends upon the USB stick...
-
-	// telemetry and state
-	QStringList antIDs;
 
 	indoorcycling::AntDeviceFinder* _antDeviceFinder;
 	QSharedPointer<indoorcycling::AntDevice> antDevice;
@@ -290,6 +280,7 @@ private:
 
 	// antlog.bin ant message stream
 	QFile antlog;
+	QTimer _initializiationTimer;
 };
 
 #endif

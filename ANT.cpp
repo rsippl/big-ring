@@ -38,10 +38,6 @@
 #include <QtDebug>
 #include <QThread>
 
-/* Control status */
-#define ANT_RUNNING  0x01
-#define ANT_PAUSED   0x02
-
 namespace {
 // network key
 const unsigned char networkKey[8] = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
@@ -121,16 +117,6 @@ ANT::~ANT()
 	qDebug() << "destroying ant" << QThread::currentThreadId();
 }
 
-double ANT::channelValue2(int channel)
-{
-	return antChannel[channel]->channelValue2();
-}
-
-double ANT::channelValue(int channel)
-{
-	return antChannel[channel]->channelValue();
-}
-
 /*======================================================================
  * Main thread functions; start, stop etc
  *====================================================================*/
@@ -158,34 +144,28 @@ void ANT::initialize()
 		emit initializationFailed();
 		return;
 	}
-	qDebug() << "valid";
 	antlog.setFileName("antlog.bin");
 	antlog.open(QIODevice::WriteOnly | QIODevice::Truncate);
 
 	sendMessage(ANTMessage::resetSystem());
+	// wait for 500ms before sending network key.
+	_initializiationTimer.singleShot(500, this, SLOT(sendNetworkKey()));
+}
+
+void ANT::sendNetworkKey()
+{
 	sendMessage(ANTMessage::setNetworkKey(1, networkKey));
 
-	// pair with specified devices on next available channel
-	if (antIDs.count()) {
+	configureDeviceChannels();
+}
 
-		foreach(QString antid, antIDs) {
+void ANT::configureDeviceChannels()
+{
+	addDevice(0, ANTChannel::CHANNEL_TYPE_SandC, 0);
+	addDevice(0, ANTChannel::CHANNEL_TYPE_POWER, 1);
+	addDevice(0, ANTChannel::CHANNEL_TYPE_CADENCE, 2);
+	addDevice(0, ANTChannel::CHANNEL_TYPE_HR, 3);
 
-			if (antid.length()) {
-				unsigned char c = antid.at(antid.length()-1).toLatin1();
-				int ch_type = interpretSuffix(c);
-				int device_number = antid.mid(0, antid.length()-1).toInt();
-
-				addDevice(device_number, ch_type, -1);
-			}
-		}
-
-	} else {
-		// not configured, just pair with whatever you can find
-		addDevice(0, ANTChannel::CHANNEL_TYPE_SandC, 0);
-		addDevice(0, ANTChannel::CHANNEL_TYPE_POWER, 1);
-		addDevice(0, ANTChannel::CHANNEL_TYPE_CADENCE, 2);
-		addDevice(0, ANTChannel::CHANNEL_TYPE_HR, 3);
-	}
 	emit initializationSucceeded();
 }
 
