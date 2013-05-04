@@ -52,6 +52,9 @@ Usb2AntDevice::Usb2AntDevice(QObject *parent) :
 
 Usb2AntDevice::~Usb2AntDevice()
 {
+	// no need to handle any new transfers.
+	_transferTimer->stop();
+
 	// Cancel the current transfer and wait for it to cancelled. Simply
 	// continuing after libusb_cancel_transfer() would mean the transfer
 	// would be freed in-flight.
