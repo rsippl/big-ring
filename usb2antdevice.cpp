@@ -52,9 +52,13 @@ Usb2AntDevice::Usb2AntDevice(QObject *parent) :
 
 Usb2AntDevice::~Usb2AntDevice()
 {
-	if (_currentTransfer)
+	// Cancel the current transfer and wait for it to cancelled. Simply
+	// continuing after libusb_cancel_transfer() would mean the transfer
+	// would be freed in-flight.
+	while (_currentTransfer) {
 		libusb_cancel_transfer(_currentTransfer);
-	// cancel all pending transfers.
+		libusb_handle_events_completed(_context, NULL);
+	}
 	if (_deviceHandle) {
 		libusb_release_interface(_deviceHandle, INTERFACE_NR);
 		if (_wasAttached)
@@ -143,13 +147,16 @@ void Usb2AntDevice::writeReady(libusb_transfer *)
 {
 	libusb_free_transfer(_currentTransfer);
 	_currentTransfer = NULL;
+
 	_writeBuffer.clear();
 }
 
 void Usb2AntDevice::readReady(libusb_transfer *)
 {
-	_bytesRead.append(_readBuffer.left(_currentTransfer->actual_length));
-	_readBuffer.fill('\0');
+	if (_currentTransfer->status == LIBUSB_TRANSFER_COMPLETED) {
+		_bytesRead.append(_readBuffer.left(_currentTransfer->actual_length));
+		_readBuffer.fill('\0');
+	}
 
 	libusb_free_transfer(_currentTransfer);
 	_currentTransfer = NULL;
