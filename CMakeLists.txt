@@ -31,7 +31,7 @@ set(ANT_SRCS
 	ANTChannel.cpp
 	antcontroller.cpp
 	ANTMessage.cpp
-	bytearraytoantmessageconverter.cpp
+	antmessagegatherer.cpp
 	usb2antdevice.cpp)
 
 if (WIN32)
@@ -82,7 +82,7 @@ add_subdirectory(ext/gtest)
 enable_testing()
 include_directories(${GTEST_INCLUDE_DIRS})
 
-file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/*test.cpp)
+file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*test.cpp)
 add_executable(indoorcycling_tests ${TEST_SRC_FILES})
 add_dependencies(indoorcycling_tests googletest)
 target_link_libraries(indoorcycling_tests mainlib
