@@ -127,7 +127,7 @@ bool UnixSerialUsbAnt::isGarminUsb1Stick(const QFileInfo& fileInfo)
 int UnixSerialUsbAnt::openConnection()
 {
 	int ldisc=N_TTY; // LINUX
-	if ((_nativeDeviceHandle=open(_deviceFileInfo.absoluteFilePath().toAscii(),O_RDWR | O_NOCTTY | O_NONBLOCK)) == -1)
+	if ((_nativeDeviceHandle=open(qPrintable(_deviceFileInfo.absoluteFilePath()),O_RDWR | O_NOCTTY | O_NONBLOCK)) == -1)
 		return errno;
 
 	tcflush(_nativeDeviceHandle, TCIOFLUSH); // clear out the garbage
