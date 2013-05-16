@@ -11,6 +11,7 @@ find_package(Qt5Gui REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 find_package(Qt5Test REQUIRED)
 find_package(OpenGL)
+find_package(Threads)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 find_package(FFMPEG REQUIRED)
@@ -88,7 +89,7 @@ add_dependencies(indoorcycling_tests googletest)
 target_link_libraries(indoorcycling_tests mainlib
 	${GTEST_LIBS_DIR}/libgtest.a
 	${GTEST_LIBS_DIR}/libgtest_main.a
-	${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
+	${QT_LIBRARIES} ${Qt5Test_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 add_test(indoorcycling_tests indoorcycling_tests)
 
 

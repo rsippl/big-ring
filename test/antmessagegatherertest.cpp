@@ -1,7 +1,8 @@
 #include "gtest/gtest.h"
 #include "antmessagegatherer.h"
 #include "ANT.h"
-#include <QSignalSpy>
+#include <QtTest/QTestEventLoop>
+#include <QtTest/QSignalSpy>
 
 class AntMessageGathererTest: public ::testing::Test
 {
