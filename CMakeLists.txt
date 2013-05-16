@@ -9,13 +9,12 @@ find_package(Qt5Core REQUIRED)
 find_package(Qt5Concurrent REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
-#find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui REQUIRED)
+find_package(Qt5Test REQUIRED)
+find_package(OpenGL)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 find_package(FFMPEG REQUIRED)
 find_package(LIBUSB-1 REQUIRED)
-#include(${QT_USE_FILE})
-message("qt5 core: (${Qt5OpenGL_DEFINITIONS}")
 include_directories(${Qt5Concurrent_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${FFMPEG_INCLUDE_PATHS} ${CMAKE_SOURCE_DIR}/thirdparty/include ${LIBUSB_1_INCLUDE_DIRS})
 link_directories(${FFMPEG_LIBRARY_DIR})
 add_definitions(${Qt5Widgets_DEFINITIONS} ${Qt5OpenGL_DEFINITIONS})
@@ -43,7 +42,7 @@ else()
 	set(ANT_SRCS ${ANT_SRCS} unixserialusbant.cpp)
 endif()
 
-set(EXTRA_LIBRARIES ${EXTRA_LIBRARIES} ${LIBUSB_1_LIBRARIES})
+set(EXTRA_LIBRARIES ${EXTRA_LIBRARIES} ${LIBUSB_1_LIBRARIES} ${OPENGL_LIBRARY})
 include_directories(${QT_INCLUDE_DIR} ${FFMPEG_INCLUDE_PATHS} ${USBXPRESS_INCLUDE_PATH})
 link_directories(${FFMPEG_LIBRARY_DIR} ${USBXPRESS_LIB_DIR})
 
@@ -67,15 +66,16 @@ set(UI_FILES
 add_definitions(-DGLEW_STATIC)
 qt5_wrap_ui(UI_SRCS ${UI_FILES})
 
+set(QT_LIBRARIES ${Qt5OpenGL_LIBRARIES} ${Qt5Concurrent_LIBRARIES} ${Qt5Widgets_LIBRARIES})
 add_library(mainlib ${ANT_SRCS} ${SRCS} ${UI_SRCS})
 
 add_executable(indoorcycling main.cpp)
 qt5_use_modules(indoorcycling Widgets)
-target_link_libraries(indoorcycling mainlib ${Qt5OpenGL_LIBRARIES} ${Qt5Concurrent_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
+target_link_libraries(indoorcycling mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
 
 # test executables
 add_executable(test_modelclasses reallivevideotest.cpp)
-target_link_libraries(test_modelclasses mainlib ${QT_LIBRARIES} ${EXTRA_LIBRARIES})
+target_link_libraries(test_modelclasses mainlib ${QT_LIBRARIES} ${Qt5Test_LIBRARIES} ${EXTRA_LIBRARIES})
 
 add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp)
 target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})

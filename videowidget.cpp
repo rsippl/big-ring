@@ -160,8 +160,9 @@ void VideoWidget::loadTexture()
 
 void VideoWidget::paintGL()
 {
-	_index = (_index + 1) % _pixelBufferObjects.size();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	_index = (_index + 1) % _pixelBufferObjects.size();
 
 	if (_currentFrame.data.isNull()) {
 		return;

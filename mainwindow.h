@@ -1,8 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QPushButton>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QPushButton>
 #include <QTime>
 #include <QTimer>
 
@@ -10,10 +10,10 @@
 #include "reallivevideo.h"
 #include "simulation.h"
 
-#include <QLabel>
-#include <QListWidget>
-#include <QBoxLayout>
-#include <QSystemTrayIcon>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QBoxLayout>
+#include <QtWidgets/QSystemTrayIcon>
 
 class ANTController;
 class RealLiveVideoImporter;
@@ -34,6 +34,7 @@ signals:
 
 protected:
 	virtual void keyPressEvent(QKeyEvent *);
+	virtual void closeEvent(QCloseEvent *);
 
 private slots:
 	void rlvSelected(RealLiveVideo rlv);

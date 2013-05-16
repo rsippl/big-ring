@@ -2,9 +2,9 @@
 #define VIDEOWIDGET_H
 
 #include <GL/glew.h>
-#include <QTimer>
-#include <QGLWidget>
-#include <QVector>
+#include <QtCore/QTimer>
+#include <QtOpenGL/QGLWidget>
+#include <QtCore/QVector>
 
 #include "videodecoder.h"
 /**
@@ -23,9 +23,9 @@ public:
 	/** Display a frame */
 	void displayFrame(Frame &frame);
 	void clearOpenGLBuffers();
-        void paintFrame();
-        void loadNextFrameToPixelBuffer();
-        void loadTexture();
+	void paintFrame();
+	void loadNextFrameToPixelBuffer();
+	void loadTexture();
 public slots:
 	void setFrameRate(quint32 frameRate);
 

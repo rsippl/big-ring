@@ -1,4 +1,4 @@
-#include <QTest>
+#include <QtTest/QTest>
 #include "reallivevideo.h"
 
 class TestQString: public QObject
