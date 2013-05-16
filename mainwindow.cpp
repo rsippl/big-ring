@@ -6,12 +6,8 @@
 #include "videocontroller.h"
 #include "videowidget.h"
 
-#include <QPushButton>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QListWidget>
-#include <QKeyEvent>
-#include <QWidget>
+#include <QtWidgets/QApplication>
+#include <QtGui/QKeyEvent>
 
 #define  _GNU_SOURCE 1
 #include <cmath>
@@ -32,7 +28,8 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, Cyclist& cyclist, co
 
 	setCentralWidget(centralWidget);
 
-	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), &_simulation, SLOT(rlvSelected(RealLiveVideo)));
+	connect(rlvListWidget, &RlvListWidget::realLiveVideoSelected,
+			&_simulation, &Simulation::rlvSelected);
 	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoController, SLOT(realLiveVideoSelected(RealLiveVideo)));
 	QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
 	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
@@ -40,6 +37,7 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, Cyclist& cyclist, co
 					 &_simulation, SLOT(courseSelected(int)));
 	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
 					 videoController, SLOT(courseSelected(int)));
+
 
 	connect(playButton, SIGNAL(clicked(bool)), &_simulation, SLOT(play(bool)));
 
@@ -246,4 +244,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 			_simulation.play(true);
 		}
 	}
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+	event->accept();
 }

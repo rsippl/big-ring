@@ -1,6 +1,6 @@
 
 
-#include <QApplication>
+#include <QtWidgets/QApplication>
 #include <QtDebug>
 #include "antcontroller.h"
 #include "reallivevideoimporter.h"
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 	}
 
 	mw.show();
-
+	app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
 	parser.parseRealLiveVideoFilesFromDir(filename);
 
 	app.exec();
