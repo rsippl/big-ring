@@ -38,7 +38,7 @@ float calculateGravityForce(const Cyclist& cyclist, float grade)
 
 
 Simulation::Simulation(Cyclist &cyclist, QObject *parent) :
-	QObject(parent), _lastElapsed(0), _idleTime(),_cyclist(cyclist)
+	QObject(parent), _lastElapsed(0), _simulationTime(0,0,0), _idleTime(),_cyclist(cyclist)
 {
 	_simulationUpdateTimer.setInterval(20);
 	connect(&_simulationUpdateTimer, SIGNAL(timeout()), SLOT(simulationStep()));
@@ -116,13 +116,13 @@ float Simulation::calculateSpeed(quint64 timeDelta)
 		if (_cyclist.speed() < MINIMUM_SPEED)
 			return 0;
 
-		// let the cyclist slow down and stop running after 3 seconds.
+		// let the cyclist slow down and stop running after MAX_IDLE_TIME.
 		_idleTime = _idleTime.addMSecs(timeDelta);
 
 		if (_idleTime > MAX_IDLE_TIME)
 			return 0;
 	} else {
-		_idleTime = QTime();
+		_idleTime = QTime(0,0,0);
 	}
 
 	// if speed is very low, use cyclist weight, otherwise force gets very high. Is there
@@ -145,7 +145,7 @@ float Simulation::calculateSpeed(quint64 timeDelta)
 void Simulation::reset()
 {
 	play(false);
-	_runTime = QTime();
+	_runTime = QTime(0, 0, 0);
 	emit runTimeChanged(_runTime);
 	_cyclist.setSpeed(0);
 	_cyclist.setDistance(0);
