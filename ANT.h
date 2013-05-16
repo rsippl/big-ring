@@ -190,6 +190,7 @@ struct setChannelAtom {
 #define ANT_SPORT_AUTOZERO_OFF                        0x00
 #define ANT_SPORT_AUTOZERO_ON                         0x01
 
+class AntMessageGatherer;
 //======================================================================
 // Worker thread
 //======================================================================
@@ -227,6 +228,7 @@ public slots:
 
 private slots:
 	void sendNetworkKey();
+	void processMessage(QByteArray message);
 	void channelInfo(int number, int device_number, int device_id);  // found a device
 	void dropInfo(int number, int drops, int received);    // we dropped a connection
 	void lostInfo(int number);    // we lost informa
@@ -246,13 +248,10 @@ public:
 
 	// transmission
 	void sendMessage(ANTMessage);
-	void receiveByte(unsigned char byte);
-	void handleChannelEvent(void);
-	void processMessage(void);
+	void handleChannelEvent(QByteArray &message);
 
 	QByteArray rawRead();
 	int rawWrite(QByteArray& bytes);
-
 
 private:
 	void configureDeviceChannels();
@@ -266,8 +265,6 @@ private:
 
 	indoorcycling::AntDeviceFinder* _antDeviceFinder;
 	QSharedPointer<indoorcycling::AntDevice> antDevice;
-	unsigned char rxMessage[ANT_MAX_MESSAGE_SIZE];
-
 	// state machine whilst receiving bytes
 	enum States {ST_WAIT_FOR_SYNC, ST_GET_LENGTH, ST_GET_MESSAGE_ID, ST_GET_DATA, ST_VALIDATE_PACKET} state;
 	//enum States state;
@@ -281,6 +278,7 @@ private:
 	// antlog.bin ant message stream
 	QFile antlog;
 	QTimer _initializiationTimer;
+	AntMessageGatherer* _antMessageGatherer;
 };
 
 #endif

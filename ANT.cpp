@@ -25,6 +25,7 @@
 
 #include "ANT.h"
 #include "ANTMessage.h"
+#include "antmessagegatherer.h"
 
 #include "antdevicefinder.h"
 #include "antdevice.h"
@@ -81,8 +82,11 @@ const ant_sensor_type_t ANT::ant_sensor_types[] = {
 // hardware controller.
 //
 ANT::ANT(QObject *parent): QObject(parent),
-	_antDeviceFinder(new indoorcycling::AntDeviceFinder)
+	_antDeviceFinder(new indoorcycling::AntDeviceFinder),
+	_antMessageGatherer(new AntMessageGatherer)
 {
+	connect(_antMessageGatherer, &AntMessageGatherer::antMessageReceived,
+			this, &ANT::processMessage);
 	powerchannels=0;
 
 	// state machine
@@ -177,11 +181,8 @@ void ANT::readCycle()
 		QByteArray bytes = rawRead();
 		if (bytes.isEmpty())
 			break;
-
+		_antMessageGatherer->submitBytes(bytes);
 		bytesRead = true;
-		for (int i = 0; i < bytes.size(); ++i) {
-			receiveByte((unsigned char) bytes.at(i));
-		}
 	}
 
 	if (!bytesRead)
@@ -444,100 +445,43 @@ ANT::sendMessage(ANTMessage m) {
 	rawWrite(paddingBytes);
 }
 
-void
-ANT::receiveByte(unsigned char byte) {
-
-	switch (state) {
-	case ST_WAIT_FOR_SYNC:
-		if (byte == ANT_SYNC_BYTE) {
-			state = ST_GET_LENGTH;
-			checksum = ANT_SYNC_BYTE;
-			rxMessage[0] = byte;
-		}
-		break;
-
-	case ST_GET_LENGTH:
-		if ((byte == 0) || (byte > ANT_MAX_LENGTH)) {
-			state = ST_WAIT_FOR_SYNC;
-		}
-		else {
-			rxMessage[ANT_OFFSET_LENGTH] = byte;
-			checksum ^= byte;
-			length = byte;
-			bytes = 0;
-			state = ST_GET_MESSAGE_ID;
-		}
-		break;
-
-	case ST_GET_MESSAGE_ID:
-		rxMessage[ANT_OFFSET_ID] = byte;
-		checksum ^= byte;
-		state = ST_GET_DATA;
-		break;
-
-	case ST_GET_DATA:
-		rxMessage[ANT_OFFSET_DATA + bytes] = byte;
-		checksum ^= byte;
-		if (++bytes >= length){
-			state = ST_VALIDATE_PACKET;
-		}
-		break;
-
-	case ST_VALIDATE_PACKET:
-		if (checksum == byte){
-			processMessage();
-		}
-		state = ST_WAIT_FOR_SYNC;
-		break;
-	}
-}
-
-
 //
 // Pass inbound message to channel for handling
 //
 void
-ANT::handleChannelEvent(void) {
-	int channel = rxMessage[ANT_OFFSET_DATA] & 0x7;
+ANT::handleChannelEvent(QByteArray& message) {
+	int channel = message[ANT_OFFSET_DATA] & 0x7;
 	if(channel >= 0 && channel < channels) {
-
 		// handle a channel event here!
-		antChannel[channel]->receiveMessage(rxMessage);
+		antChannel[channel]->receiveMessage((unsigned char*) message.data());
 	}
 }
 
 void
-ANT::processMessage(void) {
-
-	ANTMessage m(this, rxMessage); // for debug!
-
-	//fprintf(stderr, "<< receive: ");
-	//for(int i=0; i<m.length+3; i++) fprintf(stderr, "%02x ", m.data[i]);
-	//fprintf(stderr, "\n");
-
+ANT::processMessage(QByteArray message) {
 	QDataStream out(&antlog);
 	for (int i=0; i<ANT_MAX_MESSAGE_SIZE; i++)
-		out<<rxMessage[i];
+		out<< message;
 
 
-	switch (rxMessage[ANT_OFFSET_ID]) {
+	switch (message[ANT_OFFSET_ID]) {
 	case ANT_ACK_DATA:
 	case ANT_BROADCAST_DATA:
 	case ANT_CHANNEL_STATUS:
 	case ANT_CHANNEL_ID:
 	case ANT_BURST_DATA:
-		handleChannelEvent();
+		handleChannelEvent(message);
 		break;
 
 	case ANT_CHANNEL_EVENT:
-		switch (rxMessage[ANT_OFFSET_MESSAGE_CODE]) {
+		switch (message[ANT_OFFSET_MESSAGE_CODE]) {
 		case EVENT_TRANSFER_TX_FAILED:
 			//XXX remember last message ... ANT_SendAckMessage();
 			break;
 		case EVENT_TRANSFER_TX_COMPLETED:
 			// fall through
 		default:
-			handleChannelEvent();
+			handleChannelEvent(message);
 		}
 		break;
 
