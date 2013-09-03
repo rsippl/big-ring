@@ -1,0 +1,6 @@
+<RCC>
+    <qresource lang="qml" prefix="/">
+        <file>qml/SufferfestPlayer/main.qml</file>
+        <file>qml/SufferfestPlayer/Gauge.qml</file>
+    </qresource>
+</RCC>
