@@ -9,9 +9,8 @@
 int main(int argc, char *argv[])
 {
 	QGuiApplication app(argc, argv);
-
+	app.setOverrideCursor(Qt::BlankCursor);
 	QQuickView viewer;
-	app.setQuitOnLastWindowClosed(false);
 
 	Game game;
 	ANTController antController;
@@ -26,7 +25,5 @@ int main(int argc, char *argv[])
 	p.start(command);
 	viewer.showFullScreen();
 
-	QObject::connect(&app, SIGNAL(lastWindowClosed()), &antController, SLOT(quit()));
-	QObject::connect(&antController, SIGNAL(finished()), &app, SLOT(quit()));
 	return app.exec();
 }
