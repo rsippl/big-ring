@@ -77,12 +77,12 @@ Rectangle {
         }
         Gauge {
             width: metrics.width / metrics.children.length
-            text: "300 W"
+            text: ant.power
             textColor: "red"
         }
         Gauge {
             width: metrics.width / metrics.children.length
-            text: "93 RPM"
+            text: ant.cadence
             textColor: "pink"
         }
     }
