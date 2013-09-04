@@ -18,7 +18,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 find_package(FFMPEG REQUIRED)
 find_package(LIBUSB-1 REQUIRED)
-include_directories(${Qt5Concurrent_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${FFMPEG_INCLUDE_PATHS} ${CMAKE_SOURCE_DIR}/thirdparty/include ${LIBUSB_1_INCLUDE_DIRS})
+include_directories(${Qt5Concurrent_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5Quick_INCLUDE_DIRS} ${FFMPEG_INCLUDE_PATHS} ${CMAKE_SOURCE_DIR}/thirdparty/include ${LIBUSB_1_INCLUDE_DIRS})
 link_directories(${FFMPEG_LIBRARY_DIR})
 add_definitions(${Qt5Widgets_DEFINITIONS} ${Qt5OpenGL_DEFINITIONS})
 
@@ -90,7 +90,7 @@ target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTR
 # for Sufferfest Player
 qt5_add_resources(sufferfest_resources resources.qrc)
 
-add_executable(sufferfestplayer sufferfestplayer.cpp game.cpp ${sufferfest_resources})
+add_executable(sufferfestplayer sufferfestplayer.cpp game.cpp moviefiledroparea.cpp ${sufferfest_resources})
 target_link_libraries(sufferfestplayer antlib ${EXTRA_LIBRARIES} ${QT_LIBRARIES})
 
 # Prepare for testing.

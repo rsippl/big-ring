@@ -1,12 +1,22 @@
 import QtQuick 2.0
 import QtMultimedia 5.0
+import SufferfestPlayer 0.1
 
 Rectangle {
     color: "black"
 
     MediaPlayer {
         id: player
-        source: "file:///home/ibooij/Downloads/TheSufferfestRevolver2013 (1)/TheSuffefestRevolver2013.mp4"
+//        source: "file:///home/ibooij/Downloads/TheSufferfestRevolver2013 (1)/TheSuffefestRevolver2013.mp4"
+    }
+
+    MovieFileDropArea {
+        anchors.fill: parent
+
+        onMovieDragged: {
+            console.debug("dropped: " + url)
+            player.source = url
+        }
     }
 
     VideoOutput {
