@@ -12,8 +12,8 @@ class ANTController : public QObject
 {
 	Q_OBJECT
 	Q_PROPERTY(quint8 heartRate READ heartRate NOTIFY heartRateMeasured)
-	Q_PROPERTY(quint8 cadence READ cadence NOTIFY cadenceMeasured)
-	Q_PROPERTY(quint8 power READ power NOTIFY powerMeasured)
+	Q_PROPERTY(float cadence READ cadence NOTIFY cadenceMeasured)
+	Q_PROPERTY(float power READ power NOTIFY powerMeasured)
 public:
 	explicit ANTController(QObject *parent = 0);
 	virtual ~ANTController();
