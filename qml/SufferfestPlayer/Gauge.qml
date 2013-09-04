@@ -5,7 +5,8 @@ Rectangle {
     height: textBox.paintedHeight + 10
     color: "transparent"
     property string textColor: "red"
-    property string text: ""
+    property string suffix: ""
+    property variant value
 
     Rectangle {
         anchors.fill: parent
@@ -17,10 +18,10 @@ Rectangle {
     Text {
         id: textBox
         anchors.centerIn: parent
-        color: parent.textColor;
+        color: parent.textColor
         font.pointSize: 36
         font.bold: true
-        text: parent.text
+        text: parent.value + " " + parent.suffix
     }
 
 }

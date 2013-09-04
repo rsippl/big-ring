@@ -72,17 +72,20 @@ Rectangle {
 
         Gauge {
             width: metrics.width / metrics.children.length
-            text: ant.heartRate
+            value: ant.heartRate
+            suffix: "bpm"
             textColor: "blue"
         }
         Gauge {
             width: metrics.width / metrics.children.length
-            text: ant.power
+            value: ant.power
+            suffix: "W"
             textColor: "red"
         }
         Gauge {
             width: metrics.width / metrics.children.length
-            text: ant.cadence
+            value: ant.cadence
+            suffix: "rpm"
             textColor: "pink"
         }
     }
@@ -91,7 +94,6 @@ Rectangle {
 
     function timeChanged() {
         clockText.text = Qt.formatTime(game.gameTime, "HH:mm:ss");
-        console.debug(ant.heartRate)
     }
 
     Timer {
