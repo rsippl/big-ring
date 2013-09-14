@@ -12,19 +12,19 @@ class ANTController : public QObject
 {
 	Q_OBJECT
 	Q_PROPERTY(quint8 heartRate READ heartRate NOTIFY heartRateMeasured)
-	Q_PROPERTY(float cadence READ cadence NOTIFY cadenceMeasured)
-	Q_PROPERTY(float power READ power NOTIFY powerMeasured)
+	Q_PROPERTY(quint8 cadence READ cadence NOTIFY cadenceMeasured)
+	Q_PROPERTY(quint16 power READ power NOTIFY powerMeasured)
 public:
 	explicit ANTController(QObject *parent = 0);
 	virtual ~ANTController();
 	
 	quint8 heartRate() const;
-	float power() const;
-	float cadence() const;
+	quint16 power() const;
+	quint8 cadence() const;
 signals:
 	void heartRateMeasured(quint8 bpm);
-	void powerMeasured(float power);
-	void cadenceMeasured(float cadence);
+	void powerMeasured(quint16 power);
+	void cadenceMeasured(quint8 cadence);
 
 	void deviceFound(QString description);
 
@@ -39,8 +39,8 @@ private:
 	void initialize();
 
 	quint8 _heartRate;
-	float _power;
-	float _cadence;
+	quint16 _power;
+	quint8 _cadence;
 
 	QThread* antThread;
 	ANT* const ant;

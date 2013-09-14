@@ -25,12 +25,12 @@ quint8 ANTController::heartRate() const
 	return _heartRate;
 }
 
-float ANTController::power() const
+quint16 ANTController::power() const
 {
 	return _power;
 }
 
-float ANTController::cadence() const
+quint8 ANTController::cadence() const
 {
 	return _cadence;
 }
@@ -70,13 +70,13 @@ void ANTController::heartRateReceived(quint8 bpm)
 
 void ANTController::cadenceReceived(float cadence)
 {
-	_cadence = cadence;
-	emit cadenceMeasured(cadence);
+	_cadence = static_cast<quint8>(cadence);
+	emit cadenceMeasured(_cadence);
 }
 
 void ANTController::powerReceived(float power)
 {
-	_power = power;
-	emit powerMeasured(power);
+	_power = static_cast<quint16>(power);
+	emit powerMeasured(_power);
 }
 
