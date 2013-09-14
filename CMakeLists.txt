@@ -10,13 +10,15 @@ find_package(Qt5Concurrent REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 find_package(Qt5Test REQUIRED)
+find_package(Qt5Qml REQUIRED)
+find_package(Qt5Quick REQUIRED)
 find_package(OpenGL)
 find_package(Threads)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 find_package(FFMPEG REQUIRED)
 find_package(LIBUSB-1 REQUIRED)
-include_directories(${Qt5Concurrent_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${FFMPEG_INCLUDE_PATHS} ${CMAKE_SOURCE_DIR}/thirdparty/include ${LIBUSB_1_INCLUDE_DIRS})
+include_directories(${Qt5Concurrent_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5Quick_INCLUDE_DIRS} ${FFMPEG_INCLUDE_PATHS} ${CMAKE_SOURCE_DIR}/thirdparty/include ${LIBUSB_1_INCLUDE_DIRS})
 link_directories(${FFMPEG_LIBRARY_DIR})
 add_definitions(${Qt5Widgets_DEFINITIONS} ${Qt5OpenGL_DEFINITIONS})
 
@@ -68,15 +70,28 @@ set(UI_FILES
 add_definitions(-DGLEW_STATIC)
 qt5_wrap_ui(UI_SRCS ${UI_FILES})
 
-set(QT_LIBRARIES ${Qt5OpenGL_LIBRARIES} ${Qt5Concurrent_LIBRARIES} ${Qt5Widgets_LIBRARIES})
-add_library(mainlib ${ANT_SRCS} ${SRCS} ${UI_SRCS})
+set(QT_LIBRARIES
+	 ${Qt5OpenGL_LIBRARIES}
+	 ${Qt5Concurrent_LIBRARIES}
+	 ${Qt5Widgets_LIBRARIES}
+	 ${Qt5Qml_LIBRARIES}
+	 ${Qt5Quick_LIBRARIES})
+
+add_library(antlib ${ANT_SRCS})
+add_library(mainlib ${SRCS} ${UI_SRCS})
 
 add_executable(indoorcycling main.cpp)
 qt5_use_modules(indoorcycling Widgets)
-target_link_libraries(indoorcycling mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
+target_link_libraries(indoorcycling antlib mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
 
 add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp)
 target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
+
+# for Sufferfest Player
+qt5_add_resources(sufferfest_resources resources.qrc)
+
+add_executable(sufferfestplayer sufferfestplayer.cpp game.cpp moviefiledroparea.cpp ${sufferfest_resources})
+target_link_libraries(sufferfestplayer antlib ${EXTRA_LIBRARIES} ${QT_LIBRARIES})
 
 # Prepare for testing.
 add_subdirectory(ext/gtest)
@@ -86,10 +101,11 @@ include_directories(${GTEST_INCLUDE_DIRS})
 file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*test.cpp)
 add_executable(indoorcycling_tests ${TEST_SRC_FILES})
 add_dependencies(indoorcycling_tests googletest)
-target_link_libraries(indoorcycling_tests mainlib
+target_link_libraries(indoorcycling_tests antlib mainlib
 	${GTEST_LIBS_DIR}/libgtest.a
 	${GTEST_LIBS_DIR}/libgtest_main.a
 	${QT_LIBRARIES} ${Qt5Test_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 add_test(indoorcycling_tests indoorcycling_tests)
+
 
 
