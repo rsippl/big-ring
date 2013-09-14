@@ -21,8 +21,8 @@ int main(int argc, char *argv[])
 	MainWindow mw(parser, cyclist, antController);
 
 	app.connect(&antController, SIGNAL(heartRateMeasured(quint8)), &cyclist, SLOT(setHeartRate(quint8)));
-	app.connect(&antController, SIGNAL(cadenceMeasured(float)), &cyclist, SLOT(setCadence(float)));
-	app.connect(&antController, SIGNAL(powerMeasured(float)), &cyclist, SLOT(setPower(float)));
+	app.connect(&antController, SIGNAL(cadenceMeasured(quint8)), &cyclist, SLOT(setCadence(quint8)));
+	app.connect(&antController, SIGNAL(powerMeasured(quint16)), &cyclist, SLOT(setPower(quint16)));
 
 	if (argc >= 3) {
 		QString robot(argv[2]);

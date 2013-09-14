@@ -22,8 +22,8 @@ public:
 
 public slots:
 	void setHeartRate(quint8 heartRate);
-	void setCadence(float cadence);
-	void setPower(float power);
+	void setCadence(quint8 cadence);
+	void setPower(quint16 power);
 
 signals:
 	void heartRateChanged(quint8 heartRate);

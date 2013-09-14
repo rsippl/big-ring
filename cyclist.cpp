@@ -67,13 +67,13 @@ void Cyclist::setHeartRate(quint8 heartRate)
 	emit heartRateChanged(heartRate);
 }
 
-void Cyclist::setCadence(float cadence)
+void Cyclist::setCadence(quint8 cadence)
 {
 	_cadence = cadence;
 	emit cadenceChanged(cadence);
 }
 
-void Cyclist::setPower(float power)
+void Cyclist::setPower(quint16 power)
 {
 	_power = power;
 	emit powerChanged(power);
