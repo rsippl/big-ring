@@ -20,7 +20,6 @@ Rectangle {
         anchors.centerIn: parent
         color: parent.textColor
         font.pointSize: 36
-        font.bold: true
         text: parent.value + " " + parent.suffix
     }
 
