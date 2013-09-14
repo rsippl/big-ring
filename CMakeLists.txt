@@ -81,7 +81,7 @@ add_library(antlib ${ANT_SRCS})
 add_library(mainlib ${SRCS} ${UI_SRCS})
 
 add_executable(indoorcycling main.cpp)
-qt5_use_modules(indoorcycling Widgets)
+#qt5_use_modules(indoorcycling Widgets)
 target_link_libraries(indoorcycling antlib mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
 
 add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp)
