@@ -91,10 +91,31 @@ void VideoWidget::initializeGL()
 	glMatrixMode (GL_MODELVIEW);
 
 	glGenBuffersARB(_pixelBufferObjects.size(), _pixelBufferObjects.data());
+	_shaderProgram.addShaderFromSourceCode(QOpenGLShader::Vertex,
+										   "#version 120\n"
+										   "void main(void)\n"
+										   "{\n"
+										   "   gl_TexCoord[0] = gl_MultiTexCoord0;\n"
+										   "   gl_Position = ftransform();\n"
+										   "}");
+	_shaderProgram.addShaderFromSourceCode(QOpenGLShader::Fragment,
+										   "#version 120\n"
+										   "uniform sampler2DRect texture;\n"
+										   "void main(void)\n"
+										   "{\n"
+										   "   gl_FragColor = texture2DRect(texture, gl_TexCoord[0].st);\n"
+										   "}");
+	if (!_shaderProgram.link()) {
+		qFatal("Unable to link shader program");
+	}
+	if (!_shaderProgram.bind()) {
+		qFatal("Unable to bind shader program");
+	}
 }
 
 void VideoWidget::paintFrame()
 {
+	glActiveTexture(_texture);
 	GLfloat width = _currentFrame.width;
 	GLfloat height = _currentFrame.height;
 
@@ -169,6 +190,7 @@ void VideoWidget::paintGL()
 	}
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
+	_shaderProgram.bind();
 	loadTexture();
 	paintFrame();
 	loadNextFrameToPixelBuffer();
