@@ -91,20 +91,10 @@ void VideoWidget::initializeGL()
 	glMatrixMode (GL_MODELVIEW);
 
 	glGenBuffersARB(_pixelBufferObjects.size(), _pixelBufferObjects.data());
-	_shaderProgram.addShaderFromSourceCode(QOpenGLShader::Vertex,
-										   "#version 120\n"
-										   "void main(void)\n"
-										   "{\n"
-										   "   gl_TexCoord[0] = gl_MultiTexCoord0;\n"
-										   "   gl_Position = ftransform();\n"
-										   "}");
+	_shaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex,
+										   "qrc://shaders/vertexshader.glsl");
 	_shaderProgram.addShaderFromSourceCode(QOpenGLShader::Fragment,
-										   "#version 120\n"
-										   "uniform sampler2DRect texture;\n"
-										   "void main(void)\n"
-										   "{\n"
-										   "   gl_FragColor = texture2DRect(texture, gl_TexCoord[0].st);\n"
-										   "}");
+										   "qrc://shaders/fragmentshader.glsl");
 	if (!_shaderProgram.link()) {
 		qFatal("Unable to link shader program");
 	}

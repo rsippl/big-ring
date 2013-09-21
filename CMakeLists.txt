@@ -80,7 +80,9 @@ set(QT_LIBRARIES
 add_library(antlib ${ANT_SRCS})
 add_library(mainlib ${SRCS} ${UI_SRCS})
 
-add_executable(indoorcycling main.cpp)
+qt5_add_resources(file_resources resources.qrc)
+
+add_executable(indoorcycling main.cpp ${file_resources})
 #qt5_use_modules(indoorcycling Widgets)
 target_link_libraries(indoorcycling antlib mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
 
@@ -88,9 +90,7 @@ add_executable(rlvtest rlvtestmain.cpp rlvtester.cpp)
 target_link_libraries(rlvtest mainlib ${QT_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES})
 
 # for Sufferfest Player
-qt5_add_resources(sufferfest_resources resources.qrc)
-
-add_executable(sufferfestplayer sufferfestplayer.cpp game.cpp moviefiledroparea.cpp ${sufferfest_resources})
+add_executable(sufferfestplayer sufferfestplayer.cpp game.cpp moviefiledroparea.cpp ${file_resources})
 target_link_libraries(sufferfestplayer antlib ${EXTRA_LIBRARIES} ${QT_LIBRARIES})
 
 # Prepare for testing.

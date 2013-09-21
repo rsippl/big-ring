@@ -3,4 +3,8 @@
         <file>qml/SufferfestPlayer/main.qml</file>
         <file>qml/SufferfestPlayer/Gauge.qml</file>
     </qresource>
+    <qresource lang="glsl" prefix="/shaders">
+        <file>shaders/vertexshader.glsl</file>
+        <file>shaders/fragmentshader.glsl</file>
+    </qresource>
 </RCC>
