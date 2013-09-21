@@ -24,7 +24,13 @@ struct Frame
 	quint32 width;
 	quint32 height;
 	quint32 numBytes;
-	QSharedPointer<quint8> data;
+//	QSharedPointer<quint8> data;
+	int yLineSize;
+	QSharedPointer<quint8> yPlane;
+	int uLineSize;
+	QSharedPointer<quint8> uPlane;
+	int vLineSize;
+	QSharedPointer<quint8> vPlane;
 };
 
 typedef QLinkedList<Frame> FrameList;

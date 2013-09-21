@@ -153,7 +153,7 @@ void VideoWidget::loadNextFrameToPixelBuffer()
 											GL_WRITE_ONLY_ARB);
 	if(ptr)
 	{
-		memcpy(ptr, _currentFrame.data.data(), _currentFrame.numBytes);
+		memcpy(ptr, _currentFrame.yPlane.data(), _currentFrame.yLineSize * _currentFrame.height);
 		glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB);
 	}
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
@@ -164,13 +164,13 @@ void VideoWidget::loadTexture()
 	if (_texture) {
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_index));
-		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, _currentFrame.width, _currentFrame.height,
-						GL_BGRA, GL_UNSIGNED_BYTE, 0);
+		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, _currentFrame.yLineSize, _currentFrame.height,
+						GL_LUMINANCE, GL_UNSIGNED_BYTE, 0);
 	} else {
 		glGenTextures(1, &_texture);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, _currentFrame.width, _currentFrame.height,
-					 0, GL_BGRA, GL_UNSIGNED_BYTE, _currentFrame.data.data());
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, _currentFrame.yLineSize, _currentFrame.height,
+					 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, _currentFrame.yPlane.data());
 	}
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -185,7 +185,7 @@ void VideoWidget::paintGL()
 
 	_index = (_index + 1) % _pixelBufferObjects.size();
 
-	if (_currentFrame.data.isNull()) {
+	if (_currentFrame.yPlane.isNull()) {
 		return;
 	}
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);

@@ -115,6 +115,8 @@ void VideoDecoder::openFile(QString filename)
 void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 skip)
 {
 	qDebug() << "request for" << numberOfFrame << "frames";
+	QTime now;
+	now.start();
 	Frame frame;
 	quint32 decoded = 0;
 	quint32 skipped = 0;
@@ -135,7 +137,7 @@ void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 skip)
 		qDebug() << "request finished. No frames found.";
 	else
 		qDebug() << "request finished. Frames." << frames.first().frameNr
-				 << "to" << frames.last().frameNr << "skipped" << skipped << "frames";
+				 << "to" << frames.last().frameNr << "skipped" << skipped << "frames. Took" << now.elapsed() << "ms";
 	emit framesReady(frames);
 
 }
@@ -198,16 +200,31 @@ void VideoDecoder::seekFrame(quint32 frameNr)
 
 Frame VideoDecoder::convertFrame(AVPacket& packet)
 {
-	quint8* ptr = (quint8*)malloc(_lineSizes[0] * _codecContext->height);
 
-	sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height,
-			  &ptr, _lineSizes.data());
+//	quint8* ptr = (quint8*)malloc(_lineSizes[0] * _codecContext->height);
+
+//	sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height,
+//			  &ptr, _lineSizes.data());
 	Frame frame;
 	frame.frameNr = packet.dts;
 	frame.width = _codecContext->width;
 	frame.height = _codecContext->height;
 	frame.numBytes = _lineSizes[0] * _codecContext->height;
-	frame.data = QSharedPointer<quint8>(ptr);
+//	frame.data = QSharedPointer<quint8>(ptr);
+
+	quint8* ptr = (quint8*)malloc(_frame->linesize[0] * _codecContext->height);
+	memcpy(ptr, _frame->data[0], _frame->linesize[0] * _codecContext->height);
+	frame.yLineSize = _frame->linesize[0];
+	frame.yPlane = QSharedPointer<quint8>(ptr);
+	ptr = (quint8*)malloc(_frame->linesize[1] * _codecContext->height * 0.5);
+	memcpy(ptr, _frame->data[1], _frame->linesize[1] * _codecContext->height * 0.5);
+	frame.uLineSize = _frame->linesize[1];
+	frame.uPlane = QSharedPointer<quint8>(ptr);
+	ptr = (quint8*)malloc(_frame->linesize[2] * _codecContext->height * 0.5);
+	memcpy(ptr, _frame->data[2], _frame->linesize[2] * _codecContext->height * 0.5);
+	frame.vLineSize = _frame->linesize[1];
+	frame.vPlane = QSharedPointer<quint8>(ptr);
+
 
 	return frame;
 }
