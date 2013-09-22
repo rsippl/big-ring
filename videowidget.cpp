@@ -13,7 +13,7 @@
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent), _texture(0), _pixelBufferObjects(2, 0),
+	QGLWidget(parent), _pixelBufferObjects(2, 0),
 	_index(0), _nextIndex(1)
 {
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
@@ -23,9 +23,6 @@ VideoWidget::VideoWidget(QWidget *parent) :
 VideoWidget::~VideoWidget()
 {
 	makeCurrent();
-	if (_texture) {
-		glDeleteTextures(1, &_texture);
-	}
 	glDeleteBuffersARB(_pixelBufferObjects.size(), _pixelBufferObjects.data());
 }
 
@@ -80,10 +77,6 @@ void VideoWidget::displayFrame(Frame& frame)
 void VideoWidget::clearOpenGLBuffers()
 {
 	makeCurrent();
-	if (_texture) {
-		glDeleteTextures(1, &_texture);
-		_texture = 0;
-	}
 }
 
 void VideoWidget::initializeGL()
@@ -127,8 +120,6 @@ void VideoWidget::initializeGL()
 
 void VideoWidget::paintFrame()
 {
-	glActiveTexture(_texture);
-
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -159,25 +150,25 @@ void VideoWidget::loadNextFrameToPixelBuffer()
 
 void VideoWidget::loadTexture()
 {
-	if (_texture) {
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
-		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_index));
-		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, _currentFrame.yLineSize, _currentFrame.height,
-						GL_LUMINANCE, GL_UNSIGNED_BYTE, 0);
-	} else {
+//	if (_texture) {
+//		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
+//		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_index));
+//		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, _currentFrame.yLineSize, _currentFrame.height,
+//						GL_LUMINANCE, GL_UNSIGNED_BYTE, 0);
+//	} else {
 		loadPlaneTexture("uTex", GL_TEXTURE1, 1, _currentFrame.uLineSize, _currentFrame.height / 2, _currentFrame.uPlane);
 		loadPlaneTexture("vTex", GL_TEXTURE2, 2, _currentFrame.vLineSize, _currentFrame.height / 2, _currentFrame.vPlane);
 		loadPlaneTexture("yTex", GL_TEXTURE0, 0, _currentFrame.yLineSize, _currentFrame.height, _currentFrame.yPlane);
-//		glGenTextures(1, &_texture);
-//		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
-//		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, _currentFrame.yLineSize, _currentFrame.height,
-//					 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, _currentFrame.yPlane.data());
-	}
-//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-//	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
+		//		glGenTextures(1, &_texture);
+		//		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
+		//		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, _currentFrame.yLineSize, _currentFrame.height,
+		//					 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, _currentFrame.yPlane.data());
+//	}
+	//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	//	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 }
 
 void VideoWidget::loadPlaneTexture(const QString& textureLocationName,  int glTextureUnit, int textureUnit, int lineSize, int height, QSharedPointer<quint8>& data)
@@ -209,7 +200,7 @@ void VideoWidget::paintGL()
 	_shaderProgram.bind();
 	loadTexture();
 	paintFrame();
-	loadNextFrameToPixelBuffer();
+//	loadNextFrameToPixelBuffer();
 
 	// unbind texture
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);

@@ -43,7 +43,6 @@ private:
 
 	quint32 _currentFrameNumber;
 	Frame _currentFrame;
-	GLuint _texture;
 
 	QVector<GLuint> _pixelBufferObjects;
 	QOpenGLShaderProgram _shaderProgram;
