@@ -37,6 +37,8 @@ protected:
 	virtual void leaveEvent(QEvent *);
 
 private:
+	void loadPlaneTexture(const QString &textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, QSharedPointer<quint8> &data);
+
 	const QVector<GLfloat>& calculatetextureCoordinates();
 
 	quint32 _currentFrameNumber;

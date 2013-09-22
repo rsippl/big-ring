@@ -103,7 +103,6 @@ void VideoController::playNextFrame()
 
 void VideoController::displayFrame(quint32 frameToShow)
 {
-
 	if (frameToShow == _currentFrameNumber)
 		return; // no need to display again.
 	if (frameToShow < _currentFrameNumber && _currentFrameNumber != UNKNOWN_FRAME_NR) {

@@ -165,16 +165,34 @@ void VideoWidget::loadTexture()
 		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, _currentFrame.yLineSize, _currentFrame.height,
 						GL_LUMINANCE, GL_UNSIGNED_BYTE, 0);
 	} else {
-		glGenTextures(1, &_texture);
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, _currentFrame.yLineSize, _currentFrame.height,
-					 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, _currentFrame.yPlane.data());
+		loadPlaneTexture("uTex", GL_TEXTURE1, 1, _currentFrame.uLineSize, _currentFrame.height / 2, _currentFrame.uPlane);
+		loadPlaneTexture("vTex", GL_TEXTURE2, 2, _currentFrame.vLineSize, _currentFrame.height / 2, _currentFrame.vPlane);
+		loadPlaneTexture("yTex", GL_TEXTURE0, 0, _currentFrame.yLineSize, _currentFrame.height, _currentFrame.yPlane);
+//		glGenTextures(1, &_texture);
+//		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _texture);
+//		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, _currentFrame.yLineSize, _currentFrame.height,
+//					 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, _currentFrame.yPlane.data());
 	}
-	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+//	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+//	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
+}
+
+void VideoWidget::loadPlaneTexture(const QString& textureLocationName,  int glTextureUnit, int textureUnit, int lineSize, int height, QSharedPointer<quint8>& data)
+{
+	glActiveTexture(glTextureUnit);
+	GLint i = glGetUniformLocation(_shaderProgram.programId(), textureLocationName.toStdString().c_str());
+	glUniform1i(i, textureUnit);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textureUnit);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_NV,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_NV,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
+	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_LUMINANCE, lineSize, height,
+				 0,GL_LUMINANCE,GL_UNSIGNED_BYTE, data.data());
 }
 
 void VideoWidget::paintGL()
