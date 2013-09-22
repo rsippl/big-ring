@@ -31,9 +31,6 @@ VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QOb
 	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
 	connect(_videoDecoder, SIGNAL(framesReady(FrameList)), SLOT(framesReady(FrameList)));
 	connect(_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
-
-	connect(this, SIGNAL(currentFrameRate(quint32)), _videoWidget, SLOT(setFrameRate(quint32)));
-
 	connect(_videoDecoder, SIGNAL(destroyed()), &_decoderThread, SLOT(quit()));
 }
 

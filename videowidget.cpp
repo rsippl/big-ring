@@ -41,6 +41,33 @@ void VideoWidget::leaveEvent(QEvent*)
 	QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
 }
 
+const QVector<GLfloat> &VideoWidget::calculatetextureCoordinates()
+{
+	if (_textureCoordinates.isEmpty()) {
+		GLfloat width = _currentFrame.width;
+		GLfloat height = _currentFrame.height;
+
+		float imageRatio = width / height;
+		float widgetRatio = (float) this->width() / (float) this->height();
+
+		float clippedBorderWidth = 0;
+		float clippedBorderHeight= 0;
+		if (imageRatio > widgetRatio) {
+			clippedBorderWidth = (width - ((widgetRatio / imageRatio) * width)) / 2;
+		} else if (imageRatio < widgetRatio) {
+			clippedBorderHeight = (height - ((imageRatio / widgetRatio) * height)) /2;
+		}
+
+		_textureCoordinates = {
+			clippedBorderWidth, clippedBorderHeight,
+			clippedBorderWidth, height - clippedBorderHeight,
+			width - clippedBorderWidth, height - clippedBorderHeight,
+			width - clippedBorderWidth, clippedBorderHeight
+		};
+	}
+	return _textureCoordinates;
+}
+
 void VideoWidget::displayFrame(Frame& frame)
 {
 	if (frame.frameNr != UNKNOWN_FRAME_NR) {
@@ -57,11 +84,6 @@ void VideoWidget::clearOpenGLBuffers()
 		glDeleteTextures(1, &_texture);
 		_texture = 0;
 	}
-}
-
-void VideoWidget::setFrameRate(quint32 frameRate)
-{
-	_frameRate = frameRate;
 }
 
 void VideoWidget::initializeGL()
@@ -92,9 +114,9 @@ void VideoWidget::initializeGL()
 
 	glGenBuffersARB(_pixelBufferObjects.size(), _pixelBufferObjects.data());
 	_shaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex,
-										   "qrc://shaders/vertexshader.glsl");
-	_shaderProgram.addShaderFromSourceCode(QOpenGLShader::Fragment,
-										   "qrc://shaders/fragmentshader.glsl");
+										   ":///shaders/vertexshader.glsl");
+	_shaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment,
+										   ":/shaders/fragmentshader.glsl");
 	if (!_shaderProgram.link()) {
 		qFatal("Unable to link shader program");
 	}
@@ -106,30 +128,16 @@ void VideoWidget::initializeGL()
 void VideoWidget::paintFrame()
 {
 	glActiveTexture(_texture);
-	GLfloat width = _currentFrame.width;
-	GLfloat height = _currentFrame.height;
 
-	float imageRatio = width / height;
-	float widgetRatio = (float) this->width() / (float) this->height();
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	float clippedBorderWidth = 0;
-	float clippedBorderHeight= 0;
-	if (imageRatio > widgetRatio) {
-		clippedBorderWidth = (width - ((widgetRatio / imageRatio) * width)) / 2;
-	} else if (imageRatio < widgetRatio) {
-		clippedBorderHeight = (height - ((imageRatio / widgetRatio) * height)) /2;
-	}
+	glVertexPointer(2, GL_FLOAT, 0, _vertexCoordinates.data());
+	glTexCoordPointer(2, GL_FLOAT, 0, calculatetextureCoordinates().data());
+	glDrawArrays(GL_QUADS, 0, 4);
 
-	glBegin(GL_QUADS);
-	glTexCoord2f(clippedBorderWidth, clippedBorderHeight);
-	glVertex2f(0,this->height());
-	glTexCoord2f(clippedBorderWidth, height - clippedBorderHeight);
-	glVertex2f(0,0);
-	glTexCoord2f(width - clippedBorderWidth, height - clippedBorderHeight);
-	glVertex2f(this->width(), 0);
-	glTexCoord2f(width - clippedBorderWidth, clippedBorderHeight);
-	glVertex2f(this->width(), this->height());
-	glEnd();
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 void VideoWidget::loadNextFrameToPixelBuffer()
@@ -199,4 +207,12 @@ void VideoWidget::resizeGL(int w, int h)
 	glLoadIdentity();
 	glOrtho(0, w,0,h,-1,1);
 	glMatrixMode (GL_MODELVIEW);
+
+	_vertexCoordinates = {
+		0, (float) this->height(),
+		0, 0,
+		(float) this->width(), 0,
+		(float) this->width(), (float) this->height()
+	};
+	_textureCoordinates.clear();
 }

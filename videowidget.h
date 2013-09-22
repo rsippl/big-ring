@@ -27,8 +27,6 @@ public:
 	void paintFrame();
 	void loadNextFrameToPixelBuffer();
 	void loadTexture();
-public slots:
-	void setFrameRate(quint32 frameRate);
 
 protected:
 	virtual void initializeGL();
@@ -39,6 +37,8 @@ protected:
 	virtual void leaveEvent(QEvent *);
 
 private:
+	const QVector<GLfloat>& calculatetextureCoordinates();
+
 	quint32 _currentFrameNumber;
 	Frame _currentFrame;
 	GLuint _texture;
@@ -48,6 +48,9 @@ private:
 
 	quint32 _frameRate;
 	quint32 _index, _nextIndex;
+
+	QVector<GLfloat> _vertexCoordinates;
+	QVector<GLfloat> _textureCoordinates;
 };
 
 #endif // VIDEOWIDGET_H

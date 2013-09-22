@@ -22,7 +22,7 @@ include_directories(${Qt5Concurrent_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} ${Qt
 link_directories(${FFMPEG_LIBRARY_DIR})
 add_definitions(${Qt5Widgets_DEFINITIONS} ${Qt5OpenGL_DEFINITIONS})
 
-set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} -D__STDC_CONSTANT_MACROS -DGLEW_STATIC")
+set(CMAKE_CXX_FLAGS "-W -Wall -Wextra -Werror -std=c++11 ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} -D__STDC_CONSTANT_MACROS -DGLEW_STATIC")
 if(NOT WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
 endif()
