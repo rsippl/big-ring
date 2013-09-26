@@ -13,7 +13,6 @@ struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
 struct AVPacket;
-struct SwsContext;
 #include <limits>
 
 const quint32 UNKNOWN_FRAME_NR = std::numeric_limits<quint32>::max();
@@ -26,11 +25,8 @@ struct Frame
 	quint32 numBytes;
 	QSharedPointer<quint8> data;
 	int yLineSize;
-//	QSharedPointer<quint8> yPlane;
 	int uLineSize;
-//	QSharedPointer<quint8> uPlane;
 	int vLineSize;
-//	QSharedPointer<quint8> vPlane;
 };
 
 typedef QLinkedList<Frame> FrameList;
@@ -74,7 +70,6 @@ private:
 	AVCodecContext* _codecContext;
 	AVCodec* _codec;
 	AVFrame* _frame;
-	SwsContext* _swsContext;
 
 	// seeking
 	QTimer* _seekTimer;

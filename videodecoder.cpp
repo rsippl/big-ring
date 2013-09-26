@@ -5,7 +5,6 @@ extern "C"
 #include <stdint.h>
 #include <libavcodec/avcodec.h>
 #include "libavformat/avformat.h"
-#include "libswscale/swscale.h"
 }
 #include <cmath>
 #include <QDateTime>
@@ -25,7 +24,6 @@ VideoDecoder::VideoDecoder(QObject *parent) :
 	QObject(parent),
 	_formatContext(NULL), _codecContext(NULL),
 	_codec(NULL), _frame(NULL),
-	_swsContext(NULL),
 	_seekTimer(new QTimer(this)), _seekTargetFrame(0)
 {
 	qRegisterMetaType<Frame>("Frame");
@@ -50,8 +48,6 @@ void VideoDecoder::initialize()
 
 void VideoDecoder::closeFramesAndBuffers()
 {
-	if (_swsContext)
-		sws_freeContext(_swsContext);
 	if (_frame)
 		av_free(_frame);
 	_frame = NULL;
@@ -179,10 +175,6 @@ void VideoDecoder::initializeFrames()
 {
 	_frame = avcodec_alloc_frame();
 
-	_swsContext = sws_getContext(_codecContext->width, _codecContext->height,
-								 _codecContext->pix_fmt,
-								 _codecContext->width, _codecContext->height,
-								 PIX_FMT_BGRA, SWS_POINT, NULL, NULL, NULL);
 	_lineSizes.reset(new int[_codecContext->height]);
 	for (int line = 0; line < _codecContext->height; ++line)
 		_lineSizes[line] = _codecContext->width * 4;
@@ -200,11 +192,6 @@ void VideoDecoder::seekFrame(quint32 frameNr)
 
 Frame VideoDecoder::convertFrame(AVPacket& packet)
 {
-
-//	quint8* ptr = (quint8*)malloc(_lineSizes[0] * _codecContext->height);
-
-//	sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height,
-//			  &ptr, _lineSizes.data());
 	Frame frame;
 	frame.frameNr = packet.dts;
 	frame.width = _codecContext->width;
