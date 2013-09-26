@@ -37,7 +37,8 @@ protected:
 	virtual void leaveEvent(QEvent *);
 
 private:
-	void loadPlaneTexture(const QString &textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, QSharedPointer<quint8> &data);
+	void loadPlaneTexture(const QString &textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, quint8 *data);
+	void loadPlaneTexturesFromPbo(const QString& textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, size_t offset);
 
 	const QVector<GLfloat>& calculatetextureCoordinates();
 
@@ -52,6 +53,8 @@ private:
 
 	QVector<GLfloat> _vertexCoordinates;
 	QVector<GLfloat> _textureCoordinates;
+
+	bool _texturesInitialized;
 };
 
 #endif // VIDEOWIDGET_H

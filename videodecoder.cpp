@@ -210,21 +210,17 @@ Frame VideoDecoder::convertFrame(AVPacket& packet)
 	frame.width = _codecContext->width;
 	frame.height = _codecContext->height;
 	frame.numBytes = _lineSizes[0] * _codecContext->height;
-//	frame.data = QSharedPointer<quint8>(ptr);
+	quint8* ptr = (quint8*)malloc((_frame->linesize[0] * _codecContext->height * 6) / 4);
+	mempcpy(ptr, _frame->data[0], _frame->linesize[0] * _codecContext->height);
+	size_t uOffset = _frame->linesize[0] * _codecContext->height;
+	mempcpy(ptr + uOffset, _frame->data[1], _frame->linesize[0] * _codecContext->height / 4);
+	size_t vOffset = uOffset + (uOffset / 4);
+	mempcpy(ptr + vOffset, _frame->data[2], _frame->linesize[0] * _codecContext->height / 4);
+	frame.data = QSharedPointer<quint8>(ptr);
 
-	quint8* ptr = (quint8*)malloc(_frame->linesize[0] * _codecContext->height);
-	memcpy(ptr, _frame->data[0], _frame->linesize[0] * _codecContext->height);
 	frame.yLineSize = _frame->linesize[0];
-	frame.yPlane = QSharedPointer<quint8>(ptr);
-	ptr = (quint8*)malloc(_frame->linesize[1] * _codecContext->height * 0.5);
-	memcpy(ptr, _frame->data[1], _frame->linesize[1] * _codecContext->height * 0.5);
 	frame.uLineSize = _frame->linesize[1];
-	frame.uPlane = QSharedPointer<quint8>(ptr);
-	ptr = (quint8*)malloc(_frame->linesize[2] * _codecContext->height * 0.5);
-	memcpy(ptr, _frame->data[2], _frame->linesize[2] * _codecContext->height * 0.5);
 	frame.vLineSize = _frame->linesize[1];
-	frame.vPlane = QSharedPointer<quint8>(ptr);
-
 
 	return frame;
 }
