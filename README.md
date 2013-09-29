@@ -69,6 +69,16 @@ Building
 3. make
 4. All executables should build.
 
+Permissions
+-----------
+
+To be able to send data to the ANT+ USB sticks, the user needs permissions. On Linux systems with *udev*, this can established by putting the following rules in the udev configuration. 
+
+	SUBSYSTEMS=="usb" ATTR{idVendor}=="0fcf", ATTR{idProduct}=="1004", MODE="666"
+	SUBSYSTEMS=="usb" ATTR{idVendor}=="0fcf", ATTR{idProduct}=="1008", MODE="666"
+
+On Ubuntu, a superuser can put a file with the lines above in `/etc/udev/rules.d`.
+
 Usage
 -----
 
