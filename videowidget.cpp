@@ -130,14 +130,17 @@ void VideoWidget::initializeGL()
 
 void VideoWidget::paintFrame()
 {
+	calculatetextureCoordinates();
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, _vertexBufferObject);
 	glVertexPointer(2, GL_FLOAT, 0, 0);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-	glTexCoordPointer(2, GL_FLOAT, 0, calculatetextureCoordinates().data());
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, _textureCoordinatesBufferObject);
+	glTexCoordPointer(2, GL_FLOAT, 0, 0);
 	glDrawArrays(GL_QUADS, 0, 4);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
