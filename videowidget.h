@@ -5,6 +5,7 @@
 #include <QtCore/QTimer>
 #include <QtOpenGL/QGLWidget>
 #include <QtCore/QVector>
+#include <QtGui/QOpenGLBuffer>
 #include <QtGui/QOpenGLShaderProgram>
 
 #include "videodecoder.h"
@@ -46,7 +47,10 @@ private:
 	Frame _currentFrame;
 
 	QVector<GLuint> _pixelBufferObjects;
+	GLuint _vertexBufferObject;
+	GLuint _textureCoordinatesBufferObject;
 	QOpenGLShaderProgram _shaderProgram;
+
 
 	quint32 _frameRate;
 	quint32 _index, _nextIndex;

@@ -13,7 +13,7 @@
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent), _pixelBufferObjects(2, 0),
+	QGLWidget(parent), _pixelBufferObjects(2, 0), _vertexBufferObject(0u),
 	_index(0), _nextIndex(1), _texturesInitialized(false)
 {
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
@@ -24,6 +24,7 @@ VideoWidget::~VideoWidget()
 {
 	makeCurrent();
 	glDeleteBuffersARB(_pixelBufferObjects.size(), _pixelBufferObjects.data());
+	glDeleteBuffersARB(1, &_vertexBufferObject);
 }
 
 
@@ -61,6 +62,9 @@ const QVector<GLfloat> &VideoWidget::calculatetextureCoordinates()
 			width - clippedBorderWidth, height - clippedBorderHeight,
 			width - clippedBorderWidth, clippedBorderHeight
 		};
+		glBindBuffer(GL_ARRAY_BUFFER_ARB, _textureCoordinatesBufferObject);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(float) * _textureCoordinates.size(), _textureCoordinates.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
 	}
 	return _textureCoordinates;
 }
@@ -96,6 +100,10 @@ void VideoWidget::initializeGL()
 		qDebug() << "This program needs the GL_ARB_pixel_buffer_object extension, but it seems to be disabled.";
 		qFatal("exiting..");
 	}
+	if (!GL_ARB_vertex_buffer_object) {
+		qDebug() << "This program needs the GL_ARB_vertex_buffer_objects extendsion.";
+		qFatal("exiting..");
+	}
 	glViewport (0, 0, width(), height());
 	glMatrixMode (GL_PROJECTION);
 	glDisable(GL_DEPTH_TEST);
@@ -116,6 +124,8 @@ void VideoWidget::initializeGL()
 	if (!_shaderProgram.bind()) {
 		qFatal("Unable to bind shader program");
 	}
+	glGenBuffersARB(1, &_vertexBufferObject);
+	glGenBuffersARB(1, &_textureCoordinatesBufferObject);
 }
 
 void VideoWidget::paintFrame()
@@ -123,12 +133,15 @@ void VideoWidget::paintFrame()
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	glVertexPointer(2, GL_FLOAT, 0, _vertexCoordinates.data());
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, _vertexBufferObject);
+	glVertexPointer(2, GL_FLOAT, 0, 0);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	glTexCoordPointer(2, GL_FLOAT, 0, calculatetextureCoordinates().data());
 	glDrawArrays(GL_QUADS, 0, 4);
 
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+
 }
 
 void VideoWidget::loadNextFrameToPixelBuffer()
@@ -235,5 +248,8 @@ void VideoWidget::resizeGL(int w, int h)
 		(float) this->width(), 0,
 		(float) this->width(), (float) this->height()
 	};
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, _vertexBufferObject);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, _vertexCoordinates.size() * sizeof(float), _vertexCoordinates.data(), GL_STATIC_DRAW_ARB);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	_textureCoordinates.clear();
 }
