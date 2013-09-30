@@ -22,12 +22,10 @@ public:
 	explicit VideoWidget(QWidget *parent = 0);
 	virtual ~VideoWidget();
 
+	void loadFrame(Frame& frame);
 	/** Display a frame */
-	void displayFrame(Frame &frame);
+	void displayNextFrame();
 	void clearOpenGLBuffers();
-	void paintFrame();
-	void loadNextFrameToPixelBuffer();
-	void loadTexture();
 
 protected:
 	virtual void initializeGL();
@@ -38,12 +36,13 @@ protected:
 	virtual void leaveEvent(QEvent *);
 
 private:
-	void loadPlaneTexture(const QString &textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, quint8 *data);
+	void initializeAndLoadPlaneTextureFromPbo(const QString &textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, size_t offset);
 	void loadPlaneTexturesFromPbo(const QString& textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, size_t offset);
+	void paintFrame();
+	void loadTexture();
 
 	const QVector<GLfloat>& calculatetextureCoordinates();
 
-	quint32 _currentFrameNumber;
 	Frame _currentFrame;
 
 	QVector<GLuint> _pixelBufferObjects;

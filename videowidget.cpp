@@ -14,7 +14,7 @@
 
 VideoWidget::VideoWidget(QWidget *parent) :
 	QGLWidget(parent), _pixelBufferObjects(2, 0), _vertexBufferObject(0u),
-	_index(0), _nextIndex(1), _texturesInitialized(false)
+	_index(0), _nextIndex(0), _texturesInitialized(false)
 {
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 	setAutoBufferSwap(true);
@@ -25,6 +25,26 @@ VideoWidget::~VideoWidget()
 	makeCurrent();
 	glDeleteBuffersARB(_pixelBufferObjects.size(), _pixelBufferObjects.data());
 	glDeleteBuffersARB(1, &_vertexBufferObject);
+}
+
+void VideoWidget::loadFrame(Frame &frame)
+{
+	_currentFrame = frame;
+	makeCurrent();
+	int pboSize = frame.yLineSize * frame.height * (1.5);
+	_nextIndex = (_nextIndex + 1) % _pixelBufferObjects.size();
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_nextIndex));
+	glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, pboSize, 0, GL_DYNAMIC_DRAW_ARB);
+
+	// map the buffer object into client's memory
+	GLubyte* ptr = (GLubyte*)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB,
+											GL_WRITE_ONLY_ARB);
+	if(ptr)
+	{
+		memcpy(ptr, frame.data.data(), pboSize);
+		glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB);
+	}
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 }
 
 
@@ -69,18 +89,20 @@ const QVector<GLfloat> &VideoWidget::calculatetextureCoordinates()
 	return _textureCoordinates;
 }
 
-void VideoWidget::displayFrame(Frame& frame)
+void VideoWidget::displayNextFrame()
 {
-	if (frame.frameNr != UNKNOWN_FRAME_NR) {
-		_currentFrameNumber = frame.frameNr;
-		_currentFrame = frame;
-		repaint();
-	}
+	_index = (_index + 1) % _pixelBufferObjects.size();
+	repaint();
 }
 
 void VideoWidget::clearOpenGLBuffers()
 {
 	_textureCoordinates.clear();
+	_texturesInitialized = false;
+	_nextIndex = 0;
+	_index = 0;
+	Frame nullFrame;
+	_currentFrame = nullFrame;
 }
 
 void VideoWidget::initializeGL()
@@ -147,24 +169,6 @@ void VideoWidget::paintFrame()
 
 }
 
-void VideoWidget::loadNextFrameToPixelBuffer()
-{
-	int pboSize = _currentFrame.yLineSize * _currentFrame.height * (1.5);
-	_nextIndex = (_nextIndex + 1) % _pixelBufferObjects.size();
-	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_nextIndex));
-	glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, pboSize, 0, GL_DYNAMIC_DRAW_ARB);
-
-	// map the buffer object into client's memory
-	GLubyte* ptr = (GLubyte*)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB,
-											GL_WRITE_ONLY_ARB);
-	if(ptr)
-	{
-		memcpy(ptr, _currentFrame.data.data(), pboSize);
-		glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB);
-	}
-	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-}
-
 void VideoWidget::loadTexture()
 {
 	size_t uTexOffset = _currentFrame.yLineSize * _currentFrame.height;
@@ -174,27 +178,28 @@ void VideoWidget::loadTexture()
 		loadPlaneTexturesFromPbo("uTex", GL_TEXTURE1, 1, _currentFrame.uLineSize, _currentFrame.height / 2 , uTexOffset);
 		loadPlaneTexturesFromPbo("vTex", GL_TEXTURE2, 2, _currentFrame.vLineSize, _currentFrame.height / 2, vTexOffset);
 	} else {
-		loadPlaneTexture("yTex", GL_TEXTURE0, 0, _currentFrame.yLineSize, _currentFrame.height, _currentFrame.data.data());
-		loadPlaneTexture("uTex", GL_TEXTURE1, 1, _currentFrame.uLineSize, _currentFrame.height / 2, _currentFrame.data.data() + uTexOffset);
-		loadPlaneTexture("vTex", GL_TEXTURE2, 2, _currentFrame.vLineSize, _currentFrame.height / 2, _currentFrame.data.data() + vTexOffset);
+		initializeAndLoadPlaneTextureFromPbo("yTex", GL_TEXTURE0, 0, _currentFrame.yLineSize, _currentFrame.height, (size_t) 0);
+		initializeAndLoadPlaneTextureFromPbo("uTex", GL_TEXTURE1, 1, _currentFrame.uLineSize, _currentFrame.height / 2, uTexOffset);
+		initializeAndLoadPlaneTextureFromPbo("vTex", GL_TEXTURE2, 2, _currentFrame.vLineSize, _currentFrame.height / 2, vTexOffset);
 
 		_texturesInitialized = true;
 	}
 }
 
-void VideoWidget::loadPlaneTexture(const QString& textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, quint8* data)
+void VideoWidget::initializeAndLoadPlaneTextureFromPbo(const QString& textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, size_t offset)
 {
 	glActiveTexture(glTextureUnit);
 	GLint i = glGetUniformLocation(_shaderProgram.programId(), textureLocationName.toStdString().c_str());
 	glUniform1i(i, textureUnit);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textureUnit);
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_index));
 	glTexParameteri(GL_TEXTURE_RECTANGLE_NV,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_NV,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_LUMINANCE, lineSize, height,
-				 0,GL_LUMINANCE,GL_UNSIGNED_BYTE, data);
+				 0,GL_LUMINANCE,GL_UNSIGNED_BYTE, (void*) offset);
 }
 
 void VideoWidget::loadPlaneTexturesFromPbo(const QString& textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, size_t offset)
@@ -218,8 +223,6 @@ void VideoWidget::paintGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	_index = (_index + 1) % _pixelBufferObjects.size();
-
 	if (_currentFrame.data.isNull()) {
 		return;
 	}
@@ -228,7 +231,6 @@ void VideoWidget::paintGL()
 	_shaderProgram.bind();
 	loadTexture();
 	paintFrame();
-	loadNextFrameToPixelBuffer();
 
 	// unbind texture
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);

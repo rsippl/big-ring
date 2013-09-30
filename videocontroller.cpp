@@ -109,30 +109,36 @@ void VideoController::displayFrame(quint32 frameToShow)
 		qDebug() << "frame to show" << frameToShow << "current" << _currentFrameNumber;
 		return; // wait until playing catches up.
 	}
+	if (_loadedFrameNumber > _currentFrameNumber) {
+		_videoWidget->displayNextFrame();
+		_currentFrameNumber = _loadedFrameNumber;
+	}
 
+	// find new frame to load into widget, but not display yet.
 	if (_imageQueue.empty()) {
 		qDebug() << "image queue empty, doing nothing";
 		return;
 	}
 
 	Frame frame;
-
 	if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
 		qDebug() << "current frame is null, taking first one";
 		frame = takeFrame();
 		_currentFrameNumber = frame.frameNr;
-		_videoWidget->displayFrame(frame);
-		return;
+		_loadedFrameNumber = frame.frameNr;
+		_videoWidget->loadFrame(frame);
+		_videoWidget->displayNextFrame();
 	}
 
-	bool displayed = false;
-	while(!displayed && _currentFrameNumber != UNKNOWN_FRAME_NR && !_imageQueue.empty()) {
+	/* load next frame, so widget can upload it to graphics card */
+	bool loaded = false;
+	while(!loaded && _currentFrameNumber != UNKNOWN_FRAME_NR && !_imageQueue.empty()) {
 		frame = takeFrame();
 		_framesThisSecond += frame.frameNr - _currentFrameNumber;
-		_currentFrameNumber = frame.frameNr;
-		if (_currentFrameNumber >= frameToShow) {
-			_videoWidget->displayFrame(frame);
-			displayed = true;
+		_loadedFrameNumber = frame.frameNr;
+		if (_loadedFrameNumber > frameToShow) {
+			_videoWidget->loadFrame(frame);
+			loaded = true;
 		}
 	}
 }

@@ -64,6 +64,7 @@ private:
 
 	RealLiveVideo _currentRlv;
 	quint32 _currentFrameNumber;
+	quint32 _loadedFrameNumber;
 };
 
 #endif // VIDEOCONTROLLER_H
