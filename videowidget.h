@@ -5,6 +5,8 @@
 #include <QtCore/QTimer>
 #include <QtOpenGL/QGLWidget>
 #include <QtCore/QVector>
+#include <QtGui/QOpenGLBuffer>
+#include <QtGui/QOpenGLShaderProgram>
 
 #include "videodecoder.h"
 /**
@@ -20,14 +22,10 @@ public:
 	explicit VideoWidget(QWidget *parent = 0);
 	virtual ~VideoWidget();
 
+	void loadFrame(Frame& frame);
 	/** Display a frame */
-	void displayFrame(Frame &frame);
+	void displayNextFrame();
 	void clearOpenGLBuffers();
-	void paintFrame();
-	void loadNextFrameToPixelBuffer();
-	void loadTexture();
-public slots:
-	void setFrameRate(quint32 frameRate);
 
 protected:
 	virtual void initializeGL();
@@ -38,14 +36,28 @@ protected:
 	virtual void leaveEvent(QEvent *);
 
 private:
-	quint32 _currentFrameNumber;
+	void initializeAndLoadPlaneTextureFromPbo(const QString &textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, size_t offset);
+	void loadPlaneTexturesFromPbo(const QString& textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, size_t offset);
+	void paintFrame();
+	void loadTexture();
+
+	const QVector<GLfloat>& calculatetextureCoordinates();
+
 	Frame _currentFrame;
-	GLuint _texture;
 
 	QVector<GLuint> _pixelBufferObjects;
+	GLuint _vertexBufferObject;
+	GLuint _textureCoordinatesBufferObject;
+	QOpenGLShaderProgram _shaderProgram;
+
 
 	quint32 _frameRate;
 	quint32 _index, _nextIndex;
+
+	QVector<GLfloat> _vertexCoordinates;
+	QVector<GLfloat> _textureCoordinates;
+
+	bool _texturesInitialized;
 };
 
 #endif // VIDEOWIDGET_H

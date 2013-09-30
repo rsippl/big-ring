@@ -5,7 +5,6 @@ extern "C"
 #include <stdint.h>
 #include <libavcodec/avcodec.h>
 #include "libavformat/avformat.h"
-#include "libswscale/swscale.h"
 }
 #include <cmath>
 #include <QDateTime>
@@ -25,7 +24,6 @@ VideoDecoder::VideoDecoder(QObject *parent) :
 	QObject(parent),
 	_formatContext(NULL), _codecContext(NULL),
 	_codec(NULL), _frame(NULL),
-	_swsContext(NULL),
 	_seekTimer(new QTimer(this)), _seekTargetFrame(0)
 {
 	qRegisterMetaType<Frame>("Frame");
@@ -50,8 +48,6 @@ void VideoDecoder::initialize()
 
 void VideoDecoder::closeFramesAndBuffers()
 {
-	if (_swsContext)
-		sws_freeContext(_swsContext);
 	if (_frame)
 		av_free(_frame);
 	_frame = NULL;
@@ -115,6 +111,8 @@ void VideoDecoder::openFile(QString filename)
 void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 skip)
 {
 	qDebug() << "request for" << numberOfFrame << "frames";
+	QTime now;
+	now.start();
 	Frame frame;
 	quint32 decoded = 0;
 	quint32 skipped = 0;
@@ -135,7 +133,7 @@ void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 skip)
 		qDebug() << "request finished. No frames found.";
 	else
 		qDebug() << "request finished. Frames." << frames.first().frameNr
-				 << "to" << frames.last().frameNr << "skipped" << skipped << "frames";
+				 << "to" << frames.last().frameNr << "skipped" << skipped << "frames. Took" << now.elapsed() << "ms";
 	emit framesReady(frames);
 
 }
@@ -177,10 +175,6 @@ void VideoDecoder::initializeFrames()
 {
 	_frame = avcodec_alloc_frame();
 
-	_swsContext = sws_getContext(_codecContext->width, _codecContext->height,
-								 _codecContext->pix_fmt,
-								 _codecContext->width, _codecContext->height,
-								 PIX_FMT_BGRA, SWS_POINT, NULL, NULL, NULL);
 	_lineSizes.reset(new int[_codecContext->height]);
 	for (int line = 0; line < _codecContext->height; ++line)
 		_lineSizes[line] = _codecContext->width * 4;
@@ -198,16 +192,22 @@ void VideoDecoder::seekFrame(quint32 frameNr)
 
 Frame VideoDecoder::convertFrame(AVPacket& packet)
 {
-	quint8* ptr = (quint8*)malloc(_lineSizes[0] * _codecContext->height);
-
-	sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height,
-			  &ptr, _lineSizes.data());
 	Frame frame;
 	frame.frameNr = packet.dts;
 	frame.width = _codecContext->width;
 	frame.height = _codecContext->height;
 	frame.numBytes = _lineSizes[0] * _codecContext->height;
+	quint8* ptr = (quint8*)malloc((_frame->linesize[0] * _codecContext->height * 6) / 4);
+	mempcpy(ptr, _frame->data[0], _frame->linesize[0] * _codecContext->height);
+	size_t uOffset = _frame->linesize[0] * _codecContext->height;
+	mempcpy(ptr + uOffset, _frame->data[1], _frame->linesize[0] * _codecContext->height / 4);
+	size_t vOffset = uOffset + (uOffset / 4);
+	mempcpy(ptr + vOffset, _frame->data[2], _frame->linesize[0] * _codecContext->height / 4);
 	frame.data = QSharedPointer<quint8>(ptr);
+
+	frame.yLineSize = _frame->linesize[0];
+	frame.uLineSize = _frame->linesize[1];
+	frame.vLineSize = _frame->linesize[1];
 
 	return frame;
 }

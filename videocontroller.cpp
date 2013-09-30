@@ -31,9 +31,6 @@ VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QOb
 	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
 	connect(_videoDecoder, SIGNAL(framesReady(FrameList)), SLOT(framesReady(FrameList)));
 	connect(_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
-
-	connect(this, SIGNAL(currentFrameRate(quint32)), _videoWidget, SLOT(setFrameRate(quint32)));
-
 	connect(_videoDecoder, SIGNAL(destroyed()), &_decoderThread, SLOT(quit()));
 }
 
@@ -106,37 +103,42 @@ void VideoController::playNextFrame()
 
 void VideoController::displayFrame(quint32 frameToShow)
 {
-
 	if (frameToShow == _currentFrameNumber)
 		return; // no need to display again.
 	if (frameToShow < _currentFrameNumber && _currentFrameNumber != UNKNOWN_FRAME_NR) {
 		qDebug() << "frame to show" << frameToShow << "current" << _currentFrameNumber;
 		return; // wait until playing catches up.
 	}
+	if (_loadedFrameNumber > _currentFrameNumber) {
+		_videoWidget->displayNextFrame();
+		_currentFrameNumber = _loadedFrameNumber;
+	}
 
+	// find new frame to load into widget, but not display yet.
 	if (_imageQueue.empty()) {
 		qDebug() << "image queue empty, doing nothing";
 		return;
 	}
 
 	Frame frame;
-
 	if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
 		qDebug() << "current frame is null, taking first one";
 		frame = takeFrame();
 		_currentFrameNumber = frame.frameNr;
-		_videoWidget->displayFrame(frame);
-		return;
+		_loadedFrameNumber = frame.frameNr;
+		_videoWidget->loadFrame(frame);
+		_videoWidget->displayNextFrame();
 	}
 
-	bool displayed = false;
-	while(!displayed && _currentFrameNumber != UNKNOWN_FRAME_NR && !_imageQueue.empty()) {
+	/* load next frame, so widget can upload it to graphics card */
+	bool loaded = false;
+	while(!loaded && _currentFrameNumber != UNKNOWN_FRAME_NR && !_imageQueue.empty()) {
 		frame = takeFrame();
 		_framesThisSecond += frame.frameNr - _currentFrameNumber;
-		_currentFrameNumber = frame.frameNr;
-		if (_currentFrameNumber >= frameToShow) {
-			_videoWidget->displayFrame(frame);
-			displayed = true;
+		_loadedFrameNumber = frame.frameNr;
+		if (_loadedFrameNumber > frameToShow) {
+			_videoWidget->loadFrame(frame);
+			loaded = true;
 		}
 	}
 }
