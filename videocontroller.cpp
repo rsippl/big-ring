@@ -109,6 +109,8 @@ void VideoController::displayFrame(quint32 frameToShow)
 		qDebug() << "frame to show" << frameToShow << "current" << _currentFrameNumber;
 		return; // wait until playing catches up.
 	}
+
+	// if we've loaded a frame that's higher than the currently shown frame, let the widget display it.
 	if (_loadedFrameNumber > _currentFrameNumber) {
 		_videoWidget->displayNextFrame();
 		_currentFrameNumber = _loadedFrameNumber;
@@ -150,7 +152,7 @@ void VideoController::framesReady(FrameList frames)
 		_currentFrameNumber = 1;
 	}
 
-	if (frames.first().frameNr >= _currentFrameNumber) {
+	if (!frames.isEmpty() && frames.first().frameNr >= _currentFrameNumber) {
 		_imageQueue += frames;
 
 		if (_imageQueue.size() >= NR_FRAMES_BUFFER_LOW)
