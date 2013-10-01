@@ -110,7 +110,9 @@ void VideoDecoder::openFile(QString filename)
 
 void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 skip)
 {
-	qDebug() << "request for" << numberOfFrame << "frames";
+	if (numberOfFrame > 1) {
+		qDebug() << "request for" << numberOfFrame << "frames";
+	}
 	QTime now;
 	now.start();
 	Frame frame;
@@ -132,8 +134,10 @@ void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 skip)
 	if (frames.isEmpty())
 		qDebug() << "request finished. No frames found.";
 	else
-		qDebug() << "request finished. Frames." << frames.first().frameNr
-				 << "to" << frames.last().frameNr << "skipped" << skipped << "frames. Took" << now.elapsed() << "ms";
+		if (now.elapsed() > 100) {
+			qDebug() << "request finished. Frames." << frames.first().frameNr
+					 << "to" << frames.last().frameNr << "skipped" << skipped << "frames. Took" << now.elapsed() << "ms";
+		}
 	emit framesReady(frames);
 
 }

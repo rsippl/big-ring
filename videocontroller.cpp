@@ -6,8 +6,8 @@
 #include <QTimer>
 
 namespace {
-const quint32 NR_FRAMES_PER_REQUEST = 25;
-const int NR_FRAMES_BUFFER_LOW = 40;
+const quint32 NR_FRAMES_PER_REQUEST = 10;
+const int NR_FRAMES_BUFFER_LOW = 30;
 const int FRAME_INTERVAL = 1000/30;
 }
 
@@ -168,6 +168,7 @@ void VideoController::seekFinished(Frame frame)
 {
 	_imageQueue.clear();
 	_imageQueue.append(frame);
+	requestNewFrames(25);
 	displayFrame(frame.frameNr);
 }
 
@@ -196,10 +197,13 @@ void VideoController::reset()
 
 Frame VideoController::takeFrame()
 {
-	if (!_requestBusy && _imageQueue.size() <= NR_FRAMES_BUFFER_LOW) {
-		requestNewFrames(NR_FRAMES_PER_REQUEST);
-	}
 
+	if (!_requestBusy) {
+		if (_imageQueue.size() <= NR_FRAMES_BUFFER_LOW) {
+			QMetaObject::invokeMethod(_videoDecoder, "loadFrames", Q_ARG(quint32, NR_FRAMES_PER_REQUEST), Q_ARG(quint32, 5));
+		}
+	}
+	requestNewFrames(1);
 	if (_imageQueue.empty()) {
 		Frame frame;
 		frame.frameNr = UNKNOWN_FRAME_NR;
