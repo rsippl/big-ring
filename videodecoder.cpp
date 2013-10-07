@@ -14,9 +14,6 @@ extern "C"
 #include <QTimer>
 #include <QtDebug>
 
-
-
-
 namespace {
 const int ERROR_STR_BUF_SIZE = 128;
 }

@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QPair>
 #include <QQueue>
-#include <QThread>
 #include <QTimer>
 
 #include "cyclist.h"
@@ -54,7 +53,6 @@ private:
 	Cyclist& _cyclist;
 	QLinkedList<Frame> _imageQueue;
 	VideoDecoder* _videoDecoder;
-	QThread _decoderThread;
 	VideoWidget* const _videoWidget;
 	QTimer _playTimer;
 	bool _requestBusy;

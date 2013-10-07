@@ -6,8 +6,8 @@
 #include <QTimer>
 
 namespace {
-const quint32 NR_FRAMES_PER_REQUEST = 10;
-const int NR_FRAMES_BUFFER_LOW = 30;
+const quint32 NR_FRAMES_PER_REQUEST = 11;
+const int NR_FRAMES_BUFFER_LOW = 10;
 const int FRAME_INTERVAL = 1000/30;
 }
 
@@ -20,9 +20,6 @@ VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QOb
 	_lastFrameRateSample(QDateTime::currentDateTime()),
 	_currentFrameRate(0u)
 {
-	_decoderThread.start();
-	_videoDecoder->moveToThread(&_decoderThread);
-
 	// set up timers
 	_playTimer.setInterval(FRAME_INTERVAL);
 	connect(&_playTimer, SIGNAL(timeout()), SLOT(playNextFrame()));
@@ -31,15 +28,11 @@ VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QOb
 	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
 	connect(_videoDecoder, SIGNAL(framesReady(FrameList)), SLOT(framesReady(FrameList)));
 	connect(_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
-	connect(_videoDecoder, SIGNAL(destroyed()), &_decoderThread, SLOT(quit()));
 }
 
 VideoController::~VideoController()
 {
-	qDebug() << "destroying video controller" << QThread::currentThreadId();
-	_videoDecoder->deleteLater();
-	while (_decoderThread.isRunning())
-		QCoreApplication::processEvents();
+	delete _videoDecoder;
 }
 
 bool VideoController::isBufferFull()
@@ -168,7 +161,7 @@ void VideoController::seekFinished(Frame frame)
 {
 	_imageQueue.clear();
 	_imageQueue.append(frame);
-	requestNewFrames(25);
+	requestNewFrames(NR_FRAMES_PER_REQUEST);
 	displayFrame(frame.frameNr);
 }
 
@@ -186,11 +179,13 @@ void VideoController::setPosition(quint32 frameNr)
 
 void VideoController::reset()
 {
+	qDebug() << "reset";
 	_videoWidget->clearOpenGLBuffers();
 	play(false);
 	emit bufferFull(false);
 	_playTimer.stop();
 	_currentFrameNumber = UNKNOWN_FRAME_NR;
+	_loadedFrameNumber = 0;
 	_imageQueue.clear();
 	_requestBusy = false;
 }
