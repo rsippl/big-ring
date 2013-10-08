@@ -175,10 +175,6 @@ void VideoDecoder::printError(int errorNr, const QString& message)
 void VideoDecoder::initializeFrames()
 {
 	_frame = avcodec_alloc_frame();
-
-	_lineSizes.reset(new int[_codecContext->height]);
-	for (int line = 0; line < _codecContext->height; ++line)
-		_lineSizes[line] = _codecContext->width * 4;
 }
 
 void VideoDecoder::seekFrame(quint32 frameNr)
@@ -197,7 +193,6 @@ Frame VideoDecoder::convertFrame(AVPacket& packet)
 	frame.frameNr = packet.dts;
 	frame.width = _codecContext->width;
 	frame.height = _codecContext->height;
-	frame.numBytes = _lineSizes[0] * _codecContext->height;
 	quint8* ptr = (quint8*)malloc((_frame->linesize[0] * _codecContext->height * 6) / 4);
 	mempcpy(ptr, _frame->data[0], _frame->linesize[0] * _codecContext->height);
 	size_t uOffset = _frame->linesize[0] * _codecContext->height;

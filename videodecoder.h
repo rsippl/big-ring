@@ -22,7 +22,6 @@ struct Frame
 	quint32 frameNr;
 	quint32 width;
 	quint32 height;
-	quint32 numBytes;
 	QSharedPointer<quint8> data;
 	int yLineSize;
 	int uLineSize;
@@ -76,8 +75,6 @@ private:
 	quint32 _seekTargetFrame;
 
 	int _videoStream;
-
-    QScopedArrayPointer<int> _lineSizes;
 };
 
 #endif // VIDEODECODER_H
