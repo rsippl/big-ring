@@ -162,6 +162,8 @@ void VideoController::seekFinished(Frame frame)
 	_imageQueue.clear();
 	_imageQueue.append(frame);
 	requestNewFrames(NR_FRAMES_PER_REQUEST);
+	_loadedFrameNumber = frame.frameNr;
+	_videoWidget->loadFrame(frame);
 	displayFrame(frame.frameNr);
 }
 
