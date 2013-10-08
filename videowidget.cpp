@@ -29,9 +29,11 @@ VideoWidget::~VideoWidget()
 
 void VideoWidget::loadFrame(Frame &frame)
 {
-	_currentFrame = frame;
+	_lineSize = frame.yLineSize;
+	_frameSize = QSize(frame.width, frame.height);
+
 	makeCurrent();
-	int pboSize = frame.yLineSize * frame.height * (1.5);
+	int pboSize = _lineSize * _frameSize.height() * (1.5);
 	_nextIndex = (_nextIndex + 1) % _pixelBufferObjects.size();
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_nextIndex));
 	glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, pboSize, 0, GL_DYNAMIC_DRAW_ARB);
@@ -62,8 +64,8 @@ void VideoWidget::leaveEvent(QEvent*)
 const QVector<GLfloat> &VideoWidget::calculatetextureCoordinates()
 {
 	if (_textureCoordinates.isEmpty()) {
-		GLfloat width = _currentFrame.width;
-		GLfloat height = _currentFrame.height;
+		GLfloat width = _frameSize.width();
+		GLfloat height = _frameSize.height();
 
 		float imageRatio = width / height;
 		float widgetRatio = (float) this->width() / (float) this->height();
@@ -101,8 +103,9 @@ void VideoWidget::clearOpenGLBuffers()
 	_texturesInitialized = false;
 	_nextIndex = 0;
 	_index = 0;
-	Frame nullFrame;
-	_currentFrame = nullFrame;
+
+	_lineSize = 0;
+	_frameSize = QSize();
 }
 
 void VideoWidget::initializeGL()
@@ -171,16 +174,16 @@ void VideoWidget::paintFrame()
 
 void VideoWidget::loadTexture()
 {
-	size_t uTexOffset = _currentFrame.yLineSize * _currentFrame.height;
-	size_t vTexOffset = uTexOffset + _currentFrame.uLineSize * _currentFrame.height / 2;
+	size_t uTexOffset = _lineSize * _frameSize.height();
+	size_t vTexOffset = uTexOffset + (_lineSize / 2) * _frameSize.height() / 2;
 	if (_texturesInitialized) {
-		loadPlaneTexturesFromPbo("yTex", GL_TEXTURE0, 0, _currentFrame.yLineSize, _currentFrame.height, (size_t) 0);
-		loadPlaneTexturesFromPbo("uTex", GL_TEXTURE1, 1, _currentFrame.uLineSize, _currentFrame.height / 2 , uTexOffset);
-		loadPlaneTexturesFromPbo("vTex", GL_TEXTURE2, 2, _currentFrame.vLineSize, _currentFrame.height / 2, vTexOffset);
+		loadPlaneTexturesFromPbo("yTex", GL_TEXTURE0, 0, _lineSize, _frameSize.height(), (size_t) 0);
+		loadPlaneTexturesFromPbo("uTex", GL_TEXTURE1, 1, _lineSize / 2, _frameSize.height() / 2 , uTexOffset);
+		loadPlaneTexturesFromPbo("vTex", GL_TEXTURE2, 2, _lineSize / 2, _frameSize.height() / 2, vTexOffset);
 	} else {
-		initializeAndLoadPlaneTextureFromPbo("yTex", GL_TEXTURE0, 0, _currentFrame.yLineSize, _currentFrame.height, (size_t) 0);
-		initializeAndLoadPlaneTextureFromPbo("uTex", GL_TEXTURE1, 1, _currentFrame.uLineSize, _currentFrame.height / 2, uTexOffset);
-		initializeAndLoadPlaneTextureFromPbo("vTex", GL_TEXTURE2, 2, _currentFrame.vLineSize, _currentFrame.height / 2, vTexOffset);
+		initializeAndLoadPlaneTextureFromPbo("yTex", GL_TEXTURE0, 0, _lineSize, _frameSize.height(), (size_t) 0);
+		initializeAndLoadPlaneTextureFromPbo("uTex", GL_TEXTURE1, 1, _lineSize / 2, _frameSize.height() / 2, uTexOffset);
+		initializeAndLoadPlaneTextureFromPbo("vTex", GL_TEXTURE2, 2, _lineSize / 2, _frameSize.height() / 2, vTexOffset);
 
 		_texturesInitialized = true;
 	}
@@ -223,7 +226,7 @@ void VideoWidget::paintGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (_currentFrame.data.isNull()) {
+	if (!_frameSize.isValid()) {
 		return;
 	}
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);

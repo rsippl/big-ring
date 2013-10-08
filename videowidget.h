@@ -43,7 +43,8 @@ private:
 
 	const QVector<GLfloat>& calculatetextureCoordinates();
 
-	Frame _currentFrame;
+	QSize _frameSize;
+	int _lineSize;
 
 	QVector<GLuint> _pixelBufferObjects;
 	GLuint _vertexBufferObject;
