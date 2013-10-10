@@ -12,6 +12,10 @@
 #include <QVBoxLayout>
 #include "videodecoder.h"
 
+extern "C" {
+#include <libavcodec/avcodec.h>
+}
+
 VideoWidget::VideoWidget(QWidget *parent) :
 	QGLWidget(parent), _pixelBufferObjects(10, 0), _vertexBufferObject(0u),
 	_index(0), _nextIndex(0), _texturesInitialized(false)
@@ -29,8 +33,8 @@ VideoWidget::~VideoWidget()
 
 bool VideoWidget::loadFrame(Frame &frame)
 {
-	_lineSize = frame.yLineSize;
-	_frameSize = QSize(frame.width, frame.height);
+	_lineSize = frame.avFrame->linesize[0];
+	_frameSize = QSize(frame.avFrame->width, frame.avFrame->height);
 
 	makeCurrent();
 	int pboSize = _lineSize * _frameSize.height() * (1.5);
@@ -45,7 +49,12 @@ bool VideoWidget::loadFrame(Frame &frame)
 											GL_WRITE_ONLY_ARB);
 	if(ptr)
 	{
-		memcpy(ptr, frame.data.data(), pboSize);
+		// load all three planes
+		memcpy(ptr, frame.avFrame->data[0], frame.avFrame->linesize[0] * frame.avFrame->height);
+		size_t uOffset = frame.avFrame->linesize[0] * frame.avFrame->height;
+		memcpy(ptr + uOffset, frame.avFrame->data[1], frame.avFrame->linesize[1] * frame.avFrame->height / 2);
+		size_t vOffset = uOffset + frame.avFrame->linesize[1] * frame.avFrame->height / 2;
+		memcpy(ptr + vOffset, frame.avFrame->data[2], frame.avFrame->linesize[2] * frame.avFrame->height / 2);
 		glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB);
 	}
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);

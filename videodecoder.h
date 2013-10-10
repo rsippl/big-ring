@@ -20,12 +20,7 @@ const quint32 UNKNOWN_FRAME_NR = std::numeric_limits<quint32>::max();
 struct Frame
 {
 	quint32 frameNr;
-	quint32 width;
-	quint32 height;
-	QSharedPointer<quint8> data;
-	int yLineSize;
-	int uLineSize;
-	int vLineSize;
+	AVFrame* avFrame;
 };
 
 typedef QLinkedList<Frame> FrameList;
@@ -64,7 +59,7 @@ private:
 	void closeFramesAndBuffers();
 	void initialize();
 	void initializeFrames();
-	Frame decodeNextFrame();
+	void decodeNextFrame(bool offerToSink);
 	void skipNextFrame();
 	bool decodeNextAVFrame(AVPacket& packet);
 

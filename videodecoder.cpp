@@ -108,10 +108,9 @@ void VideoDecoder::openFile(QString filename)
 void VideoDecoder::loadFrames(quint32 skip)
 {
 	for (quint32 skipped = 0; skipped < skip; ++skipped) {
-		decodeNextFrame();
+		decodeNextFrame(false);
 	}
-	Frame frame = decodeNextFrame();
-	_sink->offerFrame(frame);
+	decodeNextFrame(true);
 }
 
 // Find the target frame of a seek.
@@ -166,38 +165,26 @@ Frame VideoDecoder::convertFrame(AVPacket& packet)
 {
 	Frame frame;
 	frame.frameNr = packet.dts;
-	frame.width = _codecContext->width;
-	frame.height = _codecContext->height;
-	quint8* ptr = (quint8*)malloc((_frame->linesize[0] * _codecContext->height * 6) / 4);
-	mempcpy(ptr, _frame->data[0], _frame->linesize[0] * _codecContext->height);
-	size_t uOffset = _frame->linesize[0] * _codecContext->height;
-	mempcpy(ptr + uOffset, _frame->data[1], _frame->linesize[0] * _codecContext->height / 4);
-	size_t vOffset = uOffset + (uOffset / 4);
-	mempcpy(ptr + vOffset, _frame->data[2], _frame->linesize[0] * _codecContext->height / 4);
-	frame.data = QSharedPointer<quint8>(ptr);
-
-	frame.yLineSize = _frame->linesize[0];
-	frame.uLineSize = _frame->linesize[1];
-	frame.vLineSize = _frame->linesize[1];
+	frame.avFrame = _frame;
 
 	return frame;
 }
 
-Frame VideoDecoder::decodeNextFrame()
+void VideoDecoder::decodeNextFrame(bool offerToSink)
 {
-	Frame newFrame;
-	newFrame.frameNr = UNKNOWN_FRAME_NR;
-
 	/** We might get here before having loaded anything */
 	if (_formatContext != NULL) {
 		AVPacket packet;
 
 		if (decodeNextAVFrame(packet)) {
-			newFrame = convertFrame(packet);
+			if (offerToSink) {
+				Frame newFrame = convertFrame(packet);
+				_sink->offerFrame(newFrame);
+			}
+
 		}
 		av_free_packet(&packet);
 	}
-	return newFrame;
 }
 
 void VideoDecoder::skipNextFrame()
