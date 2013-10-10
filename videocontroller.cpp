@@ -14,9 +14,8 @@ const int FRAME_INTERVAL = 1000/30;
 VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QObject *parent) :
 	QObject(parent),
 	_cyclist(cyclist),
-	_videoDecoder(new VideoDecoder),
+	_videoDecoder(new VideoDecoder(this)),
 	_videoWidget(videoWidget),
-	_requestBusy(false),
 	_lastFrameRateSample(QDateTime::currentDateTime()),
 	_currentFrameRate(0u)
 {
@@ -37,7 +36,13 @@ VideoController::~VideoController()
 
 bool VideoController::isBufferFull()
 {
-	return !_imageQueue.empty();
+	return (_loadedFrameNumber > _currentFrameNumber) || (_loadedFrameNumber > 0 && _currentFrameNumber == UNKNOWN_FRAME_NR);
+}
+
+void VideoController::offerFrame(Frame& frame)
+{
+	loadFrame(frame);
+	emit bufferFull(true);
 }
 
 void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
@@ -104,67 +109,24 @@ void VideoController::displayFrame(quint32 frameToShow)
 	}
 
 	// if we've loaded a frame that's higher than the currently shown frame, let the widget display it.
-	if (_loadedFrameNumber > _currentFrameNumber) {
+	if (_loadedFrameNumber > _currentFrameNumber || _currentFrameNumber == UNKNOWN_FRAME_NR) {
 		_videoWidget->displayNextFrame();
 		_currentFrameNumber = _loadedFrameNumber;
 	}
-
-	// find new frame to load into widget, but not display yet.
-	if (_imageQueue.empty()) {
-		qDebug() << "image queue empty, doing nothing";
-		return;
-	}
-
-	Frame frame;
-	if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
-		qDebug() << "current frame is null, taking first one";
-		frame = takeFrame();
-		_currentFrameNumber = frame.frameNr;
-		_loadedFrameNumber = frame.frameNr;
-		_videoWidget->loadFrame(frame);
-		_videoWidget->displayNextFrame();
-	}
-
-	/* load next frame, so widget can upload it to graphics card */
-	bool loaded = false;
-	while(!loaded && _currentFrameNumber != UNKNOWN_FRAME_NR && !_imageQueue.empty()) {
-		frame = takeFrame();
-		_framesThisSecond += frame.frameNr - _currentFrameNumber;
-		_loadedFrameNumber = frame.frameNr;
-		if (_loadedFrameNumber > frameToShow) {
-			_videoWidget->loadFrame(frame);
-			loaded = true;
-		}
-	}
-}
-
-void VideoController::framesReady(FrameList frames)
-{
-	_requestBusy = false;
-	if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
-		_currentFrameNumber = 1;
-	}
-
-	if (!frames.isEmpty() && frames.first().frameNr >= _currentFrameNumber) {
-		_imageQueue += frames;
-
-		if (_imageQueue.size() >= NR_FRAMES_BUFFER_LOW)
-			emit bufferFull(true);
-	}
-
-	// check if we need some new frames ASAP
-	if (_imageQueue.size() <= NR_FRAMES_BUFFER_LOW)
-		requestNewFrames(NR_FRAMES_PER_REQUEST);
+	fillFrameBuffers();
 }
 
 void VideoController::seekFinished(Frame frame)
 {
-	_imageQueue.clear();
-	_imageQueue.append(frame);
-	requestNewFrames(NR_FRAMES_PER_REQUEST);
+	loadFrame(frame);
+	displayFrame(frame.frameNr);
+	fillFrameBuffers();
+}
+
+void VideoController::loadFrame(Frame &frame)
+{
 	_loadedFrameNumber = frame.frameNr;
 	_videoWidget->loadFrame(frame);
-	displayFrame(frame.frameNr);
 }
 
 void VideoController::loadVideo(const QString &filename)
@@ -188,26 +150,6 @@ void VideoController::reset()
 	_playTimer.stop();
 	_currentFrameNumber = UNKNOWN_FRAME_NR;
 	_loadedFrameNumber = 0;
-	_imageQueue.clear();
-	_requestBusy = false;
-}
-
-Frame VideoController::takeFrame()
-{
-
-	if (!_requestBusy) {
-		if (_imageQueue.size() <= NR_FRAMES_BUFFER_LOW) {
-			QMetaObject::invokeMethod(_videoDecoder, "loadFrames", Q_ARG(quint32, NR_FRAMES_PER_REQUEST), Q_ARG(quint32, 5));
-		}
-	}
-	requestNewFrames(1);
-	if (_imageQueue.empty()) {
-		Frame frame;
-		frame.frameNr = UNKNOWN_FRAME_NR;
-		return frame;
-	}
-
-	return _imageQueue.takeFirst();
 }
 
 int VideoController::determineFramesToSkip()
@@ -220,10 +162,10 @@ int VideoController::determineFramesToSkip()
 		return 2; // skip 2 frames for every decoded frame
 }
 
-void VideoController::requestNewFrames(quint32 numberOfFrames)
+void VideoController::fillFrameBuffers()
 {
-	_requestBusy = true;
-
-	int skip = determineFramesToSkip();
-	QMetaObject::invokeMethod(_videoDecoder, "loadFrames", Q_ARG(quint32, numberOfFrames), Q_ARG(quint32, skip));
+	int skip = 0; //determineFramesToSkip();
+	while (!_videoWidget->buffersFull()) {
+		_videoDecoder->loadFrames(skip);
+	}
 }

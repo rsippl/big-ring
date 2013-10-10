@@ -17,8 +17,8 @@ extern "C"
 namespace {
 const int ERROR_STR_BUF_SIZE = 128;
 }
-VideoDecoder::VideoDecoder(QObject *parent) :
-	QObject(parent),
+VideoDecoder::VideoDecoder(VideoFrameSink *sink, QObject *parent) :
+	QObject(parent), _sink(sink),
 	_formatContext(NULL), _codecContext(NULL),
 	_codec(NULL), _frame(NULL),
 	_seekTimer(new QTimer(this)), _seekTargetFrame(0)
@@ -105,38 +105,13 @@ void VideoDecoder::openFile(QString filename)
 	emit videoLoaded();
 }
 
-void VideoDecoder::loadFrames(quint32 numberOfFrame, quint32 skip)
+void VideoDecoder::loadFrames(quint32 skip)
 {
-	if (numberOfFrame > 1) {
-		qDebug() << "request for" << numberOfFrame << "frames";
+	for (quint32 skipped = 0; skipped < skip; ++skipped) {
+		decodeNextFrame();
 	}
-	QTime now;
-	now.start();
-	Frame frame;
-	quint32 decoded = 0;
-	quint32 skipped = 0;
-	FrameList frames;
-	while(frames.size() < (int) numberOfFrame) {
-		if (decoded % (skip + 1) == 0) {
-			frame = decodeNextFrame();
-			if (frame.frameNr == UNKNOWN_FRAME_NR)
-				break;
-			frames << frame;
-		} else {
-			skipNextFrame();
-			++skipped;
-		}
-		++decoded;
-	}
-	if (frames.isEmpty())
-		qDebug() << "request finished. No frames found.";
-	else
-		if (now.elapsed() > 100) {
-			qDebug() << "request finished. Frames." << frames.first().frameNr
-					 << "to" << frames.last().frameNr << "skipped" << skipped << "frames. Took" << now.elapsed() << "ms";
-		}
-	emit framesReady(frames);
-
+	Frame frame = decodeNextFrame();
+	_sink->offerFrame(frame);
 }
 
 // Find the target frame of a seek.

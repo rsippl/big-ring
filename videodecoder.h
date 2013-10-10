@@ -30,11 +30,17 @@ struct Frame
 
 typedef QLinkedList<Frame> FrameList;
 
+class VideoFrameSink {
+public:
+	virtual ~VideoFrameSink() { /* empty */ }
+	virtual void offerFrame(Frame& frame) = 0;
+};
+
 class VideoDecoder : public QObject
 {
 	Q_OBJECT
 public:
-	explicit VideoDecoder(QObject *parent = 0);
+	explicit VideoDecoder(VideoFrameSink* sink, QObject *parent = 0);
 	~VideoDecoder();
 
 	Frame convertFrame(AVPacket &packet);
@@ -48,7 +54,7 @@ public slots:
 	void seekFrame(quint32 frameNr);
 	void openFile(QString filename);
 	/** Load a number of frames from the video file */
-	void loadFrames(quint32 numberOfFrame, quint32 skip);
+	void loadFrames(quint32 skip);
 
 private slots:
 	void decodeUntilCorrectFrame();
@@ -65,6 +71,7 @@ private:
 	int findVideoStream();
 	void printError(int errorNr, const QString& message);
 
+	VideoFrameSink* _sink;
 	AVFormatContext* _formatContext;
 	AVCodecContext* _codecContext;
 	AVCodec* _codec;

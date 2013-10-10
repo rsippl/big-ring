@@ -13,7 +13,7 @@
 #include "videodecoder.h"
 
 VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent), _pixelBufferObjects(2, 0), _vertexBufferObject(0u),
+	QGLWidget(parent), _pixelBufferObjects(10, 0), _vertexBufferObject(0u),
 	_index(0), _nextIndex(0), _texturesInitialized(false)
 {
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
@@ -27,14 +27,16 @@ VideoWidget::~VideoWidget()
 	glDeleteBuffersARB(1, &_vertexBufferObject);
 }
 
-void VideoWidget::loadFrame(Frame &frame)
+bool VideoWidget::loadFrame(Frame &frame)
 {
 	_lineSize = frame.yLineSize;
 	_frameSize = QSize(frame.width, frame.height);
 
 	makeCurrent();
 	int pboSize = _lineSize * _frameSize.height() * (1.5);
-	_nextIndex = (_nextIndex + 1) % _pixelBufferObjects.size();
+
+
+	qDebug() << "loading frame into buffer with index" << _nextIndex;
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_nextIndex));
 	glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, pboSize, 0, GL_DYNAMIC_DRAW_ARB);
 
@@ -47,6 +49,15 @@ void VideoWidget::loadFrame(Frame &frame)
 		glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB);
 	}
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+	_nextIndex = (_nextIndex + 1) % _pixelBufferObjects.size();
+	return !((_nextIndex + 1 % _pixelBufferObjects.size()) == _index);
+}
+
+bool VideoWidget::buffersFull() const
+{
+
+//	qDebug() << "index:" << _index << "nextindex" << _nextIndex << (_nextIndex + 1) % _pixelBufferObjects.size() << _nextIndex + 1 % _pixelBufferObjects.size();
+	return ((_nextIndex + 1) % _pixelBufferObjects.size()) == _index;
 }
 
 
@@ -101,7 +112,7 @@ void VideoWidget::clearOpenGLBuffers()
 {
 	_textureCoordinates.clear();
 	_texturesInitialized = false;
-	_nextIndex = 0;
+	_nextIndex = 1;
 	_index = 0;
 
 	_lineSize = 0;
@@ -174,6 +185,7 @@ void VideoWidget::paintFrame()
 
 void VideoWidget::loadTexture()
 {
+	qDebug() << "loading texture from pbo at index" << _index;
 	size_t uTexOffset = _lineSize * _frameSize.height();
 	size_t vTexOffset = uTexOffset + (_lineSize / 2) * _frameSize.height() / 2;
 	if (_texturesInitialized) {

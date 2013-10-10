@@ -22,7 +22,8 @@ public:
 	explicit VideoWidget(QWidget *parent = 0);
 	virtual ~VideoWidget();
 
-	void loadFrame(Frame& frame);
+	bool loadFrame(Frame& frame);
+	bool buffersFull() const;
 	/** Display a frame */
 	void displayNextFrame();
 	void clearOpenGLBuffers();
