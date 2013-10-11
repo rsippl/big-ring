@@ -39,8 +39,6 @@ bool VideoWidget::loadFrame(Frame &frame)
 	makeCurrent();
 	int pboSize = _lineSize * _frameSize.height() * (1.5);
 
-
-	qDebug() << "loading frame into buffer with index" << _nextIndex;
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_nextIndex));
 	glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, pboSize, 0, GL_DYNAMIC_DRAW_ARB);
 
@@ -194,7 +192,6 @@ void VideoWidget::paintFrame()
 
 void VideoWidget::loadTexture()
 {
-	qDebug() << "loading texture from pbo at index" << _index;
 	size_t uTexOffset = _lineSize * _frameSize.height();
 	size_t vTexOffset = uTexOffset + (_lineSize / 2) * _frameSize.height() / 2;
 	if (_texturesInitialized) {
