@@ -27,7 +27,6 @@ VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QOb
 
 	// set up video decoder
 	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
-	connect(_videoDecoder, SIGNAL(framesReady(FrameList)), SLOT(framesReady(FrameList)));
 	connect(_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
 }
 
@@ -38,7 +37,7 @@ VideoController::~VideoController()
 
 bool VideoController::isBufferFull()
 {
-	return (_loadedFrameNumber > _currentFrameNumber) || (_loadedFrameNumber > 0 && _currentFrameNumber == UNKNOWN_FRAME_NR);
+	return _videoWidget->buffersFull();
 }
 
 void VideoController::offerFrame(Frame& frame)
@@ -107,26 +106,6 @@ void VideoController::displayFrame(quint32 frameToShow)
 	_videoWidget->displayNextFrame(frameToShow);
 	_framesThisSecond += frameToShow - _currentFrameNumber;
 	_currentFrameNumber = frameToShow;
-
-//	if (frameToShow == _currentFrameNumber)
-//		return; // no need to display again.
-//	if (frameToShow < _currentFrameNumber && _currentFrameNumber != UNKNOWN_FRAME_NR) {
-//		qDebug() << "frame to show" << frameToShow << "current" << _currentFrameNumber;
-//		return; // wait until playing catches up.
-//	}
-
-//	// if we've loaded a frame that's higher than the currently shown frame, let the widget display it.
-//	if (_loadedFrameNumber > _currentFrameNumber || _currentFrameNumber == UNKNOWN_FRAME_NR) {
-//		if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
-//			_framesThisSecond += 1;
-//		} else {
-//			qDebug() << frameToShow << _currentFrameNumber ;
-//			_framesThisSecond += (frameToShow -_currentFrameNumber);
-//		}
-//		_videoWidget->displayNextFrame(frameToShow);
-//		_currentFrameNumber = _loadedFrameNumber;
-
-//	}
 	fillFrameBuffers();
 }
 
@@ -145,14 +124,12 @@ void VideoController::loadFrame(Frame &frame)
 
 void VideoController::loadVideo(const QString &filename)
 {
-	QMetaObject::invokeMethod(_videoDecoder, "openFile",
-							  Q_ARG(QString, filename));
+	_videoDecoder->openFile(filename);
 }
 
 void VideoController::setPosition(quint32 frameNr)
 {
-	QMetaObject::invokeMethod(_videoDecoder, "seekFrame",
-							  Q_ARG(quint32, frameNr));
+	_videoDecoder->seekFrame(frameNr);
 }
 
 void VideoController::reset()
