@@ -16,9 +16,13 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+namespace {
+const int NR_OF_PIXEL_BUFFERS = 10;
+}
 VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent), _pixelBufferObjects(10, 0), _vertexBufferObject(0u),
-	_index(0), _nextIndex(0), _texturesInitialized(false)
+	QGLWidget(parent), _pixelBufferObjects(NR_OF_PIXEL_BUFFERS, 0),
+	_frameNumbers(NR_OF_PIXEL_BUFFERS, UNKNOWN_FRAME_NR),
+	_vertexBufferObject(0u), _index(0), _nextIndex(0), _texturesInitialized(false)
 {
 	setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 	setAutoBufferSwap(true);
@@ -39,6 +43,8 @@ bool VideoWidget::loadFrame(Frame &frame)
 	makeCurrent();
 	int pboSize = _lineSize * _frameSize.height() * (1.5);
 
+	_frameNumbers[_nextIndex] = frame.frameNr;
+
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_nextIndex));
 	glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_ARB, pboSize, 0, GL_DYNAMIC_DRAW_ARB);
 
@@ -57,13 +63,12 @@ bool VideoWidget::loadFrame(Frame &frame)
 	}
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 	_nextIndex = (_nextIndex + 1) % _pixelBufferObjects.size();
+
 	return !((_nextIndex + 1 % _pixelBufferObjects.size()) == _index);
 }
 
 bool VideoWidget::buffersFull() const
 {
-
-//	qDebug() << "index:" << _index << "nextindex" << _nextIndex << (_nextIndex + 1) % _pixelBufferObjects.size() << _nextIndex + 1 % _pixelBufferObjects.size();
 	return ((_nextIndex + 1) % _pixelBufferObjects.size()) == _index;
 }
 
@@ -109,9 +114,13 @@ const QVector<GLfloat> &VideoWidget::calculatetextureCoordinates()
 	return _textureCoordinates;
 }
 
-void VideoWidget::displayNextFrame()
+void VideoWidget::displayNextFrame(quint32 frameNr)
 {
-	_index = (_index + 1) % _pixelBufferObjects.size();
+	if (_frameNumbers[_index] != frameNr) {
+		while ((_frameNumbers[_index] <= frameNr || _frameNumbers[_index] == UNKNOWN_FRAME_NR) && _index != _nextIndex) {
+			_index = (_index + 1) % _pixelBufferObjects.size();
+		}
+	}
 	repaint();
 }
 
@@ -119,7 +128,7 @@ void VideoWidget::clearOpenGLBuffers()
 {
 	_textureCoordinates.clear();
 	_texturesInitialized = false;
-	_nextIndex = 1;
+	_nextIndex = 0;
 	_index = 0;
 
 	_lineSize = 0;

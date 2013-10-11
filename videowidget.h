@@ -25,7 +25,7 @@ public:
 	bool loadFrame(Frame& frame);
 	bool buffersFull() const;
 	/** Display a frame */
-	void displayNextFrame();
+	void displayNextFrame(quint32 frameNr);
 	void clearOpenGLBuffers();
 
 protected:
@@ -48,6 +48,7 @@ private:
 	int _lineSize;
 
 	QVector<GLuint> _pixelBufferObjects;
+	QVector<quint32> _frameNumbers;
 	GLuint _vertexBufferObject;
 	GLuint _textureCoordinatesBufferObject;
 	QOpenGLShaderProgram _shaderProgram;

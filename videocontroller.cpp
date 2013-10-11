@@ -5,6 +5,8 @@
 #include <QDateTime>
 #include <QTimer>
 
+#include "videowidget.h"
+
 namespace {
 const quint32 NR_FRAMES_PER_REQUEST = 11;
 const int NR_FRAMES_BUFFER_LOW = 10;
@@ -102,25 +104,29 @@ void VideoController::playNextFrame()
 
 void VideoController::displayFrame(quint32 frameToShow)
 {
-	if (frameToShow == _currentFrameNumber)
-		return; // no need to display again.
-	if (frameToShow < _currentFrameNumber && _currentFrameNumber != UNKNOWN_FRAME_NR) {
-		qDebug() << "frame to show" << frameToShow << "current" << _currentFrameNumber;
-		return; // wait until playing catches up.
-	}
+	_videoWidget->displayNextFrame(frameToShow);
+	_framesThisSecond += frameToShow - _currentFrameNumber;
+	_currentFrameNumber = frameToShow;
 
-	// if we've loaded a frame that's higher than the currently shown frame, let the widget display it.
-	if (_loadedFrameNumber > _currentFrameNumber || _currentFrameNumber == UNKNOWN_FRAME_NR) {
-		if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
-			_framesThisSecond += 1;
-		} else {
-			qDebug() << frameToShow << _currentFrameNumber ;
-			_framesThisSecond += (frameToShow -_currentFrameNumber);
-		}
-		_videoWidget->displayNextFrame();
-		_currentFrameNumber = _loadedFrameNumber;
+//	if (frameToShow == _currentFrameNumber)
+//		return; // no need to display again.
+//	if (frameToShow < _currentFrameNumber && _currentFrameNumber != UNKNOWN_FRAME_NR) {
+//		qDebug() << "frame to show" << frameToShow << "current" << _currentFrameNumber;
+//		return; // wait until playing catches up.
+//	}
 
-	}
+//	// if we've loaded a frame that's higher than the currently shown frame, let the widget display it.
+//	if (_loadedFrameNumber > _currentFrameNumber || _currentFrameNumber == UNKNOWN_FRAME_NR) {
+//		if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
+//			_framesThisSecond += 1;
+//		} else {
+//			qDebug() << frameToShow << _currentFrameNumber ;
+//			_framesThisSecond += (frameToShow -_currentFrameNumber);
+//		}
+//		_videoWidget->displayNextFrame(frameToShow);
+//		_currentFrameNumber = _loadedFrameNumber;
+
+//	}
 	fillFrameBuffers();
 }
 
@@ -172,7 +178,7 @@ int VideoController::determineFramesToSkip()
 
 void VideoController::fillFrameBuffers()
 {
-	int skip = 0; //determineFramesToSkip();
+	int skip = determineFramesToSkip();
 	while (!_videoWidget->buffersFull()) {
 		_videoDecoder->loadFrames(skip);
 	}

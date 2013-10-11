@@ -8,7 +8,9 @@
 
 #include "cyclist.h"
 #include "reallivevideo.h"
-#include "videowidget.h"
+#include "videodecoder.h"
+
+class VideoWidget;
 
 class VideoController : public QObject, public VideoFrameSink
 {
