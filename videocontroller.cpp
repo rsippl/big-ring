@@ -92,6 +92,7 @@ void VideoController::playNextFrame()
 		_currentFrameRate = _framesThisSecond;
 		_framesThisSecond = 0;
 		_lastFrameRateSample = now;
+		qDebug() << "framerate = " << _currentFrameRate;
 		emit(currentFrameRate(_currentFrameRate));
 	}
 
@@ -110,8 +111,15 @@ void VideoController::displayFrame(quint32 frameToShow)
 
 	// if we've loaded a frame that's higher than the currently shown frame, let the widget display it.
 	if (_loadedFrameNumber > _currentFrameNumber || _currentFrameNumber == UNKNOWN_FRAME_NR) {
+		if (_currentFrameNumber == UNKNOWN_FRAME_NR) {
+			_framesThisSecond += 1;
+		} else {
+			qDebug() << frameToShow << _currentFrameNumber ;
+			_framesThisSecond += (frameToShow -_currentFrameNumber);
+		}
 		_videoWidget->displayNextFrame();
 		_currentFrameNumber = _loadedFrameNumber;
+
 	}
 	fillFrameBuffers();
 }
