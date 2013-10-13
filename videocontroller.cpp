@@ -27,7 +27,6 @@ VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QOb
 
 	// set up video decoder
 	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
-	connect(_videoDecoder, SIGNAL(seekFinished(Frame)), SLOT(seekFinished(Frame)));
 }
 
 VideoController::~VideoController()
@@ -109,11 +108,11 @@ void VideoController::displayFrame(quint32 frameToShow)
 	fillFrameBuffers();
 }
 
-void VideoController::seekFinished(Frame frame)
+void VideoController::seekFinished(Frame& frame)
 {
+	_currentFrameNumber = frame.frameNr;
 	loadFrame(frame);
 	displayFrame(frame.frameNr);
-	fillFrameBuffers();
 }
 
 void VideoController::loadFrame(Frame &frame)

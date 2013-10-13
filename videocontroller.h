@@ -22,6 +22,7 @@ public:
 	bool isBufferFull();
 
 	virtual void offerFrame(Frame &frame) override;
+	virtual void seekFinished(Frame &frame) override;
 signals:
 	void bufferFull(bool full);
 	void playing(bool playing);
@@ -36,7 +37,6 @@ private slots:
 	void videoLoaded();
 	void playNextFrame();
 
-	void seekFinished(Frame frame);
 private:
 	void loadFrame(Frame& frame);
 	void displayFrame(quint32 frameToShow);

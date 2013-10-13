@@ -118,14 +118,16 @@ void VideoDecoder::decodeUntilCorrectFrame()
 {
 	AVPacket packet;
 	quint32 frameNr = 0;
-	while(frameNr <= _seekTargetFrame) {
+	while(true) {
 		if (!decodeNextAVFrame(packet))
-			return;
-
+			break;
 		frameNr = packet.dts;
+		if (frameNr >= _seekTargetFrame) {
+			Frame frame = convertFrame(packet);
+			_sink->seekFinished(frame);
+			break;
+		}
 	}
-
-	emit seekFinished(convertFrame(packet));
 	av_free_packet(&packet);
 }
 

@@ -29,6 +29,7 @@ class VideoFrameSink {
 public:
 	virtual ~VideoFrameSink() { /* empty */ }
 	virtual void offerFrame(Frame& frame) = 0;
+	virtual void seekFinished(Frame& frame) = 0;
 };
 
 class VideoDecoder : public QObject
@@ -43,7 +44,6 @@ signals:
 	void error();
 	void videoLoaded();
 	void framesReady(FrameList frames);
-	void seekFinished(Frame frame);
 
 public slots:
 	void seekFrame(quint32 frameNr);
