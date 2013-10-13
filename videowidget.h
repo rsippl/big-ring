@@ -37,7 +37,6 @@ protected:
 	virtual void leaveEvent(QEvent *);
 
 private:
-	void initializeAndLoadPlaneTextureFromPbo(const QString &textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, size_t offset);
 	void loadPlaneTexturesFromPbo(const QString& textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, size_t offset);
 	void paintFrame();
 	void loadTexture();

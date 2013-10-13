@@ -203,50 +203,37 @@ void VideoWidget::loadTexture()
 {
 	size_t uTexOffset = _lineSize * _frameSize.height();
 	size_t vTexOffset = uTexOffset + (_lineSize / 2) * _frameSize.height() / 2;
+
+	loadPlaneTexturesFromPbo("yTex", GL_TEXTURE0, 0, _lineSize, _frameSize.height(), (size_t) 0);
+	loadPlaneTexturesFromPbo("uTex", GL_TEXTURE1, 1, _lineSize / 2, _frameSize.height() / 2 , uTexOffset);
+	loadPlaneTexturesFromPbo("vTex", GL_TEXTURE2, 2, _lineSize / 2, _frameSize.height() / 2, vTexOffset);
+
+	_texturesInitialized = true;
+}
+
+void VideoWidget::loadPlaneTexturesFromPbo(const QString& textureLocationName,
+										   int glTextureUnit, int textureUnit,
+										   int lineSize, int height, size_t offset)
+{
+	glActiveTexture(glTextureUnit);
+	GLint i = glGetUniformLocation(_shaderProgram.programId(), textureLocationName.toStdString().c_str());
+	glUniform1i(i, textureUnit);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textureUnit);
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_index));
+
 	if (_texturesInitialized) {
-		loadPlaneTexturesFromPbo("yTex", GL_TEXTURE0, 0, _lineSize, _frameSize.height(), (size_t) 0);
-		loadPlaneTexturesFromPbo("uTex", GL_TEXTURE1, 1, _lineSize / 2, _frameSize.height() / 2 , uTexOffset);
-		loadPlaneTexturesFromPbo("vTex", GL_TEXTURE2, 2, _lineSize / 2, _frameSize.height() / 2, vTexOffset);
+		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, lineSize, height,
+						GL_LUMINANCE, GL_UNSIGNED_BYTE, (void*) offset);
 	} else {
-		initializeAndLoadPlaneTextureFromPbo("yTex", GL_TEXTURE0, 0, _lineSize, _frameSize.height(), (size_t) 0);
-		initializeAndLoadPlaneTextureFromPbo("uTex", GL_TEXTURE1, 1, _lineSize / 2, _frameSize.height() / 2, uTexOffset);
-		initializeAndLoadPlaneTextureFromPbo("vTex", GL_TEXTURE2, 2, _lineSize / 2, _frameSize.height() / 2, vTexOffset);
-
-		_texturesInitialized = true;
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_LUMINANCE, lineSize, height,
+					 0,GL_LUMINANCE,GL_UNSIGNED_BYTE, (void*) offset);
 	}
-}
 
-void VideoWidget::initializeAndLoadPlaneTextureFromPbo(const QString& textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, size_t offset)
-{
-	glActiveTexture(glTextureUnit);
-	GLint i = glGetUniformLocation(_shaderProgram.programId(), textureLocationName.toStdString().c_str());
-	glUniform1i(i, textureUnit);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textureUnit);
-	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_index));
 	glTexParameteri(GL_TEXTURE_RECTANGLE_NV,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_NV,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
-	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_LUMINANCE, lineSize, height,
-				 0,GL_LUMINANCE,GL_UNSIGNED_BYTE, (void*) offset);
-}
-
-void VideoWidget::loadPlaneTexturesFromPbo(const QString& textureLocationName, int glTextureUnit, int textureUnit, int lineSize, int height, size_t offset)
-{
-	glActiveTexture(glTextureUnit);
-	GLint i = glGetUniformLocation(_shaderProgram.programId(), textureLocationName.toStdString().c_str());
-	glUniform1i(i, textureUnit);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textureUnit);
-	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, _pixelBufferObjects.at(_index));
-	glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, lineSize, height,
-					GL_LUMINANCE, GL_UNSIGNED_BYTE, (void*) offset);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_NV,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_NV,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
-
 }
 
 void VideoWidget::paintGL()
