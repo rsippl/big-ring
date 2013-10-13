@@ -102,7 +102,6 @@ void VideoDecoder::openFile(QString filename)
 	}
 
 	initializeFrames();
-	emit videoLoaded();
 }
 
 void VideoDecoder::loadFrames(quint32 skip)

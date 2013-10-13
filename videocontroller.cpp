@@ -50,7 +50,7 @@ void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
 	reset();
 	_currentRlv = rlv;
 	if (!_currentRlv.videoInformation().videoFilename().isEmpty())
-		loadVideo(_currentRlv.videoInformation().videoFilename());
+		_videoDecoder->openFile(_currentRlv.videoInformation().videoFilename());
 }
 
 void VideoController::courseSelected(int courseNr)
@@ -77,11 +77,6 @@ void VideoController::play(bool doPlay)
 		_playTimer.stop();
 	}
 	emit playing(_playTimer.isActive());
-}
-
-void VideoController::videoLoaded()
-{
-	qDebug() << "video loaded";
 }
 
 void VideoController::playNextFrame()
@@ -119,11 +114,6 @@ void VideoController::loadFrame(Frame &frame)
 {
 	_loadedFrameNumber = frame.frameNr;
 	_videoWidget->loadFrame(frame);
-}
-
-void VideoController::loadVideo(const QString &filename)
-{
-	_videoDecoder->openFile(filename);
 }
 
 void VideoController::setPosition(quint32 frameNr)

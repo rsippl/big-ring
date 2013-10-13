@@ -39,11 +39,10 @@ public:
 	explicit VideoDecoder(VideoFrameSink* sink, QObject *parent = 0);
 	~VideoDecoder();
 
-	Frame convertFrame(AVPacket &packet);
+
 signals:
 	void error();
 	void videoLoaded();
-	void framesReady(FrameList frames);
 
 public slots:
 	void seekFrame(quint32 frameNr);
@@ -62,6 +61,7 @@ private:
 	void decodeNextFrame(bool offerToSink);
 	void skipNextFrame();
 	bool decodeNextAVFrame(AVPacket& packet);
+	Frame convertFrame(AVPacket &packet);
 
 	int findVideoStream();
 	void printError(int errorNr, const QString& message);

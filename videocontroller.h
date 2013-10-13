@@ -34,13 +34,11 @@ public slots:
 	void play(bool);
 
 private slots:
-	void videoLoaded();
 	void playNextFrame();
 
 private:
 	void loadFrame(Frame& frame);
 	void displayFrame(quint32 frameToShow);
-	void loadVideo(const QString& filename);
 	void setPosition(quint32 frameNr);
 	// reset buffers etc after choosing new video.
 	void reset();
