@@ -53,6 +53,7 @@ link_directories(${FFMPEG_LIBRARY_DIR} ${USBXPRESS_LIB_DIR})
 set(SRCS
 	 cyclist.cpp
 	 mainwindow.cpp
+	 profile.cpp
 	 reallivevideo.cpp
 	 reallivevideoimporter.cpp
 	 rlvfileparser.cpp
