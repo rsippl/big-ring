@@ -24,9 +24,6 @@ VideoController::VideoController(Cyclist &cyclist, VideoWidget* videoWidget, QOb
 	// set up timers
 	_playTimer.setInterval(FRAME_INTERVAL);
 	connect(&_playTimer, SIGNAL(timeout()), SLOT(playNextFrame()));
-
-	// set up video decoder
-	connect(_videoDecoder, SIGNAL(videoLoaded()), SLOT(videoLoaded()));
 }
 
 VideoController::~VideoController()
