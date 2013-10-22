@@ -3,6 +3,7 @@
 #include <QPair>
 #include <QPainter>
 #include <QtDebug>
+#include <QTimer>
 
 namespace
 {
@@ -20,6 +21,10 @@ QPair<float,float> findMinimumAndMaximumAltiude(const QList<ProfileEntry>& profi
 ProfileWidget::ProfileWidget(QWidget *parent) :
 	QWidget(parent)
 {
+	QTimer* repaintTimer = new QTimer(this);
+	repaintTimer->setInterval(1000);
+	connect(repaintTimer, SIGNAL(timeout()), this, SLOT(repaint()));
+	repaintTimer->start();
 }
 
 void ProfileWidget::paintEvent(QPaintEvent *)
@@ -31,11 +36,28 @@ void ProfileWidget::paintEvent(QPaintEvent *)
 	p.fillRect(rect(), brush);
 
 	if (_currentRlv.isValid()) {
-		drawProfile(p);
+		QBrush brush(Qt::white);
+		p.fillPath(_profilePath, brush);
+	}
+
+	if (_currentDistance > 0) {
+		QPen pen(Qt::SolidLine);
+		pen.setColor(QColor(Qt::blue));
+		pen.setWidth(5);
+		p.setPen(pen);
+
+		int x = static_cast<int>(distanceToX(_currentDistance));
+		p.drawLine(x, 0, x, height());
 	}
 }
 
-void ProfileWidget::drawProfile(QPainter& p)
+void ProfileWidget::resizeEvent(QResizeEvent *)
+{
+	_profilePath = drawProfile();
+	repaint();
+}
+
+QPainterPath ProfileWidget::drawProfile()
 {
 	auto profileEntries = _currentRlv.profile().entries();
 	auto minAndMaxAltitude = findMinimumAndMaximumAltiude(profileEntries);
@@ -44,24 +66,35 @@ void ProfileWidget::drawProfile(QPainter& p)
 
 	float altitudeDiff = maximumAltitude - minimumAltitude;
 
-	float totalDistance = _currentRlv.totalDistance();
-
 	QPainterPath path;
-	path.moveTo(0, 0);
+	path.moveTo(0, height());
 	foreach(const ProfileEntry& entry, profileEntries) {
-		float x = (entry.totalDistance() / totalDistance) * width();
+		qreal x = distanceToX(entry.totalDistance());
 		float y = height() - (((entry.altitude() - minimumAltitude) / altitudeDiff) * height());
 		path.lineTo(x, y);
 	}
-	path.lineTo(width(), 0);
-	path.lineTo(0, 0);
+	path.lineTo(width(), height());
+	path.lineTo(0, height());
 
-	QBrush brush(Qt::white);
-	p.fillPath(path, brush);
+	return path;
+
+
+}
+
+qreal ProfileWidget::distanceToX(float distance) const
+{
+	return (distance / _currentRlv.totalDistance()) * width();
 }
 
 void ProfileWidget::rlvSelected(RealLifeVideo rlv)
 {
 	_currentRlv = rlv;
+	_profilePath = drawProfile();
 	repaint();
+}
+
+void ProfileWidget::distanceChanged(float distance)
+{
+	qDebug() << "distance =" << distance;
+	_currentDistance = distance;
 }

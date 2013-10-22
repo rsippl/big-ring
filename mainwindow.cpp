@@ -138,6 +138,7 @@ ProfileWidget *MainWindow::setUpProfileWidget(QWidget *centralWidget)
 	profileWidget->setMinimumHeight(100);
 
 	connect(rlvListWidget, &RlvListWidget::realLiveVideoSelected, profileWidget, &ProfileWidget::rlvSelected);
+	connect(&_cyclist, &Cyclist::distanceChanged, profileWidget, &ProfileWidget::distanceChanged);
 
 	return profileWidget;
 }
