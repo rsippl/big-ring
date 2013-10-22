@@ -54,12 +54,12 @@ private:
 	float _frameRate;
 };
 
-class RealLiveVideo
+class RealLifeVideo
 {
 public:
-	explicit RealLiveVideo(const QString& name, const VideoInformation& videoInformation, QList<Course>& courses,
+	explicit RealLifeVideo(const QString& name, const VideoInformation& videoInformation, QList<Course>& courses,
 						   QList<DistanceMappingEntry> distanceMappings, Profile profile);
-	explicit RealLiveVideo();
+	explicit RealLifeVideo();
 
 	bool isValid() const { return (!_name.isEmpty() && !_videoInformation.videoFilename().isEmpty()); }
 	ProfileType type() const { return _profile.type(); }
@@ -78,7 +78,7 @@ public:
 	/** Total distance */
 	float totalDistance() const;
 
-	static bool compareByName(const RealLiveVideo& rlv1, const RealLiveVideo& rlv2);
+	static bool compareByName(const RealLifeVideo& rlv1, const RealLifeVideo& rlv2);
 private:
 	const QPair<float, DistanceMappingEntry> &findDistanceMappingEntryFor(const float distance);
 
@@ -91,6 +91,6 @@ private:
 	float _lastKeyDistance;
 	float _nextLastKeyDistance;
 };
-typedef QList<RealLiveVideo> RealLiveVideoList;
+typedef QList<RealLifeVideo> RealLifeVideoList;
 
 #endif // REALLIVEVIDEO_H

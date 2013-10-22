@@ -2,7 +2,7 @@
 #include "ui_rlvlistwidget.h"
 
 #include <QtDebug>
-#include "reallivevideo.h"
+#include "reallifevideo.h"
 RlvListWidget::RlvListWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::RlvListWidget)
@@ -18,13 +18,13 @@ RlvListWidget::~RlvListWidget()
     delete ui;
 }
 
-void RlvListWidget::setRealLiveVideos(RealLiveVideoList rlvs)
+void RlvListWidget::setRealLiveVideos(RealLifeVideoList rlvs)
 {
     realLiveVideoList.clear();
     realLiveVideoList = rlvs;
     qDebug() << Q_FUNC_INFO << "rlvs.size() = " << rlvs.size();
     ui->rlvList->clear();
-    foreach(const RealLiveVideo& rlv, rlvs) {
+    foreach(const RealLifeVideo& rlv, rlvs) {
 		QString rlvInfo = QString("%1 (%2 m)").arg(rlv.name()).arg(rlv.totalDistance());
 		new QListWidgetItem(rlvInfo, ui->rlvList);
     }
@@ -34,7 +34,7 @@ void RlvListWidget::setRealLiveVideos(RealLiveVideoList rlvs)
 void RlvListWidget::selectionChanged(int row)
 {
     if (row == -1 || row >= realLiveVideoList.size())
-        emit realLiveVideoSelected(RealLiveVideo());
+        emit realLiveVideoSelected(RealLifeVideo());
     else
         emit realLiveVideoSelected(realLiveVideoList[row]);
 }

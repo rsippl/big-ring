@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 
 #include "antcontroller.h"
-#include "reallivevideoimporter.h"
+#include "reallifevideoimporter.h"
 #include "rlvlistwidget.h"
 #include "videocontroller.h"
 #include "videowidget.h"
@@ -12,11 +12,11 @@
 #define  _GNU_SOURCE 1
 #include <cmath>
 
-MainWindow::MainWindow(const RealLiveVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent) :
+MainWindow::MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent) :
 	QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new VideoWidget(this)),
 	videoController(new VideoController(_cyclist, videoWidget, this)), _cachedGeometry(100, 100, 1024, 768)
 {
-	connect(&parser, SIGNAL(importFinished(RealLiveVideoList)), SIGNAL(importFinished(RealLiveVideoList)));
+	connect(&parser, SIGNAL(importFinished(RealLifeVideoList)), SIGNAL(importFinished(RealLifeVideoList)));
 
 	setGeometry(_cachedGeometry);
 
@@ -30,9 +30,9 @@ MainWindow::MainWindow(const RealLiveVideoImporter& parser, Cyclist& cyclist, co
 
 	connect(rlvListWidget, &RlvListWidget::realLiveVideoSelected,
 			&_simulation, &Simulation::rlvSelected);
-	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), videoController, SLOT(realLiveVideoSelected(RealLiveVideo)));
-	QObject::connect(this, SIGNAL(importFinished(RealLiveVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLiveVideoList)));
-	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLiveVideo)), SLOT(rlvSelected(RealLiveVideo)));
+	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLifeVideo)), videoController, SLOT(realLiveVideoSelected(RealLifeVideo)));
+	QObject::connect(this, SIGNAL(importFinished(RealLifeVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLifeVideoList)));
+	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLifeVideo)), SLOT(rlvSelected(RealLifeVideo)));
 	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
 					 &_simulation, SLOT(courseSelected(int)));
 	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
@@ -128,7 +128,7 @@ QLabel *MainWindow::createLabel(const QString& text, QColor color, QWidget *cent
 	return label;
 }
 
-void MainWindow::rlvSelected(RealLiveVideo rlv)
+void MainWindow::rlvSelected(RealLifeVideo rlv)
 {
 	courseListWidget->clear();
 	foreach(const Course& course, rlv.courses()) {

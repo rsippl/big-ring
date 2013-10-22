@@ -6,19 +6,19 @@
 #include <QObject>
 #include <QSharedPointer>
 
-#include "reallivevideo.h"
+#include "reallifevideo.h"
 
-class RealLiveVideoImporter: public QObject
+class RealLifeVideoImporter: public QObject
 {
     Q_OBJECT
 public:
 
-    explicit RealLiveVideoImporter(QObject* parent = NULL);
+	explicit RealLifeVideoImporter(QObject* parent = NULL);
 
     void parseRealLiveVideoFilesFromDir(QString& root);
 
 signals:
-    void importFinished(RealLiveVideoList rlvs);
+	void importFinished(RealLifeVideoList rlvs);
 
 private slots:
     void importReady();

@@ -4,7 +4,7 @@
 #include <QFile>
 #include <QStringList>
 
-#include "reallivevideo.h"
+#include "reallifevideo.h"
 
 namespace tacxfile {
 
@@ -156,7 +156,7 @@ class RlvFileParser: public TacxFileParser
 public:
 	RlvFileParser(const QStringList& videoFilenames = QStringList());
 
-	RealLiveVideo parseRlvFile(QFile& rlvFile);
+	RealLifeVideo parseRlvFile(QFile& rlvFile);
 
 	tacxfile::generalRlv_t readGeneralRlvBlock(QFile& rlvFile);
 	QList<Course> readCourseInformation(QFile& rlvFile, qint32 count);

@@ -7,13 +7,13 @@ RlvTester::RlvTester(QString, QObject *parent):
 {
 	RlvFileParser parser;
 	QFile rlvFile("/media/ibooij/SamsungTacx/Tacx/Batch1/Video/Amstel-Gold07.rlv");
-	RealLiveVideo rlv = parser.parseRlvFile(rlvFile);
+	RealLifeVideo rlv = parser.parseRlvFile(rlvFile);
 	testDistanceMapping(rlv);
 //	connect(&_importer, SIGNAL(importFinished(RealLiveVideoList)), SLOT(importFinished(RealLiveVideoList)));
 //	_importer.parseRealLiveVideoFilesFromDir(rootDirectory);
 }
 
-void RlvTester::importFinished(RealLiveVideoList rlvs)
+void RlvTester::importFinished(RealLifeVideoList rlvs)
 {
 	testDistanceMapping(rlvs[1]);
 //	foreach(RealLiveVideo rlv, rlvs) {
@@ -24,7 +24,7 @@ void RlvTester::importFinished(RealLiveVideoList rlvs)
 	emit finished();
 }
 
-bool RlvTester::testDistanceMapping(RealLiveVideo &rlv)
+bool RlvTester::testDistanceMapping(RealLifeVideo &rlv)
 {
 	qDebug() << "testing for" << rlv.name() << rlv.totalDistance();
 	quint32 lastFrame = 0;

@@ -7,7 +7,7 @@
 #include <QTimer>
 
 #include "cyclist.h"
-#include "reallivevideo.h"
+#include "reallifevideo.h"
 #include "videodecoder.h"
 
 class VideoWidget;
@@ -29,7 +29,7 @@ signals:
 	void currentFrameRate(quint32 frameRate);
 
 public slots:
-	void realLiveVideoSelected(RealLiveVideo rlv);
+	void realLiveVideoSelected(RealLifeVideo rlv);
 	void courseSelected(int courseNr);
 	void play(bool);
 
@@ -53,7 +53,7 @@ private:
 	quint32 _currentFrameRate;
 	quint32 _framesThisSecond;
 
-	RealLiveVideo _currentRlv;
+	RealLifeVideo _currentRlv;
 	quint32 _currentFrameNumber;
 	quint32 _loadedFrameNumber;
 };

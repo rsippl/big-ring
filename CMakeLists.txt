@@ -54,8 +54,8 @@ set(SRCS
 	 cyclist.cpp
 	 mainwindow.cpp
 	 profile.cpp
-	 reallivevideo.cpp
-	 reallivevideoimporter.cpp
+	 reallifevideo.cpp
+	 reallifevideoimporter.cpp
 	 rlvfileparser.cpp
 	 rlvlistwidget.cpp
 	 simulation.cpp
@@ -95,18 +95,18 @@ add_executable(sufferfestplayer sufferfestplayer.cpp game.cpp moviefiledroparea.
 target_link_libraries(sufferfestplayer antlib ${EXTRA_LIBRARIES} ${QT_LIBRARIES})
 
 # Prepare for testing.
-add_subdirectory(ext/gtest)
-enable_testing()
-include_directories(${GTEST_INCLUDE_DIRS})
+#add_subdirectory(ext/gtest)
+#enable_testing()
+#include_directories(${GTEST_INCLUDE_DIRS})
 
-file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*test.cpp)
-add_executable(indoorcycling_tests ${TEST_SRC_FILES})
-add_dependencies(indoorcycling_tests googletest)
-target_link_libraries(indoorcycling_tests antlib mainlib
-	${GTEST_LIBS_DIR}/libgtest.a
-	${GTEST_LIBS_DIR}/libgtest_main.a
-	${QT_LIBRARIES} ${Qt5Test_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-add_test(indoorcycling_tests indoorcycling_tests)
+#file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*test.cpp)
+#add_executable(indoorcycling_tests ${TEST_SRC_FILES})
+#add_dependencies(indoorcycling_tests googletest)
+#target_link_libraries(indoorcycling_tests antlib mainlib
+#	${GTEST_LIBS_DIR}/libgtest.a
+#	${GTEST_LIBS_DIR}/libgtest_main.a
+#	${QT_LIBRARIES} ${Qt5Test_LIBRARIES} ${FFMPEG_LIBRARIES} ${EXTRA_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+#add_test(indoorcycling_tests indoorcycling_tests)
 
 
 

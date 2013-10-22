@@ -42,7 +42,7 @@ void VideoController::offerFrame(Frame& frame)
 	emit bufferFull(true);
 }
 
-void VideoController::realLiveVideoSelected(RealLiveVideo rlv)
+void VideoController::realLiveVideoSelected(RealLifeVideo rlv)
 {
 	reset();
 	_currentRlv = rlv;

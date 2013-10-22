@@ -5,7 +5,7 @@
 #include <QTime>
 #include <QTimer>
 #include "cyclist.h"
-#include "reallivevideo.h"
+#include "reallifevideo.h"
 
 class Simulation : public QObject
 {
@@ -25,7 +25,7 @@ signals:
 public slots:
 	void play(bool play);
 	void simulationStep();
-	void rlvSelected(RealLiveVideo rlv);
+	void rlvSelected(RealLifeVideo rlv);
 	void courseSelected(int courseNr);
 
 private:
@@ -37,7 +37,7 @@ private:
 	QTime _simulationTime;
 	QTime _idleTime;
 	Cyclist& _cyclist;
-	RealLiveVideo _currentRlv;
+	RealLifeVideo _currentRlv;
 	QTimer _simulationUpdateTimer;
 };
 

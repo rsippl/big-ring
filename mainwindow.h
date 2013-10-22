@@ -7,7 +7,7 @@
 #include <QTimer>
 
 #include "cyclist.h"
-#include "reallivevideo.h"
+#include "reallifevideo.h"
 #include "simulation.h"
 
 #include <QtWidgets/QLabel>
@@ -16,7 +16,7 @@
 #include <QtWidgets/QSystemTrayIcon>
 
 class ANTController;
-class RealLiveVideoImporter;
+class RealLifeVideoImporter;
 class RlvListWidget;
 class VideoController;
 class VideoWidget;
@@ -25,19 +25,19 @@ class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 public:
-	explicit MainWindow(const RealLiveVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent = 0);
+	explicit MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent = 0);
 
 	void restoreWindow();
 	void gotoFullScreen();
 signals:
-	void importFinished(RealLiveVideoList rlvs);
+	void importFinished(RealLifeVideoList rlvs);
 
 protected:
 	virtual void keyPressEvent(QKeyEvent *);
 	virtual void closeEvent(QCloseEvent *);
 
 private slots:
-	void rlvSelected(RealLiveVideo rlv);
+	void rlvSelected(RealLifeVideo rlv);
 
 	void distanceChanged(float distance);
 	void slopeChanged(float slope);

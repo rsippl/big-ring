@@ -3,7 +3,7 @@
 #include <QtWidgets/QApplication>
 #include <QtDebug>
 #include "antcontroller.h"
-#include "reallivevideoimporter.h"
+#include "reallifevideoimporter.h"
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])
@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 
 	qDebug() << "starting up";
 	QString filename(argv[1]);
-	RealLiveVideoImporter parser;
+	RealLifeVideoImporter parser;
 	ANTController antController(&app);
 
 	Cyclist cyclist;

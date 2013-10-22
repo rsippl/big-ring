@@ -1,4 +1,4 @@
-#include "reallivevideo.h"
+#include "reallifevideo.h"
 
 #include <QtDebug>
 #include <QMapIterator>
@@ -10,7 +10,7 @@ Course::Course(const QString &name, float start, float end):
 	_name(name), _start(start), _end(end)
 {}
 
-RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoInformation,
+RealLifeVideo::RealLifeVideo(const QString& name, const VideoInformation& videoInformation,
 							 QList<Course>& courses, QList<DistanceMappingEntry> distanceMappings, Profile profile):
 	_name(name), _videoInformation(videoInformation), _courses(courses), _profile(profile),
 	_lastKeyDistance(0), _nextLastKeyDistance(0)
@@ -31,31 +31,31 @@ RealLiveVideo::RealLiveVideo(const QString& name, const VideoInformation& videoI
 	}
 }
 
-RealLiveVideo::RealLiveVideo() {}
+RealLifeVideo::RealLifeVideo() {}
 
-float RealLiveVideo::metersPerFrame(const float distance)
+float RealLifeVideo::metersPerFrame(const float distance)
 {
 	const QPair<float,DistanceMappingEntry>& entry = findDistanceMappingEntryFor(distance);
 	return entry.second.metersPerFrame();
 }
 
-quint32 RealLiveVideo::frameForDistance(const float distance)
+quint32 RealLifeVideo::frameForDistance(const float distance)
 {
 	const QPair<float,DistanceMappingEntry>& entry = findDistanceMappingEntryFor(distance);
 	return entry.second.frameNumber() + (distance - entry.first) / entry.second.metersPerFrame();
 }
 
-float RealLiveVideo::slopeForDistance(const float distance)
+float RealLifeVideo::slopeForDistance(const float distance)
 {
 	return _profile.slopeForDistance(distance);
 }
 
-float RealLiveVideo::altitudeForDistance(const float distance)
+float RealLifeVideo::altitudeForDistance(const float distance)
 {
 	return _profile.altitudeForDistance(distance);
 }
 
-float RealLiveVideo::totalDistance() const
+float RealLifeVideo::totalDistance() const
 {
 	float maxDistance = 0.0f;
 	foreach(const Course& course, _courses) {
@@ -72,12 +72,12 @@ VideoInformation::VideoInformation(const QString &videoFilename, float frameRate
 VideoInformation::VideoInformation():
 	_frameRate(0.0) {}
 
-bool RealLiveVideo::compareByName(const RealLiveVideo &rlv1, const RealLiveVideo &rlv2)
+bool RealLifeVideo::compareByName(const RealLifeVideo &rlv1, const RealLifeVideo &rlv2)
 {
 	return rlv1.name().toLower() < rlv2.name().toLower();
 }
 
-const QPair<float,DistanceMappingEntry>& RealLiveVideo::findDistanceMappingEntryFor(const float distance)
+const QPair<float,DistanceMappingEntry>& RealLifeVideo::findDistanceMappingEntryFor(const float distance)
 {
 	if (distance > _lastKeyDistance && distance < _nextLastKeyDistance) {
 		return _cachedDistanceMapping;

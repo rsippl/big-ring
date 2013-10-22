@@ -1,8 +1,8 @@
 #ifndef RLVTESTER_H
 #define RLVTESTER_H
 
-#include "reallivevideo.h"
-#include "reallivevideoimporter.h"
+#include "reallifevideo.h"
+#include "reallifevideoimporter.h"
 #include "rlvfileparser.h"
 #include <QObject>
 
@@ -15,12 +15,12 @@ public:
 signals:
 	void finished();
 public slots:
-	void importFinished(RealLiveVideoList rlvs);
+	void importFinished(RealLifeVideoList rlvs);
 
 private:
-	bool testDistanceMapping(RealLiveVideo& rlv);
+	bool testDistanceMapping(RealLifeVideo& rlv);
 
-	RealLiveVideoImporter _importer;
+	RealLifeVideoImporter _importer;
 };
 
 #endif // RLVTESTER_H

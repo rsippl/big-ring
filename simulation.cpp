@@ -90,7 +90,7 @@ void Simulation::simulationStep()
     emit altitudeChanged(_currentRlv.altitudeForDistance(_cyclist.distance()));
 }
 
-void Simulation::rlvSelected(RealLiveVideo rlv)
+void Simulation::rlvSelected(RealLifeVideo rlv)
 {
 	reset();
 	_currentRlv = rlv;

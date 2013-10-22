@@ -2,7 +2,7 @@
 #define RLVLISTWIDGET_H
 
 #include <QWidget>
-#include "reallivevideo.h"
+#include "reallifevideo.h"
 namespace Ui {
     class RlvListWidget;
 }
@@ -16,16 +16,16 @@ public:
     ~RlvListWidget();
 
 public slots:
-    void setRealLiveVideos(RealLiveVideoList rlvs);
+    void setRealLiveVideos(RealLifeVideoList rlvs);
 
 signals:
-    void realLiveVideoSelected(RealLiveVideo realLiveVideo);
+    void realLiveVideoSelected(RealLifeVideo realLiveVideo);
 
 private slots:
     void selectionChanged(int row);
 private:
     Ui::RlvListWidget *ui;
-    RealLiveVideoList realLiveVideoList;
+    RealLifeVideoList realLiveVideoList;
 };
 
 #endif // RLVLISTWIDGET_H

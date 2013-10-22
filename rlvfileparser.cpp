@@ -34,14 +34,14 @@ QString RlvFileParser::findPgmfFilename(QFile &rlvFile)
 	return pgmfFileInfo.filePath();
 }
 
-RealLiveVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
+RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
 {
 	if (!rlvFile.open(QIODevice::ReadOnly))
-		return RealLiveVideo();
+		return RealLifeVideo();
 
 	QFile pgmfFile(findPgmfFilename(rlvFile));
 	if (!pgmfFile.open(QIODevice::ReadOnly))
-		return RealLiveVideo();
+		return RealLifeVideo();
 
 	Profile profile = PgmfFileParser().readProfile(pgmfFile);
 
@@ -70,7 +70,7 @@ RealLiveVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
 			rlvFile.read(infoBlock.numberOfRecords * infoBlock.recordSize);
 		}
 	}
-	return RealLiveVideo(name, videoInformation, courses, distanceMapping, profile);
+	return RealLifeVideo(name, videoInformation, courses, distanceMapping, profile);
 }
 
 tacxfile::header_t TacxFileParser::readHeaderBlock(QFile &rlvFile)
