@@ -16,6 +16,7 @@
 #include <QtWidgets/QSystemTrayIcon>
 
 class ANTController;
+class ProfileWidget;
 class RealLifeVideoImporter;
 class RlvListWidget;
 class VideoController;
@@ -54,6 +55,9 @@ private:
 	QLayout* setUpMain(QWidget *centralWidget);
 	QLayout* setupSideBar(QWidget *centralWidget);
 	QLabel* createLabel(const QString& text, QColor color, QWidget* centralWidget);
+
+	ProfileWidget* setUpProfileWidget(QWidget*);
+
 	void removeMargins();
 	void restoreMargins();
 
@@ -63,6 +67,7 @@ private:
 	VideoController* videoController;
 	QListWidget* courseListWidget;
 	RlvListWidget* rlvListWidget;
+	ProfileWidget* _profileWidget;
 	QMargins _margins;
 	QRect _cachedGeometry;
 	QBoxLayout* _layout;

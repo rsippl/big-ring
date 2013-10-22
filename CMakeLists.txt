@@ -54,6 +54,7 @@ set(SRCS
 	 cyclist.cpp
 	 mainwindow.cpp
 	 profile.cpp
+	 profilewidget.cpp
 	 reallifevideo.cpp
 	 reallifevideoimporter.cpp
 	 rlvfileparser.cpp

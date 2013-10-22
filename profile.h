@@ -39,6 +39,8 @@ public:
 
 	//! get the altitude for a particular distance. The profile always starts at altitude 0.0f
 	float altitudeForDistance(double distance);
+
+	const QList<ProfileEntry>& entries() const;
 private:
 	ProfileEntry& entryForDistance(double distance);
 

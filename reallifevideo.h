@@ -63,6 +63,7 @@ public:
 
 	bool isValid() const { return (!_name.isEmpty() && !_videoInformation.videoFilename().isEmpty()); }
 	ProfileType type() const { return _profile.type(); }
+	Profile& profile() { return _profile; }
 	const QString name() const { return _name; }
 	const VideoInformation& videoInformation() const { return _videoInformation; }
 	const QList<Course>& courses() const { return _courses; }

@@ -38,6 +38,11 @@ float Profile::altitudeForDistance(double distance)
 	return _startAltitude + entry.altitude() + entry.slope() * 0.01 * (distance - entry.totalDistance());
 }
 
+const QList<ProfileEntry> &Profile::entries() const
+{
+	return _entries;
+}
+
 ProfileEntry &Profile::entryForDistance(double distance)
 {
 	if (distance < _lastKeyDistance || distance > _nextLastKeyDistance) {

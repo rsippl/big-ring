@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
 #include "antcontroller.h"
+#include "profilewidget.h"
 #include "reallifevideoimporter.h"
 #include "rlvlistwidget.h"
 #include "videocontroller.h"
@@ -30,7 +31,8 @@ MainWindow::MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, co
 
 	connect(rlvListWidget, &RlvListWidget::realLiveVideoSelected,
 			&_simulation, &Simulation::rlvSelected);
-	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLifeVideo)), videoController, SLOT(realLiveVideoSelected(RealLifeVideo)));
+	connect(rlvListWidget, &RlvListWidget::realLiveVideoSelected,
+			videoController, &VideoController::realLiveVideoSelected);
 	QObject::connect(this, SIGNAL(importFinished(RealLifeVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLifeVideoList)));
 	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLifeVideo)), SLOT(rlvSelected(RealLifeVideo)));
 	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
@@ -66,6 +68,8 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 	videoWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 	layout->addWidget(videoWidget);
+
+	layout->addWidget(setUpProfileWidget(centralWidget));
 
 	QHBoxLayout* dials = new QHBoxLayout();
 
@@ -126,6 +130,16 @@ QLabel *MainWindow::createLabel(const QString& text, QColor color, QWidget *cent
 	label->setPalette(palette);
 
 	return label;
+}
+
+ProfileWidget *MainWindow::setUpProfileWidget(QWidget *centralWidget)
+{
+	ProfileWidget* profileWidget = new ProfileWidget(centralWidget);
+	profileWidget->setMinimumHeight(100);
+
+	connect(rlvListWidget, &RlvListWidget::realLiveVideoSelected, profileWidget, &ProfileWidget::rlvSelected);
+
+	return profileWidget;
 }
 
 void MainWindow::rlvSelected(RealLifeVideo rlv)
