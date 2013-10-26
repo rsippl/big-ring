@@ -24,12 +24,12 @@ public slots:
 	void distanceChanged(float distance);
 
 private:
-	QPainterPath drawProfile();
+	void drawProfile();
 
 	qreal distanceToX(float distance) const;
 
 	RealLifeVideo _currentRlv;
-	QPainterPath _profilePath;
+	QPixmap _profilePixmap;
 	float _currentDistance;
 };
 

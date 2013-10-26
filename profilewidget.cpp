@@ -35,11 +35,9 @@ void ProfileWidget::paintEvent(QPaintEvent *)
 
 	p.fillRect(rect(), brush);
 
-	if (_currentRlv.isValid()) {
-		QBrush brush(Qt::white);
-		p.fillPath(_profilePath, brush);
+	if (!_profilePixmap.isNull()) {
+		p.drawPixmap(0, 0, _profilePixmap);
 	}
-
 	if (_currentDistance > 0) {
 		QPen pen(Qt::SolidLine);
 		pen.setColor(QColor(Qt::blue));
@@ -49,18 +47,22 @@ void ProfileWidget::paintEvent(QPaintEvent *)
 		int x = static_cast<int>(distanceToX(_currentDistance));
 		p.drawLine(x, 0, x, height());
 	}
+	p.end();
 }
 
 void ProfileWidget::resizeEvent(QResizeEvent *)
 {
-	_profilePath = drawProfile();
+	drawProfile();
 	repaint();
 }
 
-QPainterPath ProfileWidget::drawProfile()
+void ProfileWidget::drawProfile()
 {
+	_profilePixmap = QPixmap(width(), height());
+
 	auto profileEntries = _currentRlv.profile().entries();
 	auto minAndMaxAltitude = findMinimumAndMaximumAltiude(profileEntries);
+
 	float minimumAltitude = minAndMaxAltitude.first;
 	float maximumAltitude = minAndMaxAltitude.second;
 
@@ -70,15 +72,18 @@ QPainterPath ProfileWidget::drawProfile()
 	path.moveTo(0, height());
 	foreach(const ProfileEntry& entry, profileEntries) {
 		qreal x = distanceToX(entry.totalDistance());
-		float y = height() - (((entry.altitude() - minimumAltitude) / altitudeDiff) * height());
+		float y = height() - (((entry.altitude() - minimumAltitude) / altitudeDiff) * height() * .8);
 		path.lineTo(x, y);
 	}
 	path.lineTo(width(), height());
 	path.lineTo(0, height());
 
-	return path;
+	QPainter p(&_profilePixmap);
 
-
+	p.fillRect(_profilePixmap.rect(), QBrush(Qt::black));
+	p.setRenderHint(QPainter::Antialiasing);
+	p.fillPath(path, QBrush(Qt::white));
+	p.drawPath(path);
 }
 
 qreal ProfileWidget::distanceToX(float distance) const
@@ -89,7 +94,7 @@ qreal ProfileWidget::distanceToX(float distance) const
 void ProfileWidget::rlvSelected(RealLifeVideo rlv)
 {
 	_currentRlv = rlv;
-	_profilePath = drawProfile();
+	drawProfile();
 	repaint();
 }
 
