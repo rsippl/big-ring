@@ -46,6 +46,7 @@ void VideoController::realLiveVideoSelected(RealLifeVideo rlv)
 {
 	reset();
 	_currentRlv = rlv;
+	_videoWidget->setRlv(rlv);
 	if (!_currentRlv.videoInformation().videoFilename().isEmpty())
 		_videoDecoder->openFile(_currentRlv.videoInformation().videoFilename());
 }

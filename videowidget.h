@@ -1,6 +1,8 @@
 #ifndef VIDEOWIDGET_H
 #define VIDEOWIDGET_H
 
+#include "reallifevideo.h"
+
 #include <GL/glew.h>
 #include <QtCore/QTimer>
 #include <QtOpenGL/QGLWidget>
@@ -9,6 +11,9 @@
 #include <QtGui/QOpenGLShaderProgram>
 
 #include "videodecoder.h"
+
+class Cyclist;
+
 /**
  * @brief Widget which is used to display frames from a movie file.
  *
@@ -19,7 +24,7 @@ class VideoWidget : public QGLWidget
 {
 	Q_OBJECT
 public:
-	explicit VideoWidget(QWidget *parent = 0);
+	explicit VideoWidget(const Cyclist& cyclist, QWidget *parent = 0);
 	virtual ~VideoWidget();
 
 	bool loadFrame(Frame& frame);
@@ -27,6 +32,8 @@ public:
 	/** Display a frame */
 	void displayNextFrame(quint32 frameNr);
 	void clearOpenGLBuffers();
+
+	void setRlv(RealLifeVideo rlv);
 
 protected:
 	virtual void initializeGL();
@@ -43,14 +50,22 @@ private:
 
 	const QVector<GLfloat>& calculatetextureCoordinates();
 
+	void drawProfile();
+
+	qreal distanceToX(float distance, int pathWidth) const;
+	qreal altitudeToY(float altitudeAboveMinimum, float altitudeDiff, int pathHeight) const;
+
 	QSize _frameSize;
 	int _lineSize;
 
+	const Cyclist& _cyclist;
 	QVector<GLuint> _pixelBufferObjects;
 	QVector<quint32> _frameNumbers;
 	GLuint _vertexBufferObject;
 	GLuint _textureCoordinatesBufferObject;
 	QOpenGLShaderProgram _shaderProgram;
+
+	RealLifeVideo _currentRlv;
 
 
 	quint32 _frameRate;
@@ -60,6 +75,7 @@ private:
 	QVector<GLfloat> _textureCoordinates;
 
 	bool _texturesInitialized;
+	QPainterPath _profilePath;
 };
 
 #endif // VIDEOWIDGET_H

@@ -10,6 +10,8 @@
 #include <QAbstractAnimation>
 #include <QLabel>
 #include <QVBoxLayout>
+
+#include "cyclist.h"
 #include "videodecoder.h"
 
 extern "C" {
@@ -18,9 +20,20 @@ extern "C" {
 
 namespace {
 const int NR_OF_PIXEL_BUFFERS = 10;
+
+QPair<float,float> findMinimumAndMaximumAltiude(const QList<ProfileEntry>& profileEntries)
+{
+	float minimumAltitude = std::numeric_limits<float>::max();
+	float maximumAltitude = std::numeric_limits<float>::min();
+	foreach (const ProfileEntry& entry, profileEntries) {
+		minimumAltitude = qMin(minimumAltitude, entry.altitude());
+		maximumAltitude = qMax(maximumAltitude, entry.altitude());
+	}
+	return qMakePair(minimumAltitude, maximumAltitude);
 }
-VideoWidget::VideoWidget(QWidget *parent) :
-	QGLWidget(parent), _pixelBufferObjects(NR_OF_PIXEL_BUFFERS, 0),
+}
+VideoWidget::VideoWidget(const Cyclist &cyclist, QWidget *parent) :
+	QGLWidget(parent), _cyclist(cyclist), _pixelBufferObjects(NR_OF_PIXEL_BUFFERS, 0),
 	_frameNumbers(NR_OF_PIXEL_BUFFERS, UNKNOWN_FRAME_NR),
 	_vertexBufferObject(0u), _index(0), _nextIndex(0), _texturesInitialized(false)
 {
@@ -102,10 +115,10 @@ const QVector<GLfloat> &VideoWidget::calculatetextureCoordinates()
 		}
 
 		_textureCoordinates = {
-			clippedBorderWidth, clippedBorderHeight,
 			clippedBorderWidth, height - clippedBorderHeight,
-			width - clippedBorderWidth, height - clippedBorderHeight,
-			width - clippedBorderWidth, clippedBorderHeight
+			clippedBorderWidth, clippedBorderHeight,
+			width - clippedBorderWidth, clippedBorderHeight,
+			width - clippedBorderWidth, height - clippedBorderHeight
 		};
 		glBindBuffer(GL_ARRAY_BUFFER_ARB, _textureCoordinatesBufferObject);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB, sizeof(float) * _textureCoordinates.size(), _textureCoordinates.data(), GL_STATIC_DRAW);
@@ -133,6 +146,12 @@ void VideoWidget::clearOpenGLBuffers()
 
 	_lineSize = 0;
 	_frameSize = QSize();
+}
+
+void VideoWidget::setRlv(RealLifeVideo rlv)
+{
+	_currentRlv = rlv;
+	drawProfile();
 }
 
 void VideoWidget::initializeGL()
@@ -229,8 +248,8 @@ void VideoWidget::loadPlaneTexturesFromPbo(const QString& textureLocationName,
 					 0,GL_LUMINANCE,GL_UNSIGNED_BYTE, (void*) offset);
 	}
 
-	glTexParameteri(GL_TEXTURE_RECTANGLE_NV,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_NV,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
@@ -238,6 +257,10 @@ void VideoWidget::loadPlaneTexturesFromPbo(const QString& textureLocationName,
 
 void VideoWidget::paintGL()
 {
+	QPainter p;
+	p.begin(this);
+	p.beginNativePainting();
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (!_frameSize.isValid()) {
@@ -251,11 +274,30 @@ void VideoWidget::paintGL()
 
 	// unbind texture
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+
+	glDisable(GL_TEXTURE_RECTANGLE_ARB);
+
+	p.endNativePainting();
+
+	if (!_profilePath.isEmpty()) {
+		p.setOpacity(0.5);
+		p.setRenderHint(QPainter::Antialiasing);
+		p.fillPath(_profilePath, QBrush(Qt::white));
+
+		float distanceRatio = _cyclist.distance() / _currentRlv.totalDistance();
+		QPen pen(QColor(Qt::red));
+		pen.setStyle(Qt::SolidLine);
+		pen.setWidth(5);
+		p.setPen(pen);
+		p.drawLine(distanceRatio * width(), height() - 200, distanceRatio * width(), height());
+	}
+	p.end();
 }
 
 
 void VideoWidget::resizeGL(int w, int h)
 {
+	drawProfile();
 	glViewport (0, 0, w, h);
 	glMatrixMode (GL_PROJECTION);
 	glClearColor(0, 0, 0, 1);
@@ -275,3 +317,43 @@ void VideoWidget::resizeGL(int w, int h)
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	_textureCoordinates.clear();
 }
+
+void VideoWidget::drawProfile()
+{
+	int pathHeight = 200;
+	int xMargin = 0;
+
+	auto profileEntries = _currentRlv.profile().entries();
+	auto minAndMaxAltitude = findMinimumAndMaximumAltiude(profileEntries);
+
+	float minimumAltitude = minAndMaxAltitude.first;
+	float maximumAltitude = minAndMaxAltitude.second;
+
+	float altitudeDiff = maximumAltitude - minimumAltitude;
+
+	QPainterPath path;
+	path.moveTo(xMargin, height());
+	foreach(const ProfileEntry& entry, profileEntries) {
+		qreal x = distanceToX(entry.totalDistance(), xMargin);
+		qreal y = altitudeToY(entry.altitude() - minimumAltitude, altitudeDiff, pathHeight);
+
+		path.lineTo(x, y);
+		qDebug() << "line from" << x << y;
+	}
+	path.lineTo(width() - xMargin, height());
+	path.lineTo(xMargin, height());
+
+	_profilePath = path;
+}
+
+qreal VideoWidget::distanceToX(float distance, int xMargin) const
+{
+	int pathWidth = width() - xMargin * 2;
+	return (distance / _currentRlv.totalDistance()) * pathWidth + xMargin;
+}
+
+qreal VideoWidget::altitudeToY(float altitudeAboveMinimum, float altitudeDiff, int pathHeight) const
+{
+	return height() - (((altitudeAboveMinimum) / altitudeDiff) * pathHeight);
+}
+

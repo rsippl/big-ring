@@ -14,7 +14,7 @@
 #include <cmath>
 
 MainWindow::MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent) :
-	QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new VideoWidget(this)),
+	QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new VideoWidget(cyclist, this)),
 	videoController(new VideoController(_cyclist, videoWidget, this)), _cachedGeometry(100, 100, 1024, 768)
 {
 	connect(&parser, SIGNAL(importFinished(RealLifeVideoList)), SIGNAL(importFinished(RealLifeVideoList)));
@@ -69,7 +69,7 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 
 	layout->addWidget(videoWidget);
 
-	layout->addWidget(setUpProfileWidget(centralWidget));
+//	layout->addWidget(setUpProfileWidget(centralWidget));
 
 	QHBoxLayout* dials = new QHBoxLayout();
 

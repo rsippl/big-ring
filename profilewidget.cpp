@@ -100,6 +100,5 @@ void ProfileWidget::rlvSelected(RealLifeVideo rlv)
 
 void ProfileWidget::distanceChanged(float distance)
 {
-	qDebug() << "distance =" << distance;
 	_currentDistance = distance;
 }
