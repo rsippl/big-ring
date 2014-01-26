@@ -115,9 +115,9 @@ const QVector<GLfloat> &VideoWidget::calculatetextureCoordinates()
 		}
 
 		_textureCoordinates = {
-			clippedBorderWidth, height - clippedBorderHeight,
 			clippedBorderWidth, clippedBorderHeight,
 			width - clippedBorderWidth, clippedBorderHeight,
+			clippedBorderWidth, height - clippedBorderHeight,
 			width - clippedBorderWidth, height - clippedBorderHeight
 		};
 		glBindBuffer(GL_ARRAY_BUFFER_ARB, _textureCoordinatesBufferObject);
@@ -210,7 +210,7 @@ void VideoWidget::paintFrame()
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, _textureCoordinatesBufferObject);
 	glTexCoordPointer(2, GL_FLOAT, 0, 0);
-	glDrawArrays(GL_QUADS, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -307,9 +307,9 @@ void VideoWidget::resizeGL(int w, int h)
 	glMatrixMode (GL_MODELVIEW);
 
 	_vertexCoordinates = {
-		0, (float) this->height(),
 		0, 0,
 		(float) this->width(), 0,
+		0, (float) this->height(),
 		(float) this->width(), (float) this->height()
 	};
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, _vertexBufferObject);
