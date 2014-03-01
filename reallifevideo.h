@@ -78,9 +78,13 @@ public:
     float altitudeForDistance(const float distance);
 	/** Total distance */
 	float totalDistance() const;
+    /** Set duration of video, in microseconds */
+    void setDuration(quint64 duration);
 
 	static bool compareByName(const RealLifeVideo& rlv1, const RealLifeVideo& rlv2);
 private:
+    void calculateVideoCorrectionFactor(quint64 totalNrOfFrames);
+
 	const QPair<float, DistanceMappingEntry> &findDistanceMappingEntryFor(const float distance);
 
 	QString _name;
@@ -91,6 +95,7 @@ private:
 	QPair<float,DistanceMappingEntry> _cachedDistanceMapping;
 	float _lastKeyDistance;
 	float _nextLastKeyDistance;
+    float _videoCorrectionFactor;
 };
 typedef QList<RealLifeVideo> RealLifeVideoList;
 

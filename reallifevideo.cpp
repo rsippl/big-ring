@@ -13,7 +13,7 @@ Course::Course(const QString &name, float start, float end):
 RealLifeVideo::RealLifeVideo(const QString& name, const VideoInformation& videoInformation,
 							 QList<Course>& courses, QList<DistanceMappingEntry> distanceMappings, Profile profile):
 	_name(name), _videoInformation(videoInformation), _courses(courses), _profile(profile),
-	_lastKeyDistance(0), _nextLastKeyDistance(0)
+    _lastKeyDistance(0), _nextLastKeyDistance(0), _videoCorrectionFactor(1.0)
 {
 	float currentDistance = 0.0f;
 	float lastMetersPerFrame = 0;
@@ -41,8 +41,9 @@ float RealLifeVideo::metersPerFrame(const float distance)
 
 quint32 RealLifeVideo::frameForDistance(const float distance)
 {
-	const QPair<float,DistanceMappingEntry>& entry = findDistanceMappingEntryFor(distance);
-	return entry.second.frameNumber() + (distance - entry.first) / entry.second.metersPerFrame();
+    float correctedDistance = distance * _videoCorrectionFactor;
+    const QPair<float,DistanceMappingEntry>& entry = findDistanceMappingEntryFor(correctedDistance);
+    return entry.second.frameNumber() + (correctedDistance - entry.first) / entry.second.metersPerFrame();
 }
 
 float RealLifeVideo::slopeForDistance(const float distance)
@@ -64,6 +65,13 @@ float RealLifeVideo::totalDistance() const
 	return maxDistance;
 }
 
+
+void RealLifeVideo::setDuration(quint64 duration)
+{
+    quint64 totalNrOfFrames = duration * (_videoInformation.frameRate() / 1000000);
+    calculateVideoCorrectionFactor(totalNrOfFrames);
+}
+
 VideoInformation::VideoInformation(const QString &videoFilename, float frameRate):
 	_videoFilename(videoFilename), _frameRate(frameRate)
 {
@@ -74,7 +82,27 @@ VideoInformation::VideoInformation():
 
 bool RealLifeVideo::compareByName(const RealLifeVideo &rlv1, const RealLifeVideo &rlv2)
 {
-	return rlv1.name().toLower() < rlv2.name().toLower();
+    return rlv1.name().toLower() < rlv2.name().toLower();
+}
+
+void RealLifeVideo::calculateVideoCorrectionFactor(quint64 totalNrOfFrames)
+{
+    // some rlvs, mostly the old ones like the old MajorcaTour have only two
+    // entries in the distancemappings list. For these rlvs, it seems to work
+    // better to just use a _videoCorrectionFactor of 1.0.
+    if (_distanceMappings.size() < 3) {
+        _videoCorrectionFactor = 1;
+    } else {
+        auto lastDistanceMapping = _distanceMappings.last();
+        quint64 framesInLastEntry;
+        if (totalNrOfFrames > lastDistanceMapping.second.frameNumber()) {
+            framesInLastEntry = totalNrOfFrames - lastDistanceMapping.second.frameNumber();
+        } else {
+            framesInLastEntry = 0u;
+        }
+        float videoDistance = lastDistanceMapping.first + framesInLastEntry * lastDistanceMapping.second.metersPerFrame();
+        _videoCorrectionFactor = videoDistance / _profile.totalDistance();
+    }
 }
 
 const QPair<float,DistanceMappingEntry>& RealLifeVideo::findDistanceMappingEntryFor(const float distance)
@@ -83,7 +111,7 @@ const QPair<float,DistanceMappingEntry>& RealLifeVideo::findDistanceMappingEntry
 		return _cachedDistanceMapping;
 	}
 
-	QPair<float,DistanceMappingEntry> newEntry;
+    QPair<float,DistanceMappingEntry> newEntry;
 	QListIterator<QPair<float, DistanceMappingEntry> > it(_distanceMappings);
 	while(it.hasNext()) {
 		newEntry = it.peekNext();

@@ -46,7 +46,9 @@ signals:
 
 public slots:
 	void seekFrame(quint32 frameNr);
-	void openFile(QString filename);
+
+    /** return duration of video, in microseconds */
+    quint64 openFile(QString filename);
 	/** Load a number of frames from the video file */
 	void loadFrames(quint32 skip);
 

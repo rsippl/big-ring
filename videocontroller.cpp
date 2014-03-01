@@ -47,8 +47,10 @@ void VideoController::realLiveVideoSelected(RealLifeVideo rlv)
 	reset();
 	_currentRlv = rlv;
 	_videoWidget->setRlv(rlv);
-	if (!_currentRlv.videoInformation().videoFilename().isEmpty())
-		_videoDecoder->openFile(_currentRlv.videoInformation().videoFilename());
+    if (!_currentRlv.videoInformation().videoFilename().isEmpty()) {
+        quint64 duration = _videoDecoder->openFile(_currentRlv.videoInformation().videoFilename());
+        _currentRlv.setDuration(duration);
+    }
 }
 
 void VideoController::courseSelected(int courseNr)
