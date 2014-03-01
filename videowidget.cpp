@@ -338,7 +338,6 @@ void VideoWidget::drawProfile()
 		qreal y = altitudeToY(entry.altitude() - minimumAltitude, altitudeDiff, pathHeight);
 
 		path.lineTo(x, y);
-		qDebug() << "line from" << x << y;
 	}
 	path.lineTo(width() - xMargin, height());
 	path.lineTo(xMargin, height());
