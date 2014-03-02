@@ -65,3 +65,11 @@ ProfileEntry &Profile::entryForDistance(double distance)
 	}
 	return _cachedProfileEntry;
 }
+
+float Profile::totalDistance() const {
+    if (_entries.isEmpty()) {
+        return 0;
+    }
+    return _entries.last().totalDistance();
+}
+

@@ -62,7 +62,7 @@ void VideoDecoder::close()
 		avformat_close_input(&_formatContext);
 }
 
-void VideoDecoder::openFile(QString filename)
+quint64 VideoDecoder::openFile(QString filename)
 {
 	close();
 	int errorNr = avformat_open_input(&_formatContext, filename.toStdString().c_str(),
@@ -102,6 +102,8 @@ void VideoDecoder::openFile(QString filename)
 	}
 
 	initializeFrames();
+
+    return _formatContext->duration;
 }
 
 void VideoDecoder::loadFrames(quint32 skip)

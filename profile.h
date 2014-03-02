@@ -36,6 +36,8 @@ public:
 	float startAltitude() const { return _startAltitude; }
 	//! get the slope for a particular distance
 	float slopeForDistance(double distance);
+    //! total distance of the profile
+    float totalDistance() const;
 
 	//! get the altitude for a particular distance. The profile always starts at altitude 0.0f
 	float altitudeForDistance(double distance);
