@@ -15,6 +15,7 @@
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QSystemTrayIcon>
 
+
 class ANTController;
 class ProfileWidget;
 class RealLifeVideoImporter;

@@ -1,7 +1,7 @@
 #ifndef PROFILEWIDGET_H
 #define PROFILEWIDGET_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 #include "reallifevideo.h"
 
 /**

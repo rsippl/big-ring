@@ -1,7 +1,7 @@
 #ifndef RLVLISTWIDGET_H
 #define RLVLISTWIDGET_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 #include "reallifevideo.h"
 namespace Ui {
     class RlvListWidget;

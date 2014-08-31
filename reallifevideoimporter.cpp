@@ -6,8 +6,8 @@
 #include <QFutureSynchronizer>
 #include <QMap>
 #include <QStringList>
-#include <QtConcurrentMap>
-#include <QtConcurrentRun>
+#include <QtConcurrent/QtConcurrentMap>
+#include <QtConcurrent/QtConcurrentRun>
 #include <QtDebug>
 
 RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QStringList& aviFiles);
