@@ -5,6 +5,7 @@
 #include "antcontroller.h"
 #include "reallifevideoimporter.h"
 #include "mainwindow.h"
+#include "videowidget.h"
 
 int main(int argc, char *argv[])
 {

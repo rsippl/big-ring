@@ -34,7 +34,6 @@ public:
 	void clearOpenGLBuffers();
 
 	void setRlv(RealLifeVideo rlv);
-
 protected:
 	virtual void initializeGL();
 	virtual void paintGL();

@@ -1,7 +1,5 @@
 <RCC>
 	 <qresource prefix="/">
-		  <file>qml/SufferfestPlayer/main.qml</file>
-		  <file>qml/SufferfestPlayer/Gauge.qml</file>
 		  <file>shaders/vertexshader.glsl</file>
 		  <file>shaders/fragmentshader.glsl</file>
 	 </qresource>
