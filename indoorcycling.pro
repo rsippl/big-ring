@@ -1,11 +1,9 @@
-cache()
 
 TEMPLATE = subdirs
 
 SUBDIRS += mainlib \
-    indoorcycling
+    indoorcycling \
+    antlib
 
-#LIBS +=  -lusb-1.0 -lavcodec -lavformat -lavutil
-
-indoorcycling.depends = mainlib
+indoorcycling.depends = antlib mainlib
 

@@ -1,7 +1,10 @@
+include(../antlib/antlib.pri)
+
 QMAKE_CXXFLAGS += -std=c++11
 QT += core concurrent gui opengl widgets
 
-LIBS += -lusb-1.0 -lavcodec -lavformat -lavutil
+message("ant libs = $${ANTLIB_LIBRARY_DEPENDENCIES}")
+MAINLIB_LIBRARY_DEPENCIES = -lavcodec -lavformat -lavutil $${ANTLIB_LIBRARY_DEPENDENCIES}
 
 RESOURCES += \
     $$IN_PWD/shaders.qrc
