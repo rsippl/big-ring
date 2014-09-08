@@ -64,7 +64,7 @@ Building
 --------
 
 1. Create a build directory, for instance next to the source directory.
-2. Run cmake <source directory> from the build directory.
+2. Run qmake <source directory> from the build directory.
 3. make
 4. All executables should build.
 
