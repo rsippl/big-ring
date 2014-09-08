@@ -50,6 +50,7 @@ I have the USB 1 variant from Garmin and a USB 2 from Suunto, the MoveStick Mini
 * [G++](http://gcc.gnu.org), the compiler.
 * [libusbx](http://libusbx.org), for handling of the usb device. On Ubuntu, installing libusb-dev will install libusbx.
 * And OpenGL capable system for the graphics.
+* [Google Test](https://code.google.com/p/googletest/), OPTIONAL, for test code.
 
 Limitations
 -----------
@@ -66,7 +67,7 @@ Building
 1. Create a build directory, for instance next to the source directory.
 2. Run qmake <source directory> from the build directory.
 3. make
-4. All executables should build.
+4. the indoorcycling executable will be located in the bin/ directory inside the build directory.
 
 Permissions
 -----------
