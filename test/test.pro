@@ -1,4 +1,5 @@
 TEMPLATE = app
+CONFIG += testcase
 include(../indoorcycling.pri)
 include(../mainlib/mainlib.pri)
 QT += testlib
