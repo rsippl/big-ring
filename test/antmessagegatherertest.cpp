@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "antmessagegatherer.h"
 #include "ANT.h"
 #include <QtTest/QTestEventLoop>

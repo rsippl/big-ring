@@ -1,8 +1,8 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
-#include "reallivevideo.h"
+#include "reallifevideo.h"
 
-class RealLiveVideoTest: public ::testing::Test
+class RealLifeVideoTest: public ::testing::Test
  {
 public:
 
@@ -16,14 +16,14 @@ public:
 	void testVideoInformation();
 };
 
-TEST_F(RealLiveVideoTest, testProfileEntryDefault)
+TEST_F(RealLifeVideoTest, testProfileEntryDefault)
 {
 	ProfileEntry entry;
 	EXPECT_FLOAT_EQ(0, entry.distance());
 	EXPECT_FLOAT_EQ(0, entry.slope());
 }
 
-TEST_F(RealLiveVideoTest, testProfileEntry)
+TEST_F(RealLifeVideoTest, testProfileEntry)
 {
 	ProfileEntry entry(1.23f, 0, 8.23f, .25f);
 	EXPECT_FLOAT_EQ(1.23f, entry.distance());
@@ -32,7 +32,7 @@ TEST_F(RealLiveVideoTest, testProfileEntry)
 	EXPECT_FLOAT_EQ(.25f, entry.altitude());
 }
 
-TEST_F(RealLiveVideoTest, testProfileDefault)
+TEST_F(RealLifeVideoTest, testProfileDefault)
 {
 	Profile profile;
 
@@ -41,7 +41,7 @@ TEST_F(RealLiveVideoTest, testProfileDefault)
 	EXPECT_FLOAT_EQ(0, profile.slopeForDistance(10.0));
 }
 
-TEST_F(RealLiveVideoTest, testProfile)
+TEST_F(RealLifeVideoTest, testProfile)
 {
 	QList<ProfileEntry> entries;
 	entries << ProfileEntry(1.0, 0.0, 1.0, 0.0);
@@ -59,14 +59,14 @@ TEST_F(RealLiveVideoTest, testProfile)
 	EXPECT_FLOAT_EQ(12 + 0.01f + 0.01f, profile.altitudeForDistance(1.5f));
 }
 
-TEST_F(RealLiveVideoTest, testVideoInformationDefault)
+TEST_F(RealLifeVideoTest, testVideoInformationDefault)
 {
 	VideoInformation info;
 	EXPECT_FLOAT_EQ(0.0f, info.frameRate());
 	EXPECT_EQ(QString(""), info.videoFilename());
 }
 
-TEST_F(RealLiveVideoTest, testVideoInformation)
+TEST_F(RealLifeVideoTest, testVideoInformation)
 {
 	VideoInformation info("VideoFile", 29.97f);
 	EXPECT_FLOAT_EQ(29.97f, info.frameRate());
