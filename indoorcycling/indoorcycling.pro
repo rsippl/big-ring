@@ -2,7 +2,7 @@ TEMPLATE = app
 
 include(../mainlib/mainlib.pri)
 
-TARGET = ../IndoorCycling
+TARGET = ../bin/indoorcycling
 SOURCES += main.cpp
 
 # added by QtCreator to add mainlib to dependencies.
