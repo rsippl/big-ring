@@ -1,6 +1,6 @@
 TEMPLATE = subdirs
 
-include(indoorcycling.pri)
+include(config.pri)
 
 SUBDIRS += \
     mainlib \
@@ -11,7 +11,6 @@ SUBDIRS += \
     SUBDIRS += test google_test
     test.depends = mainlib antlib indoorcycling google_test
 }
-
 
 indoorcycling.depends = antlib mainlib
 

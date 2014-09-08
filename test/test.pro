@@ -1,6 +1,6 @@
 TEMPLATE = app
 CONFIG += testcase
-include(../indoorcycling.pri)
+include(../config.pri)
 include(../mainlib/mainlib.pri)
 QT += testlib
 TARGET = tests

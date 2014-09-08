@@ -6,7 +6,7 @@
 
 QT       -= core gui
 
-include(../indoorcycling.pri)
+include(../config.pri)
 TARGET = google_test
 TEMPLATE = lib
 CONFIG += staticlib
