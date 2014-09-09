@@ -4,6 +4,7 @@
 #include "profilewidget.h"
 #include "reallifevideoimporter.h"
 #include "rlvlistwidget.h"
+#include "screensaverblocker.h"
 #include "videocontroller.h"
 #include "videowidget.h"
 
@@ -15,7 +16,8 @@
 
 MainWindow::MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent) :
 	QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new VideoWidget(cyclist, this)),
-	videoController(new VideoController(_cyclist, videoWidget, this)), _cachedGeometry(100, 100, 1024, 768)
+    videoController(new VideoController(_cyclist, videoWidget, this)), _cachedGeometry(100, 100, 1024, 768),
+    _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this, this))
 {
 	connect(&parser, SIGNAL(importFinished(RealLifeVideoList)), SIGNAL(importFinished(RealLifeVideoList)));
 

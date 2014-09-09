@@ -3,7 +3,15 @@ TEMPLATE = app
 include(../mainlib/mainlib.pri)
 
 TARGET = ../bin/indoorcycling
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    mainwindow.cpp \
+    screensaverblocker.cpp
+
+HEADERS += \
+    mainwindow.h \
+    screensaverblocker.h
+
+
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib
@@ -34,4 +42,5 @@ else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../antlib/libantlib.a
 message("Master pro file path : ["$${MAINLIB_LIBRARY_DEPENCIES}"]")
 LIBS += $${MAINLIB_LIBRARY_DEPENCIES}
+
 

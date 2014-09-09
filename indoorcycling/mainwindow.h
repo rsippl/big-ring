@@ -20,14 +20,20 @@ class ANTController;
 class ProfileWidget;
 class RealLifeVideoImporter;
 class RlvListWidget;
+
 class VideoController;
 class VideoWidget;
+
+namespace indoorcycling {
+class ScreenSaverBlocker;
+}
 
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 public:
-	explicit MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent = 0);
+    explicit
+    MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent = 0);
 
 	void restoreWindow();
 	void gotoFullScreen();
@@ -53,6 +59,7 @@ private slots:
 	void antDeviceFound(QString description);
 
 private:
+
 	QLayout* setUpMain(QWidget *centralWidget);
 	QLayout* setupSideBar(QWidget *centralWidget);
 	QLabel* createLabel(const QString& text, QColor color, QWidget* centralWidget);
@@ -82,6 +89,7 @@ private:
 	QPushButton* playButton;
 
 	QSystemTrayIcon* _trayIcon;
+    indoorcycling::ScreenSaverBlocker* _screenSaverBlocker;
 };
 
 #endif // MAINWINDOW_H
