@@ -12,13 +12,12 @@ class RealLifeVideoImporter: public QObject
 {
     Q_OBJECT
 public:
+    explicit RealLifeVideoImporter(QObject* parent = NULL);
 
-	explicit RealLifeVideoImporter(QObject* parent = NULL);
-
-    void parseRealLiveVideoFilesFromDir(QString& root);
+    void parseRealLiveVideoFilesFromDir(const QString &root);
 
 signals:
-	void importFinished(RealLifeVideoList rlvs);
+    void importFinished(RealLifeVideoList rlvs);
 
 private slots:
     void importReady();

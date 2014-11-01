@@ -54,7 +54,7 @@ RealLifeVideoList importRlvFiles(QString root)
 	return rlvParserFuture.results();
 }
 
-void RealLifeVideoImporter::parseRealLiveVideoFilesFromDir(QString &root)
+void RealLifeVideoImporter::parseRealLiveVideoFilesFromDir(const QString &root)
 {
 	QFutureWatcher<RealLifeVideoList> *futureWatcher = new QFutureWatcher<RealLifeVideoList>();
 	connect(futureWatcher, SIGNAL(finished()), this, SLOT(importReady()));
