@@ -21,8 +21,6 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     _preview->setMinimumHeight(600);
     _ui->centralwidget->layout()->addWidget(_preview);
     _preview->show();
-
-//    connect(_ui->pushButton, &QPushButton::clicked, _preview, &PreviewVideoWidget::showFullScreen);
 }
 
 MainWindow::~MainWindow()
@@ -33,11 +31,25 @@ MainWindow::~MainWindow()
 void MainWindow::importFinished(RealLifeVideoList rlvs)
 {
     qDebug() << "import finished";
+    _rlvList = rlvs;
     _ui->rlvTable->setModel(new RlvTableModel(rlvs, this));
+    qDebug() << _ui->rlvTable->selectionModel();
+    connect(_ui->rlvTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::selectionChanged);
 
     if (!rlvs.isEmpty()) {
-        int i = std::rand() % rlvs.size();
-        QString realUri = rlvs[i].videoInformation().videoFilename();
+        QString realUri = rlvs[0].videoInformation().videoFilename();
+        _preview->setUri(realUri);
+        _preview->play();
+    }
+}
+
+void MainWindow::selectionChanged(const QItemSelection &selected, const QItemSelection &)
+{
+    qDebug() << "selection changed";
+    QModelIndexList indexes = selected.indexes();
+    if (!indexes.isEmpty()) {
+        int rlvIndex = indexes[0].row();
+        QString realUri = _rlvList[rlvIndex].videoInformation().videoFilename();
         _preview->setUri(realUri);
         _preview->play();
     }

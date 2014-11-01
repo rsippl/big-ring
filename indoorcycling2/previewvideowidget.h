@@ -19,12 +19,14 @@ signals:
 
 public slots:
     void play();
+    void step();
 private:
     void onBusMessage(const QGst::MessagePtr & message);
     void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm);
     void stop();
 
     QGst::PipelinePtr _pipeline;
+    QTimer* _stepTimer;
 };
 
 #endif // PREVIEWVIDEOWIDGET_H

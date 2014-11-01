@@ -1,12 +1,18 @@
 #include "previewvideowidget.h"
+#include <QTimer>
 #include <QUrl>
+#include <QGst/Element>
 #include <QGst/ElementFactory>
 #include <QGst/Bus>
+#include <QGst/Event>
 #include <QGlib/Connect>
 
 PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
-    QGst::Ui::VideoWidget(parent)
+    QGst::Ui::VideoWidget(parent), _stepTimer(new QTimer(this))
 {
+    _stepTimer->setInterval(1000 / 30);
+    connect(_stepTimer, &QTimer::timeout, this, &PreviewVideoWidget::step);
+
 }
 
 PreviewVideoWidget::~PreviewVideoWidget()
@@ -19,7 +25,7 @@ PreviewVideoWidget::~PreviewVideoWidget()
 
 void PreviewVideoWidget::setUri(QString uri)
 {
-
+    stop();
     //if uri is not a real uri, assume it is a file path
     if (uri.indexOf("://") < 0) {
         uri = QUrl::fromLocalFile(uri).toEncoded();
@@ -49,14 +55,22 @@ void PreviewVideoWidget::setUri(QString uri)
 void PreviewVideoWidget::play()
 {
     if (_pipeline) {
-        _pipeline->setState(QGst::StatePlaying);
+        _pipeline->setState(QGst::StatePaused);
+        _stepTimer->start();
     }
+}
+
+void PreviewVideoWidget::step()
+{
+    QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, 1, 1.0, true, false);
+    _pipeline->sendEvent(stepEvent);
 }
 
 void PreviewVideoWidget::stop()
 {
     if (_pipeline) {
         _pipeline->setState(QGst::StateNull);
+        _stepTimer->stop();
 
         //once the pipeline stops, the bus is flushed so we will
         //not receive any StateChangedMessage about this.

@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QtCore/QItemSelection>
 
 #include "previewvideowidget.h"
 #include "reallifevideo.h"
@@ -21,11 +22,13 @@ public:
     ~MainWindow();
 private slots:
     void importFinished(RealLifeVideoList rlvs);
+    void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 private:
     Ui::MainWindow *_ui;
     RealLifeVideoImporter *_importer;
 
     PreviewVideoWidget* _preview;
+    RealLifeVideoList _rlvList;
 };
 
 #endif // MAINWINDOW_H
