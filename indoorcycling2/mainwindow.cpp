@@ -16,10 +16,13 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     qDebug() << "starting from " << dir;
     connect(_importer, &RealLifeVideoImporter::importFinished, this, &MainWindow::importFinished);
     _importer->parseRealLiveVideoFilesFromDir(dir);
+
+
     _preview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     _preview->setMinimumWidth(300);
     _preview->setMinimumHeight(600);
     _ui->centralwidget->layout()->addWidget(_preview);
+
     _preview->show();
 }
 
@@ -37,7 +40,7 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
     connect(_ui->rlvTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::selectionChanged);
 
     if (!rlvs.isEmpty()) {
-        QString realUri = rlvs[0].videoInformation().videoFilename();
+        QString realUri = rlvs[2].videoInformation().videoFilename();
         _preview->setUri(realUri);
         _preview->play();
     }

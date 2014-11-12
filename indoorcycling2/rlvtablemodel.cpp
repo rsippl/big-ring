@@ -23,8 +23,28 @@ QVariant RlvTableModel::data(const QModelIndex &index, int role) const
         case 0:
             return rlv.name();
         case 1:
-            return QVariant::fromValue(rlv.totalDistance());
+            return QString("%1 km").arg(rlv.totalDistance());
         }
     }
     return QVariant();
 }
+
+QVariant RlvTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+ {
+     if (role != Qt::DisplayRole)
+         return QVariant();
+
+     if (orientation == Qt::Horizontal) {
+         switch (section) {
+             case 0:
+                 return tr("Name");
+
+             case 1:
+                 return tr("Length");
+
+             default:
+                 return QVariant();
+         }
+     }
+     return QVariant();
+ }

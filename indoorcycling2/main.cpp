@@ -4,10 +4,16 @@
 
 int main(int argc, char *argv[])
 {
+    qputenv("GST_PLUGIN_PATH", "/home/ibooij/local/qt-gstreamer-1.2.0/build/elements/gstqtvideosink/");
     QApplication a(argc, argv);
     QGst::init(&argc, &argv);
-
-    MainWindow w(a.arguments()[1]);
+    QString dir;
+    if (a.arguments().length() > 1) {
+        dir = a.arguments()[1];
+    } else {
+        dir = "/media/ibooij/SamsungTacx/Tacx/";
+    }
+    MainWindow w(dir);
     w.show();
 
     return a.exec();
