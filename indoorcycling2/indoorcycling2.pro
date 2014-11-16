@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 QT_VERSION = 5
-QT       += core gui multimediawidgets
+QT       += core gui
 
 
 TARGET = indoorcycling2
