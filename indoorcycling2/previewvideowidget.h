@@ -29,12 +29,14 @@ private:
     void onBusMessage(const QGst::MessagePtr & message);
     void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm);
     void stop();
+    void seek();
 
     QGst::ElementPtr _videoSink;
     QGst::PipelinePtr _pipeline;
     QTimer* _stepTimer;
     QGraphicsView* _graphicsView;
     QGraphicsWidget* _videoWidget;
+    bool _seekDone;
 };
 
 #endif // PREVIEWVIDEOWIDGET_H

@@ -19,7 +19,7 @@
 #include <QGlib/Connect>
 
 PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
-    QWidget(parent), _stepTimer(new QTimer(this))
+    QWidget(parent), _stepTimer(new QTimer(this)), _seekDone(false)
 {
     QGraphicsScene* scene = new QGraphicsScene(this);
     _graphicsView = new QGraphicsView(scene, this);
@@ -67,6 +67,7 @@ void PreviewVideoWidget::setUri(QString uri)
     if (_pipeline) {
         _pipeline->setState(QGst::StateNull);
         _pipeline.clear();
+        _seekDone = false;
     }
 
     if (!_pipeline) {
@@ -95,14 +96,13 @@ void PreviewVideoWidget::play()
     _graphicsView->fitInView(_videoWidget);
     _videoWidget->resize(_graphicsView->size());
     if (_pipeline) {
-        _pipeline->setState(QGst::StatePlaying);
-//        _stepTimer->start();
+        _pipeline->setState(QGst::StatePaused);
     }
 }
 
 void PreviewVideoWidget::step()
 {
-    QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, 1, 1.0, true, false);
+    QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, 2, 1.0, true, false);
     _pipeline->sendEvent(stepEvent);
 }
 
@@ -119,7 +119,6 @@ void PreviewVideoWidget::stop()
     if (_pipeline) {
         _pipeline->setState(QGst::StateNull);
         _stepTimer->stop();
-
         //once the pipeline stops, the bus is flushed so we will
         //not receive any StateChangedMessage about this.
         //so, to inform the ui, we have to emit this signal manually.
@@ -144,19 +143,30 @@ void PreviewVideoWidget::onBusMessage(const QGst::MessagePtr &message)
         }
         break;
     case QGst::MessageAsyncDone:
-    {
-
-        QGst::PositionQueryPtr query = QGst::PositionQuery::create(QGst::FormatTime);
-        //This will create a temporary (cast to query).
-        qDebug() << _pipeline->query(query);
-        qDebug() << "seek" << query->position();
-        bool result = _pipeline->seek(QGst::FormatTime, QGst::SeekFlagNone, 60000000000);
-        qDebug() << "result = " << result;
-    }
+        if (!_seekDone) {
+            seek();
+            _seekDone = true;
+        } else {
+            if (!_stepTimer->isActive()) {
+                _stepTimer->start();
+            }
+        }
         break;
     default:
         break;
     }
+}
+
+void PreviewVideoWidget::seek()
+{
+//    QGst::PositionQueryPtr query = QGst::PositionQuery::create(QGst::FormatTime);
+    //This will create a temporary (cast to query).
+//    qDebug() << _pipeline->query(query);
+//    qDebug() << "seek" << query->position();
+//    QGst::EventPtr seekEvent = QGst::SeekEvent::create(1.0, QGst::FormatTime, QGst::SeekFlagFlush, QGst::SeekTypeSet, QGst::ClockTime::fromMSecs(60), QGst::SeekTypeSet, QGst::ClockTime::None);
+//    bool result =_pipeline->sendEvent(seekEvent);
+  bool result   = _pipeline->seek(QGst::FormatTime, QGst::SeekFlagFlush, QGst::ClockTime::fromSeconds(1800));
+    qDebug() << "result = " << result << QGst::ClockTime::fromSeconds(600);
 }
 
 void PreviewVideoWidget::handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm)
