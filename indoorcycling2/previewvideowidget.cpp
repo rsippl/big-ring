@@ -109,8 +109,8 @@ void PreviewVideoWidget::step()
 void PreviewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 {
     _graphicsView->resize(resizeEvent->size());
-    _graphicsView->fitInView(_videoWidget);
     _videoWidget->resize(_graphicsView->size());
+    _graphicsView->fitInView(_videoWidget);
     resizeEvent->accept();
 }
 
