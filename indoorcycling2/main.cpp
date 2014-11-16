@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[])
 {
-    qputenv("GST_PLUGIN_PATH", "/home/ibooij/local/qt-gstreamer-1.2.0/build/elements/gstqtvideosink/");
+    qputenv("GST_PLUGIN_PATH", "/home/ibooij/homedev/build/qtgstreamer/elements/gstqtvideosink/");
     QApplication a(argc, argv);
     QGst::init(&argc, &argv);
     QString dir;
