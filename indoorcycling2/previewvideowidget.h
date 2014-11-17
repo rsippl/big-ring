@@ -22,6 +22,7 @@ signals:
 public slots:
     void play();
     void step();
+    void updateText();
 
 protected:
     void resizeEvent(QResizeEvent *);
@@ -34,8 +35,10 @@ private:
     QGst::ElementPtr _videoSink;
     QGst::PipelinePtr _pipeline;
     QTimer* _stepTimer;
+    QTimer* _textTimer;
     QGraphicsView* _graphicsView;
     QGraphicsWidget* _videoWidget;
+    QGraphicsTextItem* _text;
     bool _seekDone;
 };
 

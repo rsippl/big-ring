@@ -19,7 +19,7 @@
 #include <QGlib/Connect>
 
 PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
-    QWidget(parent), _stepTimer(new QTimer(this)), _seekDone(false)
+    QWidget(parent), _stepTimer(new QTimer(this)), _textTimer(new QTimer(this)), _seekDone(false)
 {
     QGraphicsScene* scene = new QGraphicsScene(this);
     _graphicsView = new QGraphicsView(scene, this);
@@ -34,19 +34,30 @@ PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
     scene->addItem(_videoWidget);
 
     _graphicsView->centerOn(_videoWidget);
-
     _graphicsView->fitInView(_videoWidget);
     _graphicsView->setSizeAdjustPolicy(QGraphicsView::AdjustIgnored);
     _graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    scene->addText("Text");
+    _graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    _text = scene->addText("Text");
+    _text->setX(400);
+    _text->setY(500);
+    QFont font;
+    font.setBold(true);
+    font.setPointSize(48);
+    _text->setFont(font);
+    _text->setDefaultTextColor(Qt::blue);
+    _text->setRotation(45);
     QBrush brush(Qt::red);
     QPen pen(brush, 20);
-    scene->addEllipse(800 - 250, 900, 500, 200, pen);
+    scene->addEllipse(800 - 250, 700, 500, 500, pen);
 
     _videoSink = surface->videoSink();
 
     _stepTimer->setInterval(1000 / 30);
     connect(_stepTimer, &QTimer::timeout, this, &PreviewVideoWidget::step);
+    _textTimer->setInterval(1000);
+    connect(_textTimer, &QTimer::timeout, this, &PreviewVideoWidget::updateText);
+    _textTimer->start();
 }
 
 PreviewVideoWidget::~PreviewVideoWidget()
@@ -102,13 +113,19 @@ void PreviewVideoWidget::play()
 
 void PreviewVideoWidget::step()
 {
-    QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, 2, 1.0, true, false);
+    QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, 3, 1.0, true, false);
     _pipeline->sendEvent(stepEvent);
+}
+
+void PreviewVideoWidget::updateText()
+{
+    _text->setPlainText(QTime::currentTime().toString());
 }
 
 void PreviewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 {
     _graphicsView->resize(resizeEvent->size());
+
     _videoWidget->resize(_graphicsView->size());
     _graphicsView->fitInView(_videoWidget);
     resizeEvent->accept();
@@ -159,14 +176,7 @@ void PreviewVideoWidget::onBusMessage(const QGst::MessagePtr &message)
 
 void PreviewVideoWidget::seek()
 {
-//    QGst::PositionQueryPtr query = QGst::PositionQuery::create(QGst::FormatTime);
-    //This will create a temporary (cast to query).
-//    qDebug() << _pipeline->query(query);
-//    qDebug() << "seek" << query->position();
-//    QGst::EventPtr seekEvent = QGst::SeekEvent::create(1.0, QGst::FormatTime, QGst::SeekFlagFlush, QGst::SeekTypeSet, QGst::ClockTime::fromMSecs(60), QGst::SeekTypeSet, QGst::ClockTime::None);
-//    bool result =_pipeline->sendEvent(seekEvent);
-  bool result   = _pipeline->seek(QGst::FormatTime, QGst::SeekFlagFlush, QGst::ClockTime::fromSeconds(1800));
-    qDebug() << "result = " << result << QGst::ClockTime::fromSeconds(600);
+    _pipeline->seek(QGst::FormatTime, QGst::SeekFlagFlush, QGst::ClockTime::fromSeconds(5400));
 }
 
 void PreviewVideoWidget::handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm)
