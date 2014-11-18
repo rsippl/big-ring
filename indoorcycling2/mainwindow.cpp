@@ -40,7 +40,7 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
     connect(_ui->rlvTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::selectionChanged);
 
     if (!rlvs.isEmpty()) {
-        QString realUri = rlvs[2].videoInformation().videoFilename();
+        QString realUri = rlvs[0].videoInformation().videoFilename();
         _preview->setUri(realUri);
         _preview->play();
     }

@@ -19,11 +19,15 @@ include(../mainlib/mainlib.pri)
 SOURCES += main.cpp\
         mainwindow.cpp \
     rlvtablemodel.cpp \
-    previewvideowidget.cpp
+    previewvideowidget.cpp \
+    sensorvalueitem.cpp \
+    clockitem.cpp
 
 HEADERS  += mainwindow.h \
     rlvtablemodel.h \
-    previewvideowidget.h
+    previewvideowidget.h \
+    sensorvalueitem.h \
+    clockitem.h
 
 LIBS += -L/home/ibooij/local/lib/qtgstreamer/lib/x86_64-linux-gnu -lQt5GLib-2.0 -lQt5GStreamer-1.0 -lQt5GStreamerUi-1.0
 

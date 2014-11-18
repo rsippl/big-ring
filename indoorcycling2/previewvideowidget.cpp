@@ -18,6 +18,9 @@
 #include <QGst/Ui/VideoWidget>
 #include <QGlib/Connect>
 
+#include "sensorvalueitem.h"
+#include "clockitem.h"
+
 PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
     QWidget(parent), _stepTimer(new QTimer(this)), _textTimer(new QTimer(this)), _seekDone(false)
 {
@@ -33,11 +36,23 @@ PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
     _videoWidget = videoWidget;
     scene->addItem(_videoWidget);
 
+    SensorValueItem* item = new SensorValueItem("m");
+    item->setX(300);
+    item->setY(300);
+    scene->addItem(item);
+
+    ClockItem* clockItem = new ClockItem(this);
+    item->setX(100);
+    item->setY(200);
+    scene->addItem(clockItem);
+
+
+
     _graphicsView->centerOn(_videoWidget);
     _graphicsView->fitInView(_videoWidget);
     _graphicsView->setSizeAdjustPolicy(QGraphicsView::AdjustIgnored);
     _graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    _graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    _graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff );
     _text = scene->addText("Text");
     _text->setX(400);
     _text->setY(500);

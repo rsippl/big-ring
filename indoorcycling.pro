@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
-
+#CONFIG += debug
 include(config.pri)
 
 SUBDIRS += \
