@@ -20,11 +20,14 @@ public:
     void setCourse(const Course& course);
 signals:
     void stateChanged();
+    void videoLoaded();
 
 public slots:
     void play();
-    void step();
+    void step(int stepSize);
     void updateText();
+
+    void setDistance(float distance);
 
 protected:
     void resizeEvent(QResizeEvent *);
@@ -37,9 +40,10 @@ private:
 
     RealLifeVideo _rlv;
     Course _course;
+    quint32 _currentFrame;
+
     QGst::ElementPtr _videoSink;
     QGst::PipelinePtr _pipeline;
-    QTimer* _stepTimer;
     QTimer* _textTimer;
     QGraphicsView* _graphicsView;
     QGraphicsWidget* _videoWidget;

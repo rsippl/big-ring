@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QApplication>
 #include <QtDebug>
+#include <QGst/Init>
 #include "antcontroller.h"
 #include "reallifevideoimporter.h"
 #include "mainwindow.h"
@@ -9,8 +10,10 @@
 
 int main(int argc, char *argv[])
 {
-	qDebug() << "starting up";
-	QApplication app(argc, argv);
+    qputenv("GST_PLUGIN_PATH", "/home/ibooij/homedev/build/qtgstreamer/elements/gstqtvideosink/");
+    QApplication app(argc, argv);
+    QGst::init(&argc, &argv);
+
 	app.setApplicationName("Indoor Cycling");
 
 	qDebug() << "starting up";
@@ -28,7 +31,7 @@ int main(int argc, char *argv[])
 	if (argc >= 3) {
 		QString robot(argv[2]);
 		if (robot == "robot") {
-			cyclist.setPower(300);
+            cyclist.setPower(450);
 		}
 	}
 

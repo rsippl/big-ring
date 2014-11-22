@@ -22,12 +22,13 @@
 #include "clockitem.h"
 
 PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
-    QWidget(parent), _stepTimer(new QTimer(this)), _textTimer(new QTimer(this)), _seekDone(false)
+    QWidget(parent), _textTimer(new QTimer(this)), _seekDone(false)
 {
     QGraphicsScene* scene = new QGraphicsScene(this);
     _graphicsView = new QGraphicsView(scene, this);
 
-    _graphicsView->setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
+//    _graphicsView->setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
+    _graphicsView->setViewport(new QWidget);
     QGst::Ui::GraphicsVideoSurface *surface = new QGst::Ui::GraphicsVideoSurface(_graphicsView);
     QGst::Ui::GraphicsVideoWidget* videoWidget = new QGst::Ui::GraphicsVideoWidget;
 
@@ -67,8 +68,6 @@ PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
     scene->addEllipse(800 - 250, 700, 500, 500, pen);
 
     _videoSink = surface->videoSink();
-    _stepTimer->setInterval(1000 / 30);
-    connect(_stepTimer, &QTimer::timeout, this, &PreviewVideoWidget::step);
     _textTimer->setInterval(1000);
     connect(_textTimer, &QTimer::timeout, this, &PreviewVideoWidget::updateText);
     _textTimer->start();
@@ -86,11 +85,13 @@ void PreviewVideoWidget::setRealLifeVideo(RealLifeVideo &rlv)
     _rlv = rlv;
     QString realUri = rlv.videoInformation().videoFilename();
     setUri(realUri);
+    _currentFrame = 0;
 }
 
 void PreviewVideoWidget::setCourse(const Course &course)
 {
     _course = course;
+    _currentFrame = 0;
 }
 
 void PreviewVideoWidget::setUri(QString uri)
@@ -137,15 +138,35 @@ void PreviewVideoWidget::play()
     }
 }
 
-void PreviewVideoWidget::step()
+void PreviewVideoWidget::step(int stepSize)
 {
-    QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, 2, 1.0, true, false);
+    qDebug() << "stepping with step size" << stepSize;
+    QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, stepSize, 1.0, true, false);
     _pipeline->sendEvent(stepEvent);
 }
 
 void PreviewVideoWidget::updateText()
 {
     _text->setPlainText(QTime::currentTime().toString());
+}
+
+void PreviewVideoWidget::setDistance(float distance)
+{
+    qDebug() << "distance is now" << distance << _seekDone;
+    if (!_seekDone) {
+        return;
+    }
+
+    quint32 frame = _rlv.frameForDistance(distance);
+    qDebug() << "frame nr" << frame;
+    if (frame != _currentFrame) {
+        quint32 diff = frame - _currentFrame;
+        step(diff);
+        if (diff >= 10) {
+            qDebug() << "diff is too big:" << diff;
+        }
+        _currentFrame = frame;
+    }
 }
 
 void PreviewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
@@ -161,7 +182,6 @@ void PreviewVideoWidget::stop()
 {
     if (_pipeline) {
         _pipeline->setState(QGst::StateNull);
-        _stepTimer->stop();
         //once the pipeline stops, the bus is flushed so we will
         //not receive any StateChangedMessage about this.
         //so, to inform the ui, we have to emit this signal manually.
@@ -193,10 +213,9 @@ void PreviewVideoWidget::onBusMessage(const QGst::MessagePtr &message)
             _rlv.setDuration(nanoseconds / 1000);
             seek();
             _seekDone = true;
+            emit videoLoaded();
         } else {
-            if (!_stepTimer->isActive()) {
-                _stepTimer->start();
-            }
+
         }
         break;
     default:
@@ -208,6 +227,7 @@ void PreviewVideoWidget::seek()
 {
     qDebug() << "course" << _course.name() << _course.start();
     quint32 frame = _rlv.frameForDistance(_course.start());
+    _currentFrame = frame;
     float seconds = frame / _rlv.videoInformation().frameRate();
     qDebug() << "need to seek to seconds: " << seconds;
     quint64 milliseconds = static_cast<quint64>(seconds * 1000);

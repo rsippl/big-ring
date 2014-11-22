@@ -21,7 +21,8 @@ HEADERS += \
     videocontroller.h \
     videodecoder.h \
     videowidget.h \
-    thirdparty/include/GL/glew.h
+    thirdparty/include/GL/glew.h \
+    newvideowidget.h
 
 SOURCES += \
     cyclist.cpp \
@@ -35,7 +36,8 @@ SOURCES += \
     videocontroller.cpp \
     videodecoder.cpp \
     videowidget.cpp \
-    thirdparty/src/glew.c
+    thirdparty/src/glew.c \
+    newvideowidget.cpp
 
 
 

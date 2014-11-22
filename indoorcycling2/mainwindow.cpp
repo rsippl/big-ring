@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QtCore/QtDebug>
+#include <QtCore/QTimer>
 #include <QtCore/QUrl>
 #include <random>
 
@@ -9,7 +10,8 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     QMainWindow(parent),
     _ui(new Ui::MainWindow),
     _importer(new RealLifeVideoImporter(this)),
-    _preview(new PreviewVideoWidget(this))
+    _preview(new PreviewVideoWidget(this)),
+    _playTimer(new QTimer(this))
 {
     _ui->setupUi(this);
 
@@ -24,6 +26,15 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     _ui->centralwidget->layout()->addWidget(_preview);
 
     _preview->show();
+
+    connect(_preview, &PreviewVideoWidget::videoLoaded, [this]() {
+       _playTimer->start();
+       _time.start();
+    });
+    connect(_playTimer, &QTimer::timeout, [this]() {
+       step();
+    });
+    _playTimer->setInterval(40);
 }
 
 MainWindow::~MainWindow()
@@ -42,13 +53,6 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
     if (!rlvs.isEmpty()) {
         _preview->setRealLifeVideo(rlvs[0]);
         _preview->setCourse(rlvs[0].courses().last());
-//        _preview->setCourse(rlvs[0].courses()[13]);
-//        Course course = rlvs[0].courses()[13];
-//        int i = 0;
-//        for (Course course: rlvs[0].courses()) {
-//            qDebug() << "Course " << i++ << course.name();
-//        }
-//        qDebug() << "course" << course.name() << course.start();
         _preview->play();
     }
 }
@@ -61,12 +65,25 @@ void MainWindow::selectionChanged(const QItemSelection &selected, const QItemSel
         int rlvIndex = indexes[0].row();
         RealLifeVideo video = _rlvList[rlvIndex];
         _preview->setRealLifeVideo(_rlvList[rlvIndex]);
-        _preview->setCourse(video.courses()[3]);
+        int index = video.courses().size() >= 4 ? 3 : video.courses().size() - 1;
+        _preview->setCourse(video.courses()[index]);
         int i = 0;
+        _currentDistance = video.courses()[index].start();
         for (Course course: _rlvList[rlvIndex].courses()) {
                     qDebug() << "Course " << i++ << course.name();
                 }
 //        _preview->setUri(realUri);
+
         _preview->play();
+
     }
+}
+
+void MainWindow::step()
+{
+    int milliseconds = _time.restart();
+    float distance = 10 * milliseconds / 1000.0;
+    _currentDistance += distance;
+    qDebug() << "current distance" << _currentDistance;
+    _preview->setDistance(_currentDistance);
 }

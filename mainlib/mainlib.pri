@@ -3,8 +3,10 @@ include(../antlib/antlib.pri)
 QMAKE_CXXFLAGS += -std=c++11
 QT += core concurrent gui opengl widgets
 
+INCLUDEPATH += /home/ibooij/local/lib/qtgstreamer/include/Qt5GStreamer
+
 message("ant libs = $${ANTLIB_LIBRARY_DEPENDENCIES}")
-MAINLIB_LIBRARY_DEPENCIES = -lavcodec -lavformat -lavutil $${ANTLIB_LIBRARY_DEPENDENCIES}
+MAINLIB_LIBRARY_DEPENCIES = -lavcodec -lavformat -lavutil -L/home/ibooij/local/lib/qtgstreamer/lib/x86_64-linux-gnu -lQt5GLib-2.0 -lQt5GStreamer-1.0 -lQt5GStreamerUi-1.0 $${ANTLIB_LIBRARY_DEPENDENCIES}
 
 RESOURCES += \
     $$IN_PWD/shaders.qrc

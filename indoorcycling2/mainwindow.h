@@ -24,11 +24,17 @@ private slots:
     void importFinished(RealLifeVideoList rlvs);
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 private:
+    void step();
+
     Ui::MainWindow *_ui;
     RealLifeVideoImporter *_importer;
 
     PreviewVideoWidget* _preview;
     RealLifeVideoList _rlvList;
+
+    QTimer* _playTimer;
+    QTime _time;
+    float _currentDistance;
 };
 
 #endif // MAINWINDOW_H

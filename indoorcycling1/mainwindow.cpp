@@ -15,8 +15,8 @@
 #include <cmath>
 
 MainWindow::MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent) :
-	QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new VideoWidget(cyclist, this)),
-    videoController(new VideoController(_cyclist, videoWidget, this)), _cachedGeometry(100, 100, 1024, 768),
+    QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new NewVideoWidget(this)),
+    _cachedGeometry(100, 100, 1024, 768),
     _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this, this))
 {
 	connect(&parser, SIGNAL(importFinished(RealLifeVideoList)), SIGNAL(importFinished(RealLifeVideoList)));
@@ -33,15 +33,14 @@ MainWindow::MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, co
 
 	connect(rlvListWidget, &RlvListWidget::realLiveVideoSelected,
 			&_simulation, &Simulation::rlvSelected);
-	connect(rlvListWidget, &RlvListWidget::realLiveVideoSelected,
-			videoController, &VideoController::realLiveVideoSelected);
+    connect(rlvListWidget, &RlvListWidget::realLiveVideoSelected, videoWidget, &NewVideoWidget::setRealLifeVideo);
+    connect(courseListWidget, &QListWidget::currentRowChanged, videoWidget, &NewVideoWidget::setCourseIndex);
+
+
 	QObject::connect(this, SIGNAL(importFinished(RealLifeVideoList)), rlvListWidget, SLOT(setRealLiveVideos(RealLifeVideoList)));
 	QObject::connect(rlvListWidget, SIGNAL(realLiveVideoSelected(RealLifeVideo)), SLOT(rlvSelected(RealLifeVideo)));
 	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
 					 &_simulation, SLOT(courseSelected(int)));
-	QObject::connect(courseListWidget, SIGNAL(currentRowChanged(int)),
-					 videoController, SLOT(courseSelected(int)));
-
 
 	connect(playButton, SIGNAL(clicked(bool)), &_simulation, SLOT(play(bool)));
 
@@ -49,9 +48,9 @@ MainWindow::MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, co
 	connect(&_cyclist, SIGNAL(cadenceChanged(float)), SLOT(cadenceChanged(float)));
 	connect(&_cyclist, SIGNAL(powerChanged(float)), SLOT(powerChanged(float)));
 	connect(&_cyclist, SIGNAL(distanceChanged(float)), SLOT(distanceChanged(float)));
+    connect(&_cyclist, &Cyclist::distanceChanged, videoWidget, &NewVideoWidget::setDistance);
 	connect(&_simulation, SIGNAL(slopeChanged(float)), SLOT(slopeChanged(float)));
 	connect(&_simulation, SIGNAL(runTimeChanged(QTime)), SLOT(runTimeChanged(QTime)));
-	connect(&_simulation, SIGNAL(playing(bool)), videoController, SLOT(play(bool)));
 
 	connect(&_cyclist, SIGNAL(speedChanged(float)), SLOT(speedChanged(float)));
 
@@ -109,9 +108,8 @@ QLayout* MainWindow::setupSideBar(QWidget* centralWidget)
 
 	playButton = new QPushButton("Play", centralWidget);
 	playButton->setCheckable(true);
-	playButton->setEnabled(videoController->isBufferFull());
-	connect(videoController, SIGNAL(bufferFull(bool)), playButton, SLOT(setEnabled(bool)));
-	connect(videoController, SIGNAL(playing(bool)), playButton, SLOT(setChecked(bool)));
+    playButton->setEnabled(videoWidget->isReadyToPlay());
+    connect(videoWidget, &NewVideoWidget::readyToPlay, playButton, &QPushButton::setEnabled);
 	layout->addWidget(playButton);
 	return layout;
 }
@@ -257,7 +255,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 	} else if (event->key() == Qt::Key_Space) {
 		if (playButton->isChecked()) {
 			_simulation.play(false);
-		} else if (videoController->isBufferFull()) {
+        } else if (videoWidget->isReadyToPlay()) {
 			_simulation.play(true);
 		}
 	}

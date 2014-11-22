@@ -28,6 +28,7 @@ public:
 	explicit Course(const QString& name, float start, float end);
 	explicit Course();
 
+    bool isValid() const { return (!_name.isEmpty()); }
 	const QString& name() const { return _name; }
 	/*! start distance of course in  meters */
 	float start() const { return _start; }

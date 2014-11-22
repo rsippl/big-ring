@@ -9,7 +9,7 @@
 #include "cyclist.h"
 #include "reallifevideo.h"
 #include "simulation.h"
-
+#include "newvideowidget.h"
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QBoxLayout>
@@ -69,10 +69,10 @@ private:
 	void removeMargins();
 	void restoreMargins();
 
+    RealLifeVideo _rlv;
 	Cyclist& _cyclist;
 	Simulation _simulation;
-	VideoWidget* videoWidget;
-	VideoController* videoController;
+    NewVideoWidget* videoWidget;
 	QListWidget* courseListWidget;
 	RlvListWidget* rlvListWidget;
 	ProfileWidget* _profileWidget;
