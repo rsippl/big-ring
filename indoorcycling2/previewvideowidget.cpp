@@ -27,7 +27,7 @@ PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
     QGraphicsScene* scene = new QGraphicsScene(this);
     _graphicsView = new QGraphicsView(scene, this);
 
-    _graphicsView->setViewport(new QWidget);
+    _graphicsView->setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
     QGst::Ui::GraphicsVideoSurface *surface = new QGst::Ui::GraphicsVideoSurface(_graphicsView);
     QGst::Ui::GraphicsVideoWidget* videoWidget = new QGst::Ui::GraphicsVideoWidget;
 
@@ -67,7 +67,6 @@ PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
     scene->addEllipse(800 - 250, 700, 500, 500, pen);
 
     _videoSink = surface->videoSink();
-
     _stepTimer->setInterval(1000 / 30);
     connect(_stepTimer, &QTimer::timeout, this, &PreviewVideoWidget::step);
     _textTimer->setInterval(1000);
@@ -80,6 +79,18 @@ PreviewVideoWidget::~PreviewVideoWidget()
     if (_pipeline) {
         _pipeline->setState(QGst::StateNull);
     }
+}
+
+void PreviewVideoWidget::setRealLifeVideo(RealLifeVideo &rlv)
+{
+    _rlv = rlv;
+    QString realUri = rlv.videoInformation().videoFilename();
+    setUri(realUri);
+}
+
+void PreviewVideoWidget::setCourse(const Course &course)
+{
+    _course = course;
 }
 
 void PreviewVideoWidget::setUri(QString uri)
@@ -128,7 +139,7 @@ void PreviewVideoWidget::play()
 
 void PreviewVideoWidget::step()
 {
-    QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, 3, 1.0, true, false);
+    QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, 2, 1.0, true, false);
     _pipeline->sendEvent(stepEvent);
 }
 
@@ -176,6 +187,10 @@ void PreviewVideoWidget::onBusMessage(const QGst::MessagePtr &message)
         break;
     case QGst::MessageAsyncDone:
         if (!_seekDone) {
+            QGst::DurationQueryPtr durationQuery = QGst::DurationQuery::create(QGst::FormatTime);
+            _pipeline->query(durationQuery);
+            quint64 nanoseconds = durationQuery->duration();
+            _rlv.setDuration(nanoseconds / 1000);
             seek();
             _seekDone = true;
         } else {
@@ -191,12 +206,21 @@ void PreviewVideoWidget::onBusMessage(const QGst::MessagePtr &message)
 
 void PreviewVideoWidget::seek()
 {
-    _pipeline->seek(QGst::FormatTime, QGst::SeekFlagFlush, QGst::ClockTime::fromSeconds(5400));
+    qDebug() << "course" << _course.name() << _course.start();
+    quint32 frame = _rlv.frameForDistance(_course.start());
+    float seconds = frame / _rlv.videoInformation().frameRate();
+    qDebug() << "need to seek to seconds: " << seconds;
+    quint64 milliseconds = static_cast<quint64>(seconds * 1000);
+    _pipeline->seek(QGst::FormatTime, QGst::SeekFlagFlush, QGst::ClockTime::fromMSecs(milliseconds));
 }
 
 void PreviewVideoWidget::handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm)
 {
     switch (scm->newState()) {
+     case QGst::StateChangeSuccess:
+        // succes
+        qDebug() << "success";
+        break;
     case QGst::StatePlaying:
         //start the timer when the pipeline starts playing
         //        m_positionTimer.start(100);

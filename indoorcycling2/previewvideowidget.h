@@ -8,6 +8,7 @@
 #include <QtWidgets/QGraphicsWidget>
 #include <QGst/Message>
 #include <QGst/Pipeline>
+#include "reallifevideo.h"
 
 class PreviewVideoWidget: public QWidget
 {
@@ -15,7 +16,8 @@ class PreviewVideoWidget: public QWidget
 public:
     PreviewVideoWidget(QWidget* parent);
     virtual ~PreviewVideoWidget();
-    void setUri(QString uri);
+    void setRealLifeVideo(RealLifeVideo& rlv);
+    void setCourse(const Course& course);
 signals:
     void stateChanged();
 
@@ -29,9 +31,12 @@ protected:
 private:
     void onBusMessage(const QGst::MessagePtr & message);
     void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm);
+    void setUri(QString uri);
     void stop();
     void seek();
 
+    RealLifeVideo _rlv;
+    Course _course;
     QGst::ElementPtr _videoSink;
     QGst::PipelinePtr _pipeline;
     QTimer* _stepTimer;

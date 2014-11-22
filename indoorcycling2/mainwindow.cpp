@@ -40,8 +40,15 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
     connect(_ui->rlvTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::selectionChanged);
 
     if (!rlvs.isEmpty()) {
-        QString realUri = rlvs[0].videoInformation().videoFilename();
-        _preview->setUri(realUri);
+        _preview->setRealLifeVideo(rlvs[0]);
+        _preview->setCourse(rlvs[0].courses().last());
+//        _preview->setCourse(rlvs[0].courses()[13]);
+//        Course course = rlvs[0].courses()[13];
+//        int i = 0;
+//        for (Course course: rlvs[0].courses()) {
+//            qDebug() << "Course " << i++ << course.name();
+//        }
+//        qDebug() << "course" << course.name() << course.start();
         _preview->play();
     }
 }
@@ -52,8 +59,14 @@ void MainWindow::selectionChanged(const QItemSelection &selected, const QItemSel
     QModelIndexList indexes = selected.indexes();
     if (!indexes.isEmpty()) {
         int rlvIndex = indexes[0].row();
-        QString realUri = _rlvList[rlvIndex].videoInformation().videoFilename();
-        _preview->setUri(realUri);
+        RealLifeVideo video = _rlvList[rlvIndex];
+        _preview->setRealLifeVideo(_rlvList[rlvIndex]);
+        _preview->setCourse(video.courses()[3]);
+        int i = 0;
+        for (Course course: _rlvList[rlvIndex].courses()) {
+                    qDebug() << "Course " << i++ << course.name();
+                }
+//        _preview->setUri(realUri);
         _preview->play();
     }
 }

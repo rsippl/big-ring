@@ -71,6 +71,7 @@ void RealLifeVideo::setDuration(quint64 duration)
 {
 	quint64 totalNrOfFrames = duration * (_videoInformation.frameRate() / 1000000);
 	calculateVideoCorrectionFactor(totalNrOfFrames);
+    qDebug() << "correction factor" << _videoCorrectionFactor;
 }
 
 VideoInformation::VideoInformation(const QString &videoFilename, float frameRate):
