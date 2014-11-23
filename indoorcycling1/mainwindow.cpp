@@ -5,8 +5,7 @@
 #include "reallifevideoimporter.h"
 #include "rlvlistwidget.h"
 #include "screensaverblocker.h"
-#include "videocontroller.h"
-#include "videowidget.h"
+#include "newvideowidget.h"
 
 #include <QtWidgets/QApplication>
 #include <QtGui/QKeyEvent>

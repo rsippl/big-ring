@@ -18,10 +18,6 @@ HEADERS += \
     rlvfileparser.h \
     rlvlistwidget.h \
     simulation.h \
-    videocontroller.h \
-    videodecoder.h \
-    videowidget.h \
-    thirdparty/include/GL/glew.h \
     newvideowidget.h \
     clockgraphicsitem.h
 
@@ -34,10 +30,6 @@ SOURCES += \
     rlvfileparser.cpp \
     rlvlistwidget.cpp \
     simulation.cpp \
-    videocontroller.cpp \
-    videodecoder.cpp \
-    videowidget.cpp \
-    thirdparty/src/glew.c \
     newvideowidget.cpp \
     clockgraphicsitem.cpp
 
