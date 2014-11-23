@@ -35,6 +35,9 @@ public slots:
     void setDistance(float distance);
 protected:
     void resizeEvent(QResizeEvent *);
+    virtual void enterEvent(QEvent *);
+    virtual void leaveEvent(QEvent *);
+
 private:
     void onBusMessage(const QGst::MessagePtr & message);
     void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm);

@@ -2,6 +2,7 @@
 
 #include <QtCore/QUrl>
 #include <QtOpenGL/QGLWidget>
+#include <QtWidgets/QApplication>
 
 #include <QGlib/Connect>
 #include <QGst/Bus>
@@ -161,6 +162,16 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 {
     fitInView(_videoWidget);
     resizeEvent->accept();
+}
+
+void NewVideoWidget::enterEvent(QEvent *)
+{
+    QApplication::setOverrideCursor(Qt::BlankCursor);
+}
+
+void NewVideoWidget::leaveEvent(QEvent *)
+{
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
 }
 
 void NewVideoWidget::onBusMessage(const QGst::MessagePtr &message)
