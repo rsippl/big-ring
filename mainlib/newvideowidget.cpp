@@ -1,6 +1,8 @@
 #include "newvideowidget.h"
 
 #include <QtCore/QUrl>
+#include <QtOpenGL/QGLWidget>
+
 #include <QGlib/Connect>
 #include <QGst/Bus>
 #include <QGst/Element>
@@ -8,10 +10,28 @@
 #include <QGst/Event>
 #include <QGst/Message>
 #include <QGst/Query>
+#include <QGst/Ui/GraphicsVideoSurface>
+#include <QGst/Ui/GraphicsVideoWidget>
 
 NewVideoWidget::NewVideoWidget(QWidget *parent) :
-    QGst::Ui::VideoWidget(parent), _loadState(NONE)
+    QGraphicsView(parent), _loadState(NONE)
 {
+    setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    QGraphicsScene* scene = new QGraphicsScene(this);
+    setScene(scene);
+    setViewport(new QGLWidget);
+    _videoSurface = new QGst::Ui::GraphicsVideoSurface(this);
+    _videoWidget = new QGst::Ui::GraphicsVideoWidget;
+
+    _videoWidget->setSurface(_videoSurface);
+    _videoWidget->setGeometry(0, 0, 1600, 900);
+    scene->addItem(_videoWidget);
+
+    centerOn(_videoWidget);
+    fitInView(_videoWidget);
+    setSizeAdjustPolicy(QGraphicsView::AdjustIgnored);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
 NewVideoWidget::~NewVideoWidget()
@@ -48,9 +68,8 @@ void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
         _pipeline = QGst::ElementFactory::make("playbin").dynamicCast<QGst::Pipeline>();
 
         if (_pipeline) {
-            if (_pipeline) {
-                watchPipeline(_pipeline);
-            }
+            _pipeline->setProperty("video-sink", _videoSurface->videoSink());
+
             //watch the bus for messages
             QGst::BusPtr bus = _pipeline->bus();
             bus->addSignalWatch();
@@ -125,6 +144,13 @@ void NewVideoWidget::setDistance(float distance)
     }
 }
 
+void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
+{
+    _videoWidget->resize(size());
+    fitInView(_videoWidget);
+    resizeEvent->accept();
+}
+
 void NewVideoWidget::onBusMessage(const QGst::MessagePtr &message)
 {
     switch (message->type()) {
@@ -149,6 +175,7 @@ void NewVideoWidget::onBusMessage(const QGst::MessagePtr &message)
             quint64 nanoseconds = durationQuery->duration();
             qDebug() << "setting duration of video in rlv";
             _rlv.setDuration(nanoseconds / 1000);
+            fitVideoWidget();
             _loadState = VIDEO_LOADED;
             if (_course.isValid()) {
                 qDebug() << "course valid, setting start distance";
@@ -201,5 +228,11 @@ void NewVideoWidget::step(int stepSize)
 {
     QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, stepSize, 1.0, true, false);
     _pipeline->sendEvent(stepEvent);
+}
+
+void NewVideoWidget::fitVideoWidget()
+{
+    fitInView(_videoWidget);
+    _videoWidget->resize(size());
 }
 

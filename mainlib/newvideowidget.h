@@ -2,12 +2,12 @@
 #define NEWVIDEOWIDGET_H
 
 #include <QWidget>
+#include <QtWidgets/QGraphicsView>
 #include <QGst/Pipeline>
-#include <QGst/Ui/VideoWidget>
-
+#include <QGst/Ui/GraphicsVideoWidget>
 #include "reallifevideo.h"
 
-class NewVideoWidget : public QGst::Ui::VideoWidget
+class NewVideoWidget : public QGraphicsView
 {
     Q_OBJECT
 
@@ -31,14 +31,18 @@ public slots:
     void setCourseIndex(int index);
     void stop();
     void setDistance(float distance);
-
+protected:
+    void resizeEvent(QResizeEvent *);
 private:
     void onBusMessage(const QGst::MessagePtr & message);
     void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm);
 
     void seekToStart();
     void step(int stepSize);
+    void fitVideoWidget();
 
+    QGst::Ui::GraphicsVideoWidget* _videoWidget;
+    QGst::Ui::GraphicsVideoSurface* _videoSurface;
     QGst::PipelinePtr _pipeline;
     RealLifeVideo _rlv;
     Course _course;
