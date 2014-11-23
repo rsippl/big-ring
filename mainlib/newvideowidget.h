@@ -7,6 +7,8 @@
 #include <QGst/Ui/GraphicsVideoWidget>
 #include "reallifevideo.h"
 
+class Simulation;
+
 class NewVideoWidget : public QGraphicsView
 {
     Q_OBJECT
@@ -17,7 +19,7 @@ class NewVideoWidget : public QGraphicsView
     };
 
 public:
-    explicit NewVideoWidget(QWidget *parent = 0);
+    explicit NewVideoWidget(Simulation &simulation, QWidget *parent = 0);
     ~NewVideoWidget();
 
     bool isReadyToPlay();
@@ -40,6 +42,8 @@ private:
     void seekToStart();
     void step(int stepSize);
     void fitVideoWidget();
+
+    void addClock(Simulation& simulation, QGraphicsScene* scene);
 
     QGst::Ui::GraphicsVideoWidget* _videoWidget;
     QGst::Ui::GraphicsVideoSurface* _videoSurface;

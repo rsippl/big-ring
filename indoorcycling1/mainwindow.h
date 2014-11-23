@@ -49,7 +49,6 @@ private slots:
 
 	void distanceChanged(float distance);
 	void slopeChanged(float slope);
-	void runTimeChanged(QTime runTime);
 	void speedChanged(float speed);
 
 	void hrChanged(quint8 heartRate);
@@ -81,8 +80,7 @@ private:
 	QBoxLayout* _layout;
 	QLabel* _distanceLabel;
 	QLabel* _slopeLabel;
-	QLabel* _speedLabel;
-	QLabel* _timeLabel;
+	QLabel* _speedLabel;	
 	QLabel* _heartRateLabel;
 	QLabel* _cadenceLabel;
 	QLabel* _powerLabel;

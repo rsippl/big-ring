@@ -66,7 +66,7 @@ void MainWindow::selectionChanged(const QItemSelection &selected, const QItemSel
         RealLifeVideo video = _rlvList[rlvIndex];
         _preview->setRealLifeVideo(_rlvList[rlvIndex]);
         int index = video.courses().size() >= 4 ? 3 : video.courses().size() - 1;
-        _preview->setCourse(video.courses()[index]);
+        _preview->setCourse(video.courses()[13]);
         int i = 0;
         _currentDistance = video.courses()[index].start();
         for (Course course: _rlvList[rlvIndex].courses()) {

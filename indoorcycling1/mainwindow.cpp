@@ -15,7 +15,7 @@
 #include <cmath>
 
 MainWindow::MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent) :
-    QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new NewVideoWidget(this)),
+    QMainWindow(parent), _cyclist(cyclist), _simulation(_cyclist), videoWidget(new NewVideoWidget(_simulation, this)),
     _cachedGeometry(100, 100, 1024, 768),
     _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this, this))
 {
@@ -78,7 +78,6 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 	_cadenceLabel = createLabel(QString("0 rpm"), Qt::white, centralWidget);
 	_powerLabel = createLabel(QString("0 W"), QColor::fromRgb(255, 69, 0), centralWidget);
 	_distanceLabel = createLabel(QString("0 m"), Qt::blue, centralWidget);
-	_timeLabel = createLabel(QString("--:--:--"), Qt::cyan, centralWidget);
 	_slopeLabel = createLabel(QString("0 %"), Qt::red, centralWidget);
 	_speedLabel = createLabel("-- km/h", Qt::yellow, centralWidget);
 
@@ -86,7 +85,6 @@ QLayout* MainWindow::setUpMain(QWidget* centralWidget)
 	dials->addWidget(_cadenceLabel);
 	dials->addWidget(_powerLabel);
 	dials->addWidget(_distanceLabel);
-	dials->addWidget(_timeLabel);
 	dials->addWidget(_slopeLabel);
 	dials->addWidget(_speedLabel);
 
@@ -167,11 +165,6 @@ void MainWindow::distanceChanged(float distance)
 void MainWindow::slopeChanged(float slope)
 {
 	_slopeLabel->setText(QString("%1 %").arg(slope, 2, 'f', 1));
-}
-
-void MainWindow::runTimeChanged(QTime runTime)
-{
-	_timeLabel->setText(runTime.toString(Qt::ISODate));
 }
 
 void MainWindow::speedChanged(float speed)

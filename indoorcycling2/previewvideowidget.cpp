@@ -46,9 +46,6 @@ PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
     item->setX(100);
     item->setY(200);
     scene->addItem(clockItem);
-
-
-
     _graphicsView->centerOn(_videoWidget);
     _graphicsView->fitInView(_videoWidget);
     _graphicsView->setSizeAdjustPolicy(QGraphicsView::AdjustIgnored);

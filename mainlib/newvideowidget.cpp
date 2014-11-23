@@ -13,18 +13,22 @@
 #include <QGst/Ui/GraphicsVideoSurface>
 #include <QGst/Ui/GraphicsVideoWidget>
 
-NewVideoWidget::NewVideoWidget(QWidget *parent) :
+#include "clockgraphicsitem.h"
+#include "simulation.h"
+
+NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     QGraphicsView(parent), _loadState(NONE)
 {
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     QGraphicsScene* scene = new QGraphicsScene(this);
     setScene(scene);
-    setViewport(new QGLWidget);
+    scene->setSceneRect(0, 0, 1600, 900);
+    setViewport(new QWidget);
     _videoSurface = new QGst::Ui::GraphicsVideoSurface(this);
     _videoWidget = new QGst::Ui::GraphicsVideoWidget;
 
     _videoWidget->setSurface(_videoSurface);
-    _videoWidget->setGeometry(0, 0, 1600, 900);
+    _videoWidget->setGeometry(scene->sceneRect());
     scene->addItem(_videoWidget);
 
     centerOn(_videoWidget);
@@ -32,6 +36,15 @@ NewVideoWidget::NewVideoWidget(QWidget *parent) :
     setSizeAdjustPolicy(QGraphicsView::AdjustIgnored);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    addClock(simulation, scene);
+}
+
+void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
+{
+    ClockGraphicsItem* item = new ClockGraphicsItem(simulation, this);
+    item->setPos(800 - item->boundingRect().width() / 2, 0);
+    scene->addItem(item);
 }
 
 NewVideoWidget::~NewVideoWidget()
@@ -146,7 +159,6 @@ void NewVideoWidget::setDistance(float distance)
 
 void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 {
-    _videoWidget->resize(size());
     fitInView(_videoWidget);
     resizeEvent->accept();
 }
@@ -233,6 +245,6 @@ void NewVideoWidget::step(int stepSize)
 void NewVideoWidget::fitVideoWidget()
 {
     fitInView(_videoWidget);
-    _videoWidget->resize(size());
+//    _videoWidget->resize(size());
 }
 

@@ -22,7 +22,8 @@ HEADERS += \
     videodecoder.h \
     videowidget.h \
     thirdparty/include/GL/glew.h \
-    newvideowidget.h
+    newvideowidget.h \
+    clockgraphicsitem.h
 
 SOURCES += \
     cyclist.cpp \
@@ -37,7 +38,8 @@ SOURCES += \
     videodecoder.cpp \
     videowidget.cpp \
     thirdparty/src/glew.c \
-    newvideowidget.cpp
+    newvideowidget.cpp \
+    clockgraphicsitem.cpp
 
 
 
