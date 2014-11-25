@@ -32,7 +32,7 @@ void ClockGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     painter->setBrush(Qt::gray);
     painter->setOpacity(0.8);
     painter->drawRoundedRect(0, 0, _textWidth + 20, _textHeight + 10, 15, 15);
-    painter->setPen(Qt::yellow);
+    painter->setPen(Qt::green);
     painter->setBrush(Qt::white);
     painter->drawText(5, _textHeight, _time.toString("hh:mm:ss"));
 }
