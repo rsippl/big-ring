@@ -23,6 +23,7 @@ public:
     ~NewVideoWidget();
 
     bool isReadyToPlay();
+
 signals:
     void stateChanged();
     void videoLoaded();
@@ -46,6 +47,7 @@ private:
     void step(int stepSize);
     void fitVideoWidget();
 
+    void setUpVideoSurface(QGraphicsScene* scene);
     void addClock(Simulation& simulation, QGraphicsScene* scene);
 
     QGst::Ui::GraphicsVideoWidget* _videoWidget;

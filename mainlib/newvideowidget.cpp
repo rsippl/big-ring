@@ -17,14 +17,17 @@
 #include "clockgraphicsitem.h"
 #include "simulation.h"
 
-NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
-    QGraphicsView(parent), _loadState(NONE)
+/*!
+ * Create the widget on which the video will be displayed and add it to the
+ * scene. After adding the view will be centered on this video widget and the
+ * view will fitted around the widget to make it as big as possible, without
+ * changing the width/height ratio of the video.
+ *
+ * \brief create and add the widget on which video will be displayed.
+ * \param scene the scene to add the video to.
+ */
+void NewVideoWidget::setUpVideoSurface(QGraphicsScene* scene)
 {
-    setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    QGraphicsScene* scene = new QGraphicsScene(this);
-    setScene(scene);
-    scene->setSceneRect(0, 0, 1600, 900);
-    setViewport(new QWidget);
     _videoSurface = new QGst::Ui::GraphicsVideoSurface(this);
     _videoWidget = new QGst::Ui::GraphicsVideoWidget;
 
@@ -34,6 +37,18 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
 
     centerOn(_videoWidget);
     fitInView(_videoWidget);
+}
+
+NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
+    QGraphicsView(parent), _loadState(NONE)
+{
+    setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    QGraphicsScene* scene = new QGraphicsScene(this);
+    setScene(scene);
+    scene->setSceneRect(0, 0, 1600, 900);
+    setViewport(new QGLWidget);
+
+    setUpVideoSurface(scene);
     setSizeAdjustPolicy(QGraphicsView::AdjustIgnored);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
