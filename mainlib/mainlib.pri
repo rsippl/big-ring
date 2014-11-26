@@ -8,9 +8,6 @@ INCLUDEPATH += /home/ibooij/local/lib/qtgstreamer/include/Qt5GStreamer
 message("ant libs = $${ANTLIB_LIBRARY_DEPENDENCIES}")
 MAINLIB_LIBRARY_DEPENCIES = -lavcodec -lavformat -lavutil -L/home/ibooij/local/lib/qtgstreamer/lib/x86_64-linux-gnu -lQt5GLib-2.0 -lQt5GStreamer-1.0 -lQt5GStreamerUi-1.0 $${ANTLIB_LIBRARY_DEPENDENCIES}
 
-RESOURCES += \
-    $$IN_PWD/shaders.qrc
-
 message(Including $$_FILE_ from $$IN_PWD)
 INCLUDEPATH += $$IN_PWD/
 
