@@ -50,7 +50,7 @@ I have the USB 1 variant from Garmin and a USB 2 from Suunto, the MoveStick Mini
 * [Qt-Gstreamer](http://gstreamer.freedesktop.org/modules/qt-gstreamer.html) for coupling gstreamer to Qt. Mainly uses Qt Gstreamer qt5glvideosink for efficiently displaying video frames.
 * [G++](http://gcc.gnu.org), the compiler.
 * [libusbx](http://libusbx.org), for handling of the usb device. On Ubuntu, installing libusb-dev will install libusbx.
-* And OpenGL capable system for the graphics.
+* An OpenGL capable system for the graphics.
 * [Google Test](https://code.google.com/p/googletest/), OPTIONAL, for test code.
 
 Limitations
@@ -65,10 +65,10 @@ Building
 1. Create a build directory, for instance next to the source directory.
 2. Run qmake <source directory> from the build directory.
 3. make
-4. the indoorcycling executable will be located in the bin/ directory inside the build directory.
+4. the indoorcycling1 executable will be located in the bin/ directory inside the build directory.
 
-Permissions
------------
+File/Device Permissions
+-----------------------
 
 To be able to send data to the ANT+ USB sticks, the user needs permissions. On Linux systems with *udev*, this can established by putting the following rules in the udev configuration. 
 
