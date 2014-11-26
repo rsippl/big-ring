@@ -1,43 +1,26 @@
 #include "newvideowidget.h"
 
+// undefine emit, because we're using Glib::emit in here. Instead of
+// Qt's emit, we'll use Q_EMIT in this file.
+#undef emit
+
 #include <QtCore/QUrl>
 #include <QtOpenGL/QGLWidget>
 #include <QtWidgets/QApplication>
+#include <QtGui/QResizeEvent>
 
 #include <QGlib/Connect>
+#include <QGlib/Signal>
 #include <QGst/Bus>
 #include <QGst/Element>
 #include <QGst/ElementFactory>
 #include <QGst/Event>
 #include <QGst/Message>
 #include <QGst/Query>
-#include <QGst/Ui/GraphicsVideoSurface>
-#include <QGst/Ui/GraphicsVideoWidget>
 
 #include "clockgraphicsitem.h"
 #include "simulation.h"
 
-/*!
- * Create the widget on which the video will be displayed and add it to the
- * scene. After adding the view will be centered on this video widget and the
- * view will fitted around the widget to make it as big as possible, without
- * changing the width/height ratio of the video.
- *
- * \brief create and add the widget on which video will be displayed.
- * \param scene the scene to add the video to.
- */
-void NewVideoWidget::setUpVideoSurface(QGraphicsScene* scene)
-{
-    _videoSurface = new QGst::Ui::GraphicsVideoSurface(this);
-    _videoWidget = new QGst::Ui::GraphicsVideoWidget;
-
-    _videoWidget->setSurface(_videoSurface);
-    _videoWidget->setGeometry(scene->sceneRect());
-    scene->addItem(_videoWidget);
-
-    centerOn(_videoWidget);
-    fitInView(_videoWidget);
-}
 
 NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     QGraphicsView(parent), _loadState(NONE)
@@ -45,13 +28,16 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     QGraphicsScene* scene = new QGraphicsScene(this);
     setScene(scene);
-    scene->setSceneRect(0, 0, 1600, 900);
+    scene->setSceneRect(0, 0, 4096, 2048);
     setViewport(new QGLWidget);
 
-    setUpVideoSurface(scene);
+    setUpVideoSink();
     setSizeAdjustPolicy(QGraphicsView::AdjustIgnored);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    setCacheMode(QGraphicsView::CacheNone);
 
     addClock(simulation, scene);
 }
@@ -59,8 +45,11 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
 void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
 {
     ClockGraphicsItem* item = new ClockGraphicsItem(simulation, this);
-    item->setPos(800 - item->boundingRect().width() / 2, 0);
+
+//    item->setPos((sceneRect().width() / 2)  - item->boundingRect().width() / 2, 0);
     scene->addItem(item);
+//    fitInView(item);
+    centerOn(item);
 }
 
 NewVideoWidget::~NewVideoWidget()
@@ -78,7 +67,8 @@ bool NewVideoWidget::isReadyToPlay()
 void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
 {
     qDebug() << __FILE__ <<  "setting video to " << rlv.name();
-    emit readyToPlay(false);
+    Q_EMIT(readyToPlay(false));
+//    emit readyToPlay(false);
     _rlv = rlv;
     stop();
 
@@ -97,7 +87,7 @@ void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
         _pipeline = QGst::ElementFactory::make("playbin").dynamicCast<QGst::Pipeline>();
 
         if (_pipeline) {
-            _pipeline->setProperty("video-sink", _videoSurface->videoSink());
+            _pipeline->setProperty("video-sink", _videoSink);
 
             //watch the bus for messages
             QGst::BusPtr bus = _pipeline->bus();
@@ -175,7 +165,7 @@ void NewVideoWidget::setDistance(float distance)
 
 void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 {
-    fitInView(_videoWidget);
+//    fitInView(_videoWidget);
     resizeEvent->accept();
 }
 
@@ -187,6 +177,17 @@ void NewVideoWidget::enterEvent(QEvent *)
 void NewVideoWidget::leaveEvent(QEvent *)
 {
     QApplication::setOverrideCursor(Qt::ArrowCursor);
+}
+
+/*!
+ *
+ * \brief Draw background by telling the video sink to update the complete background.
+ * \param painter the painter used for drawing.
+ */
+void NewVideoWidget::drawBackground(QPainter *painter, const QRectF &)
+{
+    const QRectF r = rect();
+    QGlib::emit<void>(_videoSink, "paint", (void*) painter, r.x(), r.y(), r.width(), r.height());
 }
 
 void NewVideoWidget::onBusMessage(const QGst::MessagePtr &message)
@@ -222,7 +223,7 @@ void NewVideoWidget::onBusMessage(const QGst::MessagePtr &message)
         } else if (_loadState == SEEKING) {
             qDebug() << "seek ready";
             _loadState = DONE;
-            emit readyToPlay(true);
+            Q_EMIT(readyToPlay(true));
         }
         break;
     default:
@@ -254,6 +255,38 @@ void NewVideoWidget::handlePipelineStateChange(const QGst::StateChangedMessagePt
     Q_EMIT stateChanged();
 }
 
+/*!
+ * setup the video sink. This tries to create a gstreamer "qt5glvideosink".
+ * If this succeeds, it will handle the OpenGL context to this element, so
+ * it can be used to draw the video.
+ *
+ * NewVideoWidget::onVideoUpdate() will be called when there is something to draw.
+ */
+void NewVideoWidget::setUpVideoSink()
+{
+    QGLWidget* paintWidget = qobject_cast<QGLWidget*>(viewport());
+    _videoSink = QGst::ElementFactory::make("qt5glvideosink");
+    if (!_videoSink.isNull()) {
+        paintWidget->makeCurrent();
+        _videoSink->setProperty("glcontext", (void*) QGLContext::currentContext());
+        paintWidget->doneCurrent();
+        if (_videoSink->setState(QGst::StateReady) != QGst::StateChangeSuccess) {
+            _videoSink.clear();
+        }
+        QGlib::connect(_videoSink, "update",
+                       this,
+                       &NewVideoWidget::onVideoUpdate);
+    }
+}
+
+/*!
+ * \brief update video by letting the viewport update.
+ */
+void NewVideoWidget::onVideoUpdate()
+{
+    viewport()->update();
+}
+
 void NewVideoWidget::seekToStart()
 {
     float seconds = _currentFrame / _rlv.videoInformation().frameRate();
@@ -270,7 +303,6 @@ void NewVideoWidget::step(int stepSize)
 
 void NewVideoWidget::fitVideoWidget()
 {
-    fitInView(_videoWidget);
-//    _videoWidget->resize(size());
+//    fitInView(_videoWidget);
 }
 

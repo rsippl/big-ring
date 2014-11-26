@@ -4,7 +4,6 @@
 #include <QWidget>
 #include <QtWidgets/QGraphicsView>
 #include <QGst/Pipeline>
-#include <QGst/Ui/GraphicsVideoWidget>
 #include "reallifevideo.h"
 
 class Simulation;
@@ -38,20 +37,21 @@ protected:
     void resizeEvent(QResizeEvent *);
     virtual void enterEvent(QEvent *);
     virtual void leaveEvent(QEvent *);
+    virtual void drawBackground(QPainter *painter, const QRectF &rect) override;
 
 private:
     void onBusMessage(const QGst::MessagePtr & message);
     void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm);
+    void setUpVideoSink();
+
+    void onVideoUpdate();
 
     void seekToStart();
     void step(int stepSize);
     void fitVideoWidget();
-
-    void setUpVideoSurface(QGraphicsScene* scene);
     void addClock(Simulation& simulation, QGraphicsScene* scene);
 
-    QGst::Ui::GraphicsVideoWidget* _videoWidget;
-    QGst::Ui::GraphicsVideoSurface* _videoSurface;
+    QGst::ElementPtr _videoSink;
     QGst::PipelinePtr _pipeline;
     RealLifeVideo _rlv;
     Course _course;
