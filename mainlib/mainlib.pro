@@ -35,7 +35,7 @@ SOURCES += \
 
 
 
-LIBS +=  -lusb-1.0 -lavcodec -lavformat -lavutil
+LIBS +=  -lusb-1.0
 
 
 
