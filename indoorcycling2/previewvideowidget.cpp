@@ -18,7 +18,6 @@
 #include <QGst/Ui/VideoWidget>
 #include <QGlib/Connect>
 
-#include "sensorvalueitem.h"
 #include "clockitem.h"
 
 PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
@@ -36,15 +35,9 @@ PreviewVideoWidget::PreviewVideoWidget(QWidget* parent):
     videoWidget->setGeometry(0, 0, 1600, 900);
     _videoWidget = videoWidget;
     scene->addItem(_videoWidget);
-
-    SensorValueItem* item = new SensorValueItem("m");
-    item->setX(300);
-    item->setY(300);
-    scene->addItem(item);
-
     ClockItem* clockItem = new ClockItem(this);
-    item->setX(100);
-    item->setY(200);
+    clockItem->setX(100);
+    clockItem->setY(200);
     scene->addItem(clockItem);
     _graphicsView->centerOn(_videoWidget);
     _graphicsView->fitInView(_videoWidget);
