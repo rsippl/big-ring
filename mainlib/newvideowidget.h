@@ -48,7 +48,6 @@ private:
 
     void seekToStart();
     void step(int stepSize);
-    void fitVideoWidget();
     void addClock(Simulation& simulation, QGraphicsScene* scene);
 
     QGst::ElementPtr _videoSink;
@@ -57,6 +56,7 @@ private:
     Course _course;
     LoadState _loadState;
     quint32 _currentFrame;
+    QGraphicsItem* _clockItem;
 };
 
 #endif // NEWVIDEOWIDGET_H

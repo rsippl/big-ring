@@ -44,12 +44,10 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
 
 void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
 {
-    ClockGraphicsItem* item = new ClockGraphicsItem(simulation, this);
-
-//    item->setPos((sceneRect().width() / 2)  - item->boundingRect().width() / 2, 0);
-    scene->addItem(item);
-//    fitInView(item);
-    centerOn(item);
+    _clockItem = new ClockGraphicsItem(simulation);
+    QPointF scenePosition = mapToScene(width() / 2 - (_clockItem->boundingRect().width() / 2), 0);
+    _clockItem->setPos(scenePosition);
+    scene->addItem(_clockItem);
 }
 
 NewVideoWidget::~NewVideoWidget()
@@ -68,7 +66,6 @@ void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
 {
     qDebug() << __FILE__ <<  "setting video to " << rlv.name();
     Q_EMIT(readyToPlay(false));
-//    emit readyToPlay(false);
     _rlv = rlv;
     stop();
 
@@ -165,7 +162,8 @@ void NewVideoWidget::setDistance(float distance)
 
 void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 {
-//    fitInView(_videoWidget);
+    QPointF scenePosition = mapToScene(width() / 2 - (_clockItem->boundingRect().width() / 2), 0);
+    _clockItem->setPos(scenePosition);
     resizeEvent->accept();
 }
 
@@ -214,7 +212,6 @@ void NewVideoWidget::onBusMessage(const QGst::MessagePtr &message)
             quint64 nanoseconds = durationQuery->duration();
             qDebug() << "setting duration of video in rlv";
             _rlv.setDuration(nanoseconds / 1000);
-            fitVideoWidget();
             _loadState = VIDEO_LOADED;
             if (_course.isValid()) {
                 qDebug() << "course valid, setting start distance";
@@ -301,8 +298,4 @@ void NewVideoWidget::step(int stepSize)
     _pipeline->sendEvent(stepEvent);
 }
 
-void NewVideoWidget::fitVideoWidget()
-{
-//    fitInView(_videoWidget);
-}
 
