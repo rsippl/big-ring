@@ -45,8 +45,8 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
 void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
 {
     _clockItem = new ClockGraphicsItem(simulation);
-    QPointF scenePosition = mapToScene(width() / 2 - (_clockItem->boundingRect().width() / 2), 0);
-    _clockItem->setPos(scenePosition);
+    QPointF scenePosition = mapToScene(width() / 2, 0);
+    _clockItem->setPos(scenePosition.x() - (_clockItem->boundingRect().width() / 2), scenePosition.y());
     scene->addItem(_clockItem);
 }
 
@@ -162,8 +162,9 @@ void NewVideoWidget::setDistance(float distance)
 
 void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 {
-    QPointF scenePosition = mapToScene(width() / 2 - (_clockItem->boundingRect().width() / 2), 0);
-    _clockItem->setPos(scenePosition);
+    QPointF scenePosition = mapToScene(width() / 2, 0);
+    _clockItem->setPos(scenePosition.x() - (_clockItem->boundingRect().width() / 2), scenePosition.y());
+
     resizeEvent->accept();
 }
 
