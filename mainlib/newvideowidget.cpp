@@ -295,8 +295,10 @@ void NewVideoWidget::seekToStart()
 
 void NewVideoWidget::step(int stepSize)
 {
-    QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, stepSize, 1.0, true, false);
-    _pipeline->sendEvent(stepEvent);
+    if (stepSize > 0) {
+        QGst::EventPtr stepEvent = QGst::StepEvent::create(QGst::FormatBuffers, stepSize, 1.0, true, false);
+        _pipeline->sendEvent(stepEvent);
+    }
 }
 
 
