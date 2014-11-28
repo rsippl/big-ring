@@ -9,8 +9,10 @@
 ClockGraphicsItem::ClockGraphicsItem(Simulation& simulation, QObject *parent) :
     QObject(parent)
 {
+    _font = QFont("Liberation Mono");
+
     _font.setBold(true);
-    _font.setPointSize(48);
+    _font.setPointSize(36);
 
     QFontMetrics fm(_font);
     _textWidth = fm.width("88:88:88");
@@ -28,13 +30,15 @@ void ClockGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 {
     painter->setFont(_font);
 
-    painter->setPen(Qt::gray);
-    painter->setBrush(Qt::gray);
-    painter->setOpacity(0.8);
-    painter->drawRoundedRect(0, 0, _textWidth + 20, _textHeight + 10, 15, 15);
-    painter->setPen(Qt::green);
+    QPen pen(Qt::red);
+    pen.setWidth(3);
+    painter->setPen(pen);
+    painter->setBrush(Qt::black);
+    painter->setOpacity(0.65);
+    painter->drawRoundedRect(0, -10, _textWidth + 20, _textHeight + 12, 3, 3);
+    painter->setPen(Qt::white);
     painter->setBrush(Qt::white);
-    painter->drawText(5, _textHeight, _time.toString("hh:mm:ss"));
+    painter->drawText(10, _textHeight - 10, _time.toString("hh:mm:ss"));
 }
 
 void ClockGraphicsItem::setTime(QTime time)
