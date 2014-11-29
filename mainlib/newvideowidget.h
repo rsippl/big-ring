@@ -51,6 +51,11 @@ private:
 
     void addClock(Simulation& simulation, QGraphicsScene* scene);
     void addWattage(Simulation& simulation, QGraphicsScene* scene);
+    void addCadence(Simulation& simulation, QGraphicsScene* scene);
+    void addSpeed(Simulation& simulation, QGraphicsScene* scene);
+    void addGrade(Simulation& simulation, QGraphicsScene* scene);
+    void addDistance(Simulation& simulation, QGraphicsScene* scene);
+    void addHeartRate(Simulation& simulation, QGraphicsScene* scene);
 
     QGst::ElementPtr _videoSink;
     QGst::PipelinePtr _pipeline;
@@ -60,6 +65,12 @@ private:
     quint32 _currentFrame;
     QGraphicsItem* _clockItem;
     QGraphicsItem* _wattageItem;
+    QGraphicsItem* _heartRateItem;
+    QGraphicsItem* _cadenceItem;
+    QGraphicsItem* _speedItem;
+    QGraphicsItem* _distanceItem;
+    QGraphicsItem* _gradeItem;
+
 };
 
 #endif // NEWVIDEOWIDGET_H

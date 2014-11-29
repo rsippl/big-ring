@@ -12,7 +12,8 @@ class SensorItem : public QObject, public QGraphicsItem
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
 public:
-    explicit SensorItem(const QString& unitString, QObject *parent = 0);
+    explicit
+    SensorItem(const QString& unitString, const QVariant &exampleValue = QVariant::fromValue(123), QObject *parent = 0);
 
     virtual QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -23,6 +24,7 @@ private:
     QVariant _value;
     QFont _font;
     QRect _rect;
+    int _fieldWidth;
 };
 
 #endif // SENSORITEM_H
