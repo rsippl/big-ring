@@ -52,11 +52,7 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
 void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
 {
     _clockItem = new ClockGraphicsItem(simulation);
-    QPointF scenePosition = mapToScene(width() / 2, 0);
-    _clockItem->setPos(scenePosition.x() - (_clockItem->boundingRect().width() / 2), scenePosition.y());
     scene->addItem(_clockItem);
-
-
 }
 
 void NewVideoWidget::addWattage(Simulation &simulation, QGraphicsScene *scene)
@@ -101,7 +97,7 @@ void NewVideoWidget::addGrade(Simulation &simulation, QGraphicsScene *scene)
 
 void NewVideoWidget::addDistance(Simulation &simulation, QGraphicsScene *scene)
 {
-    SensorItem* distanceItem = new SensorItem("M", "00000");
+    SensorItem* distanceItem = new SensorItem("M", "000000");
     scene->addItem(distanceItem);
     connect(&simulation.cyclist(), &Cyclist::distanceChanged, this, [distanceItem](float distance) {
        distanceItem->setValue(QVariant::fromValue(static_cast<int>(distance)));

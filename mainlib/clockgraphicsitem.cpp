@@ -7,12 +7,12 @@
 #include "simulation.h"
 
 ClockGraphicsItem::ClockGraphicsItem(Simulation& simulation, QObject *parent) :
-    QObject(parent)
+    QObject(parent), _time(0, 0, 0)
 {
     _font = QFont("Liberation Mono");
 
     _font.setBold(true);
-    _font.setPointSize(36);
+    _font.setPointSize(48);
 
     QFontMetrics fm(_font);
     _textWidth = fm.width("88:88:88");
@@ -44,4 +44,5 @@ void ClockGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 void ClockGraphicsItem::setTime(QTime time)
 {
     _time = time;
+    update();
 }

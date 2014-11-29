@@ -8,7 +8,7 @@ SensorItem::SensorItem(const QString &unitString, const QVariant& exampleValue, 
 {
     _font = QFont("Liberation Mono");
     _font.setBold(true);
-    _font.setPointSize(24);
+    _font.setPointSize(36);
 
     _fieldWidth = exampleValue.toString().length();
 
@@ -35,7 +35,7 @@ void SensorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWid
     painter->setPen(Qt::white);
     painter->setBrush(Qt::white);
 
-    painter->drawText(0, _rect.height() - 10, QString("%1 %2").arg(_value.toString(), _fieldWidth).arg(_unitString));
+    painter->drawText(10, _rect.height() - 15, QString("%1 %2").arg(_value.toString(), _fieldWidth).arg(_unitString));
 }
 
 void SensorItem::setValue(QVariant value)
