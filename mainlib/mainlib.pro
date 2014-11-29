@@ -19,7 +19,8 @@ HEADERS += \
     rlvlistwidget.h \
     simulation.h \
     newvideowidget.h \
-    clockgraphicsitem.h
+    clockgraphicsitem.h \
+    sensoritem.h
 
 SOURCES += \
     cyclist.cpp \
@@ -31,7 +32,8 @@ SOURCES += \
     rlvlistwidget.cpp \
     simulation.cpp \
     newvideowidget.cpp \
-    clockgraphicsitem.cpp
+    clockgraphicsitem.cpp \
+    sensoritem.cpp
 
 
 

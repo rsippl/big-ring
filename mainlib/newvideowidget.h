@@ -48,7 +48,9 @@ private:
 
     void seekToStart();
     void step(int stepSize);
+
     void addClock(Simulation& simulation, QGraphicsScene* scene);
+    void addWattage(Simulation& simulation, QGraphicsScene* scene);
 
     QGst::ElementPtr _videoSink;
     QGst::PipelinePtr _pipeline;
@@ -57,6 +59,7 @@ private:
     LoadState _loadState;
     quint32 _currentFrame;
     QGraphicsItem* _clockItem;
+    QGraphicsItem* _wattageItem;
 };
 
 #endif // NEWVIDEOWIDGET_H

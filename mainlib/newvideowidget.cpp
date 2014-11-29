@@ -19,6 +19,7 @@
 #include <QGst/Query>
 
 #include "clockgraphicsitem.h"
+#include "sensoritem.h"
 #include "simulation.h"
 
 
@@ -40,6 +41,7 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     setCacheMode(QGraphicsView::CacheNone);
 
     addClock(simulation, scene);
+    addWattage(simulation, scene);
 }
 
 void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
@@ -48,6 +50,21 @@ void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
     QPointF scenePosition = mapToScene(width() / 2, 0);
     _clockItem->setPos(scenePosition.x() - (_clockItem->boundingRect().width() / 2), scenePosition.y());
     scene->addItem(_clockItem);
+
+
+}
+
+void NewVideoWidget::addWattage(Simulation &simulation, QGraphicsScene *scene)
+{
+    SensorItem* wattageItem = new SensorItem("W");
+    QPointF scenePosition = mapToScene(0, height() /2);
+    wattageItem->setPos(scenePosition);
+    scene->addItem(wattageItem);
+    connect(&simulation.cyclist(), &Cyclist::powerChanged, this, [wattageItem](float power) {
+        qDebug() << "power" << power;
+       wattageItem->setValue(QVariant::fromValue(power));
+    });
+    _wattageItem = wattageItem;
 }
 
 NewVideoWidget::~NewVideoWidget()
@@ -164,7 +181,8 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 {
     QPointF scenePosition = mapToScene(width() / 2, 0);
     _clockItem->setPos(scenePosition.x() - (_clockItem->boundingRect().width() / 2), scenePosition.y());
-
+    scenePosition = mapToScene(0, height() /2);
+    _wattageItem->setPos(scenePosition);
     resizeEvent->accept();
 }
 
