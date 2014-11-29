@@ -233,17 +233,17 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 {
     QPointF scenePosition = mapToScene(width() / 2, 0);
     _clockItem->setPos(scenePosition.x() - (_clockItem->boundingRect().width() / 2), scenePosition.y());
-    scenePosition = mapToScene(0, height() /2);
+    scenePosition = mapToScene(0, height() /8);
     _wattageItem->setPos(scenePosition);
-    scenePosition = mapToScene(0, height() /3);
+    scenePosition = mapToScene(0, 2* height() /8);
     _heartRateItem->setPos(scenePosition);
-    scenePosition = mapToScene(0, 2 * height() /3);
+    scenePosition = mapToScene(0, 3 * height() /8);
     _cadenceItem->setPos(scenePosition);
-    scenePosition = mapToScene(width(), height() / 3);
+    scenePosition = mapToScene(width(), 1 * height() / 8);
     _speedItem->setPos(scenePosition.x() - _speedItem->boundingRect().width(), scenePosition.y());
-    scenePosition = mapToScene(width(), height() /2);
+    scenePosition = mapToScene(width(), 2 * height() /8);
     _distanceItem->setPos(scenePosition.x() - _distanceItem->boundingRect().width(), scenePosition.y());
-    scenePosition = mapToScene(width(), 2 * height() /3);
+    scenePosition = mapToScene(width(), 3 * height() / 8);
     _gradeItem->setPos(scenePosition.x() - _gradeItem->boundingRect().width(), scenePosition.y());
     resizeEvent->accept();
 }
