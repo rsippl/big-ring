@@ -47,14 +47,6 @@ protected:
 private slots:
 	void rlvSelected(RealLifeVideo rlv);
 
-	void distanceChanged(float distance);
-	void slopeChanged(float slope);
-	void speedChanged(float speed);
-
-	void hrChanged(quint8 heartRate);
-	void powerChanged(float power);
-	void cadenceChanged(float cadence);
-
 	void antDeviceFound(QString description);
 
 private:
@@ -78,12 +70,6 @@ private:
 	QMargins _margins;
 	QRect _cachedGeometry;
 	QBoxLayout* _layout;
-	QLabel* _distanceLabel;
-	QLabel* _slopeLabel;
-	QLabel* _speedLabel;	
-	QLabel* _heartRateLabel;
-	QLabel* _cadenceLabel;
-	QLabel* _powerLabel;
 	QPushButton* playButton;
 
 	QSystemTrayIcon* _trayIcon;
