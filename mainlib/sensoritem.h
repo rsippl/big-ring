@@ -22,9 +22,7 @@ private:
     const QString _unitString;
     QVariant _value;
     QFont _font;
-
-    int _textWidth;
-    int _textHeight;
+    QRect _rect;
 };
 
 #endif // SENSORITEM_H

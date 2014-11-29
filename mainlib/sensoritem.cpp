@@ -6,35 +6,39 @@
 SensorItem::SensorItem(const QString &unitString, QObject *parent) :
     QObject(parent), _unitString(unitString)
 {
+    _font = QFont("Liberation Mono");
     _font.setBold(true);
     _font.setPointSize(24);
 
-    QFontMetrics fm(_font);
-    _textWidth = fm.width("000 " + _unitString);
-    _textHeight = fm.height();
+    QRect textRect = QFontMetrics(_font).boundingRect("000 " + _unitString);
+    _rect = QRect(0, 0, textRect.width() + 20, textRect.height() + 10);
 }
 
 QRectF SensorItem::boundingRect() const
 {
-    return QRectF(0, 0, _textWidth + 20, _textHeight + 10);
+    return QRectF(_rect);
 }
 
 void SensorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
     painter->setFont(_font);
 
-    painter->setPen(Qt::gray);
-    painter->setBrush(Qt::darkGray);
-    painter->setOpacity(0.9);
-    painter->drawRoundedRect(0, 0, _textWidth + 10, _textHeight + 5, 5, 5);
+    QPen pen(Qt::red);
+    pen.setWidth(3);
+    painter->setPen(pen);
+    painter->setBrush(Qt::black);
+    painter->setOpacity(0.65);
+    painter->drawRoundedRect(_rect, 5, 5);
+
     painter->setPen(Qt::white);
     painter->setBrush(Qt::white);
-    painter->drawText(5, _textHeight, QString("%1 %2").arg(_value.toString()).arg(_unitString));
+    painter->drawText(0, _rect.height() - 10, QString("%1 %2").arg(_value.toString()).arg(_unitString));
 }
 
 void SensorItem::setValue(QVariant value)
 {
     _value = value;
+    update();
 }
 
 
