@@ -30,8 +30,8 @@ void ClockGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 {
     painter->setFont(_font);
 
-    QPen pen(Qt::red);
-    pen.setWidth(3);
+    QPen pen(Qt::green);
+    pen.setWidth(2);
     painter->setPen(pen);
     painter->setBrush(Qt::black);
     painter->setOpacity(0.65);
