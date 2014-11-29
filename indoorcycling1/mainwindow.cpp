@@ -179,8 +179,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 	} else if (event->key() == Qt::Key_Space) {
 		if (playButton->isChecked()) {
 			_simulation.play(false);
+            playButton->setChecked(false);
         } else if (videoWidget->isReadyToPlay()) {
 			_simulation.play(true);
+            playButton->setChecked(true);
 		}
 	}
 }
