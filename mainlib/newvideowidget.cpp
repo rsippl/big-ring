@@ -19,6 +19,7 @@
 #include <QGst/Query>
 
 #include "clockgraphicsitem.h"
+#include "profileitem.h"
 #include "sensoritem.h"
 #include "simulation.h"
 
@@ -29,7 +30,7 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     QGraphicsScene* scene = new QGraphicsScene(this);
     setScene(scene);
-    scene->setSceneRect(0, 0, 4096, 2048);
+    scene->setSceneRect(0, 0, 2048, 2048);
     setViewport(new QGLWidget);
 
     setUpVideoSink();
@@ -47,6 +48,9 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     addSpeed(simulation, scene);
     addDistance(simulation, scene);
     addGrade(simulation, scene);
+
+    _profileItem = new ProfileItem(simulation);
+    scene->addItem(_profileItem);
 }
 
 void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
@@ -132,6 +136,7 @@ void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
     qDebug() << __FILE__ <<  "setting video to " << rlv.name();
     Q_EMIT(readyToPlay(false));
     _rlv = rlv;
+    _profileItem->setRlv(rlv);
     stop();
 
     QString uri = rlv.videoInformation().videoFilename();
@@ -242,6 +247,10 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
     scenePosition = mapToScene(width(), 3 * height() / 8);
     _gradeItem->setPos(scenePosition.x() - _gradeItem->boundingRect().width(), scenePosition.y());
     resizeEvent->accept();
+
+    _profileItem->setSize(QSize(width() * 6 / 8, height() * 1 / 8));
+    scenePosition = mapToScene(width() * 1 / 8, height() * 27 / 32);
+    _profileItem->setPos(scenePosition);
 }
 
 void NewVideoWidget::enterEvent(QEvent *)

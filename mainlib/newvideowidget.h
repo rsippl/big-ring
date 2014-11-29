@@ -5,7 +5,7 @@
 #include <QtWidgets/QGraphicsView>
 #include <QGst/Pipeline>
 #include "reallifevideo.h"
-
+#include "profileitem.h"
 class Simulation;
 
 class NewVideoWidget : public QGraphicsView
@@ -70,7 +70,7 @@ private:
     QGraphicsItem* _speedItem;
     QGraphicsItem* _distanceItem;
     QGraphicsItem* _gradeItem;
-
+    ProfileItem* _profileItem;
 };
 
 #endif // NEWVIDEOWIDGET_H

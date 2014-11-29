@@ -20,7 +20,8 @@ HEADERS += \
     simulation.h \
     newvideowidget.h \
     clockgraphicsitem.h \
-    sensoritem.h
+    sensoritem.h \
+    profileitem.h
 
 SOURCES += \
     cyclist.cpp \
@@ -33,7 +34,8 @@ SOURCES += \
     simulation.cpp \
     newvideowidget.cpp \
     clockgraphicsitem.cpp \
-    sensoritem.cpp
+    sensoritem.cpp \
+    profileitem.cpp
 
 
 
