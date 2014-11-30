@@ -123,6 +123,8 @@ NewVideoWidget::~NewVideoWidget()
 {
     if (_pipeline) {
         _pipeline->setState(QGst::StateNull);
+    } else {
+        _videoSink->setState(QGst::StateNull);
     }
 }
 
