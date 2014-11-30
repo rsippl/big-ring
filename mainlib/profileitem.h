@@ -16,18 +16,19 @@ public:
 
     virtual QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    void setSize(const QSize &size);
 signals:
 
 public slots:
     void setRlv(const RealLifeVideo& rlv);
+    void setSize(const QSize &size);
 
 private:
     QPainterPath drawProfile();
-    qreal distanceToX(float distance, int xMargin) const;
-    qreal altitudeToY(float altitudeAboveMinimum, float altitudeDiff, int pathHeight) const;
+    qreal distanceToX(float distance) const;
+    qreal altitudeToY(float altitudeAboveMinimum, float altitudeDiff) const;
 
     QSize _size;
+    QRect _internalRect;
     RealLifeVideo _rlv;
     Simulation& _simulation;
     QPainterPath _profile;

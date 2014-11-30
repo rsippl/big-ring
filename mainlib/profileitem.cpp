@@ -25,7 +25,7 @@ ProfileItem::ProfileItem(Simulation& simulation, QObject *parent) :
 
 QRectF ProfileItem::boundingRect() const
 {
-    return QRectF();
+    return QRectF(0,0,_size.width(), _size.height());
 }
 
 void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
@@ -45,9 +45,9 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
             float distanceRatio = _simulation.cyclist().distance() / _rlv.totalDistance();
             QPen pen(QColor(Qt::red));
             pen.setStyle(Qt::SolidLine);
-            pen.setWidth(5);
+            pen.setWidth(2);
             painter->setPen(pen);
-            painter->drawLine(distanceRatio * _size.width() + 10, 5, distanceRatio * _size.width() + 10, _size.height());
+            painter->drawLine(distanceRatio * _internalRect.width(), _internalRect.top() + 3, distanceRatio * _internalRect.width(), _internalRect.bottom());
         }
     }
 }
@@ -59,6 +59,8 @@ void ProfileItem::setSize(const QSize &size)
     if (_rlv.isValid()) {
         _profile = drawProfile();
     }
+
+    _internalRect = QRect(1, 1, _size.width() - 2, _size.height() - 2);
     update();
 }
 
@@ -72,38 +74,34 @@ void ProfileItem::setRlv(const RealLifeVideo &rlv)
 QPainterPath ProfileItem::drawProfile()
 {
     qDebug() << "creating profile path";
-    int pathHeight = _size.height() - 10;
-    int xMargin = 10;
 
-    auto profileEntries = _rlv.profile().entries();
-    auto minAndMaxAltitude = findMinimumAndMaximumAltiude(profileEntries);
+    const QList<ProfileEntry>& profileEntries = _rlv.profile().entries();
+    const QPair<float,float> minAndMaxAltitude = findMinimumAndMaximumAltiude(profileEntries);
 
     float minimumAltitude = minAndMaxAltitude.first;
     float maximumAltitude = minAndMaxAltitude.second;
 
     float altitudeDiff = maximumAltitude - minimumAltitude;
 
-    QPainterPath path;
-    path.moveTo(xMargin, _size.height());
+    QPainterPath path(_internalRect.bottomLeft());
     foreach(const ProfileEntry& entry, profileEntries) {
-        qreal x = distanceToX(entry.totalDistance(), xMargin);
-        qreal y = altitudeToY(entry.altitude() - minimumAltitude, altitudeDiff, pathHeight);
+        qreal x = distanceToX(entry.totalDistance());
+        qreal y = altitudeToY(entry.altitude() - minimumAltitude, altitudeDiff);
 
         path.lineTo(x, y);
     }
-    path.lineTo(_size.width() - xMargin, _size.height());
-    path.lineTo(xMargin, _size.height());
+    path.lineTo(_internalRect.bottomRight());
+    path.lineTo(_internalRect.bottomLeft());
 
     return path;
 }
 
-qreal ProfileItem::distanceToX(float distance, int xMargin) const
+qreal ProfileItem::distanceToX(float distance) const
 {
-    int pathWidth = _size.width() - xMargin * 2;
-    return (distance / _rlv.totalDistance()) * pathWidth + xMargin;
+    return (distance / _rlv.totalDistance()) * _internalRect.width() + _internalRect.left();
 }
 
-qreal ProfileItem::altitudeToY(float altitudeAboveMinimum, float altitudeDiff, int pathHeight) const
+qreal ProfileItem::altitudeToY(float altitudeAboveMinimum, float altitudeDiff) const
 {
-    return _size.height() - (((altitudeAboveMinimum) / altitudeDiff) * pathHeight);
+    return _internalRect.height() - (((altitudeAboveMinimum) / altitudeDiff) * _internalRect.height());
 }
