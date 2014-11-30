@@ -38,9 +38,8 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
     painter->setBrush(Qt::lightGray);
     painter->drawRoundedRect(0, 0, _size.width(), _size.height(), 5, 5);
     if (_rlv.isValid()) {
-        if (!_profile.isEmpty()) {
-            painter->setRenderHint(QPainter::Antialiasing);
-            painter->fillPath(_profile, QBrush(Qt::white));
+        if (!_profilePixmap.isNull()) {
+            painter->drawPixmap(_internalRect, _profilePixmap);
 
             float distanceRatio = _simulation.cyclist().distance() / _rlv.totalDistance();
             QPen pen(QColor(Qt::red));
@@ -57,7 +56,7 @@ void ProfileItem::setSize(const QSize &size)
     qDebug() << "size =" << size.width() << size.height();
     _size = size;
     if (_rlv.isValid()) {
-        _profile = drawProfile();
+        _profilePixmap = drawProfile();
     }
 
     _internalRect = QRect(1, 1, _size.width() - 2, _size.height() - 2);
@@ -67,12 +66,14 @@ void ProfileItem::setSize(const QSize &size)
 void ProfileItem::setRlv(const RealLifeVideo &rlv)
 {
     _rlv = rlv;
-    _profile = drawProfile();
+    _profilePixmap = drawProfile();
     update();
 }
 
-QPainterPath ProfileItem::drawProfile()
+QPixmap ProfileItem::drawProfile()
 {
+    QPixmap pixmap(_internalRect.size());
+    QPainter painter(&pixmap);
     qDebug() << "creating profile path";
 
     const QList<ProfileEntry>& profileEntries = _rlv.profile().entries();
@@ -93,7 +94,10 @@ QPainterPath ProfileItem::drawProfile()
     path.lineTo(_internalRect.bottomRight());
     path.lineTo(_internalRect.bottomLeft());
 
-    return path;
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.fillPath(path, QBrush(Qt::white));
+
+    return pixmap;
 }
 
 qreal ProfileItem::distanceToX(float distance) const

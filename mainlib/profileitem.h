@@ -23,7 +23,7 @@ public slots:
     void setSize(const QSize &size);
 
 private:
-    QPainterPath drawProfile();
+    QPixmap drawProfile();
     qreal distanceToX(float distance) const;
     qreal altitudeToY(float altitudeAboveMinimum, float altitudeDiff) const;
 
@@ -31,7 +31,7 @@ private:
     QRect _internalRect;
     RealLifeVideo _rlv;
     Simulation& _simulation;
-    QPainterPath _profile;
+    QPixmap _profilePixmap;
 };
 
 #endif // PROFILEITEM_H
