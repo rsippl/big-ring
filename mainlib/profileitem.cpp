@@ -6,15 +6,30 @@
 
 namespace
 {
-QPair<float,float> findMinimumAndMaximumAltiude(const QList<ProfileEntry>& profileEntries)
+QPair<float,float> findMinimumAndMaximumAltiude(const float startAltitude, const QList<ProfileEntry>& profileEntries)
 {
     float minimumAltitude = std::numeric_limits<float>::max();
     float maximumAltitude = std::numeric_limits<float>::min();
     foreach (const ProfileEntry& entry, profileEntries) {
-        minimumAltitude = qMin(minimumAltitude, entry.altitude());
-        maximumAltitude = qMax(maximumAltitude, entry.altitude());
+        minimumAltitude = qMin(minimumAltitude, entry.altitude() + startAltitude);
+        maximumAltitude = qMax(maximumAltitude, entry.altitude() + startAltitude);
     }
     return qMakePair(minimumAltitude, maximumAltitude);
+}
+
+Qt::GlobalColor colorForSlope(float slope) {
+
+    if (slope < -8) {
+        return Qt::blue;
+    } else if (slope < -2) {
+        return Qt::green;
+    } else if (slope < 2) {
+        return Qt::yellow;
+    } else if (slope < 8) {
+        return Qt::darkYellow;
+    } else {
+        return Qt::red;
+    }
 }
 }
 ProfileItem::ProfileItem(Simulation& simulation, QObject *parent) :
@@ -42,11 +57,14 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
             painter->drawPixmap(_internalRect, _profilePixmap);
 
             float distanceRatio = _simulation.cyclist().distance() / _rlv.totalDistance();
+            QBrush brush(Qt::red);
             QPen pen(QColor(Qt::red));
+            painter->setOpacity(0.3);
             pen.setStyle(Qt::SolidLine);
             pen.setWidth(2);
             painter->setPen(pen);
-            painter->drawLine(distanceRatio * _internalRect.width(), _internalRect.top() + 3, distanceRatio * _internalRect.width(), _internalRect.bottom());
+            painter->setBrush(brush);
+            painter->drawRect(_internalRect.left(), _internalRect.top(), distanceRatio * _internalRect.width(), _internalRect.bottom());
         }
     }
 }
@@ -74,38 +92,49 @@ QPixmap ProfileItem::drawProfile()
 {
     QPixmap pixmap(_internalRect.size());
     QPainter painter(&pixmap);
+
     qDebug() << "creating profile path";
 
     const QList<ProfileEntry>& profileEntries = _rlv.profile().entries();
-    const QPair<float,float> minAndMaxAltitude = findMinimumAndMaximumAltiude(profileEntries);
+    const QPair<float,float> minAndMaxAltitude = findMinimumAndMaximumAltiude(_rlv.profile().startAltitude(), profileEntries);
 
     float minimumAltitude = minAndMaxAltitude.first;
     float maximumAltitude = minAndMaxAltitude.second;
 
     float altitudeDiff = maximumAltitude - minimumAltitude;
-
-    QPainterPath path(_internalRect.bottomLeft());
-    foreach(const ProfileEntry& entry, profileEntries) {
-        qreal x = distanceToX(entry.totalDistance());
-        qreal y = altitudeToY(entry.altitude() - minimumAltitude, altitudeDiff);
-
-        path.lineTo(x, y);
-    }
-    path.lineTo(_internalRect.bottomRight());
-    path.lineTo(_internalRect.bottomLeft());
-
+    painter.setBrush(Qt::gray);
+    painter.drawRect(_internalRect);
+    painter.setBrush(Qt::white);
+    painter.setPen(Qt::NoPen);
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.fillPath(path, QBrush(Qt::white));
+
+    for(int x = 0; x < _internalRect.width(); x += 2) {
+        float distance = xToDistance(x);
+        float altitude = _rlv.profile().altitudeForDistance(distance);
+        painter.setBrush(colorForSlope(_rlv.profile().slopeForDistance(distance)));
+
+        int y = altitudeToHeight(altitude - minimumAltitude, altitudeDiff);
+        QRect  box(x, _internalRect.bottom() - y, 2, _internalRect.bottom());
+        painter.drawRect(box);
+
+    }
 
     return pixmap;
 }
+
 
 qreal ProfileItem::distanceToX(float distance) const
 {
     return (distance / _rlv.totalDistance()) * _internalRect.width() + _internalRect.left();
 }
 
-qreal ProfileItem::altitudeToY(float altitudeAboveMinimum, float altitudeDiff) const
+float ProfileItem::xToDistance(int x) const
 {
-    return _internalRect.height() - (((altitudeAboveMinimum) / altitudeDiff) * _internalRect.height());
+    float relative = x * 1.0 / _internalRect.width();
+    return _rlv.totalDistance() * relative;
+}
+
+int ProfileItem::altitudeToHeight(float altitudeAboveMinimum, float altitudeDiff) const
+{
+    return static_cast<int>(((altitudeAboveMinimum) / altitudeDiff) * _internalRect.height());
 }

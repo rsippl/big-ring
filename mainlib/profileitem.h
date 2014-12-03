@@ -25,13 +25,15 @@ public slots:
 private:
     QPixmap drawProfile();
     qreal distanceToX(float distance) const;
-    qreal altitudeToY(float altitudeAboveMinimum, float altitudeDiff) const;
+    float xToDistance(int x) const;
+    int altitudeToHeight(float altitudeAboveMinimum, float altitudeDiff) const;
 
     QSize _size;
     QRect _internalRect;
     RealLifeVideo _rlv;
     Simulation& _simulation;
     QPixmap _profilePixmap;
+
 };
 
 #endif // PROFILEITEM_H
