@@ -2,8 +2,6 @@
 #define CLOCKGRAPHICSITEM_H
 
 #include <QObject>
-#include <QtCore/QTime>
-#include <QtGui/QFont>
 #include <QtWidgets/QGraphicsItem>
 
 class Simulation;
@@ -18,17 +16,13 @@ public:
     virtual QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public slots:
-    void setTime(QTime time);
+    void setTime(QTime& time);
 signals:
 
 public slots:
 
 private:
-    QTime _time;
-    QFont _font;
-
-    int _textWidth;
-    int _textHeight;
+    QGraphicsTextItem* _textItem;
 };
 
 #endif // CLOCKGRAPHICSITEM_H

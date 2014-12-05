@@ -18,7 +18,7 @@ public:
 signals:
 	void slopeChanged(float slope);
 	void altitudeChanged(float altitude);
-	void runTimeChanged(QTime runTime);
+    void runTimeChanged(QTime& runTime);
 
 	void playing(bool playing);
 

@@ -1,48 +1,49 @@
 #include "clockgraphicsitem.h"
 
+#include <QtGui/QFont>
 #include <QtCore/QTime>
-#include <QtGui/QFontMetrics>
 #include <QtGui/QPainter>
-
+#include <QtDebug>
 #include "simulation.h"
 
 ClockGraphicsItem::ClockGraphicsItem(Simulation& simulation, QObject *parent) :
-    QObject(parent), _time(0, 0, 0)
+    QObject(parent)
 {
-    _font = QFont("Liberation Mono");
+    QFont font = QFont("Liberation Mono");
+    font.setBold(true);
+    font.setPointSize(48);
 
-    _font.setBold(true);
-    _font.setPointSize(48);
+    _textItem = new QGraphicsTextItem(this);
+    _textItem->setFont(font);
+    _textItem->setDefaultTextColor(Qt::white);
 
-    QFontMetrics fm(_font);
-    _textWidth = fm.width("88:88:88");
-    _textHeight = fm.height();
+    _textItem->setPlainText("00:00:00");
+    _textItem->hide();
+    _textItem->setPos(10, 5);
+    _textItem->setOpacity(0.65);
 
     connect(&simulation, &Simulation::runTimeChanged, this, &ClockGraphicsItem::setTime);
 }
 
 QRectF ClockGraphicsItem::boundingRect() const
 {
-    return QRectF(0, 0, _textWidth + 20, _textHeight + 10);
+    return QRectF(0, 0, _textItem->boundingRect().width() + 20, _textItem->boundingRect().height() + 10);
 }
 
 void ClockGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    painter->setFont(_font);
-
     QPen pen(Qt::green);
     pen.setWidth(2);
     painter->setPen(pen);
     painter->setBrush(Qt::black);
     painter->setOpacity(0.65);
-    painter->drawRoundedRect(0, -10, _textWidth + 20, _textHeight + 12, 3, 3);
-    painter->setPen(Qt::white);
-    painter->setBrush(Qt::white);
-    painter->drawText(10, _textHeight - 10, _time.toString("hh:mm:ss"));
+    painter->drawRoundedRect(0, -10, boundingRect().width(), boundingRect().height(), 3, 3);
 }
 
-void ClockGraphicsItem::setTime(QTime time)
+void ClockGraphicsItem::setTime(QTime& time)
 {
-    _time = time;
-    update();
+    _textItem->setPlainText(time.toString("hh:mm:ss"));
+    if (!_textItem->isVisible()) {
+        _textItem->show();
+    }
 }

@@ -21,10 +21,8 @@ public slots:
     void setValue(QVariant value);
 private:
     const QString _unitString;
-    QVariant _value;
-    QFont _font;
-    QRect _rect;
     int _fieldWidth;
+    QGraphicsTextItem* _textItem;
 };
 
 #endif // SENSORITEM_H
