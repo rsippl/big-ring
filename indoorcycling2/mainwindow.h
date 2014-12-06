@@ -7,7 +7,7 @@
 #include "previewvideowidget.h"
 #include "reallifevideo.h"
 #include "reallifevideoimporter.h"
-
+#include "videotileview.h"
 
 namespace Ui {
 class MainWindow;
@@ -29,7 +29,7 @@ private:
     Ui::MainWindow *_ui;
     RealLifeVideoImporter *_importer;
 
-    PreviewVideoWidget* _preview;
+    VideoTileView* _tileView;
     RealLifeVideoList _rlvList;
 
     QTimer* _playTimer;
