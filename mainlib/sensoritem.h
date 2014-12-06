@@ -23,6 +23,7 @@ private:
     const QString _unitString;
     int _fieldWidth;
     QGraphicsTextItem* _textItem;
+    QGraphicsTextItem* _unitItem;
 };
 
 #endif // SENSORITEM_H

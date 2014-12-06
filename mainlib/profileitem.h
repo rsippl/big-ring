@@ -33,7 +33,6 @@ private:
     RealLifeVideo _rlv;
     Simulation& _simulation;
     QPixmap _profilePixmap;
-
 };
 
 #endif // PROFILEITEM_H

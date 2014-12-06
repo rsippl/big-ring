@@ -16,14 +16,24 @@ SensorItem::SensorItem(const QString &unitString, const QVariant& exampleValue, 
     _textItem->setOpacity(0.6);
 
     _textItem->hide();
-    _textItem->setPlainText(QString("%1 %2").arg(exampleValue.toString()).arg(_unitString));
-
+    _textItem->setPlainText(QString("%1").arg(exampleValue.toString()));
     _textItem->setPos(10, 5);
+
+    QFont unitFont = QFont("Liberation Mono");
+    unitFont.setBold(true);
+    unitFont.setPointSize(18);
+    _unitItem = new QGraphicsTextItem(this);
+    _unitItem->setFont(unitFont);
+    _unitItem->setDefaultTextColor(Qt::white);
+    _unitItem->setOpacity(0.6);
+
+    _unitItem->setPos(_textItem->boundingRect().width() + 5, _textItem->boundingRect().bottom() - _unitItem->boundingRect().height() - 3);
+    _unitItem->setPlainText(_unitString);
 }
 
 QRectF SensorItem::boundingRect() const
 {
-    return QRectF(0, 0, _textItem->boundingRect().width() + 20, _textItem->boundingRect().height());
+    return QRectF(0, 0, _textItem->boundingRect().width() + 5 + _unitItem->boundingRect().width() + 20, _textItem->boundingRect().height());
 }
 
 void SensorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
@@ -39,7 +49,7 @@ void SensorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWid
 
 void SensorItem::setValue(QVariant value)
 {
-    _textItem->setPlainText(QString("%1 %2").arg(value.toString(), _fieldWidth).arg(_unitString));
+    _textItem->setPlainText(QString("%1").arg(value.toString(), _fieldWidth));
     _textItem->show();
 }
 

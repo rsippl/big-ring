@@ -36,6 +36,9 @@ ProfileItem::ProfileItem(Simulation& simulation, QObject *parent) :
     QObject(parent), _simulation(simulation)
 {
     setOpacity(0.65);
+   QFont font("Sans");
+   font.setBold(false);
+   font.setPointSize(16);
 }
 
 QRectF ProfileItem::boundingRect() const
@@ -57,9 +60,9 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
             painter->drawPixmap(_internalRect, _profilePixmap);
 
             float distanceRatio = _simulation.cyclist().distance() / _rlv.totalDistance();
-            QBrush brush(Qt::red);
-            QPen pen(QColor(Qt::red));
-            painter->setOpacity(0.3);
+            QBrush brush(Qt::black);
+            QPen pen(QColor(Qt::black));
+            painter->setOpacity(0.4);
             pen.setStyle(Qt::SolidLine);
             pen.setWidth(2);
             painter->setPen(pen);
@@ -67,6 +70,7 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
             painter->drawRect(_internalRect.left(), _internalRect.top(), distanceRatio * _internalRect.width(), _internalRect.bottom());
         }
     }
+
 }
 
 void ProfileItem::setSize(const QSize &size)
