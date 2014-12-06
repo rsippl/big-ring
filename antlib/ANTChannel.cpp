@@ -38,10 +38,6 @@ ANTChannel::init()
 {
 	channel_type=CHANNEL_TYPE_UNUSED;
 	channel_type_flags=0;
-	is_cinqo=0;
-	is_old_cinqo=0;
-	is_alt=0;
-	control_channel=NULL;
 	manufacturer_id=0;
 	product_id=0;
 	product_version=0;
@@ -55,7 +51,6 @@ ANTChannel::init()
 	setId();
 	srm_offset=400; // default relatively arbitrary, but matches common 'indoors' values
 	burstInit();
-	value2=value=0;
 }
 
 //
@@ -131,10 +126,7 @@ void ANTChannel::open(int device, int chan_type)
 			break;
 		case ANT_BROADCAST_DATA:
 			broadcastEvent(ant_message);
-			break;
-		case ANT_ACK_DATA:
-			ackEvent(ant_message);
-			break;
+            break;
 		case ANT_CHANNEL_ID:
 			channelId(ant_message);
 			break;
@@ -148,7 +140,6 @@ void ANTChannel::open(int device, int chan_type)
 		if (QDateTime::currentDateTime().toMSecsSinceEpoch() > blanking_timestamp + timeout_blanking) {
 			if (!blanked) {
 				blanked=1;
-				value2=value=0;
 				emit staleInfo(number);
 			}
 		} else blanked=0;
@@ -189,7 +180,6 @@ void ANTChannel::open(int device, int chan_type)
 				channel_type=CHANNEL_TYPE_UNUSED;
 				channel_type_flags=0;
 				device_number=0;
-				value2=value=0;
 				setId();
 
 				parent->sendMessage(ANTMessage::unassignChannel(number));
@@ -222,39 +212,34 @@ void ANTChannel::open(int device, int chan_type)
 		}
 	}
 
-	// if this is a quarq cinqo then record that fact
-	// was probably interesting to quarqd, but less so for us!
-	void ANTChannel::checkCinqo()
+
+    void ANTChannel::handlePowerMessage(bool savemessage, ANTMessage antMessage)
+    {
+        uint8_t events = antMessage.eventCount - lastStdPwrMessage.eventCount;
+        if (lastStdPwrMessage.type && events) {
+            stdNullCount = 0;
+            emit powerMeasured(antMessage.instantPower);
+            emit cadenceMeasured(antMessage.instantCadence);
+        } else {
+            stdNullCount++;
+            if (stdNullCount >= 6) { //XXX 6 for standard power?
+                emit cadenceMeasured(0.0f);
+                emit powerMeasured(0.0f);
+            }
+        }
+        lastStdPwrMessage = antMessage;
+        savemessage = false;
+    }
+
+    /*!
+     We got a broadcast event -- this is where inbound
+     telemetry gets processed, and for many message types
+     we need to remember previous messages to look at the
+     deltas during the period XXX this needs fixing!
+    */
+    void ANTChannel::broadcastEvent(unsigned char *ant_message)
 	{
-
-		int version_hi, version_lo;
-		version_hi=(product_version >> 8) &0xff;
-		version_lo=(product_version & 0xff);
-
-		if (!(mi.first_time_manufacturer || mi.first_time_product)) {
-			if ((product_id == 1) && (manufacturer_id==7)) {
-				// we are a cinqo, were we aware of this?
-				is_cinqo=1;
-
-				// are we an old-version or new-version cinqo?
-				is_old_cinqo = ((version_hi <= 17) && (version_lo==10));
-				//XXX channel_manager_associate_control_channels(self->parent);
-			}
-		}
-	}
-
-	// notify we have a cinqo, does nothing
-	void ANTChannel::sendCinqoSuccess() {}
-
-	//
-	// We got a broadcast event -- this is where inbound
-	// telemetry gets processed, and for many message types
-	// we need to remember previous messages to look at the
-	// deltas during the period XXX this needs fixing!
-	//
-	void ANTChannel::broadcastEvent(unsigned char *ant_message)
-	{
-		ANTMessage antMessage(parent, ant_message);
+        ANTMessage antMessage(channel_type, ant_message);
 		bool savemessage = true; // flag to stop lastmessage being
 		// overwritten for standard power
 		// messages
@@ -284,20 +269,14 @@ void ANTChannel::open(int device, int chan_type)
 
 		// for automatically opening quarq channel on early cinqo
 		if (MESSAGE_IS_PRODUCT(message)) {
-
-			mi.first_time_product= false;
 			product_version&=0x00ff;
 			product_version|=(PRODUCT_SW_REV(message))<<8;
-			checkCinqo();
 
 		} else if (MESSAGE_IS_MANUFACTURER(message)) {
-
-			mi.first_time_manufacturer= false;
 			product_version&=0xff00;
 			product_version|=MANUFACTURER_HW_REV(message);
 			manufacturer_id=MANUFACTURER_MANUFACTURER_ID(message);
 			product_id=MANUFACTURER_MODEL_NUMBER_ID(message);
-			checkCinqo();
 
 		} else {
 			//
@@ -309,10 +288,6 @@ void ANTChannel::open(int device, int chan_type)
 
 				// Power
 				case CHANNEL_TYPE_POWER:
-				case CHANNEL_TYPE_QUARQ:
-				case CHANNEL_TYPE_FAST_QUARQ:
-				case CHANNEL_TYPE_FAST_QUARQ_NEW:
-
 					// what kind of power device is this?
 					switch(antMessage.data_page) {
 
@@ -323,116 +298,9 @@ void ANTChannel::open(int device, int chan_type)
 							antMessage.data[6] = 0xAC;
 							parent->sendMessage(antMessage);
 						}
-
-						// each device sends a different type
-						// of calibration message...
-						switch (antMessage.calibrationID) {
-
-						case ANT_SPORT_SRM_CALIBRATIONID:
-
-							switch (antMessage.ctfID) {
-
-							case 0x01: // offset
-								// if we're getting calibration messages then
-								// we should be coasting, so power and cadence
-								// will be zero
-								srm_offset = antMessage.srmOffset;
-								emit powerMeasured(0);
-								emit cadenceMeasured(0);
-								value2=value=0;
-								break;
-
-							case 0x02: // slope
-								break;
-
-							case 0x03: // serial number
-								break;
-
-							default:
-								break;
-
-							}
-							break;
-
-						default: //XXX need to support Powertap/Quarq too!!
-							break;
-						}
-
 					} // ANT_SPORT_CALIBRATION
 						savemessage = false; // we don't want to overwrite other messages
 						break;
-
-						//
-						// SRM - crank torque frequency
-						//
-					case ANT_CRANKSRM_POWER: // 0x20 - crank torque (SRM)
-					{
-						uint16_t period = antMessage.period - lastMessage.period;
-						uint16_t torque = antMessage.torque - lastMessage.torque;
-						float time = (float)period / (float)2000.00;
-
-						if (time && antMessage.slope && period) {
-
-							nullCount = 0;
-							float torque_freq = torque / time - 420/*srm_offset*/;
-							float nm_torque = 10.0 * torque_freq / antMessage.slope;
-							float cadence = 2000.0 * 60 * (antMessage.eventCount - lastMessage.eventCount) / period;
-							float power = 3.14159 * nm_torque * cadence / 30;
-
-							// ignore the occassional spikes XXX is this a boundary error on event count ?
-							if (power >= 0 && power < 2501 && cadence >=0 && cadence < 256) {
-								value2 = value = power;
-								emit powerMeasured(power);
-								emit cadenceMeasured(cadence);
-							}
-
-						} else {
-
-							nullCount++;
-							//antMessage.type = 0; // we need a new data pair XXX bad!!!
-
-							if (nullCount >= 4) { // 4 messages on an SRM
-								value2 = value = 0;
-								emit powerMeasured(0.0f);
-								emit cadenceMeasured(0.0f);
-							}
-						}
-					}
-						break;
-
-						//
-						// Powertap - wheel torque
-						//
-					case ANT_WHEELTORQUE_POWER: // 0x11 - wheel torque (Powertap)
-					{
-						uint8_t events = antMessage.eventCount - lastMessage.eventCount;
-						uint16_t period = antMessage.period - lastMessage.period;
-						uint16_t torque = antMessage.torque - lastMessage.torque;
-
-						if (events && period) {
-
-							nullCount = 0;
-
-							float nm_torque = torque / (32.0 * events);
-							float wheelRPM = 2048.0 * 60.0 * events / period;
-							float power = 3.14159 * nm_torque * wheelRPM / 30;
-
-							value2 = value = power;
-//							parent->setWheelRpm(wheelRPM);
-							emit powerMeasured(power);
-
-						} else {
-							nullCount++;
-
-							if (nullCount >= 4) { // 4 messages on Powertap ? XXX validate this
-//								parent->setWheelRpm(0);
-								value2 = value = 0;
-								emit powerMeasured(0.0);
-							}
-						}
-					}
-						break;
-
 						//
 						// Standard Power - interleaved with other messages 1 per second
 						//                  NOTE: Standard power messages are interleaved
@@ -443,57 +311,9 @@ void ANTChannel::open(int device, int chan_type)
 						//
 					case ANT_STANDARD_POWER: // 0x10 - standard power
 					{
-						uint8_t events = antMessage.eventCount - lastStdPwrMessage.eventCount;
-						if (lastStdPwrMessage.type && events) {
-							stdNullCount = 0;
-							emit powerMeasured(antMessage.instantPower);
-							value2 = value = antMessage.instantPower;
-							emit cadenceMeasured(antMessage.instantCadence);
-						} else {
-							stdNullCount++;
-							if (stdNullCount >= 6) { //XXX 6 for standard power?
-								emit cadenceMeasured(0.0f);
-								emit powerMeasured(0.0f);
-								value2 = value = 0;
-							}
-						}
-						lastStdPwrMessage = antMessage;
-						savemessage = false;
+                        handlePowerMessage(savemessage, antMessage);
 					}
 						break;
-
-
-						//
-						// Quarq - Crank torque
-						//
-					case ANT_CRANKTORQUE_POWER: // 0x12 - crank torque (Quarq)
-					{
-						uint8_t events = antMessage.eventCount - lastMessage.eventCount;
-						uint16_t period = antMessage.period - lastMessage.period;
-						uint16_t torque = antMessage.torque - lastMessage.torque;
-
-						if (events && period && lastMessage.period) {
-							nullCount = 0;
-
-							float nm_torque = torque / (32.0 * events);
-							float cadence = 2048.0 * 60.0 * events / period;
-							float power = 3.14159 * nm_torque * cadence / 30;
-
-							emit cadenceMeasured(cadence);
-							emit powerMeasured(power);
-							value2 = value = power;
-
-						} else {
-							nullCount++;
-							if (nullCount >= 4) { //XXX 4 on a quarq??? validate this
-								emit cadenceMeasured(0.0f);
-								emit powerMeasured(0.0f);
-								value2 = value = 0;
-							}
-						}
-					}
-						break;
-
 					default: // UNKNOWN POWER DEVICE? XXX Garmin (Metrigear) Vector????
 						break;
 					}
@@ -507,13 +327,10 @@ void ANTChannel::open(int device, int chan_type)
 					if (time) {
 						nullCount = 0;
 						emit heartRateMeasured(antMessage.instantHeartrate);
-//						parent->setBPM(antMessage.instantHeartrate);
-						value2 = value = antMessage.instantHeartrate;
 					} else {
 						nullCount++;
 						if (nullCount >= 12) {
-//							parent->setBPM(0); // 12 according to the docs
-							value2 = value = 0;
+                            emit heartRateMeasured(0);
 						}
 					}
 				}
@@ -527,7 +344,6 @@ void ANTChannel::open(int device, int chan_type)
 					if (time) {
 						float cadence = 1024*60*revs / time;
 						emit cadenceMeasured(cadence);
-						value2 = value = cadence;
 					}
 				}
 					break;
@@ -542,12 +358,10 @@ void ANTChannel::open(int device, int chan_type)
 						nullCount = 0;
 						float cadence = 1024*60*revs / time;
 						emit cadenceMeasured(cadence);
-						value = cadence;
 					} else {
 						nullCount++;
 						if (nullCount >= 12) {
-							emit cadenceMeasured(0.0f);
-							value = 0;
+                            emit cadenceMeasured(0.0f);
 						}
 					}
 
@@ -555,17 +369,15 @@ void ANTChannel::open(int device, int chan_type)
 					time = antMessage.wheelMeasurementTime - lastMessage.wheelMeasurementTime;
 					revs = antMessage.wheelRevolutions - lastMessage.wheelRevolutions;
 					if (time) {
-						dualNullCount = 0;
+                        dualNullCount = 0;
 
 						float rpm = 1024*60*revs / time;
-//						parent->setWheelRpm(rpm);
-						value2 = rpm;
+                        emit speedMeasured(rpm);
 					} else {
 
 						dualNullCount++;
 						if (dualNullCount >= 12) {
-//							parent->setWheelRpm(0);
-							value2 = 0;
+                            emit speedMeasured(0);
 						}
 					}
 				}
@@ -579,12 +391,13 @@ void ANTChannel::open(int device, int chan_type)
 					if (time) {
 						nullCount=0;
 						float rpm = 1024*60*revs / time;
-//						parent->setWheelRpm(rpm);
-						value2=value=rpm;
+                        emit speedMeasured(rpm);
 					} else {
 						nullCount++;
-//						if (nullCount >= 12) parent->setWheelRpm(0);
-						value2=value=0;
+
+                        if (nullCount >= 12) {
+                            emit speedMeasured(0);
+                        }
 					}
 				}
 					break;
@@ -594,10 +407,8 @@ void ANTChannel::open(int device, int chan_type)
 				}
 
 			} else {
-
 				// reset nullCount if receiving first telemetry update
 				stdNullCount = dualNullCount = nullCount = 0;
-				value2 = value = 0;
 			}
 
 			// we don't overwrite for Standard Power messages
@@ -605,10 +416,6 @@ void ANTChannel::open(int device, int chan_type)
 			if (savemessage) lastMessage = antMessage;
 		}
 	}
-
-	// we got an acknowledgement, so lets process it
-	// does nothing for now
-	void ANTChannel::ackEvent(unsigned char * /*ant_message*/) { }
 
 
 	// we got a channel ID notification
@@ -748,7 +555,6 @@ void ANTChannel::open(int device, int chan_type)
 
 		case ANT_CHANNEL_FREQUENCY:
 			parent->sendMessage(ANTMessage::open(number));
-			mi.initialise();
 			break;
 
 		case ANT_OPEN_CHANNEL:

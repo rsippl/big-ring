@@ -79,9 +79,6 @@ struct setChannelAtom {
 
 // ANT Sport Power Broadcast message types
 #define ANT_STANDARD_POWER     0x10
-#define ANT_WHEELTORQUE_POWER  0x11
-#define ANT_CRANKTORQUE_POWER  0x12
-#define ANT_CRANKSRM_POWER     0x20
 
 // ANT messages
 #define ANT_UNASSIGN_CHANNEL   0x41
@@ -105,7 +102,7 @@ struct setChannelAtom {
 #define ANT_OPEN_RX_SCAN_CH    0x5B
 #define ANT_REQ_MESSAGE        0x4D
 #define ANT_BROADCAST_DATA     0x4E
-#define ANT_ACK_DATA           0x4F
+#define ANT_ACK_DATA           0x4F  // NOT USED
 #define ANT_BURST_DATA         0x50
 #define ANT_CHANNEL_EVENT      0x40
 #define ANT_CHANNEL_STATUS     0x52
@@ -178,7 +175,6 @@ struct setChannelAtom {
 #define ANT_SPORT_CALIBRATION_MESSAGE                 0x01
 
 // Calibration messages carry a calibration id
-#define ANT_SPORT_SRM_CALIBRATIONID                   0x10
 #define ANT_SPORT_CALIBRATION_REQUEST_MANUALZERO      0xAA
 #define ANT_SPORT_CALIBRATION_REQUEST_AUTOZERO_CONFIG 0xAB
 #define ANT_SPORT_ZEROOFFSET_SUCCESS                  0xAC
@@ -241,10 +237,6 @@ public:
 
 	// ANT Devices and Channels
 	int addDevice(int device_number, int device_type, int channel_number);
-	int removeDevice(int device_number, int channel_type);
-	ANTChannel *findDevice(int device_number, int channel_type);
-	int startWaitingSearch();
-	void associateControlChannels();
 
 	// transmission
 	void sendMessage(ANTMessage);

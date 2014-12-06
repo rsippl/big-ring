@@ -32,7 +32,7 @@ class ANTMessage {
     public:
 
         ANTMessage(); // null message
-        ANTMessage(ANT *parent, const unsigned char *data); // decode from parameters
+        ANTMessage(int channelType, const unsigned char *data); // decode from parameters
         ANTMessage(unsigned char b1,
                    unsigned char b2 = '\0',
                    unsigned char b3 = '\0',

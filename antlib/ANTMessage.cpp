@@ -220,7 +220,7 @@ ANTMessage::channelEventMessage(unsigned char c)
 
 // construct an ant message based upon a message structure
 // the message structure must include the sync byte
-ANTMessage::ANTMessage(ANT *parent, const unsigned char *message) {
+ANTMessage::ANTMessage(int channelType, const unsigned char *message) {
 
     // Initialise all fields to invalid
     init();
@@ -356,7 +356,7 @@ ANTMessage::ANTMessage(ANT *parent, const unsigned char *message) {
             data_page = message[4];
 
             // we need to handle ant sport messages here
-            switch(parent->antChannel[message[3]]->channel_type) {
+            switch(channelType) {
 
             // Heartrate is fairly simple. Although
             // many older heart rate devices do not support
@@ -381,75 +381,23 @@ ANTMessage::ANTMessage(ANT *parent, const unsigned char *message) {
  *                                                     sint16_le:offset_torque,None
  */
             case ANTChannel::CHANNEL_TYPE_POWER:
-            case ANTChannel::CHANNEL_TYPE_QUARQ:
-            case ANTChannel::CHANNEL_TYPE_FAST_QUARQ:
-            case ANTChannel::CHANNEL_TYPE_FAST_QUARQ_NEW:
-
                 channel = message[3];
 
                 switch (data_page) {
 
                 case ANT_STANDARD_POWER: // 0x10 - standard power
-
                     eventCount = message[5];
                     pedalPower = message[6]; // left/right 0xFF = not used
                     instantCadence = message[7];
                     sumPower = message[8] + (message[9]<<8);
                     instantPower = message[10] + (message[11]<<8);
                     break;
-
-                case ANT_WHEELTORQUE_POWER: // 0x11 - wheel torque (Powertap)
-                    eventCount = message[5];
-                    wheelRevolutions = message[6];
-                    instantCadence = message[7];
-                    period = message[8] + (message[9]<<8);
-                    torque = message[10] + (message[11]<<8);
-                    break;
-
-                case ANT_CRANKTORQUE_POWER: // 0x12 - crank torque (Quarq)
-                    eventCount = message[5];
-                    crankRevolutions = message[6];
-                    instantCadence = message[7];
-                    period = message[8] + (message[9]<<8);
-                    torque = message[10] + (message[11]<<8);
-                    break;
-
-                case ANT_CRANKSRM_POWER: // 0x20 - crank torque (SRM)
-                    eventCount = message[5];
-                    slope = message[7] + (message[6]<<8); // yes it is bigendian
-                    period = message[9] + (message[8]<<8); // yes it is bigendian
-                    torque = message[11] + (message[10]<<8); // yes it is bigendian
-                    break;
-
                 case ANT_SPORT_CALIBRATION_MESSAGE:
 
                     calibrationID = message[5];
                     ctfID = message[6];
 
                     switch (calibrationID) {
-
-                        case ANT_SPORT_SRM_CALIBRATIONID: // 0x01
-
-                            switch(ctfID) { // different types of calibration for SRMs
-
-                            case 0x01 : // srm_offset
-                                srmOffset = message[11] + (message[10]<<8); // yes it is bigendian
-                                break;
-
-                            case 0x02 : // slope
-                                srmSlope = message[11] + (message[10]<<8); // yes it is bigendian
-                                break;
-
-                            case 0x03 : //serial number
-                                srmSerial = message[11] + (message[10]<<8); // yes it is bigendian
-                                break;
-
-                            default:
-                            case 0xAC : // ack
-                                break;
-                            }
-                            break;
-
                         case ANT_SPORT_ZEROOFFSET_SUCCESS: //0xAC
                         // is also ANT_SPORT_AUTOZERO_SUCCESS: // 0xAC
                             autoZeroStatus = message[6];
