@@ -33,98 +33,95 @@
 #define MESSAGE_RECEIVED -1
 
 class ANTChannel : public QObject {
+    Q_OBJECT
+private:
+    ANT *parent;
 
-    private:
+    ANTMessage lastMessage, lastStdPwrMessage;
+    int dualNullCount, nullCount, stdNullCount;
+    qint64 last_message_timestamp;
+    qint64 blanking_timestamp;
+    int blanked;
+    char id[10]; // short identifier
+    bool channel_assigned;
 
-        Q_OBJECT
+    int messages_received; // for signal strength metric
+    int messages_dropped;
 
-        ANT *parent;
+    unsigned char rx_burst_data[RX_BURST_DATA_LEN];
+    int           rx_burst_data_index;
+    unsigned char rx_burst_next_sequence;
+    void (*rx_burst_disposition)(struct ant_channel *);
+    void (*tx_ack_disposition)(struct ant_channel *);
 
-        ANTMessage lastMessage, lastStdPwrMessage;
-        int dualNullCount, nullCount, stdNullCount;
-		qint64 last_message_timestamp;
-		qint64 blanking_timestamp;
-        int blanked;
-        char id[10]; // short identifier
-        bool channel_assigned;
+    // what we got
+    int manufacturer_id;
+    int product_id;
+    int product_version;
 
-        int messages_received; // for signal strength metric
-        int messages_dropped;
+    void handlePowerMessage(ANTMessage antMessage);
+public:
 
-        unsigned char rx_burst_data[RX_BURST_DATA_LEN];
-        int           rx_burst_data_index;
-        unsigned char rx_burst_next_sequence;
-        void (*rx_burst_disposition)(struct ant_channel *);
-        void (*tx_ack_disposition)(struct ant_channel *);
+    enum channeltype {
+        CHANNEL_TYPE_UNUSED,
+        CHANNEL_TYPE_HR,
+        CHANNEL_TYPE_POWER,
+        CHANNEL_TYPE_SPEED,
+        CHANNEL_TYPE_CADENCE,
+        CHANNEL_TYPE_SandC,
+        CHANNEL_TYPE_GUARD
+    };
+    typedef enum channeltype ChannelType;
 
-        // what we got
-        int manufacturer_id;
-        int product_id;
-        int product_version;
+    // Channel Information - to save tedious set/getters made public
+    int number; // Channel number within Ant chip
+    int state;
+    int channel_type;
+    int device_number;
+    int channel_type_flags;
+    int device_id;
+    int search_type;
+    int srm_offset;
 
-        void handlePowerMessage(bool savemessage, ANTMessage antMessage);
-    public:
+    ANTChannel(int number, ANT *parent);
 
-        enum channeltype {
-            CHANNEL_TYPE_UNUSED,
-            CHANNEL_TYPE_HR,
-            CHANNEL_TYPE_POWER,
-            CHANNEL_TYPE_SPEED,
-            CHANNEL_TYPE_CADENCE,
-            CHANNEL_TYPE_SandC,
-            CHANNEL_TYPE_GUARD
-        };
-        typedef enum channeltype ChannelType;
+    // What kind of channel
+    const char *getDescription();
+    int interpretDescription(char *description);
 
-        // Channel Information - to save tedious set/getters made public
-        int number; // Channel number within Ant chip
-        int state;
-        int channel_type;
-        int device_number;
-        int channel_type_flags;
-        int device_id;
-        int search_type;
-        int srm_offset;
+    // channel open/close
+    void init();
+    void open(int device_number, int channel_type);
+    void close();
 
-        ANTChannel(int number, ANT *parent);
+    // handle inbound data
+    void receiveMessage(unsigned char *message);
+    void channelEvent(unsigned char *message);
+    void burstInit();
+    void burstData(unsigned char *message);
+    void broadcastEvent(unsigned char *message);
+    void channelId(unsigned char *message);
+    void setChannelID(int device, int id, int txtype);
+    void setId();
+    void requestCalibrate();
+    void attemptTransition(int message_code);
+    int setTimeout(int seconds);
 
-        // What kind of channel
-        const char *getDescription();
-        int interpretDescription(char *description);
-
-        // channel open/close
-        void init();
-        void open(int device_number, int channel_type);
-        void close();
-
-        // handle inbound data
-        void receiveMessage(unsigned char *message);
-        void channelEvent(unsigned char *message);
-        void burstInit();
-        void burstData(unsigned char *message);
-        void broadcastEvent(unsigned char *message);
-        void channelId(unsigned char *message);
-        void setChannelID(int device, int id, int txtype);
-        void setId();
-        void requestCalibrate();
-        void attemptTransition(int message_code);
-        int setTimeout(int seconds);
-
-        // search
-        int isSearching();
+    // search
+    int isSearching();
 
 signals:
 
-        void channelInfo(int number, int device_number, int device_id); // we got a channel info message
-        void dropInfo(int number, int dropped, int received);    // we dropped a packet
-        void lostInfo(int number);    // we lost a connection
-        void staleInfo(int number);   // the connection is stale
-        void searchTimeout(int number); // search timed out
-        void searchComplete(int number); // search completed successfully
+    void channelInfo(int number, int device_number, int device_id); // we got a channel info message
+    void dropInfo(int number, int dropped, int received);    // we dropped a packet
+    void lostInfo(int number);    // we lost a connection
+    void staleInfo(int number);   // the connection is stale
+    void searchTimeout(int number); // search timed out
+    void searchComplete(int number); // search completed successfully
 
-		void heartRateMeasured(quint8);
-		void powerMeasured(float);
-		void cadenceMeasured(float);
-        void speedMeasured(float);
+    void heartRateMeasured(quint8);
+    void powerMeasured(float);
+    void cadenceMeasured(float);
+    void speedMeasured(float);
 };
 #endif

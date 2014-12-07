@@ -213,7 +213,7 @@ void ANTChannel::open(int device, int chan_type)
 	}
 
 
-    void ANTChannel::handlePowerMessage(bool savemessage, ANTMessage antMessage)
+    void ANTChannel::handlePowerMessage(ANTMessage antMessage)
     {
         uint8_t events = antMessage.eventCount - lastStdPwrMessage.eventCount;
         if (lastStdPwrMessage.type && events) {
@@ -228,7 +228,6 @@ void ANTChannel::open(int device, int chan_type)
             }
         }
         lastStdPwrMessage = antMessage;
-        savemessage = false;
     }
 
     /*!
@@ -311,7 +310,8 @@ void ANTChannel::open(int device, int chan_type)
 						//
 					case ANT_STANDARD_POWER: // 0x10 - standard power
 					{
-                        handlePowerMessage(savemessage, antMessage);
+                        handlePowerMessage(antMessage);
+                        savemessage = false;
 					}
 						break;
 					default: // UNKNOWN POWER DEVICE? XXX Garmin (Metrigear) Vector????
