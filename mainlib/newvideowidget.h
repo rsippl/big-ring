@@ -1,9 +1,14 @@
 #ifndef NEWVIDEOWIDGET_H
 #define NEWVIDEOWIDGET_H
 
+#include <QtCore/QTimer>
 #include <QWidget>
 #include <QtWidgets/QGraphicsView>
-#include <QGst/Pipeline>
+
+extern "C" {
+#include <gst/gst.h>
+#include <gst/gstpipeline.h>
+}
 #include "reallifevideo.h"
 #include "profileitem.h"
 class Simulation;
@@ -40,11 +45,11 @@ protected:
     virtual void drawBackground(QPainter *painter, const QRectF &rect) override;
 
 private:
-    void onBusMessage(const QGst::MessagePtr & message);
-    void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm);
+    static void onBusMessage(GstBus *bus, GstMessage *msg, NewVideoWidget* context);
+    void handleAsyncDone();
     void setUpVideoSink();
 
-    void onVideoUpdate();
+    static void onVideoUpdate(GObject *src, guint, NewVideoWidget* context);
 
     void seekToStart();
     void step(int stepSize);
@@ -57,8 +62,11 @@ private:
     void addDistance(Simulation& simulation, QGraphicsScene* scene);
     void addHeartRate(Simulation& simulation, QGraphicsScene* scene);
 
-    QGst::ElementPtr _videoSink;
-    QGst::PipelinePtr _pipeline;
+    void pollBus();
+
+    GstBus* _bus;
+    GstElement* _pipeline;
+    GstElement* _videoSink;
     RealLifeVideo _rlv;
     Course _course;
     LoadState _loadState;
@@ -71,6 +79,7 @@ private:
     QGraphicsItem* _distanceItem;
     QGraphicsItem* _gradeItem;
     ProfileItem* _profileItem;
+    QTimer* _busTimer;
 };
 
 #endif // NEWVIDEOWIDGET_H

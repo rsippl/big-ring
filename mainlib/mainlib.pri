@@ -2,7 +2,9 @@ include(../antlib/antlib.pri)
 
 QMAKE_CXXFLAGS += -std=c++11
 QT += core concurrent gui opengl widgets
+CONFIG += link_pkgconfig
 
+PKGCONFIG += glib-2.0 gstreamer-1.0
 INCLUDEPATH += /home/ibooij/local/lib/qtgstreamer/include/Qt5GStreamer
 
 message("ant libs = $${ANTLIB_LIBRARY_DEPENDENCIES}")

@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QApplication>
 #include <QtDebug>
+#include <gst/gst.h>
 #include <QGst/Init>
 #include "antcontroller.h"
 #include "reallifevideoimporter.h"
@@ -11,8 +12,7 @@ int main(int argc, char *argv[])
 {
     qputenv("GST_PLUGIN_PATH", "/home/ibooij/homedev/build/qtgstreamer/elements/gstqtvideosink/");
     QApplication app(argc, argv);
-    QGst::init(&argc, &argv);
-
+    gst_init(&argc, &argv);
 	app.setApplicationName("Indoor Cycling");
 
 	qDebug() << "starting up";
