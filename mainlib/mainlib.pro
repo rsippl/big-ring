@@ -21,7 +21,8 @@ HEADERS += \
     newvideowidget.h \
     clockgraphicsitem.h \
     sensoritem.h \
-    profileitem.h
+    profileitem.h \
+    videoplayer.h
 
 SOURCES += \
     cyclist.cpp \
@@ -35,7 +36,8 @@ SOURCES += \
     newvideowidget.cpp \
     clockgraphicsitem.cpp \
     sensoritem.cpp \
-    profileitem.cpp
+    profileitem.cpp \
+    videoplayer.cpp
 
 
 
