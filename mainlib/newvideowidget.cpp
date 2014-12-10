@@ -115,7 +115,7 @@ void NewVideoWidget::addDistance(Simulation &simulation, QGraphicsScene *scene)
 {
     SensorItem* distanceItem = new SensorItem("M", "000000");
     scene->addItem(distanceItem);
-    connect(&simulation.cyclist(), &Cyclist::distanceChanged, this, [distanceItem](float distance) {
+    connect(&simulation.cyclist(), &Cyclist::distanceTravelledChanged, this, [distanceItem](float distance) {
         distanceItem->setValue(QVariant::fromValue(static_cast<int>(distance)));
     });
     _distanceItem = distanceItem;
@@ -153,7 +153,7 @@ void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
     if (uri.indexOf("://") < 0) {
         uri = QUrl::fromLocalFile(uri).toEncoded();
     }
-    _videoPlayer->setUri(uri);
+    _videoPlayer->loadVideo(uri);
 }
 
 void NewVideoWidget::setCourseIndex(int index)

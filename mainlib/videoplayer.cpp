@@ -13,8 +13,7 @@ VideoPlayer::~VideoPlayer()
 {
     _busTimer->stop();
     if (_pipeline) {
-        gst_element_set_state(_pipeline, GST_STATE_NULL);
-        g_object_unref(_pipeline);
+        cleanupCurrentPipeline();
     } else {
         if (_videoSink) {
             gst_element_set_state(_videoSink, GST_STATE_NULL);
@@ -44,7 +43,6 @@ bool VideoPlayer::isReadyToPlay()
 
 void VideoPlayer::stop()
 {
-    qDebug() << "stopped";
     if (_pipeline) {
         gst_element_set_state(_pipeline, GST_STATE_NULL);
     }
@@ -59,32 +57,39 @@ void VideoPlayer::stepToFrame(quint32 frameNumber)
     }
     _currentFrameNumber = frameNumber;
     } else {
-        qDebug() << "stepping when not done";
+        qDebug() << "stepping when video not ready. Ignoring.";
     }
 }
 
-void VideoPlayer::setUri(QString uri)
+void VideoPlayer::cleanupCurrentPipeline()
 {
     if (_pipeline) {
         gst_element_set_state(_pipeline, GST_STATE_NULL);
         g_object_unref(_pipeline);
         _pipeline = nullptr;
     }
+}
+
+void VideoPlayer::createPipeline()
+{
+    _pipeline = gst_element_factory_make("playbin", "playbin");
+
+    if (_pipeline) {
+        g_object_set(_pipeline, "video-sink", _videoSink, NULL);
+        _pipelineBus = gst_element_get_bus(_pipeline);
+        _busTimer->start();
+    } else {
+        qWarning() << "Failed to create the pipeline";
+    }
+}
+
+void VideoPlayer::loadVideo(QString uri)
+{
+    cleanupCurrentPipeline();
     _busTimer->stop();
 
-    if (!_pipeline) {
-        qDebug() << "creating new pipeline";
-        _pipeline = gst_element_factory_make("playbin", "playbin");
-        //        _pipeline = QGst::ElementFactory::make("playbin").dynamicCast<QGst::Pipeline>();
+    createPipeline();
 
-        if (_pipeline) {
-            g_object_set(_pipeline, "video-sink", _videoSink, NULL);
-            _pipelineBus = gst_element_get_bus(_pipeline);
-            _busTimer->start();
-        } else {
-            qWarning() << "Failed to create the pipeline";
-        }
-    }
     qDebug() << "setting uri";
     if (_pipeline) {
         qDebug() << "really setting uri" << uri;
@@ -118,7 +123,7 @@ bool VideoPlayer::seekToFrame(quint32 frameNumber, float frameRate)
         float seconds = frameNumber / frameRate;
         qDebug() << "need to seek to seconds: " << seconds;
         quint64 milliseconds = static_cast<quint64>(seconds * 1000);
-        gst_element_seek_simple(_pipeline, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, milliseconds * GST_MSECOND);
+        gst_element_seek_simple(_pipeline, GST_FORMAT_TIME, static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), milliseconds * GST_MSECOND);
         _currentFrameNumber = frameNumber;
         _loadState = SEEKING;
         return true;

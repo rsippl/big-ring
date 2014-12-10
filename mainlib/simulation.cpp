@@ -85,6 +85,7 @@ void Simulation::simulationStep()
 
 	_cyclist.setSpeed(speed);
 	_cyclist.setDistance(_cyclist.distance() + distanceTravelled);
+    _cyclist.setDistanceTravelled(_cyclist.distanceTravelled() + distanceTravelled);
 
 	emit slopeChanged(_currentRlv.slopeForDistance(_cyclist.distance()));
     emit altitudeChanged(_currentRlv.altitudeForDistance(_cyclist.distance()));

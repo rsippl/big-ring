@@ -184,7 +184,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 			_simulation.play(true);
             playButton->setChecked(true);
 		}
-	}
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
