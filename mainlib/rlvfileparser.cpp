@@ -4,6 +4,21 @@
 #include <QFileInfo>
 #include <QtDebug>
 
+namespace tacxfile
+{
+QString fromUtf16(const char* string, size_t size) {
+    QByteArray bytes;
+
+    size_t i = 0;
+    while(string[i] != '\0' && i < size) {
+        bytes.append(string[i]);
+        bytes.append(string[i+1]);
+        i += 2;
+    }
+    return QTextCodec::codecForName("UTF-16")->toUnicode(bytes);
+}
+}
+
 RlvFileParser::RlvFileParser(const QStringList& videoFilenames): TacxFileParser(),
 	_videoFilenames(videoFilenames)
 {
@@ -104,6 +119,7 @@ QList<Course> RlvFileParser::readCourseInformation(QFile &rlvFile, qint32 count)
 	QList<Course> courses;
 	for (qint32 i = 0; i < count; i++) {
 		tacxfile::rlvCourseInformation_t courseInfoBlock;
+        memset(&courseInfoBlock, 0, sizeof(courseInfoBlock));
 		rlvFile.read((char*) &courseInfoBlock.start, sizeof(float));
 		rlvFile.read((char*) &courseInfoBlock.end, sizeof(float));
 		rlvFile.read((char*) &courseInfoBlock._courseName, 66);

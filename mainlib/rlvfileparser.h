@@ -1,12 +1,16 @@
 #ifndef RLVFILEPARSER_H
 #define RLVFILEPARSER_H
 
-#include <QFile>
-#include <QStringList>
+#include <QtCore/QFile>
+#include <QtCore/QTextCodec>
+#include <QtCore/QtDebug>
+#include <QtCore/QStringList>
 
 #include "reallifevideo.h"
 
 namespace tacxfile {
+
+QString fromUtf16(const char* string, size_t size);
 
 typedef struct header {
 	qint16 fingerprint;
@@ -36,18 +40,15 @@ typedef struct info {
 } info_t;
 
 typedef struct generalRlv {
-	quint8 _filename[522];
+    char _filename[522];
 	float frameRate;
 	float originalRunWeight;
 	qint32 frameOffset;
 
 	QString filename() const {
-		quint8 firstBytes[522/2];
-		for(quint32 i = 0; i < sizeof(firstBytes); ++i)
-			firstBytes[i] = _filename[i*2];
-		return QString((char*)firstBytes);
-
+        return fromUtf16(_filename, sizeof(_filename));
 	}
+
 	QString toString() const {
 		return QString("video file name: %1, frame rate %2").arg(filename()).arg(frameRate);
 	}
@@ -56,15 +57,12 @@ typedef struct generalRlv {
 typedef struct rlvCourseInformation {
 	float start;
 	float end;
-	quint8 _courseName[66];
+    char _courseName[66];
 	quint8 _textFilename[522];
 
 	QString courseName() const {
-		quint8 firstBytes[66/2];
-		for(quint32 i = 0; i < sizeof(firstBytes); ++i)
-			firstBytes[i] = _courseName[i*2];
-		return QString((char*)firstBytes);
-	}
+        return fromUtf16(_courseName, sizeof(_courseName));
+    }
 
 	QString toString() const {
 		return QString("start: %1, end %2, name: %3")
@@ -83,7 +81,7 @@ typedef struct frameDistanceMapping {
 
 typedef struct generalPgmf {
 	quint32 checksum;
-	quint8 _courseName[34];
+    char _courseName[34];
 	qint32 powerSlopeOrHr;
 	qint32 _timeOrDistance;
 	double _totalTimeOrDistance;
@@ -92,10 +90,7 @@ typedef struct generalPgmf {
 	qint32 breakCategory;
 
 	QString courseName() const {
-		quint8 firstBytes[34/2];
-		for(quint32 i = 0; i < sizeof(firstBytes); ++i)
-			firstBytes[i] = _courseName[i*2];
-		return QString((char*)firstBytes);
+        return fromUtf16(_courseName, sizeof(_courseName));
 	}
 
 	QString type() const {
