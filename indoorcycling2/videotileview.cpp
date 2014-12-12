@@ -1,47 +1,48 @@
 #include "videotileview.h"
 #include "videotile.h"
 #include <QtCore/QtDebug>
+#include <QtOpenGL/QGLWidget>
+
 VideoTileView::VideoTileView(QWidget *parent) :
     QGraphicsView(parent)
 {
     QGraphicsScene *scene = new QGraphicsScene;
     setScene(scene);
-    scene->setSceneRect(0, 0, 100, 100);
-    setViewport(new QWidget);
+    scene->setSceneRect(0, 0, 120, 1000);
+    setViewport(new QGLWidget);
+//    viewport()->setShortcutAutoRepeat();
 
 }
 
 void VideoTileView::resizeEvent(QResizeEvent *event)
 {
+    scene()->setSceneRect(0, 0, event->size().width(), _items.size() * 100);
     placeTiles();
     event->accept();
 }
 
 void VideoTileView::rlvsLoaded(RealLifeVideoList &rlvs)
 {
-    int i = 0;
-
-    for (int j = 0; j < 100; j++) {
     for (const RealLifeVideo& rlv: rlvs) {
         qDebug() << "videos" << rlv.name();
         VideoTile* tile = new VideoTile(rlv);
         scene()->addItem(tile);
         _items.append(tile);
-        i++;
     }
-    }
+
     placeTiles();
+
 }
 
 void VideoTileView::placeTiles()
 {
+    scene()->setSceneRect(0, 0, viewport()->width(), _items.size() * 100);
     for(int i = 0; i < _items.size(); ++i) {
-        QGraphicsItem* tile = _items[i];
-
-        int x = i % 2 == 0 ? 0 : rect().width() / 2;
-        int y = i / 2 * tile->boundingRect().height();
-
-        tile->setPos(mapToScene(x, y));
-
+        VideoTile* tile = _items[i];
+        int y = i * _items[i]->boundingRect().height();
+        tile->setWidth(rect().width());
+        tile->setPos(0, y);
     }
 }
+
+

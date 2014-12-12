@@ -4,19 +4,22 @@
 #include <QtCore/QList>
 #include <QtWidgets/QGraphicsView>
 #include "reallifevideo.h"
+#include "videotile.h"
 class VideoTileView : public QGraphicsView
 {
     Q_OBJECT
 public:
     explicit VideoTileView(QWidget *parent = 0);
-    void resizeEvent(QResizeEvent *);
+
 signals:
 
 public slots:
     void rlvsLoaded(RealLifeVideoList& rlvs);
+protected:
+    void resizeEvent(QResizeEvent *);
 private:
     void placeTiles();
-    QList<QGraphicsItem*> _items;
+    QList<VideoTile*> _items;
 };
 
 #endif // VIDEOTILEVIEW_H

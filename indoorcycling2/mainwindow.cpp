@@ -43,6 +43,7 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
     qDebug() << "import finished";
     _rlvList = rlvs;
     _ui->rlvTable->setModel(new RlvTableModel(rlvs, this));
+    _ui->rlvTable->hide();
     qDebug() << _ui->rlvTable->selectionModel();
     connect(_ui->rlvTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::selectionChanged);
 }

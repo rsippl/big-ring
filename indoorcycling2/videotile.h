@@ -14,10 +14,17 @@ public:
     explicit VideoTile(const RealLifeVideo rlv, QObject *parent = 0);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
 signals:
 
 public slots:
+    void setWidth(int width);
+
 private:
+    QGraphicsItem *addFlag();
+
     const RealLifeVideo _rlv;
 };
 
