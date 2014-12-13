@@ -36,12 +36,14 @@ void VideoTileView::rlvsLoaded(RealLifeVideoList &rlvs)
 
 void VideoTileView::placeTiles()
 {
-    scene()->setSceneRect(0, 0, viewport()->width(), _items.size() * 100);
-    for(int i = 0; i < _items.size(); ++i) {
-        VideoTile* tile = _items[i];
-        int y = i * _items[i]->boundingRect().height();
-        tile->setWidth(rect().width());
-        tile->setPos(0, y);
+    if (!_items.isEmpty()) {
+        scene()->setSceneRect(0, 0, viewport()->width(), _items.size() * _items[0]->boundingRect().height());
+        for(int i = 0; i < _items.size(); ++i) {
+            VideoTile* tile = _items[i];
+            int y = i * _items[i]->boundingRect().height();
+            tile->setWidth(rect().width());
+            tile->setPos(0, y);
+        }
     }
 }
 

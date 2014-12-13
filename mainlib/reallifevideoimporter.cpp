@@ -9,7 +9,8 @@
 #include <QtConcurrent/QtConcurrentMap>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QtDebug>
-
+#include <QtCore/QStandardPaths>
+#include "thumbnailer.h"
 RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QStringList& aviFiles);
 
 RealLifeVideoImporter::RealLifeVideoImporter(QObject* parent): QObject(parent)
@@ -21,7 +22,8 @@ struct ParseRlvFunctor: public std::unary_function<const QString&,RealLifeVideo>
 
 	RealLifeVideo operator()(const QString& filename) const {
 		QFile file(filename);
-		return parseRealLiveVideoFile(file, _aviFiles);
+        RealLifeVideo rlv = parseRealLiveVideoFile(file, _aviFiles);
+        return rlv;
 	}
 
 	QStringList _aviFiles;
@@ -79,6 +81,18 @@ void RealLifeVideoImporter::importReady()
 
 	// sort rlv list by name
 	qSort(rlvList.begin(), rlvList.end(), RealLifeVideo::compareByName);
+
+    QStringList paths = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
+    QString thumbnailDir = "/tmp";
+    if (!paths.isEmpty()) {
+        thumbnailDir = paths[0];
+    }
+    Thumbnailer thumbNailer;
+    for (auto rlv: rlvList) {
+        qDebug() << "creating jpg for " << rlv.name();
+        thumbNailer.createThumbnailFor(rlv);
+        qDebug() << "finished creating jpg for " << rlv.name();
+    }
 
 	emit importFinished(rlvList);
 	watcher->deleteLater();

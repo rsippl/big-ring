@@ -6,7 +6,7 @@
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsTextItem>
 #include <QtGui/QPainter>
-
+#include "thumbnailer.h"
 
 namespace
 {
@@ -20,9 +20,9 @@ VideoTile::VideoTile(const RealLifeVideo rlv, QObject *parent) :
     setPen(QPen(QBrush(Qt::black), 1));
     setBrush(QBrush(Qt::darkGray));
     setRect(0, 0, 100, HEIGHT);
-
-
-    QPixmap picture("/home/ibooij/Videos/out.jpg");
+    Thumbnailer thumbnailer;
+    qDebug() << "cache file: " << thumbnailer.cacheFilePathFor(rlv);
+    QPixmap picture(thumbnailer.cacheFilePathFor(rlv));
     QPixmap scaled = picture.scaledToHeight(.9 * HEIGHT);
     QGraphicsPixmapItem* pict = new QGraphicsPixmapItem(scaled, this);
     pict->setPos(5, 5);
@@ -55,7 +55,6 @@ QGraphicsItem* VideoTile::addFlag() {
 
         qDebug() << filename << flagPixmap.isNull();
         QGraphicsPixmapItem* flagItem = new QGraphicsPixmapItem(flagPixmap, this);
-        qDebug() << "country found" << alpha2Code << flagItem->boundingRect().width();
         return flagItem;
     }
     return nullptr;
@@ -63,14 +62,11 @@ QGraphicsItem* VideoTile::addFlag() {
 
 void VideoTile::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    //    QGraphicsView* view = scene()->views().first();
-    //    setRect(0, 0, view->width() / 2 - 10, view->width() / 2 - 10);
     QGraphicsRectItem::paint(painter, option, widget);
 }
 
 void VideoTile::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "mouse event in" << _rlv.name();
     event->accept();
 }
 

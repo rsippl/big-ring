@@ -18,6 +18,7 @@ HEADERS += \
     rlvfileparser.h \
     rlvlistwidget.h \
     simulation.h \
+    thumbnailer.h \
     newvideowidget.h \
     clockgraphicsitem.h \
     sensoritem.h \
@@ -33,6 +34,7 @@ SOURCES += \
     rlvfileparser.cpp \
     rlvlistwidget.cpp \
     simulation.cpp \
+    thumbnailer.cpp \
     newvideowidget.cpp \
     clockgraphicsitem.cpp \
     sensoritem.cpp \
