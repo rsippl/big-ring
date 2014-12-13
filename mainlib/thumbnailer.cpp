@@ -5,13 +5,14 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QUrl>
 #include <QtCore/QtDebug>
+
 extern "C" {
 #include <gst/gst.h>
-#include <gst/app/gstappsink.h>
 }
 
 namespace
 {
+const QSize THUMBNAIL_SIZE(1280, 720);
 /*!
  * \brief GSTREAMER_CAPS caps (capabilities) for gstreamer.
  *
@@ -19,7 +20,7 @@ namespace
  * is set to 1/1, the pixels will stay "square". If the original movie is not in 16:9 format, black bars
  * will be added on the sides or on top or bottom.
  */
-const QString GSTREAMER_CAPS = "video/x-raw,format=RGB,width=1280,height=720,pixel-aspect-ratio=1/1";
+const QString GSTREAMER_CAPS = QString("video/x-raw,format=RGB,width=%1,height=%2,pixel-aspect-ratio=1/1").arg(THUMBNAIL_SIZE.width()).arg(THUMBNAIL_SIZE.height());
 
 /**
  * @brief template for the gstreamer pipeline.
@@ -28,6 +29,33 @@ const QString GSTREAMER_CAPS = "video/x-raw,format=RGB,width=1280,height=720,pix
  * above and outputs to an appsink element. This element will be used to save a frame to an image.
  */
 const QString GSTREAMER_PIPELINE_TEMPLATE = QString("uridecodebin uri=%2 ! videoconvert ! videoscale ! appsink name=sink caps=\"%1\"").arg(GSTREAMER_CAPS);
+
+/**
+ * @brief create the pipeline for the video of a certain RealLifeVideo
+ * @param rlv the RealLifeVideo to create the pipeline for.
+ * @return the pipeline, or nullptr if unable to create the pipeline.
+ */
+GstElement *createPipeline(const RealLifeVideo& rlv);
+
+/**
+ * @brief open the pipeline and start the video.
+ * @param pipeline the pipeline
+ * @return true if opening the video succeeds, false otherwise.
+ */
+bool openVideoFile(GstElement* pipeline);
+
+/**
+ * @brief get a still from the pipeline.
+ * @param pipeline the pipeline
+ * @return a still image. This will return a null pixmap (pixmap.isNull() will be true) when not successful.
+ */
+QPixmap getStillImage(GstElement* pipeline);
+/**
+ * @brief convert a GstSample to a QPixmap.
+ * @param sample the sample.
+ * @return  a still image. This will return a null pixmap (pixmap.isNull() will be true) when not successful.
+ */
+QPixmap convertSampleToPixmap(GstSample *sample);
 }
 
 Thumbnailer::Thumbnailer(QObject *parent): QObject(parent)
@@ -44,6 +72,7 @@ void Thumbnailer::createCacheDirectoryIfNotExists()
     }
 }
 
+
 void Thumbnailer::createThumbnailFor(const RealLifeVideo &rlv)
 {
     if (doesThumbnailExistsFor(rlv)) {
@@ -52,73 +81,22 @@ void Thumbnailer::createThumbnailFor(const RealLifeVideo &rlv)
     }
     qDebug() << QString("cache file does not exist for %1, generating...").arg(rlv.name());
 
-    GError* error = nullptr;
-    QString pipelineDescription = QString(GSTREAMER_PIPELINE_TEMPLATE).arg(QUrl::fromLocalFile(rlv.videoInformation().videoFilename()).toString());
-
-    GstElement* pipeline = gst_parse_launch(pipelineDescription.toStdString().c_str(), &error);
-
-    if (error != nullptr) {
-        qWarning("Unable to create pipeline %s", error->message);
+    GstElement* pipeline = createPipeline(rlv);
+    if (!pipeline) {
+        qWarning("Unable to create pipeline. Aborting creation of thumbnail");
         return;
     }
-    GstElement* sink = gst_bin_get_by_name (GST_BIN (pipeline), "sink");
 
-    GstStateChangeReturn ret = gst_element_set_state (pipeline, GST_STATE_PAUSED);
-    switch (ret) {
-    case GST_STATE_CHANGE_FAILURE:
-        qWarning("failed to open video file");
+    if (!openVideoFile(pipeline)) {
+        qWarning("Unable to open video file for %s. Aborting creation of video file", qPrintable(rlv.name()));
         return;
-    default:
-        break;
     }
 
-    ret = gst_element_get_state (pipeline, NULL, NULL, 1 * GST_SECOND);
-    if (ret == GST_STATE_CHANGE_FAILURE) {
-        g_print ("failed to play the file\n");
-        exit (-1);
-    }
-
-    GstSample *sample;
-    /* get the preroll buffer from appsink, this block untils appsink really
-       * prerolls */
-    g_signal_emit_by_name (sink, "pull-preroll", &sample, nullptr);
-
-    if (sample) {
-        /* get the snapshot buffer format now. We set the caps on the appsink so
-         * that it can only be an rgb buffer. The only thing we have not specified
-         * on the caps is the height, which is dependant on the pixel-aspect-ratio
-         * of the source material */
-        GstCaps *caps = gst_sample_get_caps (sample);
-        if (!caps) {
-            g_print ("could not get snapshot format\n");
-            exit (-1);
-        }
-        GstStructure* s = gst_caps_get_structure (caps, 0);
-        gint width, height;
-        /* we need to get the final caps on the buffer to get the size */
-        gboolean res = gst_structure_get_int (s, "width", &width);
-        res |= gst_structure_get_int (s, "height", &height);
-        if (!res) {
-            g_print ("could not get snapshot dimension\n");
-            exit (-1);
-        } else {
-            qDebug() << "size is " << QSize(width, height);
-        }
-        /* create pixmap from buffer and save, gstreamer video buffers have a stride
-             * that is rounded up to the nearest multiple of 4 */
-        GstBuffer* buffer = gst_sample_get_buffer (sample);
-        GstMapInfo map;
-        gst_buffer_map (buffer, &map, GST_MAP_READ);
-
-        QImage image(map.data, width, height, QImage::Format_RGB888);
-        if (!image.save(cacheFilePathFor(rlv))) {
-            qWarning ("unable to save image for rlv %s", qPrintable(rlv.name()));
-        }
-        g_print("we should be saving here!\n");
-        gst_buffer_unmap (buffer, &map);
-        gst_sample_unref (sample);
+    QPixmap pixmap = getStillImage(pipeline);
+    if (pixmap.isNull()) {
+        qWarning("Unable to get sample for video %s, Aborting creation of video file", qPrintable(rlv.name()));
     } else {
-        qWarning("unable to get a sample");
+        pixmap.save(cacheFilePathFor(rlv));
     }
     gst_element_set_state(pipeline, GST_STATE_NULL);
     gst_object_unref (GST_OBJECT (pipeline));
@@ -146,4 +124,71 @@ bool Thumbnailer::doesThumbnailExistsFor(const RealLifeVideo &rlv)
     return cacheFile.exists() && cacheFile.size() > 0;
 }
 
+namespace {
 
+
+GstElement* createPipeline(const RealLifeVideo& rlv)
+{
+    GError* error = nullptr;
+    QString pipelineDescription = QString(GSTREAMER_PIPELINE_TEMPLATE).arg(QUrl::fromLocalFile(rlv.videoInformation().videoFilename()).toString());
+
+    GstElement* pipeline = gst_parse_launch(pipelineDescription.toStdString().c_str(), &error);
+
+    if (error != nullptr) {
+        qWarning("Unable to create pipeline %s", error->message);
+        return nullptr;
+    }
+    return pipeline;
+}
+
+bool openVideoFile(GstElement* pipeline)
+{
+    GstStateChangeReturn ret = gst_element_set_state (pipeline, GST_STATE_PAUSED);
+    switch (ret) {
+    case GST_STATE_CHANGE_FAILURE:
+        qWarning("failed to open video file");
+        return false;
+    default:
+        break;
+    }
+
+    ret = gst_element_get_state (pipeline, nullptr, nullptr, 1 * GST_SECOND);
+    if (ret == GST_STATE_CHANGE_FAILURE) {
+        qWarning("failed to start playing video file");
+        return false;
+    }
+    return true;
+}
+
+QPixmap getStillImage(GstElement* pipeline)
+{
+    GstElement* sink = gst_bin_get_by_name (GST_BIN (pipeline), "sink");
+    GstSample *sample = nullptr;
+    /* get the preroll buffer from appsink, this block untils appsink really
+       * prerolls */
+    g_signal_emit_by_name (sink, "pull-preroll", &sample, nullptr);
+
+    QPixmap pixmap;
+    if (sample) {
+        pixmap = convertSampleToPixmap(sample);
+        gst_sample_unref (sample);
+    } else {
+        qWarning("unable to get a sample");
+    }
+    return pixmap;
+}
+
+QPixmap convertSampleToPixmap(GstSample *sample)
+{
+    GstBuffer* buffer = gst_sample_get_buffer (sample);
+    GstMapInfo map;
+    gst_buffer_map (buffer, &map, GST_MAP_READ);
+
+    QImage image(map.data, THUMBNAIL_SIZE.width(), THUMBNAIL_SIZE.height(), QImage::Format_RGB888);
+    g_print("we should be saving here!\n");
+    gst_buffer_unmap (buffer, &map);
+
+    return QPixmap::fromImage(image);
+}
+
+}
