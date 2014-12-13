@@ -14,7 +14,7 @@ const int HEIGHT = 200;
 }
 
 VideoTile::VideoTile(const RealLifeVideo rlv, QObject *parent) :
-    QObject(parent), QGraphicsRectItem(), _rlv(rlv)
+    QObject(parent), QGraphicsRectItem(), _rlv(rlv), _thumbnailer(new Thumbnailer(this))
 {
     setAcceptHoverEvents(true);
     setPen(QPen(QBrush(Qt::black), 1));
@@ -22,13 +22,12 @@ VideoTile::VideoTile(const RealLifeVideo rlv, QObject *parent) :
     setRect(0, 0, 100, HEIGHT);
     Thumbnailer thumbnailer;
     qDebug() << "cache file: " << thumbnailer.cacheFilePathFor(rlv);
-    QPixmap picture(thumbnailer.cacheFilePathFor(rlv));
-    QPixmap scaled = picture.scaledToHeight(.9 * HEIGHT);
-    QGraphicsPixmapItem* pict = new QGraphicsPixmapItem(scaled, this);
-    pict->setPos(5, 5);
+
+    _thumbnailItem = addThumbnail();
+    _thumbnailItem->setPos(5, 5);
     QGraphicsItem* flagItem = addFlag();
     if (flagItem) {
-        flagItem->setPos(mapFromItem(pict, pict->boundingRect().topLeft()));
+        flagItem->setPos(mapFromItem(_thumbnailItem, _thumbnailItem->boundingRect().topLeft()));
     }
 
     QFont font;
@@ -36,14 +35,14 @@ VideoTile::VideoTile(const RealLifeVideo rlv, QObject *parent) :
     QGraphicsTextItem* titleItem = new QGraphicsTextItem(this);
     titleItem->setFont(font);
     titleItem->setPlainText(_rlv.name());
-    titleItem->setPos(pict->boundingRect().topRight());
+    titleItem->setPos(_thumbnailItem->boundingRect().topRight());
 
     QFont font2;
     font2.setPointSizeF(16.0);
     QGraphicsTextItem* distanceItem = new QGraphicsTextItem(this);
     distanceItem->setFont(font2);
     distanceItem->setPlainText(QString("%1 m").arg(_rlv.totalDistance()));
-    distanceItem->setPos(pict->boundingRect().right() + 10, titleItem->boundingRect().bottom());
+    distanceItem->setPos(_thumbnailItem->boundingRect().right() + 10, titleItem->boundingRect().bottom());
 }
 
 QGraphicsItem* VideoTile::addFlag() {
@@ -58,6 +57,14 @@ QGraphicsItem* VideoTile::addFlag() {
         return flagItem;
     }
     return nullptr;
+}
+
+QGraphicsPixmapItem* VideoTile::addThumbnail()
+{
+    connect(_thumbnailer, &Thumbnailer::pixmapUpdated, this, &VideoTile::thumbnailUpdated);
+    QPixmap thumbnail = _thumbnailer->thumbnailFor(_rlv);
+    QPixmap scaled = thumbnail.scaledToHeight(.9 * HEIGHT);
+    return new QGraphicsPixmapItem(scaled, this);
 }
 
 void VideoTile::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -84,4 +91,10 @@ void VideoTile::setWidth(int width)
 {
     prepareGeometryChange();
     setRect(0, 0, width, HEIGHT);
+}
+
+void VideoTile::thumbnailUpdated()
+{
+    QPixmap updatedThumbnail = _thumbnailer->thumbnailFor(_rlv);
+    _thumbnailItem->setPixmap(updatedThumbnail.scaledToHeight(.9 * HEIGHT));
 }

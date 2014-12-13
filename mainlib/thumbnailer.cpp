@@ -1,7 +1,7 @@
 #include "thumbnailer.h"
 
 #include <QtCore/QDir>
-
+#include <QtConcurrent/QtConcurrent>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QUrl>
 #include <QtCore/QtDebug>
@@ -29,6 +29,12 @@ const QString GSTREAMER_CAPS = QString("video/x-raw,format=RGB,width=%1,height=%
  * above and outputs to an appsink element. This element will be used to save a frame to an image.
  */
 const QString GSTREAMER_PIPELINE_TEMPLATE = QString("uridecodebin uri=%2 ! videoconvert ! videoscale ! appsink name=sink caps=\"%1\"").arg(GSTREAMER_CAPS);
+
+/**
+ * @brief Create a thumbnail for the rlv.
+ * @param rlv the rlv to create the thumbnail for.
+ */
+bool createThumbnailFor(const RealLifeVideo &rlv, const QString& filename);
 
 /**
  * @brief create the pipeline for the video of a certain RealLifeVideo
@@ -64,42 +70,28 @@ Thumbnailer::Thumbnailer(QObject *parent): QObject(parent)
     createCacheDirectoryIfNotExists();
 }
 
+QPixmap Thumbnailer::thumbnailFor(const RealLifeVideo &rlv)
+{
+    if (doesThumbnailExistsFor(rlv)) {
+        return loadThumbnailFor(rlv);
+    }
+
+    _thumbnailCreationFutureWatcher = new QFutureWatcher<bool>;
+    connect(_thumbnailCreationFutureWatcher, SIGNAL(finished()), this, SLOT(pixmapCreated()));
+    _thumbnailCreationFuture = QtConcurrent::run(createThumbnailFor, rlv, cacheFilePathFor(rlv));
+    _thumbnailCreationFutureWatcher->setFuture(_thumbnailCreationFuture);
+
+    QPixmap emptyPixmap(THUMBNAIL_SIZE);
+    emptyPixmap.fill(Qt::black);
+    return emptyPixmap;
+}
+
 void Thumbnailer::createCacheDirectoryIfNotExists()
 {
     QDir cacheDir(_cacheDirectory);
     if (!cacheDir.exists()) {
         cacheDir.mkpath(".");
     }
-}
-
-
-void Thumbnailer::createThumbnailFor(const RealLifeVideo &rlv)
-{
-    if (doesThumbnailExistsFor(rlv)) {
-        qDebug() << QString("cache file exists for %1, no need to generate.").arg(rlv.name());
-        return;
-    }
-    qDebug() << QString("cache file does not exist for %1, generating...").arg(rlv.name());
-
-    GstElement* pipeline = createPipeline(rlv);
-    if (!pipeline) {
-        qWarning("Unable to create pipeline. Aborting creation of thumbnail");
-        return;
-    }
-
-    if (!openVideoFile(pipeline)) {
-        qWarning("Unable to open video file for %s. Aborting creation of video file", qPrintable(rlv.name()));
-        return;
-    }
-
-    QPixmap pixmap = getStillImage(pipeline);
-    if (pixmap.isNull()) {
-        qWarning("Unable to get sample for video %s, Aborting creation of video file", qPrintable(rlv.name()));
-    } else {
-        pixmap.save(cacheFilePathFor(rlv));
-    }
-    gst_element_set_state(pipeline, GST_STATE_NULL);
-    gst_object_unref (GST_OBJECT (pipeline));
 }
 
 QString Thumbnailer::cacheFilePathFor(const RealLifeVideo &rlv)
@@ -118,24 +110,66 @@ QDir Thumbnailer::thumbnailDirectory()
     }
 }
 
+void Thumbnailer::pixmapCreated()
+{
+    _thumbnailCreationFutureWatcher->deleteLater();
+    bool ok = _thumbnailCreationFuture.resultAt(0);
+    if (ok) {
+        emit pixmapUpdated();
+    }
+}
+
 bool Thumbnailer::doesThumbnailExistsFor(const RealLifeVideo &rlv)
 {
     QFile cacheFile(cacheFilePathFor(rlv));
     return cacheFile.exists() && cacheFile.size() > 0;
 }
 
+QPixmap Thumbnailer::loadThumbnailFor(const RealLifeVideo &rlv)
+{
+    return QPixmap(cacheFilePathFor(rlv));
+}
+
 namespace {
+
+bool createThumbnailFor(const RealLifeVideo &rlv, const QString& filename)
+{
+    qDebug() << QString("generating cache file for %1").arg(rlv.name());
+
+    GstElement* pipeline = createPipeline(rlv);
+    if (!pipeline) {
+        qWarning("Unable to create pipeline. Aborting creation of thumbnail");
+        return false;
+    }
+
+    if (!openVideoFile(pipeline)) {
+        qWarning("Unable to open video file for %s. Aborting creation of video file", qPrintable(rlv.name()));
+        return false;
+    }
+
+    QPixmap pixmap = getStillImage(pipeline);
+    if (pixmap.isNull()) {
+        qWarning("Unable to get sample for video %s, Aborting creation of video file", qPrintable(rlv.name()));
+    } else {
+        pixmap.save(filename);
+    }
+    gst_element_set_state(pipeline, GST_STATE_NULL);
+    gst_object_unref (GST_OBJECT (pipeline));
+
+    return true;
+}
 
 
 GstElement* createPipeline(const RealLifeVideo& rlv)
 {
     GError* error = nullptr;
-    QString pipelineDescription = QString(GSTREAMER_PIPELINE_TEMPLATE).arg(QUrl::fromLocalFile(rlv.videoInformation().videoFilename()).toString());
+    QString fileUri(QUrl::fromLocalFile(rlv.videoInformation().videoFilename()).toEncoded());
+    QString pipelineDescription = QString(GSTREAMER_PIPELINE_TEMPLATE).arg(fileUri);
 
     GstElement* pipeline = gst_parse_launch(pipelineDescription.toStdString().c_str(), &error);
 
     if (error != nullptr) {
-        qWarning("Unable to create pipeline %s", error->message);
+        qWarning("Unable to create pipeline %s for video file %s", error->message, qPrintable(fileUri));
         return nullptr;
     }
     return pipeline;
@@ -185,7 +219,6 @@ QPixmap convertSampleToPixmap(GstSample *sample)
     gst_buffer_map (buffer, &map, GST_MAP_READ);
 
     QImage image(map.data, THUMBNAIL_SIZE.width(), THUMBNAIL_SIZE.height(), QImage::Format_RGB888);
-    g_print("we should be saving here!\n");
     gst_buffer_unmap (buffer, &map);
 
     return QPixmap::fromImage(image);

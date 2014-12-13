@@ -2,6 +2,8 @@
 #define THUMBNAILER_H
 
 #include <QtCore/QDir>
+#include <QtCore/QFuture>
+#include <QtCore/QFutureWatcher>
 #include <QtGui/QPixmap>
 #include "reallifevideo.h"
 
@@ -16,17 +18,15 @@ class Thumbnailer : public QObject
 public:
     explicit Thumbnailer(QObject* parent = 0);
 
+    QPixmap thumbnailFor(const RealLifeVideo& rlv);
     QString cacheFilePathFor(const RealLifeVideo& rlv);
     static QDir thumbnailDirectory();
 
 signals:
+    void pixmapUpdated();
 
-public slots:
-    /**
-     * @brief Create a thumbnail for the rlv.
-     * @param rlv the rlv to create the thumbnail for.
-     */
-    void createThumbnailFor(const RealLifeVideo &rlv);
+private slots:
+    void pixmapCreated();
 
 private:
     /*!
@@ -41,9 +41,17 @@ private:
     bool doesThumbnailExistsFor(const RealLifeVideo& rlv);
 
     /**
+     * Load the thumbnail for a RealLifeVideo.
+     */
+    QPixmap loadThumbnailFor(const RealLifeVideo& rlv);
+
+    /**
      * @brief The directory where thumbnails are cached.
      */
     QDir _cacheDirectory;
+
+    QFuture<bool> _thumbnailCreationFuture;
+    QFutureWatcher<bool>* _thumbnailCreationFutureWatcher;
 };
 
 #endif // THUMBNAILER_H

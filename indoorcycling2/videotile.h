@@ -4,8 +4,11 @@
 #include <QObject>
 #include <QtWidgets/QGraphicsLayoutItem>
 #include <QtWidgets/QGraphicsItem>
+#include <QtWidgets/QGraphicsPixmapItem>
 #include <QtWidgets/QGraphicsWidget>
 #include "reallifevideo.h"
+
+class Thumbnailer;
 class VideoTile : public QObject, public QGraphicsRectItem
 {
     Q_OBJECT
@@ -21,11 +24,14 @@ signals:
 
 public slots:
     void setWidth(int width);
-
+private slots:
+    void thumbnailUpdated();
 private:
     QGraphicsItem *addFlag();
-
+    QGraphicsPixmapItem *addThumbnail();
     const RealLifeVideo _rlv;
+    QGraphicsPixmapItem* _thumbnailItem;
+    Thumbnailer* _thumbnailer;
 };
 
 #endif // VIDEOTILE_H

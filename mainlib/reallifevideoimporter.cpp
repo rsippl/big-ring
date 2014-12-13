@@ -82,18 +82,6 @@ void RealLifeVideoImporter::importReady()
 	// sort rlv list by name
 	qSort(rlvList.begin(), rlvList.end(), RealLifeVideo::compareByName);
 
-    QStringList paths = QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
-    QString thumbnailDir = "/tmp";
-    if (!paths.isEmpty()) {
-        thumbnailDir = paths[0];
-    }
-    Thumbnailer thumbNailer;
-    for (auto rlv: rlvList) {
-        qDebug() << "creating jpg for " << rlv.name();
-        thumbNailer.createThumbnailFor(rlv);
-        qDebug() << "finished creating jpg for " << rlv.name();
-    }
-
 	emit importFinished(rlvList);
 	watcher->deleteLater();
 }
