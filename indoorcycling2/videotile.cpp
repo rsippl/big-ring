@@ -13,13 +13,11 @@ namespace
 const int HEIGHT = 200;
 }
 
-VideoTile::VideoTile(const RealLifeVideo rlv, QObject *parent) :
-    QObject(parent), QGraphicsRectItem(), _rlv(rlv), _thumbnailer(new Thumbnailer(this))
+VideoTile::VideoTile(const RealLifeVideo rlv, QGraphicsItem *parent) :
+    QGraphicsWidget(parent), _rlv(rlv), _thumbnailer(new Thumbnailer(this)), _selected(false)
 {
     setAcceptHoverEvents(true);
-    setPen(QPen(QBrush(Qt::black), 1));
-    setBrush(QBrush(Qt::darkGray));
-    setRect(0, 0, 100, HEIGHT);
+    setGeometry(0, 0, 100, HEIGHT);
     Thumbnailer thumbnailer;
     qDebug() << "cache file: " << thumbnailer.cacheFilePathFor(rlv);
 
@@ -69,32 +67,32 @@ QGraphicsPixmapItem* VideoTile::addThumbnail()
 
 void VideoTile::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QGraphicsRectItem::paint(painter, option, widget);
+    QBrush background = _selected ? Qt::lightGray : Qt::darkGray;
+    painter->fillRect(boundingRect(), background);
+    QGraphicsWidget::paint(painter, option, widget);
+
 }
 
 void VideoTile::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    emit selected(_rlv);
     event->accept();
 }
 
 void VideoTile::hoverEnterEvent(QGraphicsSceneHoverEvent *)
 {
-    setBrush(QBrush(Qt::lightGray));
+    _selected = true;
+    update();
 }
 
 void VideoTile::hoverLeaveEvent(QGraphicsSceneHoverEvent *)
 {
-    setBrush(QBrush(Qt::darkGray));
+    _selected = false;
+    update();
 }
 
-void VideoTile::setWidth(int width)
-{
-    prepareGeometryChange();
-    setRect(0, 0, width, HEIGHT);
-}
 
-void VideoTile::thumbnailUpdated()
+void VideoTile::thumbnailUpdated(QPixmap updatedPixmap)
 {
-    QPixmap updatedThumbnail = _thumbnailer->thumbnailFor(_rlv);
-    _thumbnailItem->setPixmap(updatedThumbnail.scaledToHeight(.9 * HEIGHT));
+    _thumbnailItem->setPixmap(updatedPixmap.scaledToHeight(.9 * HEIGHT));
 }

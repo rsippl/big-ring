@@ -12,29 +12,32 @@ extern "C" {
 
 namespace
 {
-const QSize THUMBNAIL_SIZE(1280, 720);
+/**
+ * @brief Size for default empty images.
+ */
+const QSize DEFAULT_IMAGE_SIZE(1920, 1080);
 /*!
  * \brief GSTREAMER_CAPS caps (capabilities) for gstreamer.
  *
- * These capabilities will convert frames to 24-bits RGB, 1280x720 (16:9). Because the pixel-aspect-ratio
- * is set to 1/1, the pixels will stay "square". If the original movie is not in 16:9 format, black bars
- * will be added on the sides or on top or bottom.
+ *
  */
-const QString GSTREAMER_CAPS = QString("video/x-raw,format=RGB,width=%1,height=%2,pixel-aspect-ratio=1/1").arg(THUMBNAIL_SIZE.width()).arg(THUMBNAIL_SIZE.height());
+const QString GSTREAMER_CAPS = QString("");
 
 /**
  * @brief template for the gstreamer pipeline.
  *
- * This will create a gstreamer pipeline that opens a video file, converts the video file to the CAPS mentioned
- * above and outputs to an appsink element. This element will be used to save a frame to an image.
+ * This will create a gstreamer pipeline that opens a video file, converts the frames to RGB
+ * and outputs to an appsink element. This appsink element will be used to save a frame to an image.
+ * The frames will have the same resolution as the original video.
  */
-const QString GSTREAMER_PIPELINE_TEMPLATE = QString("uridecodebin uri=%2 ! videoconvert ! videoscale ! appsink name=sink caps=\"%1\"").arg(GSTREAMER_CAPS);
+const QString GSTREAMER_PIPELINE_TEMPLATE = QString("uridecodebin uri=%2 ! videoconvert ! videoscale ! appsink name=sink caps=\"video/x-raw,format=RGB\"");
 
 /**
  * @brief Create a thumbnail for the rlv.
  * @param rlv the rlv to create the thumbnail for.
+ * @return the pixmap created
  */
-bool createThumbnailFor(const RealLifeVideo &rlv, const QString& filename);
+QPixmap createThumbnailFor(const RealLifeVideo &rlv, const QString& filename, QPixmap defaultPixmap);
 
 /**
  * @brief create the pipeline for the video of a certain RealLifeVideo
@@ -62,12 +65,22 @@ QPixmap getStillImage(GstElement* pipeline);
  * @return  a still image. This will return a null pixmap (pixmap.isNull() will be true) when not successful.
  */
 QPixmap convertSampleToPixmap(GstSample *sample);
+
+/**
+ * @brief get the size (width & height) from a sample.
+ * @param sample the sample
+ * @return the size.
+ */
+QSize getSizeFromSample(GstSample* sample);
 }
 
 Thumbnailer::Thumbnailer(QObject *parent): QObject(parent)
 {
     _cacheDirectory = thumbnailDirectory();
     createCacheDirectoryIfNotExists();
+
+    _emptyPixmap = QPixmap(DEFAULT_IMAGE_SIZE);
+    _emptyPixmap.fill(Qt::black);
 }
 
 QPixmap Thumbnailer::thumbnailFor(const RealLifeVideo &rlv)
@@ -76,14 +89,11 @@ QPixmap Thumbnailer::thumbnailFor(const RealLifeVideo &rlv)
         return loadThumbnailFor(rlv);
     }
 
-    _thumbnailCreationFutureWatcher = new QFutureWatcher<bool>;
-    connect(_thumbnailCreationFutureWatcher, SIGNAL(finished()), this, SLOT(pixmapCreated()));
-    _thumbnailCreationFuture = QtConcurrent::run(createThumbnailFor, rlv, cacheFilePathFor(rlv));
-    _thumbnailCreationFutureWatcher->setFuture(_thumbnailCreationFuture);
+    QFutureWatcher<QPixmap>* watcher = new QFutureWatcher<QPixmap>(this);
+    connect(watcher, SIGNAL(finished()), this, SLOT(pixmapCreated()));
+    watcher->setFuture(QtConcurrent::run(createThumbnailFor, rlv, cacheFilePathFor(rlv), _emptyPixmap));
 
-    QPixmap emptyPixmap(THUMBNAIL_SIZE);
-    emptyPixmap.fill(Qt::black);
-    return emptyPixmap;
+    return _emptyPixmap;
 }
 
 void Thumbnailer::createCacheDirectoryIfNotExists()
@@ -112,11 +122,9 @@ QDir Thumbnailer::thumbnailDirectory()
 
 void Thumbnailer::pixmapCreated()
 {
-    _thumbnailCreationFutureWatcher->deleteLater();
-    bool ok = _thumbnailCreationFuture.resultAt(0);
-    if (ok) {
-        emit pixmapUpdated();
-    }
+    QFutureWatcher<QPixmap>* watcher = dynamic_cast<QFutureWatcher<QPixmap>* >(sender());
+    emit pixmapUpdated(watcher->future().result());
+    watcher->deleteLater();
 }
 
 bool Thumbnailer::doesThumbnailExistsFor(const RealLifeVideo &rlv)
@@ -132,31 +140,32 @@ QPixmap Thumbnailer::loadThumbnailFor(const RealLifeVideo &rlv)
 
 namespace {
 
-bool createThumbnailFor(const RealLifeVideo &rlv, const QString& filename)
+QPixmap createThumbnailFor(const RealLifeVideo &rlv, const QString& filename, QPixmap defaultPixmap)
 {
     qDebug() << QString("generating cache file for %1").arg(rlv.name());
 
     GstElement* pipeline = createPipeline(rlv);
     if (!pipeline) {
         qWarning("Unable to create pipeline. Aborting creation of thumbnail");
-        return false;
+        return defaultPixmap;
     }
 
     if (!openVideoFile(pipeline)) {
         qWarning("Unable to open video file for %s. Aborting creation of video file", qPrintable(rlv.name()));
-        return false;
+        return defaultPixmap;
     }
 
     QPixmap pixmap = getStillImage(pipeline);
     if (pixmap.isNull()) {
         qWarning("Unable to get sample for video %s, Aborting creation of video file", qPrintable(rlv.name()));
+        return defaultPixmap;
     } else {
-        pixmap.save(filename);
+//        pixmap.save(filename);
     }
     gst_element_set_state(pipeline, GST_STATE_NULL);
     gst_object_unref (GST_OBJECT (pipeline));
 
-    return true;
+    return pixmap;
 }
 
 
@@ -217,11 +226,22 @@ QPixmap convertSampleToPixmap(GstSample *sample)
     GstBuffer* buffer = gst_sample_get_buffer (sample);
     GstMapInfo map;
     gst_buffer_map (buffer, &map, GST_MAP_READ);
-
-    QImage image(map.data, THUMBNAIL_SIZE.width(), THUMBNAIL_SIZE.height(), QImage::Format_RGB888);
+    QSize size = getSizeFromSample(sample);
+    QImage image(map.data, size.width(), size.height(), QImage::Format_RGB888);
     gst_buffer_unmap (buffer, &map);
 
     return QPixmap::fromImage(image);
+}
+
+QSize getSizeFromSample(GstSample* sample)
+{
+    GstCaps* caps = gst_sample_get_caps(sample);
+    GstStructure* structure = gst_caps_get_structure(caps, 0);
+    gint width, height;
+    gst_structure_get_int(structure, "width", &width);
+    gst_structure_get_int(structure, "height", &height);
+
+    return QSize(width, height);
 }
 
 }

@@ -23,7 +23,7 @@ public:
     static QDir thumbnailDirectory();
 
 signals:
-    void pixmapUpdated();
+    void pixmapUpdated(QPixmap pixmap);
 
 private slots:
     void pixmapCreated();
@@ -50,8 +50,7 @@ private:
      */
     QDir _cacheDirectory;
 
-    QFuture<bool> _thumbnailCreationFuture;
-    QFutureWatcher<bool>* _thumbnailCreationFutureWatcher;
+    QPixmap _emptyPixmap;
 };
 
 #endif // THUMBNAILER_H

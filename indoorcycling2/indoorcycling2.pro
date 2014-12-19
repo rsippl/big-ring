@@ -22,14 +22,16 @@ SOURCES += main.cpp\
     previewvideowidget.cpp \
     clockitem.cpp \
     videotileview.cpp \
-    videotile.cpp
+    videotile.cpp \
+    videolightbox.cpp
 
 HEADERS  += mainwindow.h \
     rlvtablemodel.h \
     previewvideowidget.h \
     clockitem.h \
     videotileview.h \
-    videotile.h
+    videotile.h \
+    videolightbox.h
 
 LIBS += -L/home/ibooij/local/lib/qtgstreamer/lib/x86_64-linux-gnu -lQt5GLib-2.0 -lQt5GStreamer-1.0 -lQt5GStreamerUi-1.0
 

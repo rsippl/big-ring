@@ -1,5 +1,5 @@
-#ifndef VIDEOTILE_H
-#define VIDEOTILE_H
+#ifndef VIDEOLIGHTBOX_H
+#define VIDEOLIGHTBOX_H
 
 #include <QObject>
 #include <QtWidgets/QGraphicsLayoutItem>
@@ -9,18 +9,22 @@
 #include "reallifevideo.h"
 
 class Thumbnailer;
-class VideoTile : public QGraphicsWidget
+class VideoLightBox : public QGraphicsWidget
 {
     Q_OBJECT
+//    Q_INTERFACES(QGraphicsWidget)
 public:
-    explicit VideoTile(const RealLifeVideo rlv, QGraphicsItem *parent = 0);
+    explicit VideoLightBox(const RealLifeVideo& rlv, const QSizeF size);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    void mousePressEvent(QGraphicsSceneMouseEvent *event);
-    void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
-    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
 signals:
-    void selected(const RealLifeVideo& video);
+
+public slots:
+    void setSize(const QSizeF &size);
+
+protected:
+    virtual void resizeEvent(QGraphicsSceneResizeEvent *event);
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);
 private slots:
     void thumbnailUpdated(QPixmap updatedPixmap);
 private:
@@ -29,7 +33,7 @@ private:
     const RealLifeVideo _rlv;
     QGraphicsPixmapItem* _thumbnailItem;
     Thumbnailer* _thumbnailer;
-    bool _selected;
 };
 
-#endif // VIDEOTILE_H
+
+#endif // VIDEOLIGHTBOX_H
