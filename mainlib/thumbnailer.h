@@ -25,9 +25,6 @@ public:
 signals:
     void pixmapUpdated(QPixmap pixmap);
 
-private slots:
-    void pixmapCreated();
-
 private:
     /*!
      * \brief Create the cache directory in which the thumbnails will be stored, if it does not exist yet.

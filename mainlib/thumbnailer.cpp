@@ -90,7 +90,10 @@ QPixmap Thumbnailer::thumbnailFor(const RealLifeVideo &rlv)
     }
 
     QFutureWatcher<QPixmap>* watcher = new QFutureWatcher<QPixmap>(this);
-    connect(watcher, SIGNAL(finished()), this, SLOT(pixmapCreated()));
+    connect(watcher, &QFutureWatcher<QPixmap>::finished, watcher, [watcher,this]() {
+        emit pixmapUpdated(watcher->future().result());
+        watcher->deleteLater();
+    });
     watcher->setFuture(QtConcurrent::run(createThumbnailFor, rlv, cacheFilePathFor(rlv), _emptyPixmap));
 
     return _emptyPixmap;
@@ -118,13 +121,6 @@ QDir Thumbnailer::thumbnailDirectory()
     } else {
         return QDir(QString("%1/thumbnails").arg(paths[0]));
     }
-}
-
-void Thumbnailer::pixmapCreated()
-{
-    QFutureWatcher<QPixmap>* watcher = dynamic_cast<QFutureWatcher<QPixmap>* >(sender());
-    emit pixmapUpdated(watcher->future().result());
-    watcher->deleteLater();
 }
 
 bool Thumbnailer::doesThumbnailExistsFor(const RealLifeVideo &rlv)
@@ -160,7 +156,7 @@ QPixmap createThumbnailFor(const RealLifeVideo &rlv, const QString& filename, QP
         qWarning("Unable to get sample for video %s, Aborting creation of video file", qPrintable(rlv.name()));
         return defaultPixmap;
     } else {
-//        pixmap.save(filename);
+        pixmap.save(filename);
     }
     gst_element_set_state(pipeline, GST_STATE_NULL);
     gst_object_unref (GST_OBJECT (pipeline));
