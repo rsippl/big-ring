@@ -39,6 +39,7 @@ public:
      */
     bool isReadyToPlay();
 
+
 signals:
     /*!
      * \brief signal emitted when a video is loaded. \param videoDurationNanoSeconds will hold the length
@@ -73,6 +74,7 @@ private:
     static void onVideoUpdate(GObject *src, guint, VideoPlayer* context);
     void sendVideoUpdated();
     void handleAsyncDone();
+    void handleError(GstMessage *msg);
 
     void pollBus();
 
