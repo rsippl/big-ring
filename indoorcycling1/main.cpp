@@ -3,7 +3,6 @@
 #include <QtWidgets/QApplication>
 #include <QtDebug>
 #include <gst/gst.h>
-#include <QGst/Init>
 #include "antcontroller.h"
 #include "reallifevideoimporter.h"
 #include "mainwindow.h"
