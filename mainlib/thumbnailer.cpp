@@ -1,5 +1,7 @@
 #include "thumbnailer.h"
 
+#include <memory>
+
 #include <QtCore/QDir>
 #include <QtConcurrent/QtConcurrent>
 #include <QtCore/QStandardPaths>
@@ -40,11 +42,26 @@ const QString GSTREAMER_PIPELINE_TEMPLATE = QString("uridecodebin uri=%2 ! video
 QPixmap createThumbnailFor(const RealLifeVideo &rlv, const QString& filename, QPixmap defaultPixmap);
 
 /**
+ * @brief Custom deleter for smart pointers to GstElement* pipelines.
+ */
+struct GstPipelineDeleter {
+    void operator()(GstElement* pipeline)
+    {
+        gst_element_set_state(pipeline, GST_STATE_NULL);
+        gst_object_unref (GST_OBJECT (pipeline));
+    }
+};
+/**
+ * @brief unique pointer for pipelines. Use this so you don't have to delete pipelines yourself.
+ */
+typedef std::unique_ptr<GstElement,GstPipelineDeleter> UniqueGstPipelinePtr;
+
+/**
  * @brief create the pipeline for the video of a certain RealLifeVideo
  * @param rlv the RealLifeVideo to create the pipeline for.
  * @return the pipeline, or nullptr if unable to create the pipeline.
  */
-GstElement *createPipeline(const RealLifeVideo& rlv);
+UniqueGstPipelinePtr createPipeline(const RealLifeVideo& rlv);
 
 /**
  * @brief open the pipeline and start the video.
@@ -134,45 +151,43 @@ QPixmap Thumbnailer::loadThumbnailFor(const RealLifeVideo &rlv)
     return QPixmap(cacheFilePathFor(rlv));
 }
 
+// the following functions are in anonymous namespace so they're not exported.
 namespace {
 
 QPixmap createThumbnailFor(const RealLifeVideo &rlv, const QString& filename, QPixmap defaultPixmap)
 {
     qDebug() << QString("generating cache file for %1").arg(rlv.name());
 
-    GstElement* pipeline = createPipeline(rlv);
+    // wrap pipeline in a UniqueGstPipelinePtr to make sure it's cleaned always.
+    UniqueGstPipelinePtr pipeline = createPipeline(rlv);
     if (!pipeline) {
         qWarning("Unable to create pipeline. Aborting creation of thumbnail");
         return defaultPixmap;
     }
 
-    if (!openVideoFile(pipeline)) {
+    if (!openVideoFile(pipeline.get())) {
         qWarning("Unable to open video file for %s. Aborting creation of video file", qPrintable(rlv.name()));
         return defaultPixmap;
     }
 
-    QPixmap pixmap = getStillImage(pipeline);
+    QPixmap pixmap = getStillImage(pipeline.get());
     if (pixmap.isNull()) {
         qWarning("Unable to get sample for video %s, Aborting creation of video file", qPrintable(rlv.name()));
         return defaultPixmap;
     } else {
         pixmap.save(filename);
     }
-    gst_element_set_state(pipeline, GST_STATE_NULL);
-    gst_object_unref (GST_OBJECT (pipeline));
-
     return pixmap;
 }
 
 
-GstElement* createPipeline(const RealLifeVideo& rlv)
+UniqueGstPipelinePtr createPipeline(const RealLifeVideo& rlv)
 {
     GError* error = nullptr;
     QString fileUri(QUrl::fromLocalFile(rlv.videoInformation().videoFilename()).toEncoded());
     QString pipelineDescription = QString(GSTREAMER_PIPELINE_TEMPLATE).arg(fileUri);
 
-    GstElement* pipeline = gst_parse_launch(pipelineDescription.toStdString().c_str(), &error);
-
+    UniqueGstPipelinePtr pipeline(gst_parse_launch(pipelineDescription.toStdString().c_str(), &error));
     if (error != nullptr) {
         qWarning("Unable to create pipeline %s for video file %s", error->message, qPrintable(fileUri));
         return nullptr;
