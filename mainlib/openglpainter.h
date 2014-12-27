@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QtOpenGL/QGLShaderProgram>
 #include <QtOpenGL/QGLWidget>
-#include <QtGui/QMatrix4x4>
 
 extern "C" {
 #include <gst/gst.h>
@@ -17,6 +16,7 @@ public:
     virtual ~OpenGLPainter();
 
     void paint(QPainter* painter, const QRectF& rect);
+
 signals:
 
 public slots:
@@ -25,8 +25,8 @@ public slots:
 private:
     QSizeF getSizeFromSample(GstSample* sample);
     void initShaders();
-    QMatrix4x4* updateColors();
     void initYuv420PTextureInfo();
+    void uploadTextures();
     void adjustPaintAreas(const QRectF& targetRect);
 
     QGLWidget* _widget;
@@ -45,9 +45,9 @@ private:
     int _textureWidths[3];
     int _textureHeights[3];
     int _textureOffsets[3];
+    QVector<GLfloat> _textureCoordinates;
 
     QGLShaderProgram _program;
-    QMatrix4x4* _colorMatrix;
 };
 
 #endif // OPENGLPAINTER_H
