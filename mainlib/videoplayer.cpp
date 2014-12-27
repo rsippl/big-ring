@@ -1,11 +1,27 @@
 #include "videoplayer.h"
+
+#include <QtCore/QCoreApplication>
+#include <QtCore/QEvent>
 #include <QtCore/QtDebug>
 #include <QtCore/QThread>
 
-VideoPlayer::VideoPlayer(QGLWidget *paintWidget, QObject *parent) :
-    QObject(parent), _pipeline(nullptr), _videoSink(nullptr), _pipelineBus(nullptr), _busTimer(new QTimer(this)), _loadState(NONE), _currentFrameNumber(0u)
+
+#include "openglpainter.h"
+
+namespace
 {
-    setUpVideoSink(paintWidget);
+const QEvent::Type NEW_SAMPLE_EVENT_TYPE = static_cast<QEvent::Type>(QEvent::User + 100);
+class NewSampleEvent: public QEvent
+{
+public:
+    NewSampleEvent() : QEvent(NEW_SAMPLE_EVENT_TYPE) {}
+};
+}
+VideoPlayer::VideoPlayer(QGLWidget *paintWidget, QObject *parent) :
+    QObject(parent), _pipeline(nullptr), _pipelineBus(nullptr), _busTimer(new QTimer(this)), _loadState(NONE), _currentFrameNumber(0u),
+    _nrOfFramesWaiting(0)
+{
+    _painter = new OpenGLPainter(paintWidget, this);
     _busTimer->setInterval(50);
     connect(_busTimer, &QTimer::timeout, this, &VideoPlayer::pollBus);
 }
@@ -15,11 +31,6 @@ VideoPlayer::~VideoPlayer()
     _busTimer->stop();
     if (_pipeline) {
         cleanupCurrentPipeline();
-    } else {
-        if (_videoSink) {
-            gst_element_set_state(_videoSink, GST_STATE_NULL);
-            g_object_unref(_videoSink);
-        }
     }
 }
 
@@ -35,6 +46,26 @@ void VideoPlayer::pollBus()
 
         g_object_unref(_pipelineBus);
     }
+}
+
+void VideoPlayer::handleAppSinkEndOfStream(GstAppSink *, gpointer user_data)
+{
+    Q_UNUSED(user_data);
+    qDebug() << "eos";
+}
+
+GstFlowReturn VideoPlayer::handleAppSinkNewPreRoll(GstAppSink*, gpointer user_data)
+{
+    VideoPlayer* player = static_cast<VideoPlayer*>(user_data);
+    QCoreApplication::postEvent(player, new NewSampleEvent);
+    return GST_FLOW_OK;
+}
+
+GstFlowReturn VideoPlayer::handleAppSinkNewSample(GstAppSink*, gpointer user_data)
+{
+    VideoPlayer* player = static_cast<VideoPlayer*>(user_data);
+    QCoreApplication::postEvent(player, new NewSampleEvent);
+    return GST_FLOW_OK;
 }
 
 bool VideoPlayer::isReadyToPlay()
@@ -54,7 +85,7 @@ void VideoPlayer::stepToFrame(quint32 frameNumber)
     if (_loadState == DONE) {
         qint32 stepSize = frameNumber - _currentFrameNumber;
         if (stepSize > 0) {
-            gst_element_send_event(_videoSink, gst_event_new_step(GST_FORMAT_BUFFERS, stepSize, 1.0, true, false));
+            gst_element_send_event(_pipeline, gst_event_new_step(GST_FORMAT_BUFFERS, stepSize, 1.0, true, false));
         }
         _currentFrameNumber = frameNumber;
     } else {
@@ -73,10 +104,19 @@ void VideoPlayer::cleanupCurrentPipeline()
 
 void VideoPlayer::createPipeline()
 {
-    _pipeline = gst_element_factory_make("playbin", "playbin");
+    _pipeline = gst_pipeline_new("myplayer");
+    _playbin = gst_element_factory_make("playbin", "playbin");
+    _appSink = gst_element_factory_make("appsink", "appsink");
+
+    gst_bin_add(GST_BIN(_pipeline), _playbin);
+    GstAppSinkCallbacks callbacks = { handleAppSinkEndOfStream, handleAppSinkNewSample, handleAppSinkNewSample, { nullptr }};
+    gst_app_sink_set_callbacks(GST_APP_SINK(_appSink), &callbacks, this, nullptr);
 
     if (_pipeline) {
-        g_object_set(_pipeline, "video-sink", _videoSink, NULL);
+        GstCaps* caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "I420", nullptr);
+        gst_app_sink_set_caps(GST_APP_SINK(_appSink), caps);
+        gst_caps_unref(caps);
+        g_object_set(_playbin, "video-sink", _appSink, NULL);
         _pipelineBus = gst_element_get_bus(_pipeline);
         _busTimer->start();
     } else {
@@ -94,7 +134,7 @@ void VideoPlayer::loadVideo(QString uri)
     qDebug() << "setting uri";
     if (_pipeline) {
         qDebug() << "really setting uri" << uri;
-        g_object_set(_pipeline, "uri", uri.toStdString().c_str(), NULL);
+        g_object_set(_playbin, "uri", uri.toStdString().c_str(), NULL);
     }
     gst_element_set_state(_pipeline, GST_STATE_PAUSED);
 
@@ -140,8 +180,22 @@ bool VideoPlayer::seekToFrame(quint32 frameNumber, float frameRate)
 
 void VideoPlayer::displayCurrentFrame(QPainter *painter, QRectF rect)
 {
-    qDebug() << "display: current thread =" << QThread::currentThreadId();
-    g_signal_emit_by_name(_videoSink, "paint", painter, rect.x(), rect.y(), rect.width(), rect.height(), NULL);
+    _painter->paint(painter, rect);
+}
+
+
+bool VideoPlayer::event(QEvent *event)
+{
+    if (event->type() == NEW_SAMPLE_EVENT_TYPE) {
+        _nrOfFramesWaiting += 1;
+        _painter->setCurrentSample(gst_app_sink_pull_preroll(GST_APP_SINK(_appSink)));
+
+        qDebug() << "New sample received!";
+
+        emit updateVideo();
+        return true;
+    }
+    return QObject::event(event);
 }
 
 void VideoPlayer::handleError(GstMessage *msg)
@@ -180,7 +234,6 @@ void VideoPlayer::onBusMessage(GstBus*, GstMessage *msg, VideoPlayer *context)
 
 void VideoPlayer::onVideoUpdate(GObject *, guint, VideoPlayer *context)
 {
-    qDebug() << "update: current thread =" << QThread::currentThreadId();
     context->sendVideoUpdated();
 }
 
@@ -189,26 +242,3 @@ void VideoPlayer::sendVideoUpdated()
     emit updateVideo();
 }
 
-/*!
- * setup the video sink. This tries to create a gstreamer "qt5glvideosink".
- * If this succeeds, it will handle the OpenGL context to this element, so
- * it can be used to draw the video.
- *
- * NewVideoWidget::onVideoUpdate() will be called when there is something to draw.
- */
-void VideoPlayer::setUpVideoSink(QGLWidget* glWidget)
-{
-    qDebug() << "setting up video sink";
-    _videoSink = gst_element_factory_make("qt5glvideosink", "qt5glvideosink");
-    if (_videoSink) {
-        glWidget->makeCurrent();
-        g_object_set(_videoSink, "glcontext", QGLContext::currentContext(), NULL);
-        glWidget->doneCurrent();
-        gst_element_set_state(_videoSink, GST_STATE_READY);
-
-        qDebug() << "attaching signal";
-        g_signal_connect(_videoSink, "update", G_CALLBACK(VideoPlayer::onVideoUpdate), this);
-    } else {
-        qWarning("unable to create video sink. Not able to display video.");
-    }
-}
