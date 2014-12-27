@@ -1,10 +1,9 @@
 include(../antlib/antlib.pri)
 
-QMAKE_CXXFLAGS += -std=c++11
 QT += core concurrent gui opengl widgets
 CONFIG += link_pkgconfig
 
-PKGCONFIG += glib-2.0 gstreamer-1.0 gstreamer-app-1.0
+PKGCONFIG += glib-2.0 gstreamer-1.0 gstreamer-app-1.0 gstreamer-video-1.0
 
 message("ant libs = $${ANTLIB_LIBRARY_DEPENDENCIES}")
 

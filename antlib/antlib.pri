@@ -1,4 +1,4 @@
-QMAKE_CXXFLAGS += -std=c++11
+include(../config.pri)
 
 message(Including $$_FILE_ from $$IN_PWD)
 INCLUDEPATH += $$IN_PWD/

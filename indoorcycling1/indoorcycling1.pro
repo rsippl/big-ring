@@ -11,7 +11,7 @@ HEADERS += \
     mainwindow.h \
     screensaverblocker.h
 
-LIBS += -Wl,--no-as-needed -lprofiler -Wl,--as-needed
+LIBS += -Wl,--no-as-needed -lprofiler -lasan -Wl,--as-needed
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib
