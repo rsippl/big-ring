@@ -18,3 +18,7 @@ contains(QMAKE_HOST.arch, i386):{
 message(Including $$_FILE_ from $$IN_PWD)
 INCLUDEPATH += $$IN_PWD/
 
+RESOURCES += \
+    $$IN_PWD/shaders.qrc
+
+
