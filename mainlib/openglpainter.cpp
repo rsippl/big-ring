@@ -34,9 +34,9 @@ void OpenGLPainter::uploadTextures()
             } else {
                 textureId = _vTextureId;
             }
-            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, textureId);
+            glBindTexture(GL_TEXTURE_RECTANGLE, textureId);
             glTexImage2D(
-                    GL_TEXTURE_RECTANGLE_ARB,
+                    GL_TEXTURE_RECTANGLE,
                     0,
                     GL_LUMINANCE,
                     _textureWidths[i],
@@ -45,10 +45,10 @@ void OpenGLPainter::uploadTextures()
                     GL_LUMINANCE,
                     GL_UNSIGNED_BYTE,
                     mapInfo.data + _textureOffsets[i]);
-            glTexParameterf(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameterf(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameterf(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameterf(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameterf(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameterf(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameterf(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameterf(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         }
         gst_buffer_unmap(buffer, &mapInfo);
     }
@@ -89,11 +89,11 @@ void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
     glTexCoordPointer(2, GL_FLOAT, 0, _textureCoordinates.data());
     glVertexPointer(2, GL_FLOAT, 0, vertexCoordArray);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _yTextureId);
+    glBindTexture(GL_TEXTURE_RECTANGLE, _yTextureId);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _uTextureId);
+    glBindTexture(GL_TEXTURE_RECTANGLE, _uTextureId);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, _vTextureId);
+    glBindTexture(GL_TEXTURE_RECTANGLE, _vTextureId);
     glActiveTexture(GL_TEXTURE0);
 
     _program.setUniformValue("yTex", 0);
