@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QtOpenGL/QGLShaderProgram>
 #include <QtOpenGL/QGLWidget>
+#include <QtOpenGL/QGLFunctions>
 
 extern "C" {
 #include <gst/gst.h>
@@ -24,14 +25,16 @@ public slots:
 
 private:
     QSizeF getSizeFromSample(GstSample* sample);
-    void initShaders();
+    void initializeOpenGL();
     void initYuv420PTextureInfo();
     void uploadTextures();
     void adjustPaintAreas(const QRectF& targetRect);
 
     QGLWidget* _widget;
+    QGLFunctions _glFunctions;
+    bool _openGLInitialized;
     GstSample* _currentSample;
-
+    bool _currentSampleUploaded;
     QSizeF _sourceSize;
     QRectF _targetRect;
     QRectF _videoRect;
@@ -45,7 +48,9 @@ private:
     int _textureWidths[3];
     int _textureHeights[3];
     int _textureOffsets[3];
-    QVector<GLfloat> _textureCoordinates;
+
+    GLuint _textureCoordinatesBufferObject;
+    GLuint _vertexCoordinatesBufferObject;
 
     QGLShaderProgram _program;
 };

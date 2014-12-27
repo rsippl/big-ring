@@ -7,7 +7,7 @@ extern "C" {
 }
 
 OpenGLPainter::OpenGLPainter(QGLWidget* widget, QObject *parent) :
-    QObject(parent), _widget(widget), _currentSample(nullptr)
+    QObject(parent), _widget(widget), _currentSample(nullptr), _openGLInitialized(false)
 {
     Q_INIT_RESOURCE(shaders);
 }
@@ -25,7 +25,6 @@ void OpenGLPainter::uploadTextures()
     GstMapInfo mapInfo;
     if (gst_buffer_map(buffer, &mapInfo, GST_MAP_READ)) {
         for (int i = 0; i < _textureCount; ++i) {
-            qDebug() << "uploading texture" << i << "widthxheigh=" << _textureWidths[i] << _textureHeights[i];
             GLuint textureId;
             if (i == 0) {
                 textureId = _yTextureId;
@@ -56,9 +55,17 @@ void OpenGLPainter::uploadTextures()
 
 void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
 {
+    if (!_openGLInitialized) {
+        initializeOpenGL();
+    }
     if (!_currentSample) {
         painter->fillRect(rect, Qt::black);
         return;
+    }
+    if (getSizeFromSample(_currentSample) != _sourceSize) {
+        _sourceSizeDirty = true;
+        _sourceSize = getSizeFromSample(_currentSample);
+        initYuv420PTextureInfo();
     }
 
     adjustPaintAreas(rect);
@@ -75,19 +82,25 @@ void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
     if (scissorTestEnabled)
         glEnable(GL_SCISSOR_TEST);
 
-    const GLfloat vertexCoordArray[] = { GLfloat(_videoRect.left()), GLfloat(_videoRect.top()),
-                                         GLfloat(_videoRect.right() + 1), GLfloat(_videoRect.top()),
-                                         GLfloat(_videoRect.left()), GLfloat(_videoRect.bottom() + 1),
-                                         GLfloat(_videoRect.right() + 1), GLfloat(_videoRect.bottom() + 1)
-                                       };
-    uploadTextures();
+    if (!_currentSampleUploaded) {
+        uploadTextures();
+        _currentSampleUploaded = true;
+    }
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     _program.bind();
-    glTexCoordPointer(2, GL_FLOAT, 0, _textureCoordinates.data());
-    glVertexPointer(2, GL_FLOAT, 0, vertexCoordArray);
+
+    // set the texture and vertex coordinates using VBOs.
+    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, _textureCoordinatesBufferObject);
+    glTexCoordPointer(2, GL_FLOAT, 0, 0);
+    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, _vertexCoordinatesBufferObject);
+    glVertexPointer(2, GL_FLOAT, 0, 0);
+    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, 0);
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_RECTANGLE, _yTextureId);
     glActiveTexture(GL_TEXTURE1);
@@ -120,13 +133,7 @@ void OpenGLPainter::setCurrentSample(GstSample *sample)
         gst_sample_unref(_currentSample);
     }
     _currentSample = sample;
-    QSizeF sampleSize = getSizeFromSample(sample);
-    if (sampleSize != _sourceSize) {
-        _sourceSizeDirty = true;
-        _sourceSize = sampleSize;
-        initYuv420PTextureInfo();
-        initShaders();
-    }
+    _currentSampleUploaded = false;
 }
 
 QSizeF OpenGLPainter::getSizeFromSample(GstSample* sample)
@@ -145,39 +152,42 @@ QSizeF OpenGLPainter::getSizeFromSample(GstSample* sample)
 /**
  * @brief compile the opengl shader program from the sources and link it, if the program is not yet linked.
  */
-void OpenGLPainter::initShaders()
+void OpenGLPainter::initializeOpenGL()
 {
-    if (!_program.isLinked()) {
-        if (!_program.addShaderFromSourceFile(QGLShader::Vertex, ":///shaders/vertexshader.glsl")) {
-            qFatal("Unable to add vertex shader: %s", qPrintable(_program.log()));
-        }
-        if (!_program.addShaderFromSourceFile(QGLShader::Fragment, ":/shaders/fragmentshader.glsl")) {
-            qFatal("Unable to add fragment shader: %s", qPrintable(_program.log()));
-        }
-        if (!_program.link()) {
-            qFatal("Unable to link shader program: %s", qPrintable(_program.log()));
-        }
-        for (auto extension: QOpenGLContext::currentContext()->extensions()) {
-            qDebug() << "extension" << extension;
-        }
-        QOpenGLContext* glContext = QOpenGLContext::currentContext();
-        if (!glContext->hasExtension("GL_ARB_texture_rectangle")) {
-            qFatal("GL_ARB_texture_rectangle is missing");
-        }
-        if (!glContext->hasExtension("GL_ARB_pixel_buffer_object")) {
-            qFatal("GL_ARB_pixel_buffer_object is missing");
-        }
-        if (!glContext->hasExtension("GL_ARB_vertex_buffer_object")) {
-            qFatal("GL_ARB_vertex_buffer_object");
-        }
+    Q_ASSERT_X(!_program.isLinked(), "initializeOpenGL", "OpenGL already initialized");
 
-        qDebug() << "generating textures.";
-        glGenTextures(1, &_yTextureId);
-        glGenTextures(1, &_uTextureId);
-        glGenTextures(1, &_vTextureId);
-        qDebug() << "generating textures." << _yTextureId;
-
+    _glFunctions = QGLFunctions(QGLContext::currentContext());
+    if (!_program.addShaderFromSourceFile(QGLShader::Vertex, ":///shaders/vertexshader.glsl")) {
+        qFatal("Unable to add vertex shader: %s", qPrintable(_program.log()));
     }
+    if (!_program.addShaderFromSourceFile(QGLShader::Fragment, ":/shaders/fragmentshader.glsl")) {
+        qFatal("Unable to add fragment shader: %s", qPrintable(_program.log()));
+    }
+    if (!_program.link()) {
+        qFatal("Unable to link shader program: %s", qPrintable(_program.log()));
+    }
+    for (auto extension: QOpenGLContext::currentContext()->extensions()) {
+        qDebug() << "extension" << extension;
+    }
+    QOpenGLContext* glContext = QOpenGLContext::currentContext();
+    if (!_glFunctions.hasOpenGLFeature(QGLFunctions::NPOTTextures)) {
+        qFatal("OpenGL needs to have support for 'Non power of two textures'");
+    }
+    if (!glContext->hasExtension("GL_ARB_pixel_buffer_object")) {
+        qFatal("GL_ARB_pixel_buffer_object is missing");
+    }
+    if (!_glFunctions.hasOpenGLFeature(QGLFunctions::Buffers)) {
+        qFatal("OpenGL needs to have support for vertex buffers");
+    }
+
+    qDebug() << "generating textures.";
+    glGenTextures(1, &_yTextureId);
+    glGenTextures(1, &_uTextureId);
+    glGenTextures(1, &_vTextureId);
+
+    _glFunctions.glGenBuffers(1, &_textureCoordinatesBufferObject);
+
+    _openGLInitialized = true;
 }
 
 void OpenGLPainter::adjustPaintAreas(const QRectF& targetRect)
@@ -188,6 +198,18 @@ void OpenGLPainter::adjustPaintAreas(const QRectF& targetRect)
 
         _videoRect = QRectF(QPointF(), videoSizeAdjusted);
         _videoRect.moveCenter(targetRect.center());
+
+        QVector<GLfloat> vertexCoordinates =
+        {
+            GLfloat(_videoRect.left()), GLfloat(_videoRect.top()),
+            GLfloat(_videoRect.right() + 1), GLfloat(_videoRect.top()),
+            GLfloat(_videoRect.left()), GLfloat(_videoRect.bottom() + 1),
+            GLfloat(_videoRect.right() + 1), GLfloat(_videoRect.bottom() + 1)
+        };
+
+        _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, _vertexCoordinatesBufferObject);
+        _glFunctions.glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCoordinates.size(), vertexCoordinates.data(), GL_STATIC_DRAW);
+        _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         if (targetRect.left() == _videoRect.left()) {
             // black bars on top and bottom
@@ -218,12 +240,16 @@ void OpenGLPainter::initYuv420PTextureInfo()
     _textureHeights[2] = _sourceSize.height() / 2;
     _textureOffsets[2] = bytesPerLine * _sourceSize.height() + bytesPerLine2 * _sourceSize.height()/2;
 
-    _textureCoordinates = {
+    QVector<GLfloat> textureCoordinates = {
         0, 0,
         static_cast<GLfloat>(_sourceSize.width()), 0,
         0, static_cast<GLfloat>(_sourceSize.height()),
         static_cast<GLfloat>(_sourceSize.width()), static_cast<GLfloat>(_sourceSize.height())
     };
+
+    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, _textureCoordinatesBufferObject);
+    _glFunctions.glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * textureCoordinates.size(), textureCoordinates.data(), GL_STATIC_DRAW);
+    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     for (int i = 0; i < 3; i++) {
     qDebug() << "init texture" << i << "widthxheigh=" << _textureWidths[i] << _textureHeights[i];
