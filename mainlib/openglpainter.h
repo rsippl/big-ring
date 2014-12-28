@@ -29,16 +29,15 @@ private:
     QSizeF getSizeFromSample(GstSample* sample);
     void initializeOpenGL();
     void initYuv420PTextureInfo();
-    void uploadTextures();
     void loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
                                   int lineSize, int height, size_t offset);
     void adjustPaintAreas(const QRectF& targetRect);
+    quint32 combinedSizeOfTextures();
 
     QGLWidget* _widget;
     QGLFunctions _glFunctions;
     bool _openGLInitialized;
     GstSample* _currentSample;
-    bool _currentSampleUploaded;
     bool _texturesInitialized;
     QSizeF _sourceSize;
     QRectF _targetRect;
@@ -50,13 +49,14 @@ private:
     GLuint _yTextureId;
     GLuint _uTextureId;
     GLuint _vTextureId;
+
     int _textureWidths[3];
     int _textureHeights[3];
     int _textureOffsets[3];
 
     QOpenGLBuffer _textureCoordinatesBuffer;
     QOpenGLBuffer _vertexBuffer;
-    QGLBuffer _pixelBuffer;
+    QOpenGLBuffer _pixelBuffer;
 
     QGLShaderProgram _program;
 };

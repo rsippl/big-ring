@@ -8,7 +8,7 @@ extern "C" {
 
 OpenGLPainter::OpenGLPainter(QGLWidget* widget, QObject *parent) :
     QObject(parent), _widget(widget), _openGLInitialized(false), _currentSample(nullptr),
-    _texturesInitialized(false), _vertexBuffer(QOpenGLBuffer::VertexBuffer), _pixelBuffer(QGLBuffer::PixelUnpackBuffer)
+    _texturesInitialized(false)
 {
     Q_INIT_RESOURCE(shaders);
 }
@@ -42,40 +42,6 @@ void OpenGLPainter::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
     glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
     glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
     glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
-}
-
-void OpenGLPainter::uploadTextures()
-{
-    GstBuffer* buffer = gst_sample_get_buffer(_currentSample);
-    GstMapInfo mapInfo;
-    if (gst_buffer_map(buffer, &mapInfo, GST_MAP_READ)) {
-        for (int i = 0; i < _textureCount; ++i) {
-            GLuint textureId;
-            if (i == 0) {
-                textureId = _yTextureId;
-            } else if (i == 1) {
-                textureId = _uTextureId;
-            } else {
-                textureId = _vTextureId;
-            }
-            glBindTexture(GL_TEXTURE_RECTANGLE, textureId);
-            glTexImage2D(
-                    GL_TEXTURE_RECTANGLE,
-                    0,
-                    GL_LUMINANCE,
-                    _textureWidths[i],
-                    _textureHeights[i],
-                    0,
-                    GL_LUMINANCE,
-                    GL_UNSIGNED_BYTE,
-                    mapInfo.data + _textureOffsets[i]);
-            glTexParameterf(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameterf(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameterf(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameterf(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        }
-        gst_buffer_unmap(buffer, &mapInfo);
-    }
 }
 
 void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
@@ -154,7 +120,7 @@ void OpenGLPainter::setCurrentSample(GstSample *sample)
         gst_sample_unref(_currentSample);
     }
     _currentSample = sample;
-    _currentSampleUploaded = false;
+
     if (!_openGLInitialized) {
         _widget->context()->makeCurrent();
         initializeOpenGL();
@@ -164,20 +130,15 @@ void OpenGLPainter::setCurrentSample(GstSample *sample)
         _sourceSize = getSizeFromSample(_currentSample);
         initYuv420PTextureInfo();
     }
-    int pboSize = _textureWidths[0] * _textureHeights[0] * (1.5);
 
     _pixelBuffer.bind();
-    _pixelBuffer.allocate(pboSize);
-
-    void* ptr = _pixelBuffer.map(QGLBuffer::WriteOnly);
+    void* ptr = _pixelBuffer.map(QOpenGLBuffer::WriteOnly);
     if(ptr) {
         GstBuffer* buffer = gst_sample_get_buffer(_currentSample);
         GstMapInfo mapInfo;
         if (gst_buffer_map(buffer, &mapInfo, GST_MAP_READ)) {
-            // load all three planes
-            memcpy(ptr, mapInfo.data, _textureWidths[0] * _textureHeights[0]);
-            memcpy(ptr + _textureOffsets[1], mapInfo.data + _textureOffsets[1], _textureWidths[1] * _textureHeights[1]);
-            memcpy(ptr + _textureOffsets[2], mapInfo.data + _textureOffsets[2], _textureWidths[2] * _textureHeights[2]);
+            // load all three planes in one operation
+            memcpy(ptr, mapInfo.data, combinedSizeOfTextures());
             gst_buffer_unmap(buffer, &mapInfo);
         }
         _pixelBuffer.unmap();
@@ -235,10 +196,6 @@ void OpenGLPainter::initializeOpenGL()
     glGenTextures(1, &_uTextureId);
     glGenTextures(1, &_vTextureId);
 
-    _textureCoordinatesBuffer.create();
-    _vertexBuffer.create();
-    _pixelBuffer.create();
-
     _openGLInitialized = true;
 }
 
@@ -258,6 +215,10 @@ void OpenGLPainter::adjustPaintAreas(const QRectF& targetRect)
             GLfloat(_videoRect.left()), GLfloat(_videoRect.bottom() + 1),
             GLfloat(_videoRect.right() + 1), GLfloat(_videoRect.bottom() + 1)
         };
+        if (_vertexBuffer.isCreated()) {
+            _vertexBuffer.destroy();
+        }
+        _vertexBuffer.create();
         _vertexBuffer.bind();
         _vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
         _vertexBuffer.allocate(vertexCoordinates.data(), sizeof(GLfloat) * vertexCoordinates.size());
@@ -274,6 +235,15 @@ void OpenGLPainter::adjustPaintAreas(const QRectF& targetRect)
         }
         _sourceSizeDirty = false;
     }
+}
+
+quint32 OpenGLPainter::combinedSizeOfTextures()
+{
+    quint32 size = 0u;
+    for (int i = 0; i < 3; ++i) {
+        size += _textureWidths[i] * _textureHeights[i];
+    }
+    return size;
 }
 
 void OpenGLPainter::initYuv420PTextureInfo()
@@ -299,9 +269,24 @@ void OpenGLPainter::initYuv420PTextureInfo()
         static_cast<GLfloat>(_sourceSize.width()), static_cast<GLfloat>(_sourceSize.height())
     };
 
+    if (_textureCoordinatesBuffer.isCreated()) {
+        _textureCoordinatesBuffer.destroy();
+    }
+    _textureCoordinatesBuffer = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+    _textureCoordinatesBuffer.create();
     _textureCoordinatesBuffer.bind();
     _textureCoordinatesBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     _textureCoordinatesBuffer.allocate(textureCoordinates.data(), sizeof(GLfloat) * textureCoordinates.size());
     _textureCoordinatesBuffer.release();
+
+    if (_pixelBuffer.isCreated()) {
+        _pixelBuffer.destroy();
+    }
+    _pixelBuffer = QOpenGLBuffer(QOpenGLBuffer::PixelUnpackBuffer);
+    _pixelBuffer.create();
+    _pixelBuffer.bind();
+    _pixelBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
+    _pixelBuffer.allocate(combinedSizeOfTextures());
+    _pixelBuffer.release();
 }
 

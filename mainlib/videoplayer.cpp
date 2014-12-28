@@ -190,8 +190,6 @@ bool VideoPlayer::event(QEvent *event)
         _nrOfFramesWaiting += 1;
         _painter->setCurrentSample(gst_app_sink_pull_preroll(GST_APP_SINK(_appSink)));
 
-        qDebug() << "New sample received!";
-
         emit updateVideo();
         return true;
     }
