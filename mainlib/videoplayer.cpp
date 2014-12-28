@@ -162,6 +162,8 @@ bool VideoPlayer::seekToFrame(quint32 frameNumber, float frameRate)
 {
     if (_loadState == VIDEO_LOADED || _loadState == DONE) {
         if (frameNumber > _currentFrameNumber && frameNumber - _currentFrameNumber < 100) {
+            qDebug() << "will seek" << frameNumber - _currentFrameNumber << "frames to start";
+            _loadState = DONE;
             stepToFrame(frameNumber);
             emit seekDone();
         } else {
