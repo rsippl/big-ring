@@ -7,7 +7,8 @@ extern "C" {
 }
 
 OpenGLPainter::OpenGLPainter(QGLWidget* widget, QObject *parent) :
-    QObject(parent), _widget(widget), _currentSample(nullptr), _openGLInitialized(false)
+    QObject(parent), _widget(widget), _openGLInitialized(false), _currentSample(nullptr),
+    _texturesInitialized(false), _pixelBuffer(QGLBuffer::PixelUnpackBuffer)
 {
     Q_INIT_RESOURCE(shaders);
 }
@@ -17,6 +18,30 @@ OpenGLPainter::~OpenGLPainter()
     if (_currentSample) {
         gst_sample_unref(_currentSample);
     }
+}
+
+void OpenGLPainter::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
+                                           int lineSize, int height, size_t offset)
+{
+    glActiveTexture(glTextureUnit);
+    glBindTexture(GL_TEXTURE_RECTANGLE, textureUnit);
+
+    _pixelBuffer.bind();
+
+    if (_texturesInitialized) {
+        glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, lineSize, height,
+                        GL_LUMINANCE, GL_UNSIGNED_BYTE, (void*) offset);
+    } else {
+        glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_LUMINANCE, lineSize, height,
+                     0,GL_LUMINANCE,GL_UNSIGNED_BYTE, (void*) offset);
+    }
+
+    _pixelBuffer.release();
+    glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+    glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+    glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 }
 
 void OpenGLPainter::uploadTextures()
@@ -62,11 +87,6 @@ void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
         painter->fillRect(rect, Qt::black);
         return;
     }
-    if (getSizeFromSample(_currentSample) != _sourceSize) {
-        _sourceSizeDirty = true;
-        _sourceSize = getSizeFromSample(_currentSample);
-        initYuv420PTextureInfo();
-    }
 
     adjustPaintAreas(rect);
 
@@ -82,15 +102,16 @@ void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
     if (scissorTestEnabled)
         glEnable(GL_SCISSOR_TEST);
 
-    if (!_currentSampleUploaded) {
-        uploadTextures();
-        _currentSampleUploaded = true;
-    }
-
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     _program.bind();
+
+    loadPlaneTexturesFromPbo(GL_TEXTURE0, _yTextureId, _textureWidths[0], _textureHeights[0], (size_t) 0);
+    loadPlaneTexturesFromPbo(GL_TEXTURE1, _uTextureId, _textureWidths[1], _textureHeights[1], _textureOffsets[1]);
+    loadPlaneTexturesFromPbo(GL_TEXTURE2, _vTextureId, _textureWidths[2], _textureHeights[2], _textureOffsets[2]);
+
+    _texturesInitialized = true;
 
     // set the texture and vertex coordinates using VBOs.
     _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, _textureCoordinatesBufferObject);
@@ -134,7 +155,36 @@ void OpenGLPainter::setCurrentSample(GstSample *sample)
     }
     _currentSample = sample;
     _currentSampleUploaded = false;
+    if (!_openGLInitialized) {
+        _widget->context()->makeCurrent();
+        initializeOpenGL();
+    }
+    if (getSizeFromSample(_currentSample) != _sourceSize) {
+        _sourceSizeDirty = true;
+        _sourceSize = getSizeFromSample(_currentSample);
+        initYuv420PTextureInfo();
+    }
+    int pboSize = _textureWidths[0] * _textureHeights[0] * (1.5);
+
+    _pixelBuffer.bind();
+    _pixelBuffer.allocate(pboSize);
+
+    void* ptr = _pixelBuffer.map(QGLBuffer::WriteOnly);
+    if(ptr) {
+        GstBuffer* buffer = gst_sample_get_buffer(_currentSample);
+        GstMapInfo mapInfo;
+        if (gst_buffer_map(buffer, &mapInfo, GST_MAP_READ)) {
+            // load all three planes
+            memcpy(ptr, mapInfo.data, _textureWidths[0] * _textureHeights[0]);
+            memcpy(ptr + _textureOffsets[1], mapInfo.data + _textureOffsets[1], _textureWidths[1] * _textureHeights[1]);
+            memcpy(ptr + _textureOffsets[2], mapInfo.data + _textureOffsets[2], _textureWidths[2] * _textureHeights[2]);
+            gst_buffer_unmap(buffer, &mapInfo);
+        }
+        _pixelBuffer.unmap();
+    }
+    _pixelBuffer.release();
 }
+
 
 QSizeF OpenGLPainter::getSizeFromSample(GstSample* sample)
 {
@@ -186,6 +236,8 @@ void OpenGLPainter::initializeOpenGL()
     glGenTextures(1, &_vTextureId);
 
     _glFunctions.glGenBuffers(1, &_textureCoordinatesBufferObject);
+    _glFunctions.glGenBuffers(1, &_vertexCoordinatesBufferObject);
+    _pixelBuffer.create();
 
     _openGLInitialized = true;
 }

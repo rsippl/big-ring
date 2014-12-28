@@ -2,6 +2,7 @@
 #define OPENGLPAINTER_H
 
 #include <QObject>
+#include <QtOpenGL/QGLBuffer>
 #include <QtOpenGL/QGLShaderProgram>
 #include <QtOpenGL/QGLWidget>
 #include <QtOpenGL/QGLFunctions>
@@ -28,6 +29,8 @@ private:
     void initializeOpenGL();
     void initYuv420PTextureInfo();
     void uploadTextures();
+    void loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
+                                  int lineSize, int height, size_t offset);
     void adjustPaintAreas(const QRectF& targetRect);
 
     QGLWidget* _widget;
@@ -35,6 +38,7 @@ private:
     bool _openGLInitialized;
     GstSample* _currentSample;
     bool _currentSampleUploaded;
+    bool _texturesInitialized;
     QSizeF _sourceSize;
     QRectF _targetRect;
     QRectF _videoRect;
@@ -51,6 +55,7 @@ private:
 
     GLuint _textureCoordinatesBufferObject;
     GLuint _vertexCoordinatesBufferObject;
+    QGLBuffer _pixelBuffer;
 
     QGLShaderProgram _program;
 };
