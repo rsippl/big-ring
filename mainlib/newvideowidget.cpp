@@ -23,7 +23,6 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     QGraphicsScene* scene = new QGraphicsScene(this);
     setScene(scene);
-//    scene->setSceneRect(0, 0, 2048, 2048);
 
     setSizeAdjustPolicy(QGraphicsView::AdjustIgnored);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
