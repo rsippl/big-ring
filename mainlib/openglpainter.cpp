@@ -288,5 +288,7 @@ void OpenGLPainter::initYuv420PTextureInfo()
     _pixelBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
     _pixelBuffer.allocate(combinedSizeOfTextures());
     _pixelBuffer.release();
+
+    _texturesInitialized = false;
 }
 
