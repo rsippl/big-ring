@@ -2,6 +2,7 @@
 #define OPENGLPAINTER_H
 
 #include <QObject>
+#include <QtGui/QOpenGLBuffer>
 #include <QtOpenGL/QGLBuffer>
 #include <QtOpenGL/QGLShaderProgram>
 #include <QtOpenGL/QGLWidget>
@@ -53,8 +54,8 @@ private:
     int _textureHeights[3];
     int _textureOffsets[3];
 
-    GLuint _textureCoordinatesBufferObject;
-    GLuint _vertexCoordinatesBufferObject;
+    QOpenGLBuffer _textureCoordinatesBuffer;
+    QOpenGLBuffer _vertexBuffer;
     QGLBuffer _pixelBuffer;
 
     QGLShaderProgram _program;

@@ -8,7 +8,7 @@ extern "C" {
 
 OpenGLPainter::OpenGLPainter(QGLWidget* widget, QObject *parent) :
     QObject(parent), _widget(widget), _openGLInitialized(false), _currentSample(nullptr),
-    _texturesInitialized(false), _pixelBuffer(QGLBuffer::PixelUnpackBuffer)
+    _texturesInitialized(false), _vertexBuffer(QOpenGLBuffer::VertexBuffer), _pixelBuffer(QGLBuffer::PixelUnpackBuffer)
 {
     Q_INIT_RESOURCE(shaders);
 }
@@ -114,13 +114,13 @@ void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
     _texturesInitialized = true;
 
     // set the texture and vertex coordinates using VBOs.
-    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, _textureCoordinatesBufferObject);
+    _textureCoordinatesBuffer.bind();
     glTexCoordPointer(2, GL_FLOAT, 0, 0);
-    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, 0);
+    _textureCoordinatesBuffer.release();
 
-    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, _vertexCoordinatesBufferObject);
+    _vertexBuffer.bind();
     glVertexPointer(2, GL_FLOAT, 0, 0);
-    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, 0);
+    _vertexBuffer.release();
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_RECTANGLE, _yTextureId);
@@ -235,8 +235,8 @@ void OpenGLPainter::initializeOpenGL()
     glGenTextures(1, &_uTextureId);
     glGenTextures(1, &_vTextureId);
 
-    _glFunctions.glGenBuffers(1, &_textureCoordinatesBufferObject);
-    _glFunctions.glGenBuffers(1, &_vertexCoordinatesBufferObject);
+    _textureCoordinatesBuffer.create();
+    _vertexBuffer.create();
     _pixelBuffer.create();
 
     _openGLInitialized = true;
@@ -258,10 +258,10 @@ void OpenGLPainter::adjustPaintAreas(const QRectF& targetRect)
             GLfloat(_videoRect.left()), GLfloat(_videoRect.bottom() + 1),
             GLfloat(_videoRect.right() + 1), GLfloat(_videoRect.bottom() + 1)
         };
-
-        _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, _vertexCoordinatesBufferObject);
-        _glFunctions.glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCoordinates.size(), vertexCoordinates.data(), GL_STATIC_DRAW);
-        _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, 0);
+        _vertexBuffer.bind();
+        _vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+        _vertexBuffer.allocate(vertexCoordinates.data(), sizeof(GLfloat) * vertexCoordinates.size());
+        _vertexBuffer.release();
 
         if (targetRect.left() == _videoRect.left()) {
             // black bars on top and bottom
@@ -299,12 +299,9 @@ void OpenGLPainter::initYuv420PTextureInfo()
         static_cast<GLfloat>(_sourceSize.width()), static_cast<GLfloat>(_sourceSize.height())
     };
 
-    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, _textureCoordinatesBufferObject);
-    _glFunctions.glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * textureCoordinates.size(), textureCoordinates.data(), GL_STATIC_DRAW);
-    _glFunctions.glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    for (int i = 0; i < 3; i++) {
-    qDebug() << "init texture" << i << "widthxheigh=" << _textureWidths[i] << _textureHeights[i];
-    }
+    _textureCoordinatesBuffer.bind();
+    _textureCoordinatesBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    _textureCoordinatesBuffer.allocate(textureCoordinates.data(), sizeof(GLfloat) * textureCoordinates.size());
+    _textureCoordinatesBuffer.release();
 }
 
