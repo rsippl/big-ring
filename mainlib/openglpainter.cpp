@@ -2,6 +2,7 @@
 
 #include <QtGui/QOpenGLContext>
 #include <QtCore/QtMath>
+#include <QtCore/QTime>
 extern "C" {
 #include <gst/video/video-info.h>
 }
@@ -38,14 +39,16 @@ void OpenGLPainter::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
 
     _pixelBuffer.release();
     glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
     glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-    glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
+//    glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 }
 
 void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
 {
+    QTime start;
+    start.start();
     if (!_openGLInitialized) {
         initializeOpenGL();
     }
@@ -110,12 +113,16 @@ void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
     painter->endNativePainting();
     painter->fillRect(_blackBar1, Qt::black);
     painter->fillRect(_blackBar2, Qt::black);
+
+    qDebug() << "rendering took" << start.elapsed() << "ms";
 }
 
 
 
 void OpenGLPainter::setCurrentSample(GstSample *sample)
 {
+    QTime start;
+    start.start();
     if (_currentSample) {
         gst_sample_unref(_currentSample);
     }
@@ -144,6 +151,8 @@ void OpenGLPainter::setCurrentSample(GstSample *sample)
         _pixelBuffer.unmap();
     }
     _pixelBuffer.release();
+
+    qDebug() << "setting and uploading new sample took" << start.elapsed() << "ms";
 }
 
 
