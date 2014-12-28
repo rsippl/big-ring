@@ -167,11 +167,11 @@ void OpenGLPainter::initializeOpenGL()
 {
     Q_ASSERT_X(!_program.isLinked(), "initializeOpenGL", "OpenGL already initialized");
 
-    _glFunctions = QGLFunctions(QGLContext::currentContext());
-    if (!_program.addShaderFromSourceFile(QGLShader::Vertex, ":///shaders/vertexshader.glsl")) {
+    _glFunctions = QOpenGLFunctions(QOpenGLContext::currentContext());
+    if (!_program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":///shaders/vertexshader.glsl")) {
         qFatal("Unable to add vertex shader: %s", qPrintable(_program.log()));
     }
-    if (!_program.addShaderFromSourceFile(QGLShader::Fragment, ":/shaders/fragmentshader.glsl")) {
+    if (!_program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/fragmentshader.glsl")) {
         qFatal("Unable to add fragment shader: %s", qPrintable(_program.log()));
     }
     if (!_program.link()) {
@@ -181,13 +181,13 @@ void OpenGLPainter::initializeOpenGL()
         qDebug() << "extension" << extension;
     }
     QOpenGLContext* glContext = QOpenGLContext::currentContext();
-    if (!_glFunctions.hasOpenGLFeature(QGLFunctions::NPOTTextures)) {
+    if (!_glFunctions.hasOpenGLFeature(QOpenGLFunctions::NPOTTextures)) {
         qFatal("OpenGL needs to have support for 'Non power of two textures'");
     }
     if (!glContext->hasExtension("GL_ARB_pixel_buffer_object")) {
         qFatal("GL_ARB_pixel_buffer_object is missing");
     }
-    if (!_glFunctions.hasOpenGLFeature(QGLFunctions::Buffers)) {
+    if (!_glFunctions.hasOpenGLFeature(QOpenGLFunctions::Buffers)) {
         qFatal("OpenGL needs to have support for vertex buffers");
     }
 

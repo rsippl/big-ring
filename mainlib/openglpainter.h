@@ -3,10 +3,9 @@
 
 #include <QObject>
 #include <QtGui/QOpenGLBuffer>
-#include <QtOpenGL/QGLBuffer>
-#include <QtOpenGL/QGLShaderProgram>
+#include <QtGui/QOpenGLShaderProgram>
 #include <QtOpenGL/QGLWidget>
-#include <QtOpenGL/QGLFunctions>
+#include <QtGui/QOpenGLFunctions>
 
 extern "C" {
 #include <gst/gst.h>
@@ -35,7 +34,7 @@ private:
     quint32 combinedSizeOfTextures();
 
     QGLWidget* _widget;
-    QGLFunctions _glFunctions;
+    QOpenGLFunctions _glFunctions;
     bool _openGLInitialized;
     GstSample* _currentSample;
     bool _texturesInitialized;
@@ -58,7 +57,7 @@ private:
     QOpenGLBuffer _vertexBuffer;
     QOpenGLBuffer _pixelBuffer;
 
-    QGLShaderProgram _program;
+    QOpenGLShaderProgram _program;
 };
 
 #endif // OPENGLPAINTER_H
