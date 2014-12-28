@@ -47,8 +47,6 @@ void OpenGLPainter::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
 
 void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
 {
-    QTime start;
-    start.start();
     if (!_openGLInitialized) {
         initializeOpenGL();
     }
@@ -113,8 +111,6 @@ void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
     painter->endNativePainting();
     painter->fillRect(_blackBar1, Qt::black);
     painter->fillRect(_blackBar2, Qt::black);
-
-    qDebug() << "rendering took" << start.elapsed() << "ms";
 }
 
 
@@ -185,9 +181,6 @@ void OpenGLPainter::initializeOpenGL()
     }
     if (!_program.link()) {
         qFatal("Unable to link shader program: %s", qPrintable(_program.log()));
-    }
-    for (auto extension: QOpenGLContext::currentContext()->extensions()) {
-        qDebug() << "extension" << extension;
     }
     QOpenGLContext* glContext = QOpenGLContext::currentContext();
     if (!_glFunctions.hasOpenGLFeature(QOpenGLFunctions::NPOTTextures)) {
