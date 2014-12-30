@@ -3,12 +3,13 @@ GOOGLE_TEST_SOURCE_DIR=/usr/src/gtest
 
 QMAKE_CXXFLAGS += -std=c++11
 
-# address sanitizer configuration
+# address sanitizer configuration. Uncomment this to build
+# with address sanitizer.
 #QMAKE_CXXFLAGS+= -fsanitize=address -fno-omit-frame-pointer
 #QMAKE_CFLAGS+= -fsanitize=address -fno-omit-frame-pointer
 #QMAKE_LFLAGS+= -fsanitize=address
 #LIBS += -Wl,--no-as-needed -lasan -Wl,--as-needed
 
-# profiler configuration
+# profiler configuration. Uncomment this to use google profiler.
 #LIBS += -Wl,--no-as-needed -lprofiler -Wl,--as-needed
 
