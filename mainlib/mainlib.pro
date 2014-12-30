@@ -12,7 +12,6 @@ FORMS += rlvlistwidget.ui
 HEADERS += \
     cyclist.h \
     profile.h \
-    profilewidget.h \
     reallifevideoimporter.h \
     reallifevideo.h \
     rlvfileparser.h \
@@ -29,7 +28,6 @@ HEADERS += \
 SOURCES += \
     cyclist.cpp \
     profile.cpp \
-    profilewidget.cpp \
     reallifevideoimporter.cpp \
     reallifevideo.cpp \
     rlvfileparser.cpp \

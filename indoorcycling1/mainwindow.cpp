@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 
 #include "antcontroller.h"
-#include "profilewidget.h"
 #include "reallifevideoimporter.h"
 #include "rlvlistwidget.h"
 #include "screensaverblocker.h"
@@ -99,17 +98,6 @@ QLabel *MainWindow::createLabel(const QString& text, QColor color, QWidget *cent
 	label->setPalette(palette);
 
 	return label;
-}
-
-ProfileWidget *MainWindow::setUpProfileWidget(QWidget *centralWidget)
-{
-	ProfileWidget* profileWidget = new ProfileWidget(centralWidget);
-	profileWidget->setMinimumHeight(100);
-
-	connect(rlvListWidget, &RlvListWidget::realLiveVideoSelected, profileWidget, &ProfileWidget::rlvSelected);
-	connect(&_cyclist, &Cyclist::distanceChanged, profileWidget, &ProfileWidget::distanceChanged);
-
-	return profileWidget;
 }
 
 void MainWindow::rlvSelected(RealLifeVideo rlv)

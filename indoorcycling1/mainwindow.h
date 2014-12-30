@@ -17,7 +17,6 @@
 
 
 class ANTController;
-class ProfileWidget;
 class RealLifeVideoImporter;
 class RlvListWidget;
 
@@ -55,8 +54,6 @@ private:
 	QLayout* setupSideBar(QWidget *centralWidget);
 	QLabel* createLabel(const QString& text, QColor color, QWidget* centralWidget);
 
-	ProfileWidget* setUpProfileWidget(QWidget*);
-
 	void removeMargins();
 	void restoreMargins();
 
@@ -65,9 +62,8 @@ private:
 	Simulation _simulation;
     NewVideoWidget* videoWidget;
 	QListWidget* courseListWidget;
-	RlvListWidget* rlvListWidget;
-	ProfileWidget* _profileWidget;
-	QMargins _margins;
+    RlvListWidget* rlvListWidget;
+    QMargins _margins;
 	QRect _cachedGeometry;
 	QBoxLayout* _layout;
 	QPushButton* playButton;
