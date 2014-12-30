@@ -17,28 +17,27 @@ QPair<float,float> findMinimumAndMaximumAltiude(const float startAltitude, const
     return qMakePair(minimumAltitude, maximumAltitude);
 }
 
-Qt::GlobalColor colorForSlope(float slope) {
+const int MININUM_HUE = 0; // red
+const int MAXIMUM_HUE = 240; // dark blue;
+const float MINIMUM_SLOPE = -12.0;
+const float MAXIMUM_SLOPE = 12.0;
+const float INVERSE_SLOPE_RANGE = 1 / (MAXIMUM_SLOPE - MINIMUM_SLOPE);
 
-    if (slope < -8) {
-        return Qt::blue;
-    } else if (slope < -2) {
-        return Qt::green;
-    } else if (slope < 2) {
-        return Qt::yellow;
-    } else if (slope < 8) {
-        return Qt::darkYellow;
-    } else {
-        return Qt::red;
-    }
+QColor colorForSlope(const float slope) {
+    const float boundedSlope = qBound(MINIMUM_SLOPE, slope, MAXIMUM_SLOPE);
+    /* 0 is MINIMUM_SLOPE or lower, 1 = MAXIMUM_SLOPE or higher*/
+    const float normalizedSlope = (boundedSlope - MINIMUM_SLOPE) * INVERSE_SLOPE_RANGE;
+
+    return QColor::fromHsv(240 - (normalizedSlope * 240), 255, 255);
 }
 }
 ProfileItem::ProfileItem(Simulation& simulation, QObject *parent) :
     QObject(parent), _simulation(simulation)
 {
     setOpacity(0.65);
-   QFont font("Sans");
-   font.setBold(false);
-   font.setPointSize(16);
+    QFont font("Sans");
+    font.setBold(false);
+    font.setPointSize(16);
 }
 
 QRectF ProfileItem::boundingRect() const
@@ -52,9 +51,11 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
     pen.setStyle(Qt::SolidLine);
     pen.setWidth(2);
     painter->setOpacity(0.5);
+    painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(pen);
     painter->setBrush(Qt::lightGray);
     painter->drawRoundedRect(0, 0, _size.width(), _size.height(), 5, 5);
+
     if (_rlv.isValid()) {
         if (!_profilePixmap.isNull()) {
             painter->drawPixmap(_internalRect, _profilePixmap);
@@ -75,7 +76,6 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
 
 void ProfileItem::setSize(const QSize &size)
 {
-    qDebug() << "size =" << size.width() << size.height();
     _size = size;
     if (_rlv.isValid()) {
         _profilePixmap = drawProfile();
@@ -112,13 +112,13 @@ QPixmap ProfileItem::drawProfile()
     painter.setPen(Qt::NoPen);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    for(int x = 0; x < _internalRect.width(); x += 2) {
+    for(int x = 0; x < _internalRect.width(); x += 1) {
         float distance = xToDistance(x);
         float altitude = _rlv.profile().altitudeForDistance(distance);
         painter.setBrush(colorForSlope(_rlv.profile().slopeForDistance(distance)));
 
         int y = altitudeToHeight(altitude - minimumAltitude, altitudeDiff);
-        QRect  box(x, _internalRect.bottom() - y, 2, _internalRect.bottom());
+        QRect  box(x, _internalRect.bottom() - y, 1, _internalRect.bottom());
         painter.drawRect(box);
 
     }
@@ -140,5 +140,5 @@ float ProfileItem::xToDistance(int x) const
 
 int ProfileItem::altitudeToHeight(float altitudeAboveMinimum, float altitudeDiff) const
 {
-    return static_cast<int>(((altitudeAboveMinimum) / altitudeDiff) * _internalRect.height());
+    return static_cast<int>(((altitudeAboveMinimum) / altitudeDiff) * _internalRect.height() * .9);
 }
