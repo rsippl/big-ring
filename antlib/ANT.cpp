@@ -82,8 +82,8 @@ const ant_sensor_type_t ANT::ant_sensor_types[] = {
 // hardware controller.
 //
 ANT::ANT(QObject *parent): QObject(parent),
-	_antDeviceFinder(new indoorcycling::AntDeviceFinder),
-	_antMessageGatherer(new AntMessageGatherer)
+    _antDeviceFinder(new indoorcycling::AntDeviceFinder(this)),
+    _antMessageGatherer(new AntMessageGatherer(this))
 {
 	connect(_antMessageGatherer, &AntMessageGatherer::antMessageReceived,
 			this, &ANT::processMessage);

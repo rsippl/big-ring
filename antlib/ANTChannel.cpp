@@ -28,7 +28,7 @@ const quint32 timeout_scan = 10000; // ms
 const quint32 timeout_lost = 30000; // ms
 }
 
-ANTChannel::ANTChannel(int number, ANT *parent) : parent(parent), number(number)
+ANTChannel::ANTChannel(int number, ANT *parent) : QObject(parent), parent(parent), number(number)
 {
 	init();
 }
