@@ -9,7 +9,6 @@
 
 int main(int argc, char *argv[])
 {
-    qputenv("GST_PLUGIN_PATH", "/home/ibooij/homedev/build/qtgstreamer/elements/gstqtvideosink/");
     QApplication app(argc, argv);
     gst_init(&argc, &argv);
 	app.setApplicationName("Indoor Cycling");
@@ -37,6 +36,7 @@ int main(int argc, char *argv[])
 
 	mw.show();
 	app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
+    app.connect(&app, SIGNAL(aboutToQuit()), &antController, SLOT(quit()));
 	parser.parseRealLiveVideoFilesFromDir(filename);
 
 	app.exec();

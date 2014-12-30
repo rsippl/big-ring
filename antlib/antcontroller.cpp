@@ -6,18 +6,17 @@ namespace {
 const int TIMER_INTERVAL = 10; // ms
 }
 ANTController::ANTController(QObject *parent) :
-	QObject(parent), _heartRate(0), _power(0), _cadence(0), antThread(NULL), ant(new ANT),
-	antTimer(new QTimer(this))
+    QObject(parent), _heartRate(0), _power(0), _cadence(0), antThread(new QThread(this)),
+    antTimer(new QTimer(this))
 {
 	antTimer->setInterval(TIMER_INTERVAL);
 	initialize();
 }
 
 ANTController::~ANTController() {
-	ant->deleteLater();
-	/* busy waiting for antThread to shutdown. */
-	while(antThread->isRunning())
-		QCoreApplication::processEvents();
+    if (antThread->isRunning()) {
+        qWarning("Call quit() before destroying ANTController");
+    }
 }
 
 quint8 ANTController::heartRate() const
@@ -43,13 +42,11 @@ void ANTController::foundDevice(int, int , int , QString description, QString)
 
 void ANTController::initialize()
 {
-	antThread = new QThread(this);
-
-
+    ANT* ant = new ANT;
 	ant->moveToThread(antThread);
 
 	connect(antThread, SIGNAL(started()), ant, SLOT(initialize()));
-	connect(ant, SIGNAL(destroyed()), antThread, SLOT(quit()));
+    connect(antThread, SIGNAL(finished()), ant, SLOT(deleteLater()));
 
 	connect(antTimer, SIGNAL(timeout()), ant, SLOT(readCycle()));
 	connect(ant, SIGNAL(initializationSucceeded()), antTimer, SLOT(start()));
@@ -71,7 +68,12 @@ void ANTController::heartRateReceived(quint8 bpm)
 void ANTController::cadenceReceived(float cadence)
 {
 	_cadence = static_cast<quint8>(cadence);
-	emit cadenceMeasured(_cadence);
+    emit cadenceMeasured(_cadence);
+}
+
+void ANTController::quit()
+{
+    antThread->quit();
 }
 
 void ANTController::powerReceived(float power)
