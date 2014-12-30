@@ -17,10 +17,7 @@ public:
     explicit OpenGLPainter(QGLWidget* widget, QObject *parent = 0);
     virtual ~OpenGLPainter();
 
-    void paint(QPainter* painter, const QRectF& rect);
-
-signals:
-
+    void paint(QPainter* painter, const QRectF& rect, Qt::AspectRatioMode aspectRatioMode);
 public slots:
     void setCurrentSample(GstSample* sample);
 
@@ -28,23 +25,26 @@ private:
     QSizeF getSizeFromSample(GstSample* sample);
     void initializeOpenGL();
     void initYuv420PTextureInfo();
+    void loadTextures();
     void loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
                                   int lineSize, int height, size_t offset);
-    void adjustPaintAreas(const QRectF& targetRect);
+    void adjustPaintAreas(const QRectF& targetRect, Qt::AspectRatioMode aspectRationMode);
+    void initializeVertexCoordinatesBuffer(const QRectF &videoRect);
+    void initializeTextureCoordinatesBuffer();
     quint32 combinedSizeOfTextures();
+
 
     QGLWidget* _widget;
     QOpenGLFunctions _glFunctions;
     bool _openGLInitialized;
-    GstSample* _currentSample;
+    bool _firstFrameLoaded;
     bool _texturesInitialized;
     QSizeF _sourceSize;
     QRectF _targetRect;
-    QRectF _videoRect;
     QRectF _blackBar1, _blackBar2;
     bool _sourceSizeDirty;
+    Qt::AspectRatioMode _aspectRatioMode;
 
-    int _textureCount;
     GLuint _yTextureId;
     GLuint _uTextureId;
     GLuint _vTextureId;

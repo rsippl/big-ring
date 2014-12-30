@@ -8,17 +8,24 @@ extern "C" {
 }
 
 OpenGLPainter::OpenGLPainter(QGLWidget* widget, QObject *parent) :
-    QObject(parent), _widget(widget), _openGLInitialized(false), _currentSample(nullptr),
-    _texturesInitialized(false)
+    QObject(parent), _widget(widget), _openGLInitialized(false), _firstFrameLoaded(false),
+    _texturesInitialized(false), _aspectRatioMode(Qt::KeepAspectRatioByExpanding)
 {
     Q_INIT_RESOURCE(shaders);
 }
 
 OpenGLPainter::~OpenGLPainter()
 {
-    if (_currentSample) {
-        gst_sample_unref(_currentSample);
-    }
+    // empty
+}
+
+void OpenGLPainter::loadTextures()
+{
+    loadPlaneTexturesFromPbo(GL_TEXTURE0, _yTextureId, _textureWidths[0], _textureHeights[0], (size_t) 0);
+    loadPlaneTexturesFromPbo(GL_TEXTURE1, _uTextureId, _textureWidths[1], _textureHeights[1], _textureOffsets[1]);
+    loadPlaneTexturesFromPbo(GL_TEXTURE2, _vTextureId, _textureWidths[2], _textureHeights[2], _textureOffsets[2]);
+
+    _texturesInitialized = true;
 }
 
 void OpenGLPainter::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
@@ -42,20 +49,19 @@ void OpenGLPainter::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
     glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
     glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-//    glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
 }
 
-void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
+void OpenGLPainter::paint(QPainter *painter, const QRectF &rect, Qt::AspectRatioMode aspectRatioMode)
 {
     if (!_openGLInitialized) {
         initializeOpenGL();
     }
-    if (!_currentSample) {
+    if (!_firstFrameLoaded) {
         painter->fillRect(rect, Qt::black);
         return;
     }
 
-    adjustPaintAreas(rect);
+    adjustPaintAreas(rect, aspectRatioMode);
 
     // if these are enabled, we need to reenable them after beginNativePainting()
     // has been called, as they may get disabled
@@ -74,11 +80,7 @@ void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
 
     _program.bind();
 
-    loadPlaneTexturesFromPbo(GL_TEXTURE0, _yTextureId, _textureWidths[0], _textureHeights[0], (size_t) 0);
-    loadPlaneTexturesFromPbo(GL_TEXTURE1, _uTextureId, _textureWidths[1], _textureHeights[1], _textureOffsets[1]);
-    loadPlaneTexturesFromPbo(GL_TEXTURE2, _vTextureId, _textureWidths[2], _textureHeights[2], _textureOffsets[2]);
-
-    _texturesInitialized = true;
+    loadTextures();
 
     // set the texture and vertex coordinates using VBOs.
     _textureCoordinatesBuffer.bind();
@@ -117,27 +119,20 @@ void OpenGLPainter::paint(QPainter *painter, const QRectF &rect)
 
 void OpenGLPainter::setCurrentSample(GstSample *sample)
 {
-    QTime start;
-    start.start();
-    if (_currentSample) {
-        gst_sample_unref(_currentSample);
-    }
-    _currentSample = sample;
-
     if (!_openGLInitialized) {
         _widget->context()->makeCurrent();
         initializeOpenGL();
     }
-    if (getSizeFromSample(_currentSample) != _sourceSize) {
+    if (getSizeFromSample(sample) != _sourceSize) {
         _sourceSizeDirty = true;
-        _sourceSize = getSizeFromSample(_currentSample);
+        _sourceSize = getSizeFromSample(sample);
         initYuv420PTextureInfo();
     }
 
     _pixelBuffer.bind();
     void* ptr = _pixelBuffer.map(QOpenGLBuffer::WriteOnly);
     if(ptr) {
-        GstBuffer* buffer = gst_sample_get_buffer(_currentSample);
+        GstBuffer* buffer = gst_sample_get_buffer(sample);
         GstMapInfo mapInfo;
         if (gst_buffer_map(buffer, &mapInfo, GST_MAP_READ)) {
             // load all three planes in one operation
@@ -147,17 +142,17 @@ void OpenGLPainter::setCurrentSample(GstSample *sample)
         _pixelBuffer.unmap();
     }
     _pixelBuffer.release();
-
-    qDebug() << "setting and uploading new sample took" << start.elapsed() << "ms";
+    gst_sample_unref(sample);
+    _firstFrameLoaded = true;
 }
 
 
 QSizeF OpenGLPainter::getSizeFromSample(GstSample* sample)
 {
-    GstCaps* caps = gst_sample_get_caps(sample);
+    const GstCaps* caps = gst_sample_get_caps(sample);
     GstVideoInfo videoInfo;
     gst_video_info_from_caps(&videoInfo, caps);
-    GstStructure* structure = gst_caps_get_structure(caps, 0);
+    const GstStructure* structure = gst_caps_get_structure(caps, 0);
     gint width, height;
     gst_structure_get_int(structure, "width", &width);
     gst_structure_get_int(structure, "height", &height);
@@ -201,39 +196,46 @@ void OpenGLPainter::initializeOpenGL()
     _openGLInitialized = true;
 }
 
-void OpenGLPainter::adjustPaintAreas(const QRectF& targetRect)
+void OpenGLPainter::initializeVertexCoordinatesBuffer(const QRectF& videoRect)
 {
-    if (_sourceSizeDirty || targetRect != _targetRect) {
+    const QVector<GLfloat> vertexCoordinates =
+    {
+        GLfloat(videoRect.left()), GLfloat(videoRect.top()),
+        GLfloat(videoRect.right() + 1), GLfloat(videoRect.top()),
+        GLfloat(videoRect.left()), GLfloat(videoRect.bottom() + 1),
+        GLfloat(videoRect.right() + 1), GLfloat(videoRect.bottom() + 1)
+    };
+    if (_vertexBuffer.isCreated()) {
+        _vertexBuffer.destroy();
+    }
+    _vertexBuffer.create();
+    _vertexBuffer.bind();
+    _vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    _vertexBuffer.allocate(vertexCoordinates.data(), sizeof(GLfloat) * vertexCoordinates.size());
+    _vertexBuffer.release();
+}
+
+void OpenGLPainter::adjustPaintAreas(const QRectF& targetRect, Qt::AspectRatioMode aspectRationMode)
+{
+    if (_sourceSizeDirty || targetRect != _targetRect || aspectRationMode != _aspectRatioMode) {
         _targetRect = targetRect;
-        QSizeF videoSizeAdjusted = QSizeF(_sourceSize.width(), _sourceSize.height()).scaled(targetRect.size(), Qt::KeepAspectRatio);
 
-        _videoRect = QRectF(QPointF(), videoSizeAdjusted);
-        _videoRect.moveCenter(targetRect.center());
+        // change size of video to fit the targetRect completely.
+        const QSizeF videoSizeAdjusted = _sourceSize.scaled(targetRect.size(), aspectRationMode);
 
-        QVector<GLfloat> vertexCoordinates =
-        {
-            GLfloat(_videoRect.left()), GLfloat(_videoRect.top()),
-            GLfloat(_videoRect.right() + 1), GLfloat(_videoRect.top()),
-            GLfloat(_videoRect.left()), GLfloat(_videoRect.bottom() + 1),
-            GLfloat(_videoRect.right() + 1), GLfloat(_videoRect.bottom() + 1)
-        };
-        if (_vertexBuffer.isCreated()) {
-            _vertexBuffer.destroy();
-        }
-        _vertexBuffer.create();
-        _vertexBuffer.bind();
-        _vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-        _vertexBuffer.allocate(vertexCoordinates.data(), sizeof(GLfloat) * vertexCoordinates.size());
-        _vertexBuffer.release();
+        QRectF videoRect = QRectF(QPointF(), videoSizeAdjusted);
+        videoRect.moveCenter(targetRect.center());
 
-        if (targetRect.left() == _videoRect.left()) {
+        initializeVertexCoordinatesBuffer(videoRect);
+
+        if (targetRect.left() == videoRect.left()) {
             // black bars on top and bottom
-            _blackBar1 = QRectF(targetRect.topLeft(), _videoRect.topRight());
-            _blackBar2 = QRectF(_videoRect.bottomLeft(), _targetRect.bottomRight());
+            _blackBar1 = QRectF(targetRect.topLeft(), videoRect.topRight());
+            _blackBar2 = QRectF(videoRect.bottomLeft(), _targetRect.bottomRight());
         } else {
             // black bars on the sidex
-            _blackBar1 = QRectF(targetRect.topLeft(), _videoRect.bottomLeft());
-            _blackBar2 = QRectF(_videoRect.topRight(), _targetRect.bottomRight());
+            _blackBar1 = QRectF(targetRect.topLeft(), videoRect.bottomLeft());
+            _blackBar2 = QRectF(videoRect.topRight(), _targetRect.bottomRight());
         }
         _sourceSizeDirty = false;
     }
@@ -248,23 +250,9 @@ quint32 OpenGLPainter::combinedSizeOfTextures()
     return size;
 }
 
-void OpenGLPainter::initYuv420PTextureInfo()
+void OpenGLPainter::initializeTextureCoordinatesBuffer()
 {
-    int bytesPerLine = (_sourceSize.toSize().width() + 3) & ~3;
-    int bytesPerLine2 = (_sourceSize.toSize().  width() / 2 + 3) & ~3;
-    qDebug() << "bytes per line = " << bytesPerLine << bytesPerLine2;
-    _textureCount = 3;
-    _textureWidths[0] = bytesPerLine;
-    _textureHeights[0] = _sourceSize.height();
-    _textureOffsets[0] = 0;
-    _textureWidths[1] = bytesPerLine2;
-    _textureHeights[1] = _sourceSize.height() / 2;
-    _textureOffsets[1] = bytesPerLine * _sourceSize.height();
-    _textureWidths[2] = bytesPerLine2;
-    _textureHeights[2] = _sourceSize.height() / 2;
-    _textureOffsets[2] = bytesPerLine * _sourceSize.height() + bytesPerLine2 * _sourceSize.height()/2;
-
-    QVector<GLfloat> textureCoordinates = {
+    const QVector<GLfloat> textureCoordinates = {
         0, 0,
         static_cast<GLfloat>(_sourceSize.width()), 0,
         0, static_cast<GLfloat>(_sourceSize.height()),
@@ -280,6 +268,24 @@ void OpenGLPainter::initYuv420PTextureInfo()
     _textureCoordinatesBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     _textureCoordinatesBuffer.allocate(textureCoordinates.data(), sizeof(GLfloat) * textureCoordinates.size());
     _textureCoordinatesBuffer.release();
+}
+
+void OpenGLPainter::initYuv420PTextureInfo()
+{
+    int bytesPerLine = (_sourceSize.toSize().width() + 3) & ~3;
+    int bytesPerLine2 = (_sourceSize.toSize().  width() / 2 + 3) & ~3;
+    qDebug() << "bytes per line = " << bytesPerLine << bytesPerLine2;
+    _textureWidths[0] = bytesPerLine;
+    _textureHeights[0] = _sourceSize.height();
+    _textureOffsets[0] = 0;
+    _textureWidths[1] = bytesPerLine2;
+    _textureHeights[1] = _sourceSize.height() / 2;
+    _textureOffsets[1] = bytesPerLine * _sourceSize.height();
+    _textureWidths[2] = bytesPerLine2;
+    _textureHeights[2] = _sourceSize.height() / 2;
+    _textureOffsets[2] = bytesPerLine * _sourceSize.height() + bytesPerLine2 * _sourceSize.height()/2;
+
+    initializeTextureCoordinatesBuffer();
 
     if (_pixelBuffer.isCreated()) {
         _pixelBuffer.destroy();

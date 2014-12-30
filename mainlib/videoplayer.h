@@ -74,7 +74,7 @@ public slots:
     void loadVideo(QString uri);
 
     bool seekToFrame(quint32 frameNumber, float frameRate);
-    void displayCurrentFrame(QPainter* painter, QRectF rect);
+    void displayCurrentFrame(QPainter* painter, QRectF rect, Qt::AspectRatioMode aspectRatioMode);
 
 private:
     void cleanupCurrentPipeline();

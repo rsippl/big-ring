@@ -214,7 +214,7 @@ void NewVideoWidget::drawBackground(QPainter *painter, const QRectF &)
     QPointF topLeft = mapToScene(viewport()->rect().topLeft());
     QPointF bottemRight = mapToScene(viewport()->rect().bottomRight());
     const QRectF r = QRectF(topLeft, bottemRight);
-    _videoPlayer->displayCurrentFrame(painter, r);
+    _videoPlayer->displayCurrentFrame(painter, r, Qt::KeepAspectRatioByExpanding);
 
 }
 

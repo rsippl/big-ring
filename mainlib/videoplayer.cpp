@@ -180,9 +180,9 @@ bool VideoPlayer::seekToFrame(quint32 frameNumber, float frameRate)
     return false;
 }
 
-void VideoPlayer::displayCurrentFrame(QPainter *painter, QRectF rect)
+void VideoPlayer::displayCurrentFrame(QPainter *painter, QRectF rect, Qt::AspectRatioMode aspectRatioMode)
 {
-    _painter->paint(painter, rect);
+    _painter->paint(painter, rect, aspectRatioMode);
 }
 
 
