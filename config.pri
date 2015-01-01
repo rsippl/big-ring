@@ -3,6 +3,8 @@ GOOGLE_TEST_SOURCE_DIR=/usr/src/gtest
 
 QMAKE_CXXFLAGS += -std=c++11
 
+PKGCONFIG += libusb-1.0 glib-2.0 gstreamer-1.0 gstreamer-app-1.0 gstreamer-video-1.0
+
 # address sanitizer configuration. Uncomment this to build
 # with address sanitizer.
 #QMAKE_CXXFLAGS+= -fsanitize=address -fno-omit-frame-pointer
