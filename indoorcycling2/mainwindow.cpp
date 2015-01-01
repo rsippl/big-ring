@@ -20,7 +20,7 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     _importer->parseRealLiveVideoFilesFromDir(dir);
 
     _tileView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    _tileView->setMinimumWidth(300);
+    _tileView->setMinimumWidth(800);
     _tileView->setMinimumHeight(600);
     _ui->centralwidget->layout()->addWidget(_tileView);
 
