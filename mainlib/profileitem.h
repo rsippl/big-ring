@@ -1,20 +1,19 @@
 #ifndef PROFILEITEM_H
 #define PROFILEITEM_H
 
-#include <QObject>
-#include <QtWidgets/QGraphicsItem>
+#include <QtCore/QObject>
+#include <QtWidgets/QGraphicsWidget>
 
 #include "reallifevideo.h"
 #include "simulation.h"
 
-class ProfileItem : public QObject, public QGraphicsItem
+class ProfileItem : public QGraphicsWidget
 {
     Q_OBJECT
-    Q_INTERFACES(QGraphicsItem)
 public:
-    explicit ProfileItem(Simulation& simulation, QObject *parent = 0);
+    explicit ProfileItem(QGraphicsItem *parent = 0);
+    explicit ProfileItem(Simulation* simulation, QGraphicsItem *parent = 0);
 
-    virtual QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 signals:
 
@@ -31,7 +30,7 @@ private:
     QSize _size;
     QRect _internalRect;
     RealLifeVideo _rlv;
-    Simulation& _simulation;
+    Simulation* _simulation;
     QPixmap _profilePixmap;
 };
 

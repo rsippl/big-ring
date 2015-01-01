@@ -31,18 +31,17 @@ QColor colorForSlope(const float slope) {
     return QColor::fromHsv(240 - (normalizedSlope * 240), 255, 255);
 }
 }
-ProfileItem::ProfileItem(Simulation& simulation, QObject *parent) :
-    QObject(parent), _simulation(simulation)
+ProfileItem::ProfileItem(QGraphicsItem *parent): ProfileItem(nullptr, parent)
+{
+}
+
+ProfileItem::ProfileItem(Simulation *simulation, QGraphicsItem *parent) :
+    QGraphicsWidget(parent), _simulation(simulation)
 {
     setOpacity(0.65);
     QFont font("Sans");
     font.setBold(false);
     font.setPointSize(16);
-}
-
-QRectF ProfileItem::boundingRect() const
-{
-    return QRectF(0,0,_size.width(), _size.height());
 }
 
 void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
@@ -60,15 +59,17 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
         if (!_profilePixmap.isNull()) {
             painter->drawPixmap(_internalRect, _profilePixmap);
 
-            float distanceRatio = _simulation.cyclist().distance() / _rlv.totalDistance();
-            QBrush brush(Qt::black);
-            QPen pen(QColor(Qt::black));
-            painter->setOpacity(0.4);
-            pen.setStyle(Qt::SolidLine);
-            pen.setWidth(2);
-            painter->setPen(pen);
-            painter->setBrush(brush);
-            painter->drawRect(_internalRect.left(), _internalRect.top(), distanceRatio * _internalRect.width(), _internalRect.bottom());
+            if (_simulation) {
+                float distanceRatio = _simulation->cyclist().distance() / _rlv.totalDistance();
+                QBrush brush(Qt::black);
+                QPen pen(QColor(Qt::black));
+                painter->setOpacity(0.4);
+                pen.setStyle(Qt::SolidLine);
+                pen.setWidth(2);
+                painter->setPen(pen);
+                painter->setBrush(brush);
+                painter->drawRect(_internalRect.left(), _internalRect.top(), distanceRatio * _internalRect.width(), _internalRect.bottom());
+            }
         }
     }
 
@@ -76,12 +77,14 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
 
 void ProfileItem::setSize(const QSize &size)
 {
+    setGeometry(0, 0, _size.width(), _size.height());
     _size = size;
+    _internalRect = QRect(1, 1, _size.width() - 2, _size.height() - 2);
+
     if (_rlv.isValid()) {
         _profilePixmap = drawProfile();
     }
 
-    _internalRect = QRect(1, 1, _size.width() - 2, _size.height() - 2);
     update();
 }
 
@@ -94,10 +97,11 @@ void ProfileItem::setRlv(const RealLifeVideo &rlv)
 
 QPixmap ProfileItem::drawProfile()
 {
+    if (_internalRect.isEmpty())  {
+        return QPixmap();
+    }
     QPixmap pixmap(_internalRect.size());
     QPainter painter(&pixmap);
-
-    qDebug() << "creating profile path";
 
     const QList<ProfileEntry>& profileEntries = _rlv.profile().entries();
     const QPair<float,float> minAndMaxAltitude = findMinimumAndMaximumAltiude(_rlv.profile().startAltitude(), profileEntries);
@@ -120,9 +124,7 @@ QPixmap ProfileItem::drawProfile()
         int y = altitudeToHeight(altitude - minimumAltitude, altitudeDiff);
         QRect  box(x, _internalRect.bottom() - y, 1, _internalRect.bottom());
         painter.drawRect(box);
-
     }
-
     return pixmap;
 }
 

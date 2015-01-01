@@ -5,16 +5,14 @@
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsTextItem>
 #include <QtGui/QPainter>
-#include "thumbnailer.h"
-#include "profileitem.h"
 
-VideoLightBox::VideoLightBox(const RealLifeVideo& rlv, const QSizeF size) :
-    QGraphicsWidget(), _rlv(rlv), _thumbnailer(new Thumbnailer(this)), _thumbnailItem(nullptr)
+#include "profileitem.h"
+#include "thumbnailer.h"
+
+VideoLightBox::VideoLightBox(const RealLifeVideo& rlv) :
+    QGraphicsWidget(), _rlv(rlv), _thumbnailer(new Thumbnailer(this)), _thumbnailItem(nullptr),
+    _profileItem(nullptr)
 {
-//    setPen(QPen(QBrush(Qt::black), 1));
-//    setBrush(QBrush(Qt::darkGray));
-//    setRect(0, 0, size.width(), size.height());
-    setGeometry(0, 0, size.width(), size.height());
     _thumbnailItem = addThumbnail();
     _thumbnailItem->setPos(5, 5);
 
@@ -32,13 +30,23 @@ VideoLightBox::VideoLightBox(const RealLifeVideo& rlv, const QSizeF size) :
     titleItem->setPlainText(_rlv.name());
     titleItem->setPos(_thumbnailItem->boundingRect().topRight());
 
-
     QFont font2;
     font2.setPointSizeF(16.0);
     QGraphicsTextItem* distanceItem = new QGraphicsTextItem(this);
     distanceItem->setFont(font2);
     distanceItem->setPlainText(QString("%1 m").arg(_rlv.totalDistance()));
     distanceItem->setPos(_thumbnailItem->boundingRect().right() + 10, titleItem->boundingRect().bottom());
+
+    _profileItem = new ProfileItem(this);
+    _profileItem->setRlv(_rlv);
+    _profileItem->setSize(QSize(boundingRect().width(), 200));
+    _profileItem->setPos(0, boundingRect().height() - 200);
+    _profileItem->show();
+}
+
+VideoLightBox::~VideoLightBox()
+{
+    qDebug() << "deleting lightbox for video" << _rlv.name();
 }
 
 QGraphicsItem* VideoLightBox::addFlag() {
@@ -69,22 +77,13 @@ void VideoLightBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     QPen pen(Qt::green);
     painter->setPen(pen);
     painter->drawRect(boundingRect());
-
 }
+
 
 void VideoLightBox::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     hide();
     event->accept();
-}
-
-void VideoLightBox::setSize(const QSizeF& size)
-{
-    setGeometry(0, 0, size.width(), size.height());
-    qDebug() << "SIZE = " << size << isVisible() << boundingRect();
-    prepareGeometryChange();
-//    setRect(0, 0, size.width(), size.height());
-
 }
 
 void VideoLightBox::resizeEvent(QGraphicsSceneResizeEvent *event)
@@ -94,6 +93,10 @@ void VideoLightBox::resizeEvent(QGraphicsSceneResizeEvent *event)
         QPixmap thumbnail = _thumbnailer->thumbnailFor(_rlv);
         QPixmap scaled = thumbnail.scaledToHeight(.5 * event->newSize().height());
         _thumbnailItem->setPixmap(scaled);
+    }
+    if (_profileItem) {
+       _profileItem->setSize(QSize(boundingRect().width(), 200));
+        _profileItem->setPos(0, boundingRect().height() - 200);
     }
     event->accept();
 }

@@ -8,19 +8,17 @@
 #include <QtWidgets/QGraphicsWidget>
 #include "reallifevideo.h"
 
+class ProfileItem;
 class Thumbnailer;
 class VideoLightBox : public QGraphicsWidget
 {
     Q_OBJECT
-//    Q_INTERFACES(QGraphicsWidget)
+
 public:
-    explicit VideoLightBox(const RealLifeVideo& rlv, const QSizeF size);
+    explicit VideoLightBox(const RealLifeVideo& rlv);
+    virtual ~VideoLightBox();
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-signals:
-
-public slots:
-    void setSize(const QSizeF &size);
 
 protected:
     virtual void resizeEvent(QGraphicsSceneResizeEvent *event);
@@ -33,6 +31,7 @@ private:
     const RealLifeVideo _rlv;
     QGraphicsPixmapItem* _thumbnailItem;
     Thumbnailer* _thumbnailer;
+    ProfileItem* _profileItem;
 };
 
 

@@ -39,7 +39,7 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     addDistance(simulation, scene);
     addGrade(simulation, scene);
 
-    _profileItem = new ProfileItem(simulation);
+    _profileItem = new ProfileItem(&simulation);
     scene->addItem(_profileItem);
 
     setupVideoPlayer(viewPortWidget);
