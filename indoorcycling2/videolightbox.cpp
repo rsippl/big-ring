@@ -3,7 +3,11 @@
 #include <QtWidgets/QGraphicsSceneMouseEvent>
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QGraphicsView>
+#include <QtSvg/QGraphicsSvgItem>
+#include <QtSvg/QSvgRenderer>
 #include <QtWidgets/QGraphicsTextItem>
+#include <QtWidgets/QGraphicsColorizeEffect>
+#include <QtWidgets/QGraphicsGridLayout>
 #include <QtGui/QPainter>
 
 #include "profileitem.h"
@@ -13,35 +17,39 @@ VideoLightBox::VideoLightBox(const RealLifeVideo& rlv) :
     QGraphicsWidget(), _rlv(rlv), _thumbnailer(new Thumbnailer(this)), _thumbnailItem(nullptr),
     _profileItem(nullptr)
 {
-    _thumbnailItem = addThumbnail();
-    _thumbnailItem->setPos(5, 5);
+    auto layout = new QGraphicsGridLayout;
 
-    QGraphicsItem* flagItem = addFlag();
-    if (flagItem) {
-        flagItem->setPos(mapFromItem(_thumbnailItem, _thumbnailItem->boundingRect().topLeft()));
-    }
+
+    _thumbnailItem = addThumbnail();
+    _thumbnailItem->setPos(0, 0);
+
+    _flagItem = addFlag();
 
     QFont font;
     font.setPointSizeF(24.0);
 
-    QGraphicsTextItem* titleItem = new QGraphicsTextItem(this);
-    titleItem->setFont(font);
-    titleItem->setDefaultTextColor(Qt::white);
-    titleItem->setPlainText(_rlv.name());
-    titleItem->setPos(_thumbnailItem->boundingRect().topRight());
+    _titleItem = new QGraphicsTextItem(this);
+    _titleItem->setFont(font);
+    _titleItem->setDefaultTextColor(Qt::white);
+    _titleItem->setPlainText(_rlv.name());
+
+    _playButton = new QPushButton("PLAY!");
+    connect(_playButton, &QPushButton::clicked, _playButton, [=]() {
+        qDebug() <<  "PLAY!";
+        emit playRequested();
+    });
+    _buttonProxyWidget =  new QGraphicsProxyWidget(this);
+    _buttonProxyWidget->setWidget(_playButton);
 
     QFont font2;
     font2.setPointSizeF(16.0);
     QGraphicsTextItem* distanceItem = new QGraphicsTextItem(this);
     distanceItem->setFont(font2);
+    distanceItem->setDefaultTextColor(Qt::white);
     distanceItem->setPlainText(QString("%1 m").arg(_rlv.totalDistance()));
-    distanceItem->setPos(_thumbnailItem->boundingRect().right() + 10, titleItem->boundingRect().bottom());
 
     _profileItem = new ProfileItem(this);
     _profileItem->setRlv(_rlv);
-    _profileItem->setSize(QSize(boundingRect().width(), 200));
-    _profileItem->setPos(0, boundingRect().height() - 200);
-    _profileItem->show();
 }
 
 VideoLightBox::~VideoLightBox()
@@ -49,15 +57,16 @@ VideoLightBox::~VideoLightBox()
     qDebug() << "deleting lightbox for video" << _rlv.name();
 }
 
-QGraphicsItem* VideoLightBox::addFlag() {
+QGraphicsItem *VideoLightBox::addFlag() {
     QString name = _rlv.name();
     if (name[2] == '_') {
         QString alpha2Code = name.left(2).toLower();
-        QString filename = QString("/home/ibooij/Downloads/icons/png/%1.png").arg(alpha2Code);
-        QPixmap flagPixmap = QPixmap(filename).scaledToHeight(20, Qt::SmoothTransformation);
+        QString filename = QString(":///images/flags/%1.svg").arg(alpha2Code);
 
-        qDebug() << filename << flagPixmap.isNull();
-        QGraphicsPixmapItem* flagItem = new QGraphicsPixmapItem(flagPixmap, this);
+        qDebug() << "flag for" << _rlv.name() << "is" << filename;
+        QGraphicsSvgItem* flagItem = new QGraphicsSvgItem(filename, this);
+        QSize defaultSize = flagItem->renderer()->defaultSize();
+        flagItem->setTransform(QTransform::fromScale(.35, .2));
         return flagItem;
     }
     return nullptr;
@@ -73,31 +82,42 @@ QGraphicsPixmapItem* VideoLightBox::addThumbnail()
 
 void VideoLightBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->fillRect(boundingRect(), QColor(0, 0, 0, 200));
-    QPen pen(Qt::green);
+    QBrush background = Qt::black;
+    QPen pen(Qt::black);
+    painter->setBrush(background);
     painter->setPen(pen);
-    painter->drawRect(boundingRect());
+    painter->drawRoundedRect(boundingRect(), 5, 5);
+    QGraphicsWidget::paint(painter, option, widget);
+}
+
+void VideoLightBox::setGeometry(const QRectF &rect)
+{
+    prepareGeometryChange();
+    QGraphicsWidget::setGeometry(rect);
+
+    if (_thumbnailItem) {
+        QPixmap thumbnail = _thumbnailer->thumbnailFor(_rlv);
+        QPixmap scaled = thumbnail.scaledToHeight(.5 * rect.height());
+        _thumbnailItem->setPixmap(scaled);
+    }
+    if (_profileItem) {
+        _profileItem->setGeometry(QRectF(0, rect.height() - 200, boundingRect().width(), 200));
+    }
+    if (_titleItem) {
+        _titleItem->setPos(boundingRect().width() - _titleItem->boundingRect().width(), boundingRect().top());
+    }
+    if (_flagItem) {
+        _flagItem->setPos(boundingRect().topLeft());
+    }
+    if (_buttonProxyWidget) {
+        _buttonProxyWidget->setPos(boundingRect().right() - _buttonProxyWidget->boundingRect().width(), boundingRect().top());
+    }
 }
 
 
 void VideoLightBox::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     hide();
-    event->accept();
-}
-
-void VideoLightBox::resizeEvent(QGraphicsSceneResizeEvent *event)
-{
-    QGraphicsWidget::resizeEvent(event);
-    if (_thumbnailItem) {
-        QPixmap thumbnail = _thumbnailer->thumbnailFor(_rlv);
-        QPixmap scaled = thumbnail.scaledToHeight(.5 * event->newSize().height());
-        _thumbnailItem->setPixmap(scaled);
-    }
-    if (_profileItem) {
-       _profileItem->setSize(QSize(boundingRect().width(), 200));
-        _profileItem->setPos(0, boundingRect().height() - 200);
-    }
     event->accept();
 }
 

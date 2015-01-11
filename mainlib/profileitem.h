@@ -15,11 +15,11 @@ public:
     explicit ProfileItem(Simulation* simulation, QGraphicsItem *parent = 0);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    virtual void setGeometry(const QRectF &rect) override;
 signals:
 
 public slots:
     void setRlv(const RealLifeVideo& rlv);
-    void setSize(const QSize &size);
 
 private:
     QPixmap drawProfile();
@@ -27,8 +27,8 @@ private:
     float xToDistance(int x) const;
     int altitudeToHeight(float altitudeAboveMinimum, float altitudeDiff) const;
 
-    QSize _size;
     QRect _internalRect;
+    bool _dirty;
     RealLifeVideo _rlv;
     Simulation* _simulation;
     QPixmap _profilePixmap;

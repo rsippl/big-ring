@@ -107,7 +107,14 @@ void Simulation::courseSelected(int courseNr)
 		return;
 
 	const Course& course = _currentRlv.courses()[courseNr];
-	_cyclist.setDistance(course.start());
+    courseSelected(course);
+    _cyclist.setDistance(course.start());
+}
+
+void Simulation::courseSelected(const Course &course)
+{
+    reset();
+    _cyclist.setDistance(course.start());
 }
 
 float Simulation::calculateSpeed(quint64 timeDelta)

@@ -10,6 +10,22 @@
 
 namespace
 {
+
+enum GstPlayFlags {
+    GST_PLAY_FLAG_VIDEO         = 0x00000001,
+    GST_PLAY_FLAG_AUDIO         = 0x00000002,
+    GST_PLAY_FLAG_TEXT          = 0x00000004,
+    GST_PLAY_FLAG_VIS           = 0x00000008,
+    GST_PLAY_FLAG_SOFT_VOLUME   = 0x00000010,
+    GST_PLAY_FLAG_NATIVE_AUDIO  = 0x00000020,
+    GST_PLAY_FLAG_NATIVE_VIDEO  = 0x00000040,
+    GST_PLAY_FLAG_DOWNLOAD      = 0x00000080,
+    GST_PLAY_FLAG_BUFFERING     = 0x000000100,
+    GST_PLAY_FLAG_DEINTERLACE   =     0x000000200,
+    GST_PLAY_FLAG_SOFT_COLORBALANCE = 0x000000400,
+    GST_PLAY_FLAG_FORCE_FILTERS = 0x000000800
+};
+
 const QEvent::Type NEW_SAMPLE_EVENT_TYPE = static_cast<QEvent::Type>(QEvent::User + 100);
 class NewSampleEvent: public QEvent
 {
@@ -113,6 +129,14 @@ void VideoPlayer::createPipeline()
     gst_app_sink_set_callbacks(GST_APP_SINK(_appSink), &callbacks, this, nullptr);
 
     if (_pipeline) {
+        GstPlayFlags flags;
+        g_object_get(_playbin, "flags", &flags, nullptr);
+        qDebug() << "flags" << flags;
+        flags = static_cast<GstPlayFlags>(flags | GST_PLAY_FLAG_VIDEO);
+        flags = static_cast<GstPlayFlags>(flags & ~GST_PLAY_FLAG_AUDIO & ~GST_PLAY_FLAG_SOFT_COLORBALANCE & ~GST_PLAY_FLAG_SOFT_VOLUME & ~GST_PLAY_FLAG_TEXT) ;
+        qDebug() << "flags" << flags;
+        g_object_set(_playbin, "flags", flags, nullptr);
+
         GstCaps* caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "I420", nullptr);
         gst_app_sink_set_caps(GST_APP_SINK(_appSink), caps);
         gst_caps_unref(caps);
@@ -144,6 +168,7 @@ void VideoPlayer::loadVideo(QString uri)
 void VideoPlayer::handleAsyncDone()
 {
     if (_loadState == VIDEO_LOADING) {
+        GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(_playbin), GST_DEBUG_GRAPH_SHOW_ALL, "pipeline.dot");
         qDebug() << "video loading done";
         gint64 nanoSeconds;
         gst_element_query_duration(_pipeline, GST_FORMAT_TIME, &nanoSeconds);

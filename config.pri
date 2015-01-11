@@ -7,11 +7,16 @@ PKGCONFIG += libusb-1.0 glib-2.0 gstreamer-1.0 gstreamer-app-1.0 gstreamer-video
 
 # address sanitizer configuration. Uncomment this to build
 # with address sanitizer.
-#QMAKE_CXXFLAGS+= -fsanitize=address -fno-omit-frame-pointer
-#QMAKE_CFLAGS+= -fsanitize=address -fno-omit-frame-pointer
-#QMAKE_LFLAGS+= -fsanitize=address
-#LIBS += -Wl,--no-as-needed -lasan -Wl,--as-needed
+QMAKE_CXXFLAGS+= -fsanitize=address -fno-omit-frame-pointer
+QMAKE_CFLAGS+= -fsanitize=address -fno-omit-frame-pointer
+QMAKE_LFLAGS+= -fsanitize=address
+LIBS += -Wl,--no-as-needed -lasan -Wl,--as-needed
 
 # profiler configuration. Uncomment this to use google profiler.
 #LIBS += -Wl,--no-as-needed -lprofiler -Wl,--as-needed
+#LIBS += -Wl,--no-as-needed -ltcmalloc -Wl,--as-needed
+
+HEADERS +=
+
+SOURCES +=
 

@@ -27,6 +27,8 @@ public slots:
 	void simulationStep();
 	void rlvSelected(RealLifeVideo rlv);
 	void courseSelected(int courseNr);
+    void courseSelected(const Course& course);
+
 
 private:
 	float calculateSpeed(quint64 timeDelta);

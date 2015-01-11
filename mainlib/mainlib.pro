@@ -23,7 +23,8 @@ HEADERS += \
     sensoritem.h \
     profileitem.h \
     videoplayer.h \
-    openglpainter.h
+    openglpainter.h \
+    run.h
 
 SOURCES += \
     cyclist.cpp \
@@ -39,7 +40,8 @@ SOURCES += \
     sensoritem.cpp \
     profileitem.cpp \
     videoplayer.cpp \
-    openglpainter.cpp
+    openglpainter.cpp \
+    run.cpp
 
 
 

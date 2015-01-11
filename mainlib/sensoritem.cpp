@@ -2,10 +2,14 @@
 
 #include <QtGui/QFontMetrics>
 #include <QtGui/QPainter>
+#include <QtWidgets/QGraphicsDropShadowEffect>
 
 SensorItem::SensorItem(const QString &unitString, const QVariant& exampleValue, QObject *parent) :
     QObject(parent), _unitString(unitString), _fieldWidth(exampleValue.toString().size())
 {
+    QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect(this);
+    effect->setBlurRadius(10);
+    setGraphicsEffect(effect);
     QFont font = QFont("Liberation Mono");
     font.setBold(true);
     font.setPointSize(36);

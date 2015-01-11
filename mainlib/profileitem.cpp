@@ -3,6 +3,7 @@
 #include <QtCore/QPair>
 #include <QtCore/QtDebug>
 #include <QtGui/QPainter>
+#include <QtWidgets/QGraphicsDropShadowEffect>
 
 namespace
 {
@@ -33,12 +34,13 @@ QColor colorForSlope(const float slope) {
 }
 ProfileItem::ProfileItem(QGraphicsItem *parent): ProfileItem(nullptr, parent)
 {
+    // empty
 }
 
 ProfileItem::ProfileItem(Simulation *simulation, QGraphicsItem *parent) :
-    QGraphicsWidget(parent), _simulation(simulation)
+    QGraphicsWidget(parent), _simulation(simulation), _dirty(false)
 {
-    setOpacity(0.65);
+    setOpacity(0.75);
     QFont font("Sans");
     font.setBold(false);
     font.setPointSize(16);
@@ -53,9 +55,13 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(pen);
     painter->setBrush(Qt::lightGray);
-    painter->drawRoundedRect(0, 0, _size.width(), _size.height(), 5, 5);
+    painter->drawRoundedRect(boundingRect(), 5, 5);
 
     if (_rlv.isValid()) {
+        if (_dirty) {
+            _profilePixmap = drawProfile();
+            _dirty = false;
+        }
         if (!_profilePixmap.isNull()) {
             painter->drawPixmap(_internalRect, _profilePixmap);
 
@@ -75,23 +81,20 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
 
 }
 
-void ProfileItem::setSize(const QSize &size)
+void ProfileItem::setGeometry(const QRectF &rect)
 {
-    setGeometry(0, 0, _size.width(), _size.height());
-    _size = size;
-    _internalRect = QRect(1, 1, _size.width() - 2, _size.height() - 2);
+    _dirty = true;
+    prepareGeometryChange();
+    QGraphicsWidget::setGeometry(rect);
+    _internalRect = QRect(1, 1, rect.width() - 2, rect.height() - 2);
 
-    if (_rlv.isValid()) {
-        _profilePixmap = drawProfile();
-    }
-
-    update();
+    _dirty = true;
 }
 
 void ProfileItem::setRlv(const RealLifeVideo &rlv)
 {
     _rlv = rlv;
-    _profilePixmap = drawProfile();
+    _dirty = true;
     update();
 }
 

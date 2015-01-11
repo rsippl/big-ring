@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
         dir = "/media/ibooij/SamsungTacx/Tacx/";
     }
     MainWindow w(dir);
-    w.show();
+    w.showMaximized();
 
     return a.exec();
 

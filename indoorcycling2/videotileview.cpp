@@ -5,22 +5,36 @@
 #include <QtCore/QtDebug>
 #include <QtCore/QPropertyAnimation>
 #include <QtOpenGL/QGLWidget>
+#include <QtWidgets/QGraphicsDropShadowEffect>
 
 VideoTileView::VideoTileView(QWidget *parent) :
     QGraphicsView(parent), _selectedVideoLightBox(nullptr)
 {
     QGraphicsScene *scene = new QGraphicsScene;
-    setScene(scene);
-    scene->setSceneRect(0, 0, 120, 1000);
     setViewport(new QGLWidget);
-//    viewport()->setShortcutAutoRepeat();
 
+    _mainWidget = new QGraphicsWidget(nullptr, Qt::Widget);
+
+    _layout = new QGraphicsGridLayout();
+    _layout->setSpacing(12.0);
+
+    _mainWidget->setLayout(_layout);
+
+    _layout->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    _mainWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    _mainWidget->setPos(mapToScene(0, 0));
+    scene->addItem(_mainWidget);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+
+    setScene(scene);
+    _mainWidget->setGeometry(scene->sceneRect());
+
+    setMinimumSize(_mainWidget->minimumSize().toSize());
 }
 
 void VideoTileView::resizeEvent(QResizeEvent *event)
 {
-    scene()->setSceneRect(0, 0, event->size().width(), _items.size() * 100);
-    placeTiles();
+    _mainWidget->setGeometry(0, 0, event->size().width(), event->size().height());
     if (_selectedVideoLightBox) {
         QPointF lowerRight = mapToScene(viewport()->rect().bottomRight());
         QPointF topLeft = mapToScene(viewport()->rect().topLeft());
@@ -33,7 +47,6 @@ void VideoTileView::resizeEvent(QResizeEvent *event)
 void VideoTileView::scrollContentsBy(int dx, int dy)
 {
     QGraphicsView::scrollContentsBy(dx, dy);
-    qDebug() << "scroll by" << dx << dy;
     if (_selectedVideoLightBox) {
         _selectedVideoLightBox->setPos(mapToScene(10, 10));
     }
@@ -42,22 +55,19 @@ void VideoTileView::scrollContentsBy(int dx, int dy)
 void VideoTileView::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape && _selectedVideoLightBox && _selectedVideoLightBox->isVisible()) {
-        scene()->removeItem(_selectedVideoLightBox);
-        _selectedVideoLightBox->deleteLater();
-        _selectedVideoLightBox = nullptr;
+
+        scene()->removeItem(_selectedVideoLightBox.data());
     }
 }
 
 void VideoTileView::rlvsLoaded(RealLifeVideoList &rlvs)
 {
-    for (const RealLifeVideo& rlv: rlvs) {
-        qDebug() << "videos" << rlv.name();
-        VideoTile* tile = new VideoTile(rlv);
-        connect(tile, &VideoTile::selected, this, [this](const RealLifeVideo& rlv) {
-            this->showSelected(rlv);
-        });
+    for (RealLifeVideo& rlv: rlvs) {
+        VideoTile* tile = new VideoTile(rlv, _mainWidget);
 
-        scene()->addItem(tile);
+        connect(tile, &VideoTile::selected, tile, [this](RealLifeVideo& rlv) {
+             this->showSelected(rlv);
+        });
         _items.append(tile);
     }
 
@@ -65,48 +75,61 @@ void VideoTileView::rlvsLoaded(RealLifeVideoList &rlvs)
 
 }
 
+void VideoTileView::drawBackground(QPainter *painter, const QRectF &rect)
+{
+    QBrush brush(Qt::gray);
+    painter->setBrush(brush);
+    painter->drawRect(rect);
+}
+
 void VideoTileView::placeTiles()
 {
     if (!_items.isEmpty()) {
-        scene()->setSceneRect(0, 0, viewport()->width(), _items.size() * _items[0]->boundingRect().height());
         for(int i = 0; i < _items.size(); ++i) {
             VideoTile* tile = _items[i];
-            int y = i * _items[i]->boundingRect().height();
-            const QPointF position = mapToScene(0, y);
-            tile->setGeometry(position.x(), position.y(), sceneRect().width(), _items[i]->boundingRect().height());
-
+            tile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+            qDebug() << "adding item at" << i%2 << i /2;
+            _layout->addItem(tile, i / 2, i % 2);
         }
     }
+
+    setMinimumWidth(_mainWidget->minimumWidth() + 20);
 }
 
-void VideoTileView::showSelected(const RealLifeVideo &rlv)
+void VideoTileView::showSelected(RealLifeVideo &rlv)
 {
-    _selectedVideoLightBox = new VideoLightBox(rlv);
+    _selectedRlv = rlv;
+    _selectedVideoLightBox.reset(new VideoLightBox(rlv));
+    _selectedVideoLightBox->setZValue(1.0);
 
-    QPropertyAnimation* animation = new QPropertyAnimation(_selectedVideoLightBox, "geometry");
-    animation->setDuration(1500);
+    QPropertyAnimation* animation = new QPropertyAnimation(_selectedVideoLightBox.data(), "geometry");
+    animation->setDuration(350);
 
     QPointF topLeft = mapToScene(viewport()->rect().topLeft());
 
-    qDebug() << "viewport height = " << viewport()->height();
-
     QPointF lowerRight = mapToScene(viewport()->width(), viewport()->height());
-    qDebug() << "topleft" << topLeft;
-    qDebug() << "lowerright" << lowerRight;
 
-    animation->setStartValue(QRectF(viewport()->rect().left(), viewport()->rect().center().y(), viewport()->rect().width(), 0));
+    animation->setStartValue(QRectF(viewport()->rect().left(), viewport()->rect().center().y(),
+                                    viewport()->rect().width(), 0));
     animation->setEndValue(QRectF(topLeft, lowerRight));
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 
-    scene()->addItem(_selectedVideoLightBox);
-    connect(_selectedVideoLightBox, &VideoLightBox::visibleChanged, _selectedVideoLightBox, [this]() {
-        if (!_selectedVideoLightBox->isVisible()) {
-            qDebug() << "removing and deleting light box";
-            scene()->removeItem(this->_selectedVideoLightBox);
-            this->_selectedVideoLightBox->deleteLater();
-            this->_selectedVideoLightBox = nullptr;
-        }
+    scene()->addItem(_selectedVideoLightBox.data());
+    connect(_selectedVideoLightBox.data(), &VideoLightBox::visibleChanged, _selectedVideoLightBox.data(), [this]() {
+        this->removeSelectedVideoLightBox();
     });
+    connect(_selectedVideoLightBox.data(), &VideoLightBox::playRequested, _selectedVideoLightBox.data(), [=]() {
+        qDebug() << "rlv selected for playing:" << rlv.name();
+        emit startRlv(_selectedRlv);
+    });
+
+}
+
+void VideoTileView::removeSelectedVideoLightBox()
+{
+    if (!_selectedVideoLightBox->isVisible()) {
+        scene()->removeItem(this->_selectedVideoLightBox.data());
+    }
 }
 
 

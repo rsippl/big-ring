@@ -5,7 +5,9 @@
 #include <QtWidgets/QGraphicsLayoutItem>
 #include <QtWidgets/QGraphicsItem>
 #include <QtWidgets/QGraphicsPixmapItem>
+#include <QtWidgets/QGraphicsProxyWidget>
 #include <QtWidgets/QGraphicsWidget>
+#include <QtWidgets/QPushButton>
 #include "reallifevideo.h"
 
 class ProfileItem;
@@ -19,10 +21,13 @@ public:
     virtual ~VideoLightBox();
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+public slots:
+    virtual void setGeometry(const QRectF &rect) override;
+signals:
+    void playRequested();
 
 protected:
-    virtual void resizeEvent(QGraphicsSceneResizeEvent *event);
-    virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 private slots:
     void thumbnailUpdated(QPixmap updatedPixmap);
 private:
@@ -30,8 +35,13 @@ private:
     QGraphicsPixmapItem *addThumbnail();
     const RealLifeVideo _rlv;
     QGraphicsPixmapItem* _thumbnailItem;
+    QGraphicsItem* _flagItem;
+    QGraphicsTextItem* _titleItem;
     Thumbnailer* _thumbnailer;
     ProfileItem* _profileItem;
+
+    QGraphicsProxyWidget *_buttonProxyWidget;
+    QPushButton* _playButton;
 };
 
 

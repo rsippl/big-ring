@@ -1,6 +1,6 @@
 include(../antlib/antlib.pri)
 
-QT += core concurrent gui opengl widgets
+QT += core concurrent gui opengl widgets svg
 CONFIG += link_pkgconfig
 
 message("ant libs = $${ANTLIB_LIBRARY_DEPENDENCIES}")
@@ -17,6 +17,8 @@ message(Including $$_FILE_ from $$IN_PWD)
 INCLUDEPATH += $$IN_PWD/
 
 RESOURCES += \
-    $$IN_PWD/shaders.qrc
+    $$IN_PWD/shaders.qrc \
+    $$IN_PWD/flags.qrc \
+
 
 

@@ -36,11 +36,15 @@ public:
 
 	void restoreWindow();
 	void gotoFullScreen();
+
+    bool eventFilter(QObject *obj, QEvent *event);
 signals:
 	void importFinished(RealLifeVideoList rlvs);
 
 protected:
-	virtual void keyPressEvent(QKeyEvent *);
+    virtual void focusOutEvent(QFocusEvent*);
+    virtual void focusInEvent(QFocusEvent*);
+
 	virtual void closeEvent(QCloseEvent *);
 
 private slots:
@@ -57,10 +61,11 @@ private:
 	void removeMargins();
 	void restoreMargins();
 
+    const ANTController& _antController;
     RealLifeVideo _rlv;
 	Cyclist& _cyclist;
 	Simulation _simulation;
-    NewVideoWidget* videoWidget;
+//    NewVideoWidget* videoWidget;
 	QListWidget* courseListWidget;
     RlvListWidget* rlvListWidget;
     QMargins _margins;

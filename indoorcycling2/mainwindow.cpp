@@ -6,12 +6,14 @@
 #include <random>
 
 #include "rlvtablemodel.h"
+#include "run.h"
+
 MainWindow::MainWindow(QString dir, QWidget *parent) :
     QMainWindow(parent),
     _ui(new Ui::MainWindow),
     _importer(new RealLifeVideoImporter(this)),
-    _tileView(new VideoTileView(this)),
-    _playTimer(new QTimer(this))
+    _antController(new ANTController(this)),
+    _tileView(new VideoTileView(this))
 {
     _ui->setupUi(this);
 
@@ -20,16 +22,14 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     _importer->parseRealLiveVideoFilesFromDir(dir);
 
     _tileView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    _tileView->setMinimumWidth(800);
-    _tileView->setMinimumHeight(600);
     _ui->centralwidget->layout()->addWidget(_tileView);
 
-    _tileView->show();
-
-    connect(_playTimer, &QTimer::timeout, [this]() {
-       step();
+    connect(_tileView, &VideoTileView::startRlv, _tileView, [=](RealLifeVideo& rlv) {
+        qDebug() << "main window:" << rlv.name();
+        startRun(rlv);
     });
-    _playTimer->setInterval(40);
+
+    _tileView->show();
 }
 
 MainWindow::~MainWindow()
@@ -42,22 +42,17 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
     _tileView->rlvsLoaded(rlvs);
     qDebug() << "import finished";
     _rlvList = rlvs;
-    _ui->rlvTable->setModel(new RlvTableModel(rlvs, this));
-    _ui->rlvTable->hide();
-    qDebug() << _ui->rlvTable->selectionModel();
-    connect(_ui->rlvTable->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::selectionChanged);
 }
 
-void MainWindow::selectionChanged(const QItemSelection &selected, const QItemSelection &)
+void MainWindow::startRun(RealLifeVideo rlv)
 {
-    qDebug() << "selection changed";
-}
-
-void MainWindow::step()
-{
-    int milliseconds = _time.restart();
-    float distance = 10 * milliseconds / 1000.0;
-    _currentDistance += distance;
-    qDebug() << "current distance" << _currentDistance;
-
+    Course course = rlv.courses()[0];
+    Run* run = new Run(*_antController, rlv, course);
+    run->start();
+    this->releaseKeyboard();
+    connect(run, &Run::stopped, run, [this,run]() {
+        qDebug() << "run finished";
+        this->show();
+        run->deleteLater();
+    });
 }

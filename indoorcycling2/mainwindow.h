@@ -2,8 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QtCore/QItemSelection>
 
+#include "antcontroller.h"
 #include "previewvideowidget.h"
 #include "reallifevideo.h"
 #include "reallifevideoimporter.h"
@@ -22,19 +22,17 @@ public:
     ~MainWindow();
 private slots:
     void importFinished(RealLifeVideoList rlvs);
-    void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 private:
     void step();
+    void startRun(RealLifeVideo rlv);
 
     Ui::MainWindow *_ui;
     RealLifeVideoImporter *_importer;
 
+    ANTController* _antController;
+
     VideoTileView* _tileView;
     RealLifeVideoList _rlvList;
-
-    QTimer* _playTimer;
-    QTime _time;
-    float _currentDistance;
 };
 
 #endif // MAINWINDOW_H

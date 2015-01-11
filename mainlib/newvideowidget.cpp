@@ -4,6 +4,7 @@
 #include <QtCore/QUrl>
 #include <QtOpenGL/QGLWidget>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtGui/QResizeEvent>
 
 #include "clockgraphicsitem.h"
@@ -13,10 +14,10 @@
 #include "videoplayer.h"
 
 
-
 NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     QGraphicsView(parent)
 {
+    setFocusPolicy(Qt::StrongFocus);
     QGLWidget* viewPortWidget = new QGLWidget;
     setViewport(viewPortWidget);
 
@@ -66,8 +67,10 @@ void NewVideoWidget::setupVideoPlayer(QGLWidget* paintWidget)
 
 void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
 {
+
     _clockItem = new ClockGraphicsItem(simulation);
     scene->addItem(_clockItem);
+
 }
 
 void NewVideoWidget::addWattage(Simulation &simulation, QGraphicsScene *scene)
@@ -155,20 +158,59 @@ void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
     _videoPlayer->loadVideo(uri);
 }
 
+void NewVideoWidget::setCourse(Course &course)
+{
+    _course = course;
+    seekToStart(_course);
+    qDebug() << "VideoWidget: course set to " << _course.name();
+}
+
 void NewVideoWidget::setCourseIndex(int index)
 {
     if (!_rlv.isValid()) {
         return;
     }
-    _course = _rlv.courses()[qMax(0, index)];
-    seekToStart(_course);
-
-    qDebug() << "VideoWidget: course set to " << _course.name();
+    Course course = _rlv.courses()[qMax(0, index)];
+    setCourse(course);
 }
 
 void NewVideoWidget::setDistance(float distance)
 {
     _videoPlayer->stepToFrame(_rlv.frameForDistance(distance));
+}
+
+void NewVideoWidget::focusInEvent(QFocusEvent *event)
+{
+    qDebug() << "gained focus" << hasFocus();
+
+    QWidget::focusInEvent(event);
+}
+
+
+void NewVideoWidget::focusOutEvent(QFocusEvent *event)
+{
+    qDebug() << "lost focus";
+    QWidget::focusOutEvent(event);
+}
+
+void NewVideoWidget::keyPressEvent(QKeyEvent *event)
+{
+    qDebug() << "received key" << event->key() << event->text();
+    switch(event->key()) {
+    case Qt::Key_F:
+        showFullScreen();
+        break;
+    case Qt::Key_M:
+        showMaximized();
+        break;
+    case Qt::Key_Escape:
+        releaseKeyboard();
+        close();
+    default:
+        // nothing
+        break;
+    }
+    event->accept();
 }
 
 void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
@@ -189,9 +231,10 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
     _gradeItem->setPos(scenePosition.x() - _gradeItem->boundingRect().width(), scenePosition.y());
     resizeEvent->accept();
 
-    _profileItem->setSize(QSize(width() * 6 / 8, height() * 1 / 8));
-    scenePosition = mapToScene(width() * 1 / 8, height() * 27 / 32);
-    _profileItem->setPos(scenePosition);
+    qDebug() << "setting position of profile item to " << resizeEvent->size().width() * 1/8;
+    _profileItem->setGeometry(QRectF(resizeEvent->size().width() * 1 / 8, resizeEvent->size().height() * 27 / 32, resizeEvent->size().width() * 6 / 8, resizeEvent->size().height() * 1 / 8));
+//    scenePosition = mapToScene(width() * 1 / 8, height() * 27 / 32);
+//    _profileItem->setPos(scenePosition);
 }
 
 void NewVideoWidget::enterEvent(QEvent *)
@@ -200,6 +243,11 @@ void NewVideoWidget::enterEvent(QEvent *)
 }
 
 void NewVideoWidget::leaveEvent(QEvent *)
+{
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
+}
+
+void NewVideoWidget::closeEvent(QCloseEvent *)
 {
     QApplication::setOverrideCursor(Qt::ArrowCursor);
 }

@@ -2,12 +2,14 @@
 #define VIDEOTILEVIEW_H
 
 #include <QtCore/QList>
+#include <QtWidgets/QGraphicsGridLayout>
 #include <QtWidgets/QGraphicsView>
+#include <QtCore/QScopedPointer>
+#include <QtCore/QScopedPointerDeleteLater>
+
 #include "reallifevideo.h"
 #include "videotile.h"
-
-class VideoTile;
-class VideoLightBox;
+#include "videolightbox.h"
 
 class VideoTileView : public QGraphicsView
 {
@@ -19,15 +21,25 @@ signals:
 
 public slots:
     void rlvsLoaded(RealLifeVideoList& rlvs);
+
+signals:
+    void startRlv(RealLifeVideo& rlv);
+
 protected:
-    void resizeEvent(QResizeEvent *);
-    virtual void scrollContentsBy(int dx, int dy);
-    virtual void keyPressEvent(QKeyEvent *event);
+    virtual void drawBackground(QPainter *painter, const QRectF &rect) override;
+    void resizeEvent(QResizeEvent *) override;
+    virtual void scrollContentsBy(int dx, int dy) override;
+    virtual void keyPressEvent(QKeyEvent *event) override;
 private:
     void placeTiles();
-    void showSelected(const RealLifeVideo& rlv);
+    void showSelected(RealLifeVideo &rlv);
+    void removeSelectedVideoLightBox();
+
+    QGraphicsWidget* _mainWidget;
+    QGraphicsGridLayout* _layout;
     QList<VideoTile*> _items;
-    VideoLightBox* _selectedVideoLightBox;
+    QScopedPointer<VideoLightBox,QScopedPointerObjectDeleteLater<VideoLightBox>> _selectedVideoLightBox;
+    RealLifeVideo _selectedRlv;
 };
 
 #endif // VIDEOTILEVIEW_H

@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 	app.connect(&antController, SIGNAL(cadenceMeasured(quint8)), &cyclist, SLOT(setCadence(quint8)));
 	app.connect(&antController, SIGNAL(powerMeasured(quint16)), &cyclist, SLOT(setPower(quint16)));
 
+    app.installEventFilter(&mw);
 	if (argc >= 3) {
 		QString robot(argv[2]);
 		if (robot == "robot") {

@@ -148,7 +148,8 @@ bool Thumbnailer::doesThumbnailExistsFor(const RealLifeVideo &rlv)
 
 QPixmap Thumbnailer::loadThumbnailFor(const RealLifeVideo &rlv)
 {
-    return QPixmap(cacheFilePathFor(rlv));
+    QString path = cacheFilePathFor(rlv);
+    return QPixmap(path);
 }
 
 // the following functions are in anonymous namespace so they're not exported.

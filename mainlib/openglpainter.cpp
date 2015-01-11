@@ -122,6 +122,7 @@ void OpenGLPainter::setCurrentSample(GstSample *sample)
     if (!_openGLInitialized) {
         _widget->context()->makeCurrent();
         initializeOpenGL();
+        qDebug() << "initializing opengl";
     }
     if (getSizeFromSample(sample) != _sourceSize) {
         _sourceSizeDirty = true;
@@ -166,7 +167,7 @@ QSizeF OpenGLPainter::getSizeFromSample(GstSample* sample)
 void OpenGLPainter::initializeOpenGL()
 {
     Q_ASSERT_X(!_program.isLinked(), "initializeOpenGL", "OpenGL already initialized");
-
+    qDebug() << "INITIALIZING OPENGL";
     _glFunctions = QOpenGLFunctions(QOpenGLContext::currentContext());
     if (!_program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":///shaders/vertexshader.glsl")) {
         qFatal("Unable to add vertex shader: %s", qPrintable(_program.log()));

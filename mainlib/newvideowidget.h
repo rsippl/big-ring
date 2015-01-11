@@ -23,12 +23,17 @@ signals:
 
 public slots:
     void setRealLifeVideo(RealLifeVideo rlv);
+    void setCourse(Course& course);
     void setCourseIndex(int index);
     void setDistance(float distance);
 protected:
-    void resizeEvent(QResizeEvent *);
-    virtual void enterEvent(QEvent *);
-    virtual void leaveEvent(QEvent *);
+    virtual void focusOutEvent(QFocusEvent*) override;
+    virtual void focusInEvent(QFocusEvent*) override;
+    virtual void keyPressEvent(QKeyEvent* event) override;
+    void resizeEvent(QResizeEvent *) override;
+    virtual void enterEvent(QEvent *) override;
+    virtual void leaveEvent(QEvent *) override;
+    virtual void closeEvent(QCloseEvent*) override;
     virtual void drawBackground(QPainter *painter, const QRectF &rect) override;
 
 private:
@@ -48,6 +53,7 @@ private:
     RealLifeVideo _rlv;
     Course _course;
     VideoPlayer* _videoPlayer;
+
     QGraphicsItem* _clockItem;
     QGraphicsItem* _wattageItem;
     QGraphicsItem* _heartRateItem;

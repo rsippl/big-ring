@@ -18,17 +18,11 @@ include(../mainlib/mainlib.pri)
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    rlvtablemodel.cpp \
-    previewvideowidget.cpp \
-    clockitem.cpp \
     videotileview.cpp \
     videotile.cpp \
     videolightbox.cpp
 
 HEADERS  += mainwindow.h \
-    rlvtablemodel.h \
-    previewvideowidget.h \
-    clockitem.h \
     videotileview.h \
     videotile.h \
     videolightbox.h
