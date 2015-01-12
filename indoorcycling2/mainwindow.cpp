@@ -3,26 +3,36 @@
 #include <QtCore/QtDebug>
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
-#include <random>
 
-#include "rlvtablemodel.h"
+
+#include "cyclist.h"
 #include "run.h"
+#include "videotileview.h"
+#include "newvideowidget.h"
+#include "simulation.h"
 
 MainWindow::MainWindow(QString dir, QWidget *parent) :
-    QMainWindow(parent),
-    _ui(new Ui::MainWindow),
+    QWidget(parent, Qt::Window),
     _importer(new RealLifeVideoImporter(this)),
     _antController(new ANTController(this)),
-    _tileView(new VideoTileView(this))
+    _cyclist(new Cyclist(this)),
+    _simulation(new Simulation(*_cyclist, this)),
+    _stackedWidget(new QStackedWidget),
+    _tileView(new VideoTileView),
+    _videoWidget(new NewVideoWidget(*_simulation))
 {
-    _ui->setupUi(this);
-
+    QVBoxLayout* layout = new QVBoxLayout;
+    layout->setContentsMargins(0, 0, 0, 0);
+    setLayout(layout);
     qDebug() << "starting from " << dir;
     connect(_importer, &RealLifeVideoImporter::importFinished, this, &MainWindow::importFinished);
     _importer->parseRealLiveVideoFilesFromDir(dir);
 
     _tileView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    _ui->centralwidget->layout()->addWidget(_tileView);
+    _stackedWidget->addWidget(_tileView);
+    _stackedWidget->addWidget(_videoWidget);
+
+    layout->addWidget(_stackedWidget);
 
     connect(_tileView, &VideoTileView::startRlv, _tileView, [=](RealLifeVideo& rlv) {
         qDebug() << "main window:" << rlv.name();
@@ -34,7 +44,37 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    delete _ui;
+    // empty
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    qDebug() << "received key" << event->key() << event->text();
+    switch(event->key()) {
+    case Qt::Key_F:
+        qDebug() << "going to full screen. Hopefully";
+        if (_run) {
+            showFullScreen();
+        }
+
+        break;
+    case Qt::Key_M:
+        if (isMaximized()) {
+            showNormal();
+        } else {
+            showMaximized();
+        }
+        break;
+    case Qt::Key_Escape:
+        if (_run) {
+            _run->stop();
+        }
+    default:
+        // nothing
+        break;
+    }
+    event->accept();
+
 }
 
 void MainWindow::importFinished(RealLifeVideoList rlvs)
@@ -47,12 +87,14 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
 void MainWindow::startRun(RealLifeVideo rlv)
 {
     Course course = rlv.courses()[0];
-    Run* run = new Run(*_antController, rlv, course);
-    run->start();
-    this->releaseKeyboard();
-    connect(run, &Run::stopped, run, [this,run]() {
+    _run.reset(new Run(*_antController, _simulation, rlv, course, _videoWidget));
+
+    _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_videoWidget));
+    connect(_run.data(), &Run::stopped, _run.data(), [this]() {
         qDebug() << "run finished";
-        this->show();
-        run->deleteLater();
+        _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_tileView));
+        _run.reset();
     });
+    _run->start();
+
 }

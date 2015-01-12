@@ -16,7 +16,7 @@ const QTime MAX_IDLE_TIME(0, 0, 5);
 /** Calculate drag from wind resistance */
 float calculateAeroDrag(const Cyclist& cyclist)
 {
-	return FRONTAL_AREA * DRAG_COEFFICIENT * AIR_DENSITY * cyclist.speed() * cyclist.speed() * .5;
+    return FRONTAL_AREA * DRAG_COEFFICIENT * AIR_DENSITY * cyclist.speed() * cyclist.speed() * .5;
 }
 
 const float GRAVITY_CONSTANT = 9.81f;
@@ -24,13 +24,13 @@ const float ROLLING_RESISTANCE_COEFFICIENT = 0.004;
 
 float calculateGroundResistance(const Cyclist& cylist)
 {
-	return cylist.weight() * GRAVITY_CONSTANT * ROLLING_RESISTANCE_COEFFICIENT;
+    return cylist.weight() * GRAVITY_CONSTANT * ROLLING_RESISTANCE_COEFFICIENT;
 }
 
 
 float calculateGravityForce(const Cyclist& cyclist, float grade)
 {
-	return GRAVITY_CONSTANT * grade * 0.01 * cyclist.weight();
+    return GRAVITY_CONSTANT * grade * 0.01 * cyclist.weight();
 }
 
 }
@@ -38,75 +38,80 @@ float calculateGravityForce(const Cyclist& cyclist, float grade)
 
 
 Simulation::Simulation(Cyclist &cyclist, QObject *parent) :
-	QObject(parent), _lastElapsed(0), _simulationTime(0,0,0), _idleTime(),_cyclist(cyclist)
+    QObject(parent), _lastElapsed(0), _simulationTime(0,0,0), _idleTime(),_cyclist(cyclist)
 {
     _simulationUpdateTimer.setInterval(1000 / 30);
-	connect(&_simulationUpdateTimer, SIGNAL(timeout()), SLOT(simulationStep()));
+    connect(&_simulationUpdateTimer, SIGNAL(timeout()), SLOT(simulationStep()));
 }
 
 Simulation::~Simulation()
 {
-	_simulationUpdateTimer.stop();
+    _simulationUpdateTimer.stop();
 }
 
 Cyclist &Simulation::cyclist() const
 {
-	return _cyclist;
+    return _cyclist;
+}
+
+bool Simulation::isPlaying()
+{
+    return _simulationUpdateTimer.isActive();
 }
 
 void Simulation::play(bool play)
 {
-	if (play) {
-		_simulationUpdateTimer.start();
-		_simulationTime.restart();
-		_lastElapsed = 0;
-	} else {
-		_simulationUpdateTimer.stop();
-	}
-	emit playing(play);
+    if (play) {
+        _simulationUpdateTimer.start();
+        _simulationTime.restart();
+        _lastElapsed = 0;
+    } else {
+        _simulationUpdateTimer.stop();
+    }
+    emit playing(play);
 }
 
 void Simulation::simulationStep()
 {
-	if (!_currentRlv.isValid())
-		return;
+    if (!_currentRlv.isValid())
+        return;
 
-	qint64 currentElapsed = _simulationTime.elapsed();
-	qint64 elapsed = currentElapsed - _lastElapsed;
-	_lastElapsed = currentElapsed;
+    qint64 currentElapsed = _simulationTime.elapsed();
+    qint64 elapsed = currentElapsed - _lastElapsed;
+    _lastElapsed = currentElapsed;
 
-	if (_cyclist.speed() > 0) {
-		_runTime = _runTime.addMSecs(elapsed);
-		emit runTimeChanged(_runTime);
-	}
+    if (_cyclist.speed() > 0) {
+        _runTime = _runTime.addMSecs(elapsed);
+        emit runTimeChanged(_runTime);
+    }
 
-	float speed = calculateSpeed(elapsed);
-	float distanceTravelled = (speed * elapsed) * 0.001;
+    float speed = calculateSpeed(elapsed);
+    float distanceTravelled = (speed * elapsed) * 0.001;
 
-	_cyclist.setSpeed(speed);
-	_cyclist.setDistance(_cyclist.distance() + distanceTravelled);
+    _cyclist.setSpeed(speed);
+    _cyclist.setDistance(_cyclist.distance() + distanceTravelled);
     _cyclist.setDistanceTravelled(_cyclist.distanceTravelled() + distanceTravelled);
 
-	emit slopeChanged(_currentRlv.slopeForDistance(_cyclist.distance()));
+    emit slopeChanged(_currentRlv.slopeForDistance(_cyclist.distance()));
     emit altitudeChanged(_currentRlv.altitudeForDistance(_cyclist.distance()));
 }
 
 void Simulation::rlvSelected(RealLifeVideo rlv)
 {
-	reset();
-	_currentRlv = rlv;
+    reset();
+    _currentRlv = rlv;
 }
 
 void Simulation::courseSelected(int courseNr)
 {
-	reset();
-	if (courseNr == -1) {
-		return;
-	}
-	if (!_currentRlv.isValid())
-		return;
+    reset();
+    if (courseNr == -1) {
+        return;
+    }
+    if (!_currentRlv.isValid())
+        return;
 
-	const Course& course = _currentRlv.courses()[courseNr];
+    const Course& course = _currentRlv.courses()[courseNr];
     courseSelected(course);
     _cyclist.setDistance(course.start());
 }
@@ -119,43 +124,43 @@ void Simulation::courseSelected(const Course &course)
 
 float Simulation::calculateSpeed(quint64 timeDelta)
 {
-	if (_cyclist.power() < 1.0f) {
-		// if there is no power input and current speed is zero, assume we have no input.
-		if (_cyclist.speed() < MINIMUM_SPEED)
-			return 0;
+    if (_cyclist.power() < 1.0f) {
+        // if there is no power input and current speed is zero, assume we have no input.
+        if (_cyclist.speed() < MINIMUM_SPEED)
+            return 0;
 
-		// let the cyclist slow down and stop running after MAX_IDLE_TIME.
-		_idleTime = _idleTime.addMSecs(timeDelta);
+        // let the cyclist slow down and stop running after MAX_IDLE_TIME.
+        _idleTime = _idleTime.addMSecs(timeDelta);
 
-		if (_idleTime > MAX_IDLE_TIME)
-			return 0;
-	} else {
-		_idleTime = QTime(0,0,0);
-	}
+        if (_idleTime > MAX_IDLE_TIME)
+            return 0;
+    } else {
+        _idleTime = QTime(0,0,0);
+    }
 
-	// if speed is very low, use cyclist weight, otherwise force gets very high. Is there
-	// a better way to do this?
-	float force = (_cyclist.speed() > (MINIMUM_SPEED - 0.1)) ? _cyclist.power() / _cyclist.speed() : _cyclist.weight();
+    // if speed is very low, use cyclist weight, otherwise force gets very high. Is there
+    // a better way to do this?
+    float force = (_cyclist.speed() > (MINIMUM_SPEED - 0.1)) ? _cyclist.power() / _cyclist.speed() : _cyclist.weight();
 
-	float resistantForce = calculateAeroDrag(_cyclist) +
-			calculateGravityForce(_cyclist, _currentRlv.slopeForDistance(_cyclist.distance())) +
-			calculateGroundResistance(_cyclist);
-	float resultingForce = force - resistantForce;
+    float resistantForce = calculateAeroDrag(_cyclist) +
+            calculateGravityForce(_cyclist, _currentRlv.slopeForDistance(_cyclist.distance())) +
+            calculateGroundResistance(_cyclist);
+    float resultingForce = force - resistantForce;
 
-	float accelaration = resultingForce / _cyclist.weight();
-	float speedChange = accelaration * timeDelta * 0.001;
-	float speed = _cyclist.speed() + speedChange;
+    float accelaration = resultingForce / _cyclist.weight();
+    float speedChange = accelaration * timeDelta * 0.001;
+    float speed = _cyclist.speed() + speedChange;
 
-	// If there's power applied, always return at least MINIMUM_SPEED.
-	return qMax(MINIMUM_SPEED, speed);
+    // If there's power applied, always return at least MINIMUM_SPEED.
+    return qMax(MINIMUM_SPEED, speed);
 }
 
 void Simulation::reset()
 {
-	play(false);
-	_runTime = QTime(0, 0, 0);
-	emit runTimeChanged(_runTime);
-	_cyclist.setSpeed(0);
-	_cyclist.setDistance(0);
-	_cyclist.setDistanceTravelled(0);
+    play(false);
+    _runTime = QTime(0, 0, 0);
+    emit runTimeChanged(_runTime);
+    _cyclist.setSpeed(0);
+    _cyclist.setDistance(0);
+    _cyclist.setDistanceTravelled(0);
 }

@@ -17,6 +17,7 @@
 NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     QGraphicsView(parent)
 {
+    setMinimumSize(800, 600);
     setFocusPolicy(Qt::StrongFocus);
     QGLWidget* viewPortWidget = new QGLWidget;
     setViewport(viewPortWidget);
@@ -44,6 +45,21 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     scene->addItem(_profileItem);
 
     setupVideoPlayer(viewPortWidget);
+
+    _pausedItem = new QGraphicsTextItem;
+    QFont bigFont;
+    bigFont.setPointSize(36);
+    _pausedItem->setFont(bigFont);
+    _pausedItem->setDefaultTextColor(Qt::white);
+    _pausedItem->setPlainText("Paused");
+    connect(&simulation, &Simulation::playing, &simulation, [=](bool playing) {
+        if (playing) {
+            _pausedItem->hide();
+        } else {
+            _pausedItem->show();
+        }
+    });
+    scene->addItem(_pausedItem);
 }
 
 void NewVideoWidget::setupVideoPlayer(QGLWidget* paintWidget)
@@ -179,6 +195,11 @@ void NewVideoWidget::setDistance(float distance)
     _videoPlayer->stepToFrame(_rlv.frameForDistance(distance));
 }
 
+void NewVideoWidget::goToFullscreen()
+{
+    showFullScreen();
+}
+
 void NewVideoWidget::focusInEvent(QFocusEvent *event)
 {
     qDebug() << "gained focus" << hasFocus();
@@ -193,30 +214,21 @@ void NewVideoWidget::focusOutEvent(QFocusEvent *event)
     QWidget::focusOutEvent(event);
 }
 
-void NewVideoWidget::keyPressEvent(QKeyEvent *event)
-{
-    qDebug() << "received key" << event->key() << event->text();
-    switch(event->key()) {
-    case Qt::Key_F:
-        showFullScreen();
-        break;
-    case Qt::Key_M:
-        showMaximized();
-        break;
-    case Qt::Key_Escape:
-        releaseKeyboard();
-        close();
-    default:
-        // nothing
-        break;
-    }
-    event->accept();
-}
-
 void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 {
+    setSceneRect(viewport()->rect());
+    qDebug() << "view port rect = " << viewport()->rect();
+    qDebug() << "scene rect" << sceneRect();
+    QRectF clockItemRect = _clockItem->boundingRect();
+    clockItemRect.moveCenter(QPointF(sceneRect().width() / 2, 0.0));
+    clockItemRect.moveTop(0.0);
+    qDebug() << "clock item rect = " << clockItemRect << clockItemRect.topLeft();
+    _clockItem->setPos(clockItemRect.topLeft());
+
+//    _clockItem->boundingRect().moveCenter(scene);
     QPointF scenePosition = mapToScene(width() / 2, 0);
-    _clockItem->setPos(scenePosition.x() - (_clockItem->boundingRect().width() / 2), scenePosition.y());
+    qDebug() << "scene position?" << scenePosition << _clockItem->scenePos();
+//    _clockItem->setPos(scenePosition.x() - (_clockItem->boundingRect().width() / 2), scenePosition.y());
     scenePosition = mapToScene(0, height() /8);
     _wattageItem->setPos(scenePosition);
     scenePosition = mapToScene(0, 2* height() /8);
@@ -231,8 +243,15 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
     _gradeItem->setPos(scenePosition.x() - _gradeItem->boundingRect().width(), scenePosition.y());
     resizeEvent->accept();
 
+    QPointF center = mapToScene(viewport()->rect().center());
+    _pausedItem->setPos(center);
+
     qDebug() << "setting position of profile item to " << resizeEvent->size().width() * 1/8;
-    _profileItem->setGeometry(QRectF(resizeEvent->size().width() * 1 / 8, resizeEvent->size().height() * 27 / 32, resizeEvent->size().width() * 6 / 8, resizeEvent->size().height() * 1 / 8));
+    qDebug() << "right is at  " << resizeEvent->size().width() * 1 / 8 + (resizeEvent->size().width() * 6 / 8);
+    qDebug() << "width of screen is" << resizeEvent->size().width();
+
+//    _profileItem->setGeometry(QRectF(resizeEvent->size().width() * 1 / 8, resizeEvent->size().height() * 27 / 32, resizeEvent->size().width() * 6 / 8, resizeEvent->size().height() * 1 / 8));
+    _profileItem->setGeometry(QRectF(mapToScene(resizeEvent->size().width() * 1 / 8, resizeEvent->size().height() * 27 / 32), QSizeF(sceneRect().width() * 6 / 8, sceneRect().height() * 1 / 8)));
 //    scenePosition = mapToScene(width() * 1 / 8, height() * 27 / 32);
 //    _profileItem->setPos(scenePosition);
 }

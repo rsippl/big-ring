@@ -87,7 +87,6 @@ void ProfileItem::setGeometry(const QRectF &rect)
     prepareGeometryChange();
     QGraphicsWidget::setGeometry(rect);
     _internalRect = QRect(1, 1, rect.width() - 2, rect.height() - 2);
-
     _dirty = true;
 }
 

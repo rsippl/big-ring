@@ -79,7 +79,8 @@ QLayout* MainWindow::setupSideBar(QWidget* centralWidget)
     connect(playButton, &QPushButton::clicked, playButton, [this]() {
         int row  = courseListWidget->currentIndex().row();
         Course course = _rlv.courses()[row];
-        Run* run = new Run(_antController, _rlv, course);
+        qFatal("Not implemented from here!");
+        Run* run = nullptr;
         run->start();
         this->releaseKeyboard();
 //        hide();

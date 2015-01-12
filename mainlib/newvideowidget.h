@@ -26,10 +26,11 @@ public slots:
     void setCourse(Course& course);
     void setCourseIndex(int index);
     void setDistance(float distance);
+
+    void goToFullscreen();
 protected:
     virtual void focusOutEvent(QFocusEvent*) override;
     virtual void focusInEvent(QFocusEvent*) override;
-    virtual void keyPressEvent(QKeyEvent* event) override;
     void resizeEvent(QResizeEvent *) override;
     virtual void enterEvent(QEvent *) override;
     virtual void leaveEvent(QEvent *) override;
@@ -61,6 +62,7 @@ private:
     QGraphicsItem* _speedItem;
     QGraphicsItem* _distanceItem;
     QGraphicsItem* _gradeItem;
+    QGraphicsTextItem* _pausedItem;
     ProfileItem* _profileItem;
     QTimer* _busTimer;
 };
