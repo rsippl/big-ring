@@ -5,7 +5,6 @@
 #include <QtCore/QtDebug>
 #include <QtCore/QPropertyAnimation>
 #include <QtOpenGL/QGLWidget>
-#include <QtWidgets/QGraphicsDropShadowEffect>
 
 VideoTileView::VideoTileView(QWidget *parent) :
     QGraphicsView(parent), _selectedVideoLightBox(nullptr)
@@ -24,7 +23,7 @@ VideoTileView::VideoTileView(QWidget *parent) :
     _mainWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     _mainWidget->setPos(mapToScene(0, 0));
     scene->addItem(_mainWidget);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     setScene(scene);
     _mainWidget->setGeometry(scene->sceneRect());
@@ -34,6 +33,7 @@ VideoTileView::VideoTileView(QWidget *parent) :
 
 void VideoTileView::resizeEvent(QResizeEvent *event)
 {
+    QGraphicsView::resizeEvent(event);
     _mainWidget->setGeometry(0, 0, event->size().width(), event->size().height());
     if (_selectedVideoLightBox) {
         QPointF lowerRight = mapToScene(viewport()->rect().bottomRight());
@@ -55,7 +55,6 @@ void VideoTileView::scrollContentsBy(int dx, int dy)
 void VideoTileView::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape && _selectedVideoLightBox && _selectedVideoLightBox->isVisible()) {
-
         scene()->removeItem(_selectedVideoLightBox.data());
     }
 }
