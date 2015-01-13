@@ -11,6 +11,7 @@
 #include "profileitem.h"
 #include "sensoritem.h"
 #include "simulation.h"
+#include "screensaverblocker.h"
 #include "videoplayer.h"
 
 
@@ -19,7 +20,7 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
 {
     setMinimumSize(800, 600);
     setFocusPolicy(Qt::StrongFocus);
-    QGLWidget* viewPortWidget = new QGLWidget;
+    QGLWidget* viewPortWidget = new QGLWidget(QGLFormat(QGL::SampleBuffers));
     setViewport(viewPortWidget);
 
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
@@ -202,7 +203,8 @@ void NewVideoWidget::goToFullscreen()
 
 void NewVideoWidget::focusInEvent(QFocusEvent *event)
 {
-    qDebug() << "gained focus" << hasFocus();
+    qDebug() << "gained focus. Blocking screen saver" << hasFocus();
+    _screenSaverBlocker.reset(new indoorcycling::ScreenSaverBlocker(this));
 
     QWidget::focusInEvent(event);
 }
@@ -211,6 +213,7 @@ void NewVideoWidget::focusInEvent(QFocusEvent *event)
 void NewVideoWidget::focusOutEvent(QFocusEvent *event)
 {
     qDebug() << "lost focus";
+    _screenSaverBlocker.reset();
     QWidget::focusOutEvent(event);
 }
 

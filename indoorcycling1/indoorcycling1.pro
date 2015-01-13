@@ -4,12 +4,10 @@ include(../mainlib/mainlib.pri)
 
 TARGET = ../bin/indoorcycling1
 SOURCES += main.cpp \
-    mainwindow.cpp \
-    screensaverblocker.cpp
+    mainwindow.cpp
 
 HEADERS += \
-    mainwindow.h \
-    screensaverblocker.h
+    mainwindow.h
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib

@@ -24,11 +24,6 @@ private:
     void blockScreenSaver();
 
     QWidget* const _window;
-#ifdef Q_OS_LINUX
-    QProcess _process;
-#endif
-
-
 };
 }
 #endif // SCREENSAVERBLOCKER_H

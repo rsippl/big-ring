@@ -1,6 +1,7 @@
 #ifndef NEWVIDEOWIDGET_H
 #define NEWVIDEOWIDGET_H
 
+#include <QtCore/QScopedPointer>
 #include <QtCore/QTimer>
 #include <QtOpenGL/QGLWidget>
 #include <QtWidgets/QGraphicsView>
@@ -9,6 +10,10 @@
 #include "profileitem.h"
 class Simulation;
 class VideoPlayer;
+
+namespace indoorcycling {
+class ScreenSaverBlocker;
+}
 
 class NewVideoWidget : public QGraphicsView
 {
@@ -64,7 +69,8 @@ private:
     QGraphicsItem* _gradeItem;
     QGraphicsTextItem* _pausedItem;
     ProfileItem* _profileItem;
-    QTimer* _busTimer;
+
+    QScopedPointer<indoorcycling::ScreenSaverBlocker,QScopedPointerDeleteLater> _screenSaverBlocker;
 };
 
 #endif // NEWVIDEOWIDGET_H

@@ -16,17 +16,28 @@ ScreenSaverBlocker::ScreenSaverBlocker(QWidget* window, QObject *parent) :
 
 ScreenSaverBlocker::~ScreenSaverBlocker()
 {
-    qDebug() << "destroy";
+#ifdef Q_OS_LINUX
+    qDebug() << "allowing screensaver to work again";
+    QProcess* process = new QProcess;
+
+    quintptr windowId = _window->winId();
+    QString command = QString("xdg-screensaver resume %1").arg(windowId);
+    connect(process, SIGNAL(finished(int)), process, SLOT(deleteLater()));
+    process->start(command);
+#endif
 }
 
 #ifdef Q_OS_LINUX
 void ScreenSaverBlocker::blockScreenSaver()
 {
-    connect(&_process, SIGNAL(error(QProcess::ProcessError)), this,
-            SLOT(handleError(QProcess::ProcessError)));
+    QProcess* process = new QProcess;
+
     quintptr windowId = _window->winId();
     QString command = QString("xdg-screensaver suspend %1").arg(windowId);
-    _process.start(command);
+    connect(process, SIGNAL(error(QProcess::ProcessError)), this,
+            SLOT(handleError(QProcess::ProcessError)));
+    connect(process, SIGNAL(finished(int)), process, SLOT(deleteLater()));
+    process->start(command);
 }
 
 #else
@@ -40,6 +51,7 @@ void ScreenSaverBlocker::blockScreenSaver()
 
 void ScreenSaverBlocker::handleError(QProcess::ProcessError error)
 {
+    QObject* process = sender();
     switch(error) {
     case QProcess::FailedToStart:
         qDebug() << "screensaver blocker could not be started.";
@@ -47,5 +59,6 @@ void ScreenSaverBlocker::handleError(QProcess::ProcessError error)
     default:
         qDebug() << "screensaver blocker error.";
     }
+    process->deleteLater();
 }
 }
