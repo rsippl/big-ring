@@ -52,11 +52,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     qDebug() << "received key" << event->key() << event->text();
     switch(event->key()) {
     case Qt::Key_F:
-        qDebug() << "going to full screen. Hopefully";
-        if (_run) {
-            showFullScreen();
-        }
-
+        showFullScreen();
         break;
     case Qt::Key_M:
         if (isMaximized()) {
@@ -70,11 +66,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             _run->stop();
         }
     default:
-        // nothing
+        QWidget::keyPressEvent(event);
+        return;
         break;
     }
     event->accept();
-
 }
 
 void MainWindow::importFinished(RealLifeVideoList rlvs)
