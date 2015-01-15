@@ -56,6 +56,7 @@ void VideoTileView::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape && _selectedVideoLightBox && _selectedVideoLightBox->isVisible()) {
         scene()->removeItem(_selectedVideoLightBox.data());
+        _selectedVideoLightBox.reset();
     }
 }
 
