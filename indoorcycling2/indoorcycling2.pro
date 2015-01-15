@@ -10,9 +10,6 @@ QT       += core gui
 TARGET = indoorcycling2
 TEMPLATE = app
 
-INCLUDEPATH += /home/ibooij/local/lib/qtgstreamer/include/Qt5GStreamer
-
-
 include(../mainlib/mainlib.pri)
 
 
@@ -26,8 +23,6 @@ HEADERS  += mainwindow.h \
     videotileview.h \
     videotile.h \
     videolightbox.h
-
-LIBS += -L/home/ibooij/local/lib/qtgstreamer/lib/x86_64-linux-gnu -lQt5GLib-2.0 -lQt5GStreamer-1.0 -lQt5GStreamerUi-1.0
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib
