@@ -54,6 +54,5 @@ else:unix: PRE_TARGETDEPS += $$OUT_PWD/../antlib/libantlib.a
 message("Master pro file path : ["$${MAINLIB_LIBRARY_DEPENCIES}"]")
 LIBS += $${MAINLIB_LIBRARY_DEPENCIES}
 
-FORMS += \
-    mainwindow.ui
+FORMS +=
 
