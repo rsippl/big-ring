@@ -93,7 +93,7 @@ void VideoTileView::placeTiles()
         }
     }
 
-    setMinimumWidth(_mainWidget->minimumWidth() + 20);
+    setMinimumWidth(_mainWidget->minimumWidth());
 }
 
 void VideoTileView::showSelected(RealLifeVideo &rlv)
