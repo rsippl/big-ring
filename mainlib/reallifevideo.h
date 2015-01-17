@@ -6,97 +6,99 @@
 #include <QPair>
 #include <QString>
 
+#include <QtCore/QSharedPointer>
+
 #include "profile.h"
 
 class DistanceMappingEntry
 {
 public:
-	explicit DistanceMappingEntry(quint32 frameNumber, float metersPerFrame);
-	explicit DistanceMappingEntry();
+    explicit DistanceMappingEntry(quint32 frameNumber, float metersPerFrame);
+    explicit DistanceMappingEntry();
 
-	quint32 frameNumber() const { return _frameNumber; }
-	float metersPerFrame() const { return _metersPerFrame; }
+    quint32 frameNumber() const { return _frameNumber; }
+    float metersPerFrame() const { return _metersPerFrame; }
 
 private:
-	quint32 _frameNumber;
-	float _metersPerFrame;
+    quint32 _frameNumber;
+    float _metersPerFrame;
 };
 
 class Course
 {
 public:
-	explicit Course(const QString& name, float start, float end);
-	explicit Course();
+    explicit Course(const QString& name, float start, float end);
+    explicit Course();
 
     bool isValid() const { return (!_name.isEmpty()); }
-	const QString& name() const { return _name; }
-	/*! start distance of course in  meters */
-	float start() const { return _start; }
-	/*! end distance of course in meters */
-	float end() const { return _end; }
+    const QString& name() const { return _name; }
+    /*! start distance of course in  meters */
+    float start() const { return _start; }
+    /*! end distance of course in meters */
+    float end() const { return _end; }
 
 private:
-	QString _name;
-	float _start;
-	float _end;
+    QString _name;
+    float _start;
+    float _end;
 };
 
 class VideoInformation
 {
 public:
-	explicit VideoInformation(const QString& videoFilename, float frameRate);
-	explicit VideoInformation();
+    explicit VideoInformation(const QString& videoFilename, float frameRate);
+    explicit VideoInformation();
 
-	const QString& videoFilename() const { return _videoFilename; }
-	float frameRate() const { return _frameRate; }
+    const QString& videoFilename() const { return _videoFilename; }
+    float frameRate() const { return _frameRate; }
 
 private:
-	QString _videoFilename;
-	float _frameRate;
+    QString _videoFilename;
+    float _frameRate;
 };
+
+
+class RealLifeVideoData;
 
 class RealLifeVideo
 {
 public:
-	explicit RealLifeVideo(const QString& name, const VideoInformation& videoInformation, QList<Course>& courses,
-						   QList<DistanceMappingEntry> distanceMappings, Profile profile);
-	explicit RealLifeVideo();
+    explicit RealLifeVideo(const QString& name, const VideoInformation& videoInformation, QList<Course>& courses,
+                           QList<DistanceMappingEntry> distanceMappings, Profile profile);
+    RealLifeVideo(const RealLifeVideo& other);
+    explicit RealLifeVideo();
 
-	bool isValid() const { return (!_name.isEmpty() && !_videoInformation.videoFilename().isEmpty()); }
-	ProfileType type() const { return _profile.type(); }
-	Profile& profile() { return _profile; }
-	const QString name() const { return _name; }
-	const VideoInformation& videoInformation() const { return _videoInformation; }
-	const QList<Course>& courses() const { return _courses; }
+    bool isValid() const;
+    ProfileType type() const;
+    Profile& profile() const;
+    const QString name() const;
+    const VideoInformation& videoInformation() const;
+    const QList<Course>& courses() const;
 
-	/** Get the number or frames per meter for a certain distance */
-	float metersPerFrame(const float distance);
-	/** Get the exact frame for a distance. */
-	quint32 frameForDistance(const float distance);
-	/** Get the slope for a distance */
+    void printDistanceMapping();
+    /** Get the number or frames per meter for a certain distance */
+    float metersPerFrame(const float distance);
+    /** Get the exact frame for a distance. */
+    quint32 frameForDistance(const float distance);
+    /** Get the slope for a distance */
     float slopeForDistance(const float distance);
-	//! Get the altitude for a distance */
+    //! Get the altitude for a distance */
     float altitudeForDistance(const float distance);
-	/** Total distance */
-	float totalDistance() const;
+    /** Total distance */
+    float totalDistance() const;
     /** Set duration of video, in microseconds */
     void setDuration(quint64 duration);
 
-	static bool compareByName(const RealLifeVideo& rlv1, const RealLifeVideo& rlv2);
+    static bool compareByName(const RealLifeVideo& rlv1, const RealLifeVideo& rlv2);
 private:
     void calculateVideoCorrectionFactor(quint64 totalNrOfFrames);
 
-	const QPair<float, DistanceMappingEntry> &findDistanceMappingEntryFor(const float distance);
+    const QPair<float, DistanceMappingEntry> &findDistanceMappingEntryFor(const float distance);
 
-	QString _name;
-    VideoInformation _videoInformation;
-	QList<Course> _courses;
-	QList<QPair<float,DistanceMappingEntry> > _distanceMappings;
-	Profile _profile;
-	QPair<float,DistanceMappingEntry> _cachedDistanceMapping;
-	float _lastKeyDistance;
-	float _nextLastKeyDistance;
-    float _videoCorrectionFactor;
+    QSharedPointer<RealLifeVideoData> _d;
+
+    float _lastKeyDistance;
+    float _nextLastKeyDistance;
 };
 typedef QList<RealLifeVideo> RealLifeVideoList;
 
