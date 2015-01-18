@@ -3,8 +3,10 @@
 #include <gst/gst.h>
 int main(int argc, char *argv[])
 {
-    qputenv("GST_PLUGIN_PATH", "/home/ibooij/homedev/build/qtgstreamer/elements/gstqtvideosink/");
     QApplication a(argc, argv);
+    a.setOrganizationDomain("org.github.ibooij");
+    a.setOrganizationName("Ilja Booij");
+    a.setApplicationName("Big Ring Video Indoor Cycling");
     gst_init(&argc, &argv);
     QString dir;
     if (a.arguments().length() > 1) {
