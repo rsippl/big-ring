@@ -1,3 +1,25 @@
+/*
+ * Copyright (c) 2009 Mark Rages
+ * Copyright (c) 2011 Mark Liversedge (liversedge@gmail.com)
+ * Copyright (c) 2012-2015 Ilja Booij (ibooij@gmail.com)
+ *
+ * This file is part of Big Ring Indoor Video Cycling
+ *
+ * Big Ring Indoor Video Cycling is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Big Ring Indoor Video Cycling  is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with Big Ring Indoor Video Cycling.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+
 #include "unixserialusbant.h"
 #include <QDirIterator>
 #include <QStringList>
@@ -20,147 +42,147 @@ namespace indoorcycling
 {
 
 UnixSerialUsbAnt::UnixSerialUsbAnt(QObject *parent) :
-	AntDevice(parent)
+    AntDevice(parent)
 {
-	QFileInfoList entries = findUsbSerialDevices();
+    QFileInfoList entries = findUsbSerialDevices();
 
-	foreach (const QFileInfo& entry, entries) {
-		if (isGarminUsb1Stick(entry)) {
-			qDebug() << "Garmin USB1 stick found";
-			_deviceFileInfo = entry;
-		}
-	}
-	if (isValid()) {
-		openConnection();
-	}
+    foreach (const QFileInfo& entry, entries) {
+        if (isGarminUsb1Stick(entry)) {
+            qDebug() << "Garmin USB1 stick found";
+            _deviceFileInfo = entry;
+        }
+    }
+    if (isValid()) {
+        openConnection();
+    }
 }
 
 UnixSerialUsbAnt::~UnixSerialUsbAnt()
 {
-	if (isValid()) {
-		tcflush(_nativeDeviceHandle, TCIOFLUSH); // clear out the garbage
-		close(_nativeDeviceHandle);
-	}
+    if (isValid()) {
+        tcflush(_nativeDeviceHandle, TCIOFLUSH); // clear out the garbage
+        close(_nativeDeviceHandle);
+    }
 }
 
 bool UnixSerialUsbAnt::isDevicePresent()
 {
-	QFileInfoList entries = findUsbSerialDevices();
+    QFileInfoList entries = findUsbSerialDevices();
 
-	foreach (const QFileInfo& entry, entries) {
-		if (isGarminUsb1Stick(entry)) {
-			qDebug() << "Garmin USB1 stick found";
-			return true;
-		}
-	}
+    foreach (const QFileInfo& entry, entries) {
+        if (isGarminUsb1Stick(entry)) {
+            qDebug() << "Garmin USB1 stick found";
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 bool UnixSerialUsbAnt::isValid() const
 {
-	return !_deviceFileInfo.fileName().isEmpty();
+    return !_deviceFileInfo.fileName().isEmpty();
 }
 
 int UnixSerialUsbAnt::numberOfChannels() const
 {
-	return 4;
+    return 4;
 }
 
 int UnixSerialUsbAnt::writeBytes(QByteArray &bytes)
 {
-	int rc;
-	int ibytes;
+    int rc;
+    int ibytes;
 
-	ioctl(_nativeDeviceHandle, FIONREAD, &ibytes);
+    ioctl(_nativeDeviceHandle, FIONREAD, &ibytes);
 
-	// timeouts are less critical for writing, since vols are low
-	rc= write(_nativeDeviceHandle, bytes.data(), bytes.size());
+    // timeouts are less critical for writing, since vols are low
+    rc= write(_nativeDeviceHandle, bytes.data(), bytes.size());
 
-	if (rc != -1) tcdrain(_nativeDeviceHandle); // wait till its gone.
+    if (rc != -1) tcdrain(_nativeDeviceHandle); // wait till its gone.
 
-	ioctl(_nativeDeviceHandle, FIONREAD, &ibytes);
-	return rc;
+    ioctl(_nativeDeviceHandle, FIONREAD, &ibytes);
+    return rc;
 }
 
 QByteArray UnixSerialUsbAnt::readBytes()
 {
-	QByteArray allBytes;
-	while(true) {
-		QByteArray readBytes(READ_SIZE, '\0');
-		int result = read(_nativeDeviceHandle, readBytes.data(), READ_SIZE);
-		if (result == -1 || result == 0)
-			break;
-		allBytes.append(readBytes.left(result));
-	}
+    QByteArray allBytes;
+    while(true) {
+        QByteArray readBytes(READ_SIZE, '\0');
+        int result = read(_nativeDeviceHandle, readBytes.data(), READ_SIZE);
+        if (result == -1 || result == 0)
+            break;
+        allBytes.append(readBytes.left(result));
+    }
 
-	return allBytes;
+    return allBytes;
 }
 
 QFileInfoList UnixSerialUsbAnt::findUsbSerialDevices()
 {
-	QStringList filters;
-	filters << "ttyUSB[0-9]";
-	QDir dir("/dev");
-	return dir.entryInfoList(filters, QDir::System);
+    QStringList filters;
+    filters << "ttyUSB[0-9]";
+    QDir dir("/dev");
+    return dir.entryInfoList(filters, QDir::System);
 }
 
 bool UnixSerialUsbAnt::isGarminUsb1Stick(const QFileInfo& fileInfo)
 {
-	// All we can do for USB1 sticks is see if the cp210x driver module
-	// is loaded for this device, and if it is, we will use the device
-	// XXX need a better way of probing this device, but USB1 sticks
-	//     are getting rarer, so maybe we can just make do with this
-	//     until we deprecate them altogether
-	struct stat s;
-	if (stat(fileInfo.absoluteFilePath().toLatin1(), &s) == -1) return false;
-	int maj = major(s.st_rdev);
-	int min = minor(s.st_rdev);
-	QString sysFile = QString("/sys/dev/char/%1:%2/device/driver/module/drivers/usb:cp210x").arg(maj).arg(min);
-	if (QFileInfo(sysFile).exists()) return true;
-	sysFile = QString("/sys/dev/char/%1:%2/device/driver/module/drivers/usb-serial:cp210x").arg(maj).arg(min);
-	if (QFileInfo(sysFile).exists()) return true;
+    // All we can do for USB1 sticks is see if the cp210x driver module
+    // is loaded for this device, and if it is, we will use the device
+    // XXX need a better way of probing this device, but USB1 sticks
+    //     are getting rarer, so maybe we can just make do with this
+    //     until we deprecate them altogether
+    struct stat s;
+    if (stat(fileInfo.absoluteFilePath().toLatin1(), &s) == -1) return false;
+    int maj = major(s.st_rdev);
+    int min = minor(s.st_rdev);
+    QString sysFile = QString("/sys/dev/char/%1:%2/device/driver/module/drivers/usb:cp210x").arg(maj).arg(min);
+    if (QFileInfo(sysFile).exists()) return true;
+    sysFile = QString("/sys/dev/char/%1:%2/device/driver/module/drivers/usb-serial:cp210x").arg(maj).arg(min);
+    if (QFileInfo(sysFile).exists()) return true;
 
-	return false;
+    return false;
 }
 
 int UnixSerialUsbAnt::openConnection()
 {
-	int ldisc=N_TTY; // LINUX
-	if ((_nativeDeviceHandle=open(qPrintable(_deviceFileInfo.absoluteFilePath()),O_RDWR | O_NOCTTY | O_NONBLOCK)) == -1)
-		return errno;
+    int ldisc=N_TTY; // LINUX
+    if ((_nativeDeviceHandle=open(qPrintable(_deviceFileInfo.absoluteFilePath()),O_RDWR | O_NOCTTY | O_NONBLOCK)) == -1)
+        return errno;
 
-	tcflush(_nativeDeviceHandle, TCIOFLUSH); // clear out the garbage
+    tcflush(_nativeDeviceHandle, TCIOFLUSH); // clear out the garbage
 
-	if (ioctl(_nativeDeviceHandle, TIOCSETD, &ldisc) == -1) return errno;
+    if (ioctl(_nativeDeviceHandle, TIOCSETD, &ldisc) == -1) return errno;
 
-	// get current settings for the port
-	struct termios deviceSettings;
-	tcgetattr(_nativeDeviceHandle, &deviceSettings);
+    // get current settings for the port
+    struct termios deviceSettings;
+    tcgetattr(_nativeDeviceHandle, &deviceSettings);
 
-	// set raw mode i.e. ignbrk, brkint, parmrk, istrip, inlcr, igncr, icrnl, ixon
-	//                   noopost, cs8, noecho, noechonl, noicanon, noisig, noiexn
-	cfmakeraw(&deviceSettings);
-	cfsetspeed(&deviceSettings, B115200);
+    // set raw mode i.e. ignbrk, brkint, parmrk, istrip, inlcr, igncr, icrnl, ixon
+    //                   noopost, cs8, noecho, noechonl, noicanon, noisig, noiexn
+    cfmakeraw(&deviceSettings);
+    cfsetspeed(&deviceSettings, B115200);
 
-	// further attributes
-	deviceSettings.c_iflag= IGNPAR;
-	deviceSettings.c_oflag=0;
-	deviceSettings.c_cflag &= (~CSIZE & ~CSTOPB);
+    // further attributes
+    deviceSettings.c_iflag= IGNPAR;
+    deviceSettings.c_oflag=0;
+    deviceSettings.c_cflag &= (~CSIZE & ~CSTOPB);
 #if defined(Q_OS_MACX)
-	deviceSettings.c_cflag |= (CS8 | CREAD | HUPCL | CCTS_OFLOW | CRTS_IFLOW);
+    deviceSettings.c_cflag |= (CS8 | CREAD | HUPCL | CCTS_OFLOW | CRTS_IFLOW);
 #else
-	deviceSettings.c_cflag |= (CS8 | CREAD | HUPCL | CRTSCTS);
+    deviceSettings.c_cflag |= (CS8 | CREAD | HUPCL | CRTSCTS);
 #endif
-	deviceSettings.c_lflag=0;
-	deviceSettings.c_cc[VMIN]=0;
-	deviceSettings.c_cc[VTIME]=0;
+    deviceSettings.c_lflag=0;
+    deviceSettings.c_cc[VMIN]=0;
+    deviceSettings.c_cc[VTIME]=0;
 
-	// set those attributes
-	if(tcsetattr(_nativeDeviceHandle, TCSANOW, &deviceSettings) == -1) return errno;
-	tcgetattr(_nativeDeviceHandle, &deviceSettings);
+    // set those attributes
+    if(tcsetattr(_nativeDeviceHandle, TCSANOW, &deviceSettings) == -1) return errno;
+    tcgetattr(_nativeDeviceHandle, &deviceSettings);
 
-	// success
-	return 0;
+    // success
+    return 0;
 }
 }

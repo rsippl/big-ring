@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2009 Mark Rages
  * Copyright (c) 2011 Mark Liversedge (liversedge@gmail.com)
+ * Copyright (c) 2012-2015 Ilja Booij (ibooij@gmail.com)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -44,14 +45,14 @@ class ANTMessage;
 class ANTChannel;
 class AntDevice;
 typedef struct ant_sensor_type {
-	int type;
-	int period;
-	int device_id;
-	int frequency;
-	int network;
-	const char *descriptive_name;
-	char suffix;
-	const char *iconname;
+    int type;
+    int period;
+    int device_id;
+    int frequency;
+    int network;
+    const char *descriptive_name;
+    char suffix;
+    const char *iconname;
 
 } ant_sensor_type_t;
 
@@ -60,12 +61,12 @@ typedef struct ant_sensor_type {
 #define RX_BURST_DATA_LEN 128
 
 struct setChannelAtom {
-	setChannelAtom() : channel(0), device_number(0), channel_type(0) {}
-	setChannelAtom(int x, int y, int z) : channel(x), device_number(y), channel_type(z) {}
+    setChannelAtom() : channel(0), device_number(0), channel_type(0) {}
+    setChannelAtom(int x, int y, int z) : channel(x), device_number(y), channel_type(z) {}
 
-	int channel;
-	int device_number;
-	int channel_type;
+    int channel;
+    int device_number;
+    int channel_type;
 };
 
 //======================================================================
@@ -192,85 +193,85 @@ class AntMessageGatherer;
 //======================================================================
 class ANT: public QObject
 {
-	Q_OBJECT
+    Q_OBJECT
 
 
 public:
-	ANT(QObject *parent = 0);
-	~ANT();
+    ANT(QObject *parent = 0);
+    ~ANT();
 
 signals:
-	void initializationSucceeded();
-	/** Signal failure of initialization */
-	void initializationFailed();
+    void initializationSucceeded();
+    /** Signal failure of initialization */
+    void initializationFailed();
 
-	void foundDevice(int channel, int device_number, int device_id, QString description, QString typeCode); // channelInfo
-	void lostDevice(int channel);            // dropInfo
-	void searchTimeout(int channel);         // searchTimeount
-	void searchComplete(int channel);         // searchComplete
-	void signalStrength(int channel, double reliability);
+    void foundDevice(int channel, int device_number, int device_id, QString description, QString typeCode); // channelInfo
+    void lostDevice(int channel);            // dropInfo
+    void searchTimeout(int channel);         // searchTimeount
+    void searchComplete(int channel);         // searchComplete
+    void signalStrength(int channel, double reliability);
 
-	void heartRateMeasured(quint8);
-	void powerMeasured(float);
-	void cadenceMeasured(float);
+    void heartRateMeasured(quint8);
+    void powerMeasured(float);
+    void cadenceMeasured(float);
 
 public slots:
 
-	/** Initialize ANT+ device */
-	void initialize();
+    /** Initialize ANT+ device */
+    void initialize();
 
-	/** Perform a read cycle, should be called every 25 ms or so. */
-	void readCycle();
+    /** Perform a read cycle, should be called every 25 ms or so. */
+    void readCycle();
 
 private slots:
-	void sendNetworkKey();
-	void processMessage(QByteArray message);
-	void channelInfo(int number, int device_number, int device_id);  // found a device
-	void dropInfo(int number, int drops, int received);    // we dropped a connection
-	void lostInfo(int number);    // we lost informa
-	void staleInfo(int number);   // info is now stale
-	void slotSearchTimeout(int number); // search timed out
-	void slotSearchComplete(int number); // search completed successfully
+    void sendNetworkKey();
+    void processMessage(QByteArray message);
+    void channelInfo(int number, int device_number, int device_id);  // found a device
+    void dropInfo(int number, int drops, int received);    // we dropped a connection
+    void lostInfo(int number);    // we lost informa
+    void staleInfo(int number);   // info is now stale
+    void slotSearchTimeout(int number); // search timed out
+    void slotSearchComplete(int number); // search completed successfully
 public:
-	static const ant_sensor_type_t ant_sensor_types[];
-	ANTChannel *antChannel[ANT_MAX_CHANNELS];
+    static const ant_sensor_type_t ant_sensor_types[];
+    ANTChannel *antChannel[ANT_MAX_CHANNELS];
 
-	// ANT Devices and Channels
-	int addDevice(int device_number, int device_type, int channel_number);
+    // ANT Devices and Channels
+    int addDevice(int device_number, int device_type, int channel_number);
 
-	// transmission
-	void sendMessage(ANTMessage);
-	void handleChannelEvent(QByteArray &message);
+    // transmission
+    void sendMessage(ANTMessage);
+    void handleChannelEvent(QByteArray &message);
 
-	QByteArray rawRead();
-	int rawWrite(QByteArray& bytes);
+    QByteArray rawRead();
+    int rawWrite(QByteArray& bytes);
 
 private:
-	void configureDeviceChannels();
+    void configureDeviceChannels();
 
-	static int interpretSuffix(char c); // utility to convert e.g. 'c' to CHANNEL_TYPE_CADENCE
-	static const char *deviceTypeDescription(int type); // utility to convert CHANNEL_TYPE_XXX to human string
-	static char deviceTypeCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
-	static char deviceIdCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
+    static int interpretSuffix(char c); // utility to convert e.g. 'c' to CHANNEL_TYPE_CADENCE
+    static const char *deviceTypeDescription(int type); // utility to convert CHANNEL_TYPE_XXX to human string
+    static char deviceTypeCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
+    static char deviceIdCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
 
-	int channels;  // how many 4 or 8 ? depends upon the USB stick...
+    int channels;  // how many 4 or 8 ? depends upon the USB stick...
 
-	indoorcycling::AntDeviceFinder* _antDeviceFinder;
-	QSharedPointer<indoorcycling::AntDevice> antDevice;
-	// state machine whilst receiving bytes
-	enum States {ST_WAIT_FOR_SYNC, ST_GET_LENGTH, ST_GET_MESSAGE_ID, ST_GET_DATA, ST_VALIDATE_PACKET} state;
-	//enum States state;
-	int length;
-	int bytes;
-	int checksum;
-	int powerchannels; // how many power channels do we have?
+    indoorcycling::AntDeviceFinder* _antDeviceFinder;
+    QSharedPointer<indoorcycling::AntDevice> antDevice;
+    // state machine whilst receiving bytes
+    enum States {ST_WAIT_FOR_SYNC, ST_GET_LENGTH, ST_GET_MESSAGE_ID, ST_GET_DATA, ST_VALIDATE_PACKET} state;
+    //enum States state;
+    int length;
+    int bytes;
+    int checksum;
+    int powerchannels; // how many power channels do we have?
 
-	QQueue<setChannelAtom> channelQueue; // messages for configuring channels from controller
+    QQueue<setChannelAtom> channelQueue; // messages for configuring channels from controller
 
-	// antlog.bin ant message stream
-	QFile antlog;
-	QTimer _initializiationTimer;
-	AntMessageGatherer* _antMessageGatherer;
+    // antlog.bin ant message stream
+    QFile antlog;
+    QTimer _initializiationTimer;
+    AntMessageGatherer* _antMessageGatherer;
 };
 
 #endif

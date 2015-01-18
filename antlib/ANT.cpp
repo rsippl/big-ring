@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2009 Mark Rages
  * Copyright (c) 2011 Mark Liversedge (liversedge@gmail.com)
+ * Copyright (c) 2012-2015 Ilja Booij (ibooij@gmail.com)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -45,30 +46,30 @@ const unsigned char networkKey[8] = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 
 }
 // supported sensor types
 const ant_sensor_type_t ANT::ant_sensor_types[] = {
-	{ ANTChannel::CHANNEL_TYPE_UNUSED, 0, 0, 0, 0, "Unused", '?', "" },
-	{ ANTChannel::CHANNEL_TYPE_HR, ANT_SPORT_HR_PERIOD, ANT_SPORT_HR_TYPE,
-	  ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Heartrate", 'h', ":images/IconHR.png" },
-	{ ANTChannel::CHANNEL_TYPE_POWER, ANT_SPORT_POWER_PERIOD, ANT_SPORT_POWER_TYPE,
-	  ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Power", 'p', ":images/IconPower.png" },
-	{ ANTChannel::CHANNEL_TYPE_SPEED, ANT_SPORT_SPEED_PERIOD, ANT_SPORT_SPEED_TYPE,
-	  ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Speed", 's', ":images/IconSpeed.png" },
-	{ ANTChannel::CHANNEL_TYPE_CADENCE, ANT_SPORT_CADENCE_PERIOD, ANT_SPORT_CADENCE_TYPE,
-	  ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Cadence", 'c', ":images/IconCadence.png" },
-	{ ANTChannel::CHANNEL_TYPE_SandC, ANT_SPORT_SandC_PERIOD, ANT_SPORT_SandC_TYPE,
-	  ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Speed + Cadence", 'd', ":images/IconCadence.png" },
+    { ANTChannel::CHANNEL_TYPE_UNUSED, 0, 0, 0, 0, "Unused", '?', "" },
+    { ANTChannel::CHANNEL_TYPE_HR, ANT_SPORT_HR_PERIOD, ANT_SPORT_HR_TYPE,
+      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Heartrate", 'h', ":images/IconHR.png" },
+    { ANTChannel::CHANNEL_TYPE_POWER, ANT_SPORT_POWER_PERIOD, ANT_SPORT_POWER_TYPE,
+      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Power", 'p', ":images/IconPower.png" },
+    { ANTChannel::CHANNEL_TYPE_SPEED, ANT_SPORT_SPEED_PERIOD, ANT_SPORT_SPEED_TYPE,
+      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Speed", 's', ":images/IconSpeed.png" },
+    { ANTChannel::CHANNEL_TYPE_CADENCE, ANT_SPORT_CADENCE_PERIOD, ANT_SPORT_CADENCE_TYPE,
+      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Cadence", 'c', ":images/IconCadence.png" },
+    { ANTChannel::CHANNEL_TYPE_SandC, ANT_SPORT_SandC_PERIOD, ANT_SPORT_SandC_TYPE,
+      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Speed + Cadence", 'd', ":images/IconCadence.png" },
 
-	// We comment out these Quarq specials -- they appear to be experimental
-	//                                        but kept in the code incase they re-appear :)
-	#if 0
-	{ ANTChannel::CHANNEL_TYPE_QUARQ, ANT_QUARQ_PERIOD, ANT_QUARQ_TYPE,
-	  ANT_QUARQ_FREQUENCY, DEFAULT_NETWORK_NUMBER, "Quarq Channel", 'Q', ":images/IconPower.png" },
-	{ ANTChannel::CHANNEL_TYPE_FAST_QUARQ, ANT_FAST_QUARQ_PERIOD, ANT_FAST_QUARQ_TYPE,
-	  ANT_FAST_QUARQ_FREQUENCY, DEFAULT_NETWORK_NUMBER, "Fast Quarq", 'q', ":images/IconPower.png" },
-	{ ANTChannel::CHANNEL_TYPE_FAST_QUARQ_NEW, ANT_FAST_QUARQ_PERIOD, ANT_FAST_QUARQ_TYPE_WAS,
-	  ANT_FAST_QUARQ_FREQUENCY, DEFAULT_NETWORK_NUMBER, "Fast Quarq New", 'n', ":images/IconPower.png" },
-	#endif
+    // We comment out these Quarq specials -- they appear to be experimental
+    //                                        but kept in the code incase they re-appear :)
+    #if 0
+    { ANTChannel::CHANNEL_TYPE_QUARQ, ANT_QUARQ_PERIOD, ANT_QUARQ_TYPE,
+      ANT_QUARQ_FREQUENCY, DEFAULT_NETWORK_NUMBER, "Quarq Channel", 'Q', ":images/IconPower.png" },
+    { ANTChannel::CHANNEL_TYPE_FAST_QUARQ, ANT_FAST_QUARQ_PERIOD, ANT_FAST_QUARQ_TYPE,
+      ANT_FAST_QUARQ_FREQUENCY, DEFAULT_NETWORK_NUMBER, "Fast Quarq", 'q', ":images/IconPower.png" },
+    { ANTChannel::CHANNEL_TYPE_FAST_QUARQ_NEW, ANT_FAST_QUARQ_PERIOD, ANT_FAST_QUARQ_TYPE_WAS,
+      ANT_FAST_QUARQ_FREQUENCY, DEFAULT_NETWORK_NUMBER, "Fast Quarq New", 'n', ":images/IconPower.png" },
+    #endif
 
-	{ ANTChannel::CHANNEL_TYPE_GUARD, 0, 0, 0, 0, "", '\0', "" }
+    { ANTChannel::CHANNEL_TYPE_GUARD, 0, 0, 0, 0, "", '\0', "" }
 };
 
 //
@@ -85,40 +86,40 @@ ANT::ANT(QObject *parent): QObject(parent),
     _antDeviceFinder(new indoorcycling::AntDeviceFinder(this)),
     _antMessageGatherer(new AntMessageGatherer(this))
 {
-	connect(_antMessageGatherer, &AntMessageGatherer::antMessageReceived,
-			this, &ANT::processMessage);
-	powerchannels=0;
+    connect(_antMessageGatherer, &AntMessageGatherer::antMessageReceived,
+            this, &ANT::processMessage);
+    powerchannels=0;
 
-	// state machine
-	state = ST_WAIT_FOR_SYNC;
-	length = bytes = 0;
-	checksum = ANT_SYNC_BYTE;
+    // state machine
+    state = ST_WAIT_FOR_SYNC;
+    length = bytes = 0;
+    checksum = ANT_SYNC_BYTE;
 
-	// setup the channels
-	for (int i=0; i<ANT_MAX_CHANNELS; i++) {
+    // setup the channels
+    for (int i=0; i<ANT_MAX_CHANNELS; i++) {
 
-		// create the channel
-		antChannel[i] = new ANTChannel(i, this);
+        // create the channel
+        antChannel[i] = new ANTChannel(i, this);
 
-		// connect up its signals
-		connect(antChannel[i], SIGNAL(channelInfo(int,int,int)), this, SLOT(channelInfo(int,int,int)));
-		connect(antChannel[i], SIGNAL(dropInfo(int,int,int)), this, SLOT(dropInfo(int,int,int)));
-		connect(antChannel[i], SIGNAL(lostInfo(int)), this, SLOT(lostInfo(int)));
-		connect(antChannel[i], SIGNAL(staleInfo(int)), this, SLOT(staleInfo(int)));
-		connect(antChannel[i], SIGNAL(searchTimeout(int)), this, SLOT(slotSearchTimeout(int)));
-		connect(antChannel[i], SIGNAL(searchComplete(int)), this, SLOT(slotSearchComplete(int)));
+        // connect up its signals
+        connect(antChannel[i], SIGNAL(channelInfo(int,int,int)), this, SLOT(channelInfo(int,int,int)));
+        connect(antChannel[i], SIGNAL(dropInfo(int,int,int)), this, SLOT(dropInfo(int,int,int)));
+        connect(antChannel[i], SIGNAL(lostInfo(int)), this, SLOT(lostInfo(int)));
+        connect(antChannel[i], SIGNAL(staleInfo(int)), this, SLOT(staleInfo(int)));
+        connect(antChannel[i], SIGNAL(searchTimeout(int)), this, SLOT(slotSearchTimeout(int)));
+        connect(antChannel[i], SIGNAL(searchComplete(int)), this, SLOT(slotSearchComplete(int)));
 
-		connect(antChannel[i], SIGNAL(heartRateMeasured(quint8)), SIGNAL(heartRateMeasured(quint8)));
-		connect(antChannel[i], SIGNAL(powerMeasured(float)), SIGNAL(powerMeasured(float)));
-		connect(antChannel[i], SIGNAL(cadenceMeasured(float)), SIGNAL(cadenceMeasured(float)));
-	}
+        connect(antChannel[i], SIGNAL(heartRateMeasured(quint8)), SIGNAL(heartRateMeasured(quint8)));
+        connect(antChannel[i], SIGNAL(powerMeasured(float)), SIGNAL(powerMeasured(float)));
+        connect(antChannel[i], SIGNAL(cadenceMeasured(float)), SIGNAL(cadenceMeasured(float)));
+    }
 
-	channels = 0;
+    channels = 0;
 }
 
 ANT::~ANT()
 {
-	qDebug() << "destroying ant" << QThread::currentThreadId();
+    qDebug() << "destroying ant" << QThread::currentThreadId();
 }
 
 /*======================================================================
@@ -127,73 +128,73 @@ ANT::~ANT()
 
 void ANT::initialize()
 {
-	powerchannels = 0;
+    powerchannels = 0;
 
-	antDevice = _antDeviceFinder->openAntDevice();
-	if (antDevice.isNull()) {
-		emit initializationFailed();
-		return;
-	}
-	channels = 0;
+    antDevice = _antDeviceFinder->openAntDevice();
+    if (antDevice.isNull()) {
+        emit initializationFailed();
+        return;
+    }
+    channels = 0;
 
-	for (int i=0; i<ANT_MAX_CHANNELS; i++) antChannel[i]->init();
+    for (int i=0; i<ANT_MAX_CHANNELS; i++) antChannel[i]->init();
 
-	state = ST_WAIT_FOR_SYNC;
-	length = bytes = 0;
-	checksum = ANT_SYNC_BYTE;
+    state = ST_WAIT_FOR_SYNC;
+    length = bytes = 0;
+    checksum = ANT_SYNC_BYTE;
 
-	if (antDevice->isValid()) {
-		channels = 4;
-	} else {
-		emit initializationFailed();
-		return;
-	}
-	antlog.setFileName("antlog.bin");
-	antlog.open(QIODevice::WriteOnly | QIODevice::Truncate);
+    if (antDevice->isValid()) {
+        channels = 4;
+    } else {
+        emit initializationFailed();
+        return;
+    }
+    antlog.setFileName("antlog.bin");
+    antlog.open(QIODevice::WriteOnly | QIODevice::Truncate);
 
-	sendMessage(ANTMessage::resetSystem());
-	// wait for 500ms before sending network key.
-	_initializiationTimer.singleShot(500, this, SLOT(sendNetworkKey()));
+    sendMessage(ANTMessage::resetSystem());
+    // wait for 500ms before sending network key.
+    _initializiationTimer.singleShot(500, this, SLOT(sendNetworkKey()));
 }
 
 void ANT::sendNetworkKey()
 {
-	sendMessage(ANTMessage::setNetworkKey(1, networkKey));
+    sendMessage(ANTMessage::setNetworkKey(1, networkKey));
 
-	configureDeviceChannels();
+    configureDeviceChannels();
 }
 
 void ANT::configureDeviceChannels()
 {
-	addDevice(0, ANTChannel::CHANNEL_TYPE_SandC, 0);
-	addDevice(0, ANTChannel::CHANNEL_TYPE_POWER, 1);
-	addDevice(0, ANTChannel::CHANNEL_TYPE_CADENCE, 2);
-	addDevice(0, ANTChannel::CHANNEL_TYPE_HR, 3);
+    addDevice(0, ANTChannel::CHANNEL_TYPE_SandC, 0);
+    addDevice(0, ANTChannel::CHANNEL_TYPE_POWER, 1);
+    addDevice(0, ANTChannel::CHANNEL_TYPE_CADENCE, 2);
+    addDevice(0, ANTChannel::CHANNEL_TYPE_HR, 3);
 
-	emit initializationSucceeded();
+    emit initializationSucceeded();
 }
 
 void ANT::readCycle()
 {
-	bool bytesRead = false;
+    bool bytesRead = false;
 
-	while (true) {
-		QByteArray bytes = rawRead();
-		if (bytes.isEmpty())
-			break;
-		_antMessageGatherer->submitBytes(bytes);
-		bytesRead = true;
-	}
+    while (true) {
+        QByteArray bytes = rawRead();
+        if (bytes.isEmpty())
+            break;
+        _antMessageGatherer->submitBytes(bytes);
+        bytesRead = true;
+    }
 
-	if (!bytesRead)
-		return;
+    if (!bytesRead)
+        return;
 
-	// do we have a channel to search / stop
-	if (!channelQueue.isEmpty()) {
-		setChannelAtom x = channelQueue.dequeue();
-		if (x.device_number == -1) antChannel[x.channel]->close(); // unassign
-		else addDevice(x.device_number, x.channel_type, x.channel); // assign
-	}
+    // do we have a channel to search / stop
+    if (!channelQueue.isEmpty()) {
+        setChannelAtom x = channelQueue.dequeue();
+        if (x.device_number == -1) antChannel[x.channel]->close(); // unassign
+        else addDevice(x.device_number, x.channel_type, x.channel); // assign
+    }
 }
 
 /*======================================================================
@@ -204,97 +205,97 @@ void ANT::readCycle()
 int
 ANT::addDevice(int device_number, int device_type, int channel_number)
 {
-	// if we're given a channel number, then use that one
-	if (channel_number>-1) {
-		//antChannel[channel_number]->close();
-		antChannel[channel_number]->open(device_number, device_type);
-		return 1;
-	}
+    // if we're given a channel number, then use that one
+    if (channel_number>-1) {
+        //antChannel[channel_number]->close();
+        antChannel[channel_number]->open(device_number, device_type);
+        return 1;
+    }
 
-	// if we already have the device, then return.
-	// but only if the device number is given since
-	// we may choose to scan for multiple devices
-	// on separate channels (e.g. 0p on channel 0
-	// and 0p on channel 1
-	if (device_number != 0) {
-		for (int i=0; i<channels; i++) {
-			if (((antChannel[i]->channel_type & 0xf ) == device_type) &&
-					(antChannel[i]->device_number == device_number)) {
-				// send the channel found...
-				//XXX antChannel[i]->channelInfo();
-				return 1;
-			}
-		}
-	}
+    // if we already have the device, then return.
+    // but only if the device number is given since
+    // we may choose to scan for multiple devices
+    // on separate channels (e.g. 0p on channel 0
+    // and 0p on channel 1
+    if (device_number != 0) {
+        for (int i=0; i<channels; i++) {
+            if (((antChannel[i]->channel_type & 0xf ) == device_type) &&
+                    (antChannel[i]->device_number == device_number)) {
+                // send the channel found...
+                //XXX antChannel[i]->channelInfo();
+                return 1;
+            }
+        }
+    }
 
-	// look for an unused channel and use on that one
-	for (int i=0; i<channels; i++) {
-		if (antChannel[i]->channel_type == ANTChannel::CHANNEL_TYPE_UNUSED) {
+    // look for an unused channel and use on that one
+    for (int i=0; i<channels; i++) {
+        if (antChannel[i]->channel_type == ANTChannel::CHANNEL_TYPE_UNUSED) {
 
-			//antChannel[i]->close();
-			antChannel[i]->open(device_number, device_type);
-			return 1;
-		}
-	}
+            //antChannel[i]->close();
+            antChannel[i]->open(device_number, device_type);
+            return 1;
+        }
+    }
 
-	// there are no unused channels.  fail.
-	return 0;
+    // there are no unused channels.  fail.
+    return 0;
 }
 
 void
 ANT::channelInfo(int channel, int device_number, int device_id)
 {
-	QString description(deviceTypeDescription(device_id));
-	QString typeCode(device_id);
+    QString description(deviceTypeDescription(device_id));
+    QString typeCode(device_id);
 
-	qDebug()<<"found device number"<<device_number<<"type"<<device_id<<"on channel"<<channel
-		   << "is a "<< description << "with code"<< typeCode;
+    qDebug()<<"found device number"<<device_number<<"type"<<device_id<<"on channel"<<channel
+           << "is a "<< description << "with code"<< typeCode;
 
-	emit foundDevice(channel, device_number, device_id, description, typeCode);
+    emit foundDevice(channel, device_number, device_id, description, typeCode);
 }
 
 void
 ANT::dropInfo(int channel, int drops, int received)    // we dropped a message
 {
-	double reliability = 100.00f - (100.00f * double(drops) / double(received));
-	//qDebug()<<"Channel"<<channel<<"reliability is"<< (int)(reliability)<<"%";
-	emit signalStrength(channel, reliability);
-	return;
+    double reliability = 100.00f - (100.00f * double(drops) / double(received));
+    //qDebug()<<"Channel"<<channel<<"reliability is"<< (int)(reliability)<<"%";
+    emit signalStrength(channel, reliability);
+    return;
 }
 
 void
 ANT::lostInfo(int number)    // we lost the connection
 {
-	if (number < 0 || number >= channels) return; // ignore out of bound
+    if (number < 0 || number >= channels) return; // ignore out of bound
 
-	emit lostDevice(number);
-	//qDebug()<<"lost info for channel"<<number;
+    emit lostDevice(number);
+    //qDebug()<<"lost info for channel"<<number;
 }
 
 void
 ANT::staleInfo(int number)   // info is now stale - set to zero
 {
-	if (number < 0 || number >= channels) return; // ignore out of bound
+    if (number < 0 || number >= channels) return; // ignore out of bound
 
-	//qDebug()<<"stale info for channel"<<number;
+    //qDebug()<<"stale info for channel"<<number;
 }
 
 void
 ANT::slotSearchTimeout(int number) // search timed out
 {
-	if (number < 0 || number >= channels) return; // ignore out of bound
+    if (number < 0 || number >= channels) return; // ignore out of bound
 
-	emit searchTimeout(number);
-	//qDebug()<<"search timeout on channel"<<number;
+    emit searchTimeout(number);
+    //qDebug()<<"search timeout on channel"<<number;
 }
 
 void
 ANT::slotSearchComplete(int number) // search completed successfully
 {
-	if (number < 0 || number >= channels) return; // ignore out of bound
+    if (number < 0 || number >= channels) return; // ignore out of bound
 
-	emit searchComplete(number);
-	//qDebug()<<"search completed on channel"<<number;
+    emit searchComplete(number);
+    //qDebug()<<"search completed on channel"<<number;
 }
 
 /*----------------------------------------------------------------------
@@ -303,14 +304,14 @@ ANT::slotSearchComplete(int number) // search completed successfully
 void
 ANT::sendMessage(ANTMessage m) {
 
-	QByteArray bytes((const char*) m.data, m.length);
-	rawWrite(bytes);
+    QByteArray bytes((const char*) m.data, m.length);
+    rawWrite(bytes);
 
-	// this padding is important, for some reason XXX find out why?
+    // this padding is important, for some reason XXX find out why?
 
-	static const char padding[5] = { '\0', '\0', '\0', '\0', '\0' };
-	QByteArray paddingBytes(padding, 5);
-	rawWrite(paddingBytes);
+    static const char padding[5] = { '\0', '\0', '\0', '\0', '\0' };
+    QByteArray paddingBytes(padding, 5);
+    rawWrite(paddingBytes);
 }
 
 //
@@ -318,107 +319,107 @@ ANT::sendMessage(ANTMessage m) {
 //
 void
 ANT::handleChannelEvent(QByteArray& message) {
-	int channel = message[ANT_OFFSET_DATA] & 0x7;
-	if(channel >= 0 && channel < channels) {
-		// handle a channel event here!
-		antChannel[channel]->receiveMessage((unsigned char*) message.data());
-	}
+    int channel = message[ANT_OFFSET_DATA] & 0x7;
+    if(channel >= 0 && channel < channels) {
+        // handle a channel event here!
+        antChannel[channel]->receiveMessage((unsigned char*) message.data());
+    }
 }
 
 void
 ANT::processMessage(QByteArray message) {
-	QDataStream out(&antlog);
-	for (int i=0; i<ANT_MAX_MESSAGE_SIZE; i++)
-		out<< message;
+    QDataStream out(&antlog);
+    for (int i=0; i<ANT_MAX_MESSAGE_SIZE; i++)
+        out<< message;
 
 
-	switch (message[ANT_OFFSET_ID]) {
-	case ANT_ACK_DATA:
-	case ANT_BROADCAST_DATA:
-	case ANT_CHANNEL_STATUS:
-	case ANT_CHANNEL_ID:
-	case ANT_BURST_DATA:
-		handleChannelEvent(message);
-		break;
+    switch (message[ANT_OFFSET_ID]) {
+    case ANT_ACK_DATA:
+    case ANT_BROADCAST_DATA:
+    case ANT_CHANNEL_STATUS:
+    case ANT_CHANNEL_ID:
+    case ANT_BURST_DATA:
+        handleChannelEvent(message);
+        break;
 
-	case ANT_CHANNEL_EVENT:
-		switch (message[ANT_OFFSET_MESSAGE_CODE]) {
-		case EVENT_TRANSFER_TX_FAILED:
-			//XXX remember last message ... ANT_SendAckMessage();
-			break;
-		case EVENT_TRANSFER_TX_COMPLETED:
-			// fall through
-		default:
-			handleChannelEvent(message);
-		}
-		break;
+    case ANT_CHANNEL_EVENT:
+        switch (message[ANT_OFFSET_MESSAGE_CODE]) {
+        case EVENT_TRANSFER_TX_FAILED:
+            //XXX remember last message ... ANT_SendAckMessage();
+            break;
+        case EVENT_TRANSFER_TX_COMPLETED:
+            // fall through
+        default:
+            handleChannelEvent(message);
+        }
+        break;
 
-	case ANT_VERSION:
-		break;
+    case ANT_VERSION:
+        break;
 
-	case ANT_CAPABILITIES:
-		break;
+    case ANT_CAPABILITIES:
+        break;
 
-	case ANT_SERIAL_NUMBER:
-		break;
+    case ANT_SERIAL_NUMBER:
+        break;
 
-	default:
-		break;
-	}
+    default:
+        break;
+    }
 }
 
 int ANT::rawWrite(QByteArray &bytes) // unix!!
 {
-	return antDevice->writeBytes(bytes);
+    return antDevice->writeBytes(bytes);
 }
 
 QByteArray ANT::rawRead()
 {
-	return antDevice->readBytes();
+    return antDevice->readBytes();
 }
 
 // convert 'p' 'c' etc into ANT values for device type
 int ANT::interpretSuffix(char c)
 {
-	const ant_sensor_type_t *st=ant_sensor_types;
+    const ant_sensor_type_t *st=ant_sensor_types;
 
-	do {
-		if (st->suffix==c) return st->type;
-	} while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
+    do {
+        if (st->suffix==c) return st->type;
+    } while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
 
-	return -1;
+    return -1;
 }
 
 // convert ANT value to 'p' 'c' values // XXX this and below are named wrong, legacy from quarqd code.
 char ANT::deviceIdCode(int type)
 {
-	const ant_sensor_type_t *st=ant_sensor_types;
+    const ant_sensor_type_t *st=ant_sensor_types;
 
-	do {
-		if (st->type==type) return st->suffix;
-	} while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
-	return '-';
+    do {
+        if (st->type==type) return st->suffix;
+    } while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
+    return '-';
 }
 
 // convert ANT value to 'p' 'c' values
 char ANT::deviceTypeCode(int type)
 {
-	const ant_sensor_type_t *st=ant_sensor_types;
+    const ant_sensor_type_t *st=ant_sensor_types;
 
-	do {
-		if (st->device_id==type) return st->suffix;
-	} while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
-	return '-';
+    do {
+        if (st->device_id==type) return st->suffix;
+    } while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
+    return '-';
 }
 
 // convert ANT value to human string
 const char * ANT::deviceTypeDescription(int type)
 {
-	const ant_sensor_type_t *st=ant_sensor_types;
+    const ant_sensor_type_t *st=ant_sensor_types;
 
-	do {
-		if (st->device_id==type) return st->descriptive_name;
-	} while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
-	return "Unknown device type";
+    do {
+        if (st->device_id==type) return st->descriptive_name;
+    } while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
+    return "Unknown device type";
 }
 

@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2009 Mark Rages
  * Copyright (c) 2011 Mark Liversedge (liversedge@gmail.com)
+ * Copyright (c) 2012-2015 Ilja Booij (ibooij@gmail.com)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -87,7 +88,7 @@ class ANTMessage {
         // Standard ANT values
         int length;
         unsigned char data[ANT_MAX_MESSAGE_SIZE+1]; // include sync byte at front
-		qint64 timestamp;
+        qint64 timestamp;
         uint8_t sync, type;
         uint8_t transmitPower, searchTimeout, transmissionType, networkNumber,
                 channelType, channel, deviceType, frequency;
