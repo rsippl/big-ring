@@ -2,6 +2,7 @@ Big Ring Indoor Video Cycling
 =============================
 
 Big Ring Indoor Video Cycling can be used in combination with a bicycle, indoor trainer and [ANT+](http://www.thisisant.com) power, cadence or heart rate sensors.
+An example video, with a slightly older GUI can be seen [here on Youtube](https://www.youtube.com/watch?v=bYnc8lVDvuY).
 
 Goal
 ----
