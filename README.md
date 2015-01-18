@@ -40,8 +40,7 @@ Dependencies
 Indoor Cycling uses the following components to work:
 
 * ANT+ Sensors. I use a [Power2Max](http://www.power2max.com/) power meter
-and a [Garmin](http://www.garmin.com/garmin/cms/site/us)
-heart rate strap.
+and [O-Synce](http://www.o-synce.com/en/) and [Garmin](http://www.garmin.com/garmin/cms/site/us) heart rate straps.
 * An [ANT+ USB stick](https://buy.garmin.com/shop/shop.do?pID=10997).
 I have the USB 1 variant from Garmin and a USB 2 from Suunto, the MoveStick Mini. The Suunto MoveStick Mini is internally just a Garmin USB 2 Stick, so that one should also work. 
 * [Qt](http://qt.digia.com) 5.3. This library is used throughout the program.
