@@ -2,97 +2,94 @@
 #include "rlvfileparser.h"
 
 #include <functional>
-#include <QDirIterator>
-#include <QFutureSynchronizer>
-#include <QMap>
+
+#include <QtCore/QDirIterator>
+#include <QtCore/QSettings>
+
 #include <QStringList>
 #include <QtConcurrent/QtConcurrentMap>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QtDebug>
-#include <QtCore/QStandardPaths>
-#include "thumbnailer.h"
-RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QStringList& aviFiles);
+
+namespace
+{
+RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QFileInfo>& videoFiles);
+QList<QFileInfo> findFiles(const QString& root, const QString& pattern);
+QList<QFileInfo> findRlvFiles(QString& root);
+
+RealLifeVideoList importRlvFiles(QString root);
+}
 
 RealLifeVideoImporter::RealLifeVideoImporter(QObject* parent): QObject(parent)
 {
+    // empty
 }
 
-struct ParseRlvFunctor: public std::unary_function<const QString&,RealLifeVideo> {
-    ParseRlvFunctor(const QStringList& aviFiles): _aviFiles(aviFiles) {}
+void RealLifeVideoImporter::parseRealLiveVideoFilesFromDir(const QString &root)
+{
+    QFutureWatcher<RealLifeVideoList> *futureWatcher = new QFutureWatcher<RealLifeVideoList>();
+    connect(futureWatcher, &QFutureWatcher<RealLifeVideoList>::finished, futureWatcher, [=]() {
+        importReady(futureWatcher->future().result());
+        futureWatcher->deleteLater();
+    });
 
-    RealLifeVideo operator()(const QString& filename) const {
-        QFile file(filename);
-        RealLifeVideo rlv = parseRealLiveVideoFile(file, _aviFiles);
-        return rlv;
+    QFuture<QList<RealLifeVideo> > importRlvFuture = QtConcurrent::run(importRlvFiles, root);
+    futureWatcher->setFuture(importRlvFuture);
+}
+
+void RealLifeVideoImporter::importReady(const RealLifeVideoList &rlvs)
+{
+    RealLifeVideoList validRlvs;
+
+    for (auto rlv: rlvs) {
+        if (rlv.isValid() && rlv.type() == ProfileType::SLOPE) {
+            validRlvs.append(rlv);
+        }
     }
+    // sort rlv list by name
+    qSort(validRlvs.begin(), validRlvs.end(), RealLifeVideo::compareByName);
 
-    QStringList _aviFiles;
-};
+    emit importFinished(validRlvs);
+}
 
-QStringList findFiles(const QString& root, const QString& pattern)
+namespace
+{
+RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QFileInfo>& videoFiles)
+{
+    RlvFileParser parser(videoFiles);
+    return parser.parseRlvFile(rlvFile);
+}
+
+QList<QFileInfo> findFiles(const QString& root, const QString& pattern)
 {
     QStringList filters;
     filters << pattern;
     QDirIterator it(root, filters, QDir::NoFilter, QDirIterator::Subdirectories);
 
-    QStringList filePaths;
-    while(it.hasNext())
-        filePaths << it.next();
+    QList<QFileInfo> filePaths;
+    while(it.hasNext()) {
+        it.next();
+        filePaths.append(it.fileInfo());
+    }
     return filePaths;
 }
 
-QStringList findRlvFiles(QString& root)
+QList<QFileInfo> findRlvFiles(QString& root)
 {
     return findFiles(root, "*.rlv");
 }
 
 RealLifeVideoList importRlvFiles(QString root)
 {
-    QStringList filePaths = findRlvFiles(root);
-    QStringList aviFiles = findFiles(root, "*.avi");
+    const QList<QFileInfo> rlvFiles = findRlvFiles(root);
+    const QList<QFileInfo> aviFiles = findFiles(root, "*.avi");
 
-    QFuture<RealLifeVideo> rlvParserFuture = QtConcurrent::mapped(filePaths.begin(), filePaths.end(), ParseRlvFunctor(aviFiles));
+    std::function<RealLifeVideo(const QFileInfo&)> importFunction([aviFiles](const QFileInfo& fileInfo) -> RealLifeVideo {
+        QFile file(fileInfo.canonicalFilePath());
+        return parseRealLiveVideoFile(file, aviFiles);
+    });
 
-    return rlvParserFuture.results();
+    return QtConcurrent::mapped(rlvFiles.begin(), rlvFiles.end(), importFunction).results();
 }
 
-void RealLifeVideoImporter::parseRealLiveVideoFilesFromDir(const QString &root)
-{
-    QFutureWatcher<RealLifeVideoList> *futureWatcher = new QFutureWatcher<RealLifeVideoList>();
-    connect(futureWatcher, SIGNAL(finished()), this, SLOT(importReady()));
-    QFuture<QList<RealLifeVideo> > importRlvFuture = QtConcurrent::run(importRlvFiles, root);
-    futureWatcher->setFuture(importRlvFuture);
-}
-
-void RealLifeVideoImporter::importReady()
-{
-    QFutureWatcher<RealLifeVideoList>* watcher = dynamic_cast<QFutureWatcher<RealLifeVideoList>*>(sender());
-    if (!watcher)
-        qWarning() << "Error getting result in " << Q_FUNC_INFO;
-    RealLifeVideoList rlvList = watcher->future().result();
-
-    // remove ergovideos and invalid rlvs
-    QMutableListIterator<RealLifeVideo> it(rlvList);
-    while(it.hasNext()) {
-        const RealLifeVideo& rlv = it.next();
-        if (!(rlv.isValid() && rlv.type() == SLOPE))
-            it.remove();
-    }
-
-    // sort rlv list by name
-    qSort(rlvList.begin(), rlvList.end(), RealLifeVideo::compareByName);
-
-
-
-    emit importFinished(rlvList);
-    watcher->deleteLater();
-}
-
-
-
-
-RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QStringList& videoFilenames)
-{
-    RlvFileParser parser(videoFilenames);
-    return parser.parseRlvFile(rlvFile);
 }
