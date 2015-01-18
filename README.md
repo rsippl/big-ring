@@ -1,8 +1,7 @@
-Indoor Cycling
-==============
+Big Rind Indoor Video Cycling
+=============================
 
-This program can be used in combination with a bicycle, indoor trainer
-and [ANT+](http://www.thisisant.com) power, cadence or heart rate sensors.
+Big Ring Indoor Video Cycling can be used in combination with a bicycle, indoor trainer and [ANT+](http://www.thisisant.com) power, cadence or heart rate sensors.
 
 Goal
 ----
@@ -89,7 +88,11 @@ Roadmap
 * Support Windows.
 * Support OS/X.
 * Record data to files (FIT/Powertap CSV/.. ?)
-* Show elevation graph and current position.
 * Improve user management.
 * Many more.
+
+License
+-------
+
+Big Ring Indoor Video Cycling is distributed under the GNU General Public License, version 3 or later. See LICENSE.txt for details.
 
