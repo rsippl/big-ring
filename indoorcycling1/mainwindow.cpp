@@ -3,18 +3,18 @@
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
- * Big Ring Indoor Video Cycling is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation, either version 3 of the 
+ * Big Ring Indoor Video Cycling is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * Big Ring Indoor Video Cycling  is distributed in the hope that it will 
+ * Big Ring Indoor Video Cycling  is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with Big Ring Indoor Video Cycling.  If not, see 
+ * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
@@ -32,7 +32,7 @@
 #define  _GNU_SOURCE 1
 #include <cmath>
 
-MainWindow::MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent) :
+MainWindow::MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, ANTController& antController, QWidget *parent) :
     QMainWindow(parent), _antController(antController), _cyclist(cyclist), _simulation(_cyclist), _cachedGeometry(100, 100, 1024, 768),
     _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this, this))
 {
@@ -216,5 +216,11 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    event->accept();
+    if (_antController.isRunning()) {
+        connect(&_antController, &ANTController::finished, this, &QMainWindow::close);
+        _antController.quit();
+        event->ignore();
+    } else {
+        event->accept();
+    }
 }

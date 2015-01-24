@@ -23,13 +23,17 @@
 #include <QCoreApplication>
 
 namespace {
-const int TIMER_INTERVAL = 10; // ms
+const int TIMER_INTERVAL = 100; // ms
 }
 ANTController::ANTController(QObject *parent) :
     QObject(parent), _heartRate(0), _power(0), _cadence(0), antThread(new QThread(this)),
     antTimer(new QTimer(this))
 {
     antTimer->setInterval(TIMER_INTERVAL);
+    connect(antThread, &QThread::finished, this, [=]() {
+        qDebug() << "ant thread finished";
+        emit finished();
+    });
     initialize();
 }
 
@@ -37,6 +41,11 @@ ANTController::~ANTController() {
     if (antThread->isRunning()) {
         qWarning("Call quit() before destroying ANTController");
     }
+}
+
+bool ANTController::isRunning() const
+{
+    return antThread->isRunning();
 }
 
 quint8 ANTController::heartRate() const
@@ -81,6 +90,7 @@ void ANTController::initialize()
 
 void ANTController::heartRateReceived(quint8 bpm)
 {
+    qDebug() << "HR" << bpm;
     _heartRate = bpm;
     emit heartRateMeasured(bpm);
 }

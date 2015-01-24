@@ -20,6 +20,7 @@
 
 #include "usb2antdevice.h"
 #include <QtDebug>
+#include <QtCore/QThread>
 namespace
 {
 bool usbInitialized = false;
@@ -58,7 +59,6 @@ int Usb2AntDevice::writeBytes(QByteArray &bytes)
 #ifdef Q_OS_WIN
     return usb_interrupt_write(_deviceHandle, _writeEndpoint, bytes.data(), bytes.size(), 50);
 #else
-    qDebug() << "write" << bytes.size() << "bytes";
     int rc = usb_bulk_write(_deviceHandle, _writeEndpoint, bytes.data(), bytes.size(), 50);
     if (rc < 0) {
         qWarning("usb error: %s", usb_strerror());
@@ -78,7 +78,7 @@ QByteArray Usb2AntDevice::readBytes()
     while(bytesAvailable) {
         QByteArray buffer(128, 0);
 
-        int nrOfBytesRead = usb_bulk_read(_deviceHandle, _readEndpoint, buffer.data(), buffer.size(), 50);
+        int nrOfBytesRead = usb_bulk_read(_deviceHandle, _readEndpoint, buffer.data(), buffer.size(), 10);
         if (nrOfBytesRead < 0) {
             bytesAvailable = false;
         } else {
@@ -92,10 +92,12 @@ QByteArray Usb2AntDevice::readBytes()
 void Usb2AntDevice::initializeUsb()
 {
     if (!usbInitialized) {
+        usb_set_debug(255);
         usb_init();
-        usb_set_debug(0);
+
         usb_find_busses();
         usb_find_devices();
+        usbInitialized = true;
     }
 }
 

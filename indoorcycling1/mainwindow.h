@@ -3,18 +3,18 @@
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
- * Big Ring Indoor Video Cycling is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation, either version 3 of the 
+ * Big Ring Indoor Video Cycling is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * Big Ring Indoor Video Cycling  is distributed in the hope that it will 
+ * Big Ring Indoor Video Cycling  is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with Big Ring Indoor Video Cycling.  If not, see 
+ * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
@@ -49,51 +49,51 @@ class ScreenSaverBlocker;
 
 class MainWindow : public QMainWindow
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
     explicit
-    MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, const ANTController& antController, QWidget *parent = 0);
+    MainWindow(const RealLifeVideoImporter& parser, Cyclist& cyclist, ANTController& antController, QWidget *parent = 0);
 
-	void restoreWindow();
-	void gotoFullScreen();
+    void restoreWindow();
+    void gotoFullScreen();
 
     bool eventFilter(QObject *obj, QEvent *event);
 signals:
-	void importFinished(RealLifeVideoList rlvs);
+    void importFinished(RealLifeVideoList rlvs);
 
 protected:
     virtual void focusOutEvent(QFocusEvent*);
     virtual void focusInEvent(QFocusEvent*);
 
-	virtual void closeEvent(QCloseEvent *);
+    virtual void closeEvent(QCloseEvent *);
 
 private slots:
-	void rlvSelected(RealLifeVideo rlv);
+    void rlvSelected(RealLifeVideo rlv);
 
-	void antDeviceFound(QString description);
+    void antDeviceFound(QString description);
 
 private:
 
-	QLayout* setUpMain(QWidget *centralWidget);
-	QLayout* setupSideBar(QWidget *centralWidget);
-	QLabel* createLabel(const QString& text, QColor color, QWidget* centralWidget);
+    QLayout* setUpMain(QWidget *centralWidget);
+    QLayout* setupSideBar(QWidget *centralWidget);
+    QLabel* createLabel(const QString& text, QColor color, QWidget* centralWidget);
 
-	void removeMargins();
-	void restoreMargins();
+    void removeMargins();
+    void restoreMargins();
 
-    const ANTController& _antController;
+    ANTController& _antController;
     RealLifeVideo _rlv;
-	Cyclist& _cyclist;
-	Simulation _simulation;
+    Cyclist& _cyclist;
+    Simulation _simulation;
 //    NewVideoWidget* videoWidget;
-	QListWidget* courseListWidget;
+    QListWidget* courseListWidget;
     RlvListWidget* rlvListWidget;
     QMargins _margins;
-	QRect _cachedGeometry;
-	QBoxLayout* _layout;
-	QPushButton* playButton;
+    QRect _cachedGeometry;
+    QBoxLayout* _layout;
+    QPushButton* playButton;
 
-	QSystemTrayIcon* _trayIcon;
+    QSystemTrayIcon* _trayIcon;
     indoorcycling::ScreenSaverBlocker* _screenSaverBlocker;
 };
 
