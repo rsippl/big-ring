@@ -26,44 +26,34 @@
 #endif
 #include "usb2antdevice.h"
 #include <QtDebug>
-extern "C" {
-#include <libusb-1.0/libusb.h>
-}
+
 namespace indoorcycling {
 
 AntDeviceFinder::AntDeviceFinder(QObject *parent) :
     QObject(parent)
 {
-    libusb_init(&_context);
+    // empty
 }
 
 AntDeviceFinder::~AntDeviceFinder()
 {
-    libusb_exit(_context);
+    // empty
 }
 
 AntDeviceType AntDeviceFinder::findAntDevice()
 {
-    AntDeviceType type = ANT_DEVICE_NONE;
-    libusb_device** device_list;
-    ssize_t nrOfDevices = libusb_get_device_list(_context, &device_list);
-    for (int i = 0; i < nrOfDevices; ++i) {
-        libusb_device* device = device_list[i];
-        libusb_device_descriptor descriptor;
-        libusb_get_device_descriptor(device, &descriptor);
-        if (descriptor.idVendor == GARMIN_USB_VENDOR_ID) {
-            if (descriptor.idProduct == GARMIN_USB2_PRODUCT_ID) {
-                qDebug() << "found ANT+ USB2 device";
-                type = ANT_DEVICE_USB_2;
-            } else if (descriptor.idProduct == GARMIN_USB1_PRODUCT_ID) {
-                qDebug() << "found ANT+ USB1 device";
-                type = ANT_DEVICE_USB_1;
-            }
+    struct usb_device* device = Usb2AntDevice::findAntStick();
+    qDebug() << "device = " << device;
+    if (device) {
+        switch(device->descriptor.idProduct) {
+        case GARMIN_USB1_PRODUCT_ID:
+            return ANT_DEVICE_USB_1;
+        case GARMIN_USB2_PRODUCT_ID:
+        case OEM_USB2_PRODUCT_ID:
+            return ANT_DEVICE_USB_2;
         }
     }
-
-    libusb_free_device_list(device_list, 1);
-    return type;
+    return ANT_DEVICE_NONE;
 }
 
 QSharedPointer<AntDevice> AntDeviceFinder::openAntDevice()
@@ -80,7 +70,6 @@ QSharedPointer<AntDevice> AntDeviceFinder::openAntDevice()
         return QSharedPointer<AntDevice>(new Usb2AntDevice);
     default:
         return QSharedPointer<AntDevice>();
-    }
+  }
 }
-
 }

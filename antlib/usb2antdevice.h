@@ -26,7 +26,7 @@
 #include <QTimer>
 
 extern "C" {
-#include <libusb-1.0/libusb.h>
+#include <usb.h>
 }
 
 namespace indoorcycling
@@ -43,30 +43,18 @@ public:
     virtual int writeBytes(QByteArray& bytes);
     virtual QByteArray readBytes();
 
-private slots:
-    void doTransfer();
-
+    static void initializeUsb();
+    static struct usb_device* findAntStick();
 private:
-    /** callback functions */
-    static void writeCallback(libusb_transfer* transfer);
-    static void readCallback(libusb_transfer* transfer);
-    void writeReady(libusb_transfer* transfer);
-    void readReady(libusb_transfer* transfer);
+    void resetAntStick(struct usb_device* antStick);
+    struct usb_dev_handle* openAntStick();
+    struct usb_interface_descriptor* findUsbInterface(struct usb_config_descriptor* config_descriptor);
 
-    /** internal read and write functions */
-    void doWrite();
-    void doRead();
+    struct usb_dev_handle* _deviceHandle;
+    struct usb_interface_descriptor* _intf;
+    int _readEndpoint, _writeEndpoint;
+    int _interface;
 
-    libusb_context* _context;
-    libusb_device_handle* _deviceHandle;
-    libusb_transfer* _currentTransfer;
-
-    QByteArray _writeBuffer;
-    QByteArray _readBuffer;
-
-    QTimer *_transferTimer;
-    QByteArray _bytesRead;
-    QList<QByteArray> _messagesToWrite;
     bool _wasAttached;
     bool _setupComplete;
 };

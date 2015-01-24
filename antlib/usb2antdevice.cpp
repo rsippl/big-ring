@@ -22,166 +22,194 @@
 #include <QtDebug>
 namespace
 {
-const int INTERFACE_NR = 0;
-const int ENDPOINT_IN = 0x81; /* endpoint 0x81 address for IN */
-const int ENDPOINT_OUT = 0x01; /* endpoint 1 address for OUT */
-const quint8 READ_SIZE = 64;
-const int TIMEOUT = 250; // ms
-const int READ_INTERVAL = 10;
+bool usbInitialized = false;
 }
+
 namespace indoorcycling
 {
 
 Usb2AntDevice::Usb2AntDevice(QObject *parent) :
-    AntDevice(parent), _currentTransfer(NULL), _readBuffer(READ_SIZE, '\0'),
-    _transferTimer(new QTimer(this)), _wasAttached(false), _setupComplete(false)
+    AntDevice(parent), _deviceHandle(nullptr)
 {
-    libusb_init(&_context);
-    libusb_set_debug(_context, 4);
-    _deviceHandle = libusb_open_device_with_vid_pid(_context, GARMIN_USB_VENDOR_ID, GARMIN_USB2_PRODUCT_ID);
-    if (!_deviceHandle) {
-        qDebug() << "no device handle";
-        return;
-    }
-#ifdef Q_OS_LINUX
-    if (libusb_kernel_driver_active(_deviceHandle, INTERFACE_NR)) {
-        qDebug() << "detaching kernel driver";
-        int error = libusb_detach_kernel_driver(_deviceHandle, INTERFACE_NR);
-        if (error) {
-            qDebug() << "Unable to detach kernel driver" << libusb_error_name(error);
-        }
-        _wasAttached = true;
-    }
-#endif
-    int err = libusb_claim_interface(_deviceHandle, 0);
-    if (err){
-        qDebug() << "Unable to claim interface" << libusb_error_name(err);
-        return;
-    }
-    libusb_clear_halt(_deviceHandle, ENDPOINT_IN);
-    libusb_clear_halt(_deviceHandle, ENDPOINT_OUT);
-
-    connect(_transferTimer, SIGNAL(timeout()), SLOT(doTransfer()));
-    _transferTimer->setInterval(READ_INTERVAL);
-    _transferTimer->start();
-
-    // read device buffer to clear it.
-    doRead();
-    _setupComplete = true;
+    _deviceHandle = openAntStick();
+    usb_clear_halt(_deviceHandle, _writeEndpoint);
+    usb_clear_halt(_deviceHandle, _readEndpoint);
 }
 
-Usb2AntDevice::~Usb2AntDevice()
-{
-    // no need to handle any new transfers.
-    _transferTimer->stop();
-
-    // Cancel the current transfer and wait for it to cancelled. Simply
-    // continuing after libusb_cancel_transfer() would mean the transfer
-    // would be freed in-flight.
-    while (_currentTransfer) {
-        libusb_cancel_transfer(_currentTransfer);
-        libusb_handle_events_completed(_context, NULL);
-    }
+Usb2AntDevice::~Usb2AntDevice() {
     if (_deviceHandle) {
-        libusb_release_interface(_deviceHandle, INTERFACE_NR);
-        if (_wasAttached)
-            libusb_attach_kernel_driver(_deviceHandle, INTERFACE_NR);
-        libusb_close(_deviceHandle);
+        usb_release_interface(_deviceHandle, _interface);
+        usb_close(_deviceHandle);
     }
-    libusb_exit(_context);
 }
 
-bool Usb2AntDevice::isValid() const {
-    return _setupComplete;
+bool Usb2AntDevice::isValid() const
+{
+    return (_deviceHandle);
 }
 
-int Usb2AntDevice::numberOfChannels() const {
+int Usb2AntDevice::numberOfChannels() const
+{
     return 8;
 }
 
-int Usb2AntDevice::writeBytes(QByteArray &bytes) {
-    if (!_deviceHandle)
-        return -1;
-
-    _messagesToWrite.append(bytes);
-    return 0;
-}
-
-void Usb2AntDevice::doWrite()
+int Usb2AntDevice::writeBytes(QByteArray &bytes)
 {
-    _writeBuffer = _messagesToWrite.first();
-    _messagesToWrite.removeFirst();
-    _currentTransfer = libusb_alloc_transfer(0);
-
-    libusb_fill_bulk_transfer(_currentTransfer, _deviceHandle, ENDPOINT_OUT, (unsigned char*) _writeBuffer.data(), _writeBuffer.size(),
-                              Usb2AntDevice::writeCallback, this, TIMEOUT);
-
-    libusb_submit_transfer(_currentTransfer);
+#ifdef Q_OS_WIN
+    return usb_interrupt_write(_deviceHandle, _writeEndpoint, bytes.data(), bytes.size(), 50);
+#else
+    qDebug() << "write" << bytes.size() << "bytes";
+    int rc = usb_bulk_write(_deviceHandle, _writeEndpoint, bytes.data(), bytes.size(), 50);
+    if (rc < 0) {
+        qWarning("usb error: %s", usb_strerror());
+    }
+    return rc;
+#endif
 }
 
-QByteArray Usb2AntDevice::readBytes() {
-    if (!_deviceHandle)
-        return QByteArray();
-
-    QByteArray copy(_bytesRead);
-    _bytesRead.clear();
-    return copy;
-}
-
-void Usb2AntDevice::doRead()
+/**
+ * @brief read all available bytes from the ANT+ stick.
+ * @return a byte array with all the bytes that were read. Can be empty.
+ */
+QByteArray Usb2AntDevice::readBytes()
 {
-    struct timeval tv;
-    tv.tv_sec = 0;
-    tv.tv_usec = 0;
-    libusb_handle_events_locked(_context, &tv);
-    _currentTransfer = libusb_alloc_transfer(0);
-    libusb_fill_bulk_transfer(_currentTransfer, _deviceHandle, ENDPOINT_IN, (unsigned char*) _readBuffer.data(), _readBuffer.size(),
-                              readCallback, this, TIMEOUT);
-    libusb_submit_transfer(_currentTransfer);
+    QByteArray bytesRead;
+    bool bytesAvailable = true;
+    while(bytesAvailable) {
+        QByteArray buffer(128, 0);
+
+        int nrOfBytesRead = usb_bulk_read(_deviceHandle, _readEndpoint, buffer.data(), buffer.size(), 50);
+        if (nrOfBytesRead < 0) {
+            bytesAvailable = false;
+        } else {
+            bytesRead.append(buffer.left(nrOfBytesRead));
+            bytesAvailable = (nrOfBytesRead == buffer.size());
+        }
+    }
+    return bytesRead;
 }
 
-void Usb2AntDevice::doTransfer()
+void Usb2AntDevice::initializeUsb()
 {
-    libusb_handle_events_completed(_context, NULL);
-    if (_currentTransfer)
-        return;
-
-    if (_messagesToWrite.isEmpty())
-        doRead();
-    else
-        doWrite();
+    if (!usbInitialized) {
+        usb_init();
+        usb_set_debug(0);
+        usb_find_busses();
+        usb_find_devices();
+    }
 }
 
-void Usb2AntDevice::writeCallback(libusb_transfer *transfer)
+struct usb_device *Usb2AntDevice::findAntStick()
 {
-    Usb2AntDevice* self = static_cast<Usb2AntDevice*>(transfer->user_data);
-    self->writeReady(transfer);
+    initializeUsb();
+    struct usb_bus* bus;
+    struct usb_device* device;
+
+    for (bus = usb_get_busses(); bus; bus = bus->next) {
+        for (device = bus->devices; device; device = device->next) {
+            if (device->descriptor.idVendor == GARMIN_USB_VENDOR_ID &&
+                    (device->descriptor.idProduct == GARMIN_USB2_PRODUCT_ID || device->descriptor.idProduct == OEM_USB2_PRODUCT_ID)) {
+                return device;
+            }
+        }
+    }
+    return nullptr;
 }
 
-
-void Usb2AntDevice::readCallback(libusb_transfer *transfer)
+void Usb2AntDevice::resetAntStick(struct usb_device *antStick)
 {
-    Usb2AntDevice* self = static_cast<Usb2AntDevice*>(transfer->user_data);
-    self->readReady(transfer);
+    struct usb_dev_handle* antStickHandle;
+    if ((antStickHandle = usb_open(antStick))) {
+        usb_reset(antStickHandle);
+        usb_close(antStickHandle);
+    } else {
+        qWarning("Unable to open and reset ANT stick");
+    }
 }
 
-
-void Usb2AntDevice::writeReady(libusb_transfer *)
+usb_dev_handle *Usb2AntDevice::openAntStick()
 {
-    libusb_free_transfer(_currentTransfer);
-    _currentTransfer = NULL;
+    struct usb_dev_handle* deviceHandle;
 
-    _writeBuffer.clear();
-}
+    struct usb_device* device = findAntStick();
+    if (device) {
+        resetAntStick(device);
 
-void Usb2AntDevice::readReady(libusb_transfer *)
-{
-    if (_currentTransfer->status == LIBUSB_TRANSFER_COMPLETED) {
-        _bytesRead.append(_readBuffer.left(_currentTransfer->actual_length));
-        _readBuffer.fill('\0');
+        deviceHandle = usb_open(device);
+        if (deviceHandle && device->descriptor.bNumConfigurations) {
+            if ((_intf = findUsbInterface(&device->config[0])) != NULL) {
+                qDebug() << deviceHandle;
+                int rc;
+#ifdef Q_OS_LINUX
+                rc = usb_detach_kernel_driver_np(deviceHandle, _interface);
+                if (rc < 0) {
+                    qDebug() << "usb error" << usb_strerror();
+                }
+#endif
+                rc = usb_set_configuration(deviceHandle, 1);
+                if (rc < 0) {
+                    qDebug()<<"usb_set_configuration Error: "<< usb_strerror();
+                }
+
+                rc = usb_claim_interface(deviceHandle, _interface);
+                if (rc < 0) qDebug()<<"usb_claim_interface Error: "<< usb_strerror();
+                return deviceHandle;
+            }
+        }
+    } else {
+        qWarning("Unable to find an ANT+ USB2 stick to open");
     }
 
-    libusb_free_transfer(_currentTransfer);
-    _currentTransfer = NULL;
+    return nullptr;
+}
+
+usb_interface_descriptor *Usb2AntDevice::findUsbInterface(usb_config_descriptor *config_descriptor)
+{
+    struct usb_interface_descriptor* intf;
+
+    _readEndpoint = -1;
+    _writeEndpoint = -1;
+    _interface = -1;
+
+    if (!config_descriptor) {
+        qDebug() << "config descriptor is null";
+        return nullptr;
+    }
+
+    qDebug() << "num interface" << config_descriptor->bNumInterfaces;
+    if (!config_descriptor->bNumInterfaces) {
+        return nullptr;
+    }
+    qDebug() << "num alt_setting" << config_descriptor->interface[0].num_altsetting;
+    if (!config_descriptor->interface[0].num_altsetting) return nullptr;
+
+    intf = &config_descriptor->interface[0].altsetting[0];
+
+    qDebug() << "num endpoints" << intf->bNumEndpoints;
+
+
+    if (intf->bNumEndpoints != 2) return nullptr;
+
+
+    qDebug() << "interface number" << intf->bInterfaceNumber;
+
+    _interface = intf->bInterfaceNumber;
+
+    for (int i = 0 ; i < 2; i++)
+    {
+        if (intf->endpoint[i].bEndpointAddress & USB_ENDPOINT_DIR_MASK)
+            _readEndpoint = intf->endpoint[i].bEndpointAddress;
+        else
+            _writeEndpoint = intf->endpoint[i].bEndpointAddress;
+    }
+
+    qDebug() << "read end point" << _readEndpoint;
+    qDebug() << "write end point" << _writeEndpoint;
+
+    if (_readEndpoint < 0 || _writeEndpoint < 0)
+        return nullptr;
+
+    return intf;
 }
 }
+
