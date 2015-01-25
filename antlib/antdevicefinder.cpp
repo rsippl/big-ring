@@ -40,25 +40,9 @@ AntDeviceFinder::~AntDeviceFinder()
     // empty
 }
 
-AntDeviceType AntDeviceFinder::findAntDevice()
-{
-    struct usb_device* device = Usb2AntDevice::findAntStick();
-    qDebug() << "device = " << device;
-    if (device) {
-        switch(device->descriptor.idProduct) {
-        case GARMIN_USB1_PRODUCT_ID:
-            return ANT_DEVICE_USB_1;
-        case GARMIN_USB2_PRODUCT_ID:
-        case OEM_USB2_PRODUCT_ID:
-            return ANT_DEVICE_USB_2;
-        }
-    }
-    return ANT_DEVICE_NONE;
-}
-
 QSharedPointer<AntDevice> AntDeviceFinder::openAntDevice()
 {
-    AntDeviceType type = findAntDevice();
+    AntDeviceType type = Usb2AntDevice::findAntDeviceType();
     switch(type) {
     case ANT_DEVICE_USB_1:
 #ifdef Q_OS_LINUX

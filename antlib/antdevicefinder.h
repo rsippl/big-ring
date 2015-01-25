@@ -34,8 +34,6 @@ public:
     explicit AntDeviceFinder(QObject *parent = 0);
     virtual ~AntDeviceFinder();
 
-    AntDeviceType findAntDevice();
-
     /** Open an AntDevice. Returns an invalid pointer if no device can be found. */
     QSharedPointer<AntDevice> openAntDevice();
 };

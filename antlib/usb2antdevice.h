@@ -22,16 +22,19 @@
 #define USB2ANTDEVICE_H
 #include "antdevice.h"
 
-#include <QList>
-#include <QTimer>
-
-extern "C" {
-#include <usb.h>
-}
+#include <memory>
 
 namespace indoorcycling
 {
 
+struct Usb2DeviceConfiguration;
+
+/**
+ * @brief class used for connecting to USB2 ANT+ devices.
+ *
+ * Because this class uses libusb, we also use it to scan for connected USB devices using the ::findAntDeviceType() static
+ * method.
+ */
 class Usb2AntDevice : public AntDevice
 {
     Q_OBJECT
@@ -43,20 +46,13 @@ public:
     virtual int writeBytes(QByteArray& bytes);
     virtual QByteArray readBytes();
 
-    static void initializeUsb();
-    static struct usb_device* findAntStick();
+    /**
+     * @brief find a ANT+ Usb stick and report it's type
+     * @return the type of USB ANT+ Stick, or ANT_DEVICE_NONE if none found.
+     */
+    static AntDeviceType findAntDeviceType();
 private:
-    void resetAntStick(struct usb_device* antStick);
-    struct usb_dev_handle* openAntStick();
-    struct usb_interface_descriptor* findUsbInterface(struct usb_config_descriptor* config_descriptor);
-
-    struct usb_dev_handle* _deviceHandle;
-    struct usb_interface_descriptor* _intf;
-    int _readEndpoint, _writeEndpoint;
-    int _interface;
-
-    bool _wasAttached;
-    bool _setupComplete;
+    const std::unique_ptr<Usb2DeviceConfiguration> _deviceConfiguration;
 };
 }
 #endif // USB2ANTDEVICE_H
