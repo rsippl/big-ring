@@ -69,6 +69,22 @@ int detachKernelDriver(struct usb_dev_handle& usbDeviceHandle, int interface);
 
 namespace indoorcycling
 {
+
+AntDeviceType findAntDeviceType()
+{
+    struct usb_device* device = findAntStick();
+    if (device) {
+        switch(device->descriptor.idProduct) {
+        case GARMIN_USB1_PRODUCT_ID:
+            return ANT_DEVICE_USB_1;
+        case GARMIN_USB2_PRODUCT_ID:
+        case OEM_USB2_PRODUCT_ID:
+            return ANT_DEVICE_USB_2;
+        }
+    }
+    return ANT_DEVICE_NONE;
+}
+
 /**
  * @brief struct containing the usb configuration that we'll use for reading and writing.
  */
@@ -83,6 +99,14 @@ struct Usb2DeviceConfiguration
 Usb2AntDevice::Usb2AntDevice(QObject *parent) :
     AntDevice(parent), _deviceConfiguration(openAntStick())
 {
+    if (!_deviceConfiguration) {
+        qWarning("Unable to open ANT+ stick correctly");
+    }
+    qDebug() << "trying to empty the ANT stick's buffer";
+    QByteArray buffer = readBytes();
+    if (!buffer.isEmpty()) {
+        qDebug() << "buffer was not empty";
+    }
 }
 
 Usb2AntDevice::~Usb2AntDevice() {
@@ -111,6 +135,7 @@ int Usb2AntDevice::writeBytes(QByteArray &bytes)
 #ifdef Q_OS_WIN
     return usb_interrupt_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 50);
 #else
+    qDebug() << "writing " << bytes.size() << "bytes";
     int rc = usb_bulk_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 50);
     if (rc < 0) {
         qWarning("usb error: %s", usb_strerror());
@@ -131,35 +156,29 @@ QByteArray Usb2AntDevice::readBytes()
     }
     QByteArray bytesRead;
     bool bytesAvailable = true;
+    int loopNr = 0;
     while(bytesAvailable) {
-        QByteArray buffer(128, 0);
+        if (loopNr > 0) {
+            qDebug() << "loopNr" << loopNr;
+        }
+        QByteArray buffer(64, 0);
 
-        int nrOfBytesRead = usb_bulk_read(_deviceConfiguration->deviceHandle, _deviceConfiguration->readEndpoint, buffer.data(), buffer.size(), 10);
+        int nrOfBytesRead = usb_bulk_read(_deviceConfiguration->deviceHandle, _deviceConfiguration->readEndpoint, buffer.data(), buffer.size(), 50);
         if (nrOfBytesRead <= 0) {
+            if (nrOfBytesRead != -ETIMEDOUT) {
+                qDebug() << "usb returns" << nrOfBytesRead << usb_strerror();
+            }
             bytesAvailable = false;
         } else {
             bytesRead.append(buffer.left(nrOfBytesRead));
             bytesAvailable = (nrOfBytesRead == buffer.size());
             buffer.clear();
         }
+        loopNr += 1;
     }
     return bytesRead;
 }
 
-AntDeviceType Usb2AntDevice::findAntDeviceType()
-{
-    struct usb_device* device = findAntStick();
-    if (device) {
-        switch(device->descriptor.idProduct) {
-        case GARMIN_USB1_PRODUCT_ID:
-            return ANT_DEVICE_USB_1;
-        case GARMIN_USB2_PRODUCT_ID:
-        case OEM_USB2_PRODUCT_ID:
-            return ANT_DEVICE_USB_2;
-        }
-    }
-    return ANT_DEVICE_NONE;
-}
 } // end namespace indoorcycling
 
 namespace
@@ -168,7 +187,7 @@ namespace
 void initializeUsb()
 {
     if (!usbInitialized) {
-        usb_set_debug(1);
+        usb_set_debug(255);
         usb_init();
 
         usb_find_busses();

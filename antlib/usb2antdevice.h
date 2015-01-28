@@ -30,10 +30,13 @@ namespace indoorcycling
 struct Usb2DeviceConfiguration;
 
 /**
- * @brief class used for connecting to USB2 ANT+ devices.
- *
- * Because this class uses libusb, we also use it to scan for connected USB devices using the ::findAntDeviceType() static
- * method.
+ * @brief find a ANT+ Usb stick and report it's type
+ * @return the type of USB ANT+ Stick, or ANT_DEVICE_NONE if none found.
+ */
+AntDeviceType findAntDeviceType();
+
+/**
+ * @brief class used for connecting to USB2 ANT+ devices. This implementation uses libusb-0.1
  */
 class Usb2AntDevice : public AntDevice
 {
@@ -45,12 +48,6 @@ public:
     virtual int numberOfChannels() const;
     virtual int writeBytes(QByteArray& bytes);
     virtual QByteArray readBytes();
-
-    /**
-     * @brief find a ANT+ Usb stick and report it's type
-     * @return the type of USB ANT+ Stick, or ANT_DEVICE_NONE if none found.
-     */
-    static AntDeviceType findAntDeviceType();
 private:
     const std::unique_ptr<Usb2DeviceConfiguration> _deviceConfiguration;
 };
