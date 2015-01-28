@@ -16,6 +16,11 @@ SOURCES += \
     antmessagegatherer.cpp \
     usb2antdevice.cpp
 
+linux {
+    SOURCES += core.c
+    HEADERS += usb.h usbi.h
+}
+
 HEADERS += \
     ANT.h \
     ANTChannel.h \
