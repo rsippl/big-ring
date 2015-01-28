@@ -47,7 +47,8 @@ I have the USB 1 variant from Garmin and a USB 2 from Suunto, the MoveStick Mini
 * [Qt](http://qt.digia.com) 5.3. This library is used throughout the program.
 * [gstreamer](http://gstreamer.freedesktop.org/) for video decoding and displaying.
 * [G++](http://gcc.gnu.org), the compiler.
-* [libusb](http://www.libusb.org/) version 0.1, for handling of the usb device. On Ubuntu, installing libusb-dev will install libusb. Version 0.1 is used, because that is the standard version that is used on Windows.
+* [libusb](http://www.libusb.org/) for handling of the usb device. On Ubuntu, installing libusb-1.0-0-dev will install libusb. Version 1.0 is used on Linux. The standard version that is used on Windows
+for ANT+ is libusb-win32, which is based on libusb-0.1. Because of this, internally the API of libusb-0.1 is used. On Linux the source of [libusb-compat](http://www.libusb.org/wiki/libusb-compat-0.1) is included to make a bridge from the libusb-0.1 API to libusb-1.0.
 * An OpenGL capable system for the graphics.
 * [Google Test](https://code.google.com/p/googletest/), OPTIONAL, for test code.
 
