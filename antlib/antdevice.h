@@ -33,16 +33,42 @@ enum AntDeviceType {
     ANT_DEVICE_USB_2
 };
 
+/**
+ * @brief abstract ANT device object. Used for reading and writing from and to ANT+ USB sticks.
+ */
 class AntDevice : public QObject
 {
     Q_OBJECT
 public:
-    AntDevice(QObject* parent = 0);
-    virtual ~AntDevice() {}
+    virtual ~AntDevice() = 0;
+    /**
+     * @brief Check if the device is connected correctly.
+     * @return true if connected, false otherwise.
+     */
     virtual bool isValid() const = 0;
+    /**
+     * @brief get the number of channels that the ANT+ device support.
+     * @return the number of channels.
+     */
     virtual int numberOfChannels() const = 0;
+    /**
+     * @brief write a byte array to the ANT+ device.
+     * @param bytes the bytes to write.
+     * @return the number of bytes written.
+     */
     virtual int writeBytes(QByteArray& bytes) = 0;
+    /**
+     * @brief try to read a number of bytes from the ANT+ device.
+     * @return the byte array that was read. Might be empty, in fact it *will* often be empty.
+     */
     virtual QByteArray readBytes() = 0;
+protected:
+    AntDevice(QObject* parent = 0);
 };
+
+inline AntDevice::~AntDevice()
+{
+    // empty
+}
 }
 #endif // ANTDEVICE_H
