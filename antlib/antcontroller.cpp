@@ -30,10 +30,7 @@ ANTController::ANTController(QObject *parent) :
     antTimer(new QTimer(this))
 {
     antTimer->setInterval(TIMER_INTERVAL);
-    connect(antThread, &QThread::finished, this, [=]() {
-        qDebug() << "ant thread finished";
-        emit finished();
-    });
+    connect(antThread, &QThread::finished, this, &ANTController::finished);
     initialize();
 }
 
@@ -65,7 +62,6 @@ quint8 ANTController::cadence() const
 
 void ANTController::foundDevice(int, int , int , QString description, QString)
 {
-    qDebug() << "found ANT device";
     emit deviceFound(description);
 }
 
@@ -75,7 +71,6 @@ void ANTController::initialize()
     ant->moveToThread(antThread);
 
     connect(antThread, SIGNAL(started()), ant, SLOT(initialize()));
-    connect(antThread, SIGNAL(finished()), ant, SLOT(deleteLater()));
 
     connect(antTimer, SIGNAL(timeout()), ant, SLOT(readCycle()));
     connect(ant, SIGNAL(initializationSucceeded()), antTimer, SLOT(start()));
