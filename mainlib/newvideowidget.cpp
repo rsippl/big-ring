@@ -3,18 +3,18 @@
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
- * Big Ring Indoor Video Cycling is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation, either version 3 of the 
+ * Big Ring Indoor Video Cycling is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * Big Ring Indoor Video Cycling  is distributed in the hope that it will 
+ * Big Ring Indoor Video Cycling  is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with Big Ring Indoor Video Cycling.  If not, see 
+ * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
@@ -36,7 +36,7 @@
 
 
 NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
-    QGraphicsView(parent)
+    QGraphicsView(parent), _mouseIdleTimer(new QTimer(this))
 {
     setMinimumSize(800, 600);
     setFocusPolicy(Qt::StrongFocus);
@@ -81,6 +81,12 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
         }
     });
     scene->addItem(_pausedItem);
+
+    _mouseIdleTimer->setInterval(500);
+    _mouseIdleTimer->setSingleShot(true);
+    connect(_mouseIdleTimer, &QTimer::timeout, _mouseIdleTimer, []() {
+        QApplication::setOverrideCursor(Qt::BlankCursor);
+    });
 }
 
 void NewVideoWidget::setupVideoPlayer(QGLWidget* paintWidget)
@@ -282,11 +288,20 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 void NewVideoWidget::enterEvent(QEvent *)
 {
     QApplication::setOverrideCursor(Qt::BlankCursor);
+    _mouseIdleTimer->start();
 }
 
 void NewVideoWidget::leaveEvent(QEvent *)
 {
     QApplication::setOverrideCursor(Qt::ArrowCursor);
+    _mouseIdleTimer->stop();
+}
+
+void NewVideoWidget::mouseMoveEvent(QMouseEvent *)
+{
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
+    _mouseIdleTimer->stop();
+    _mouseIdleTimer->start();
 }
 
 void NewVideoWidget::closeEvent(QCloseEvent *)
