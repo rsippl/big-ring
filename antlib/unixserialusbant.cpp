@@ -65,20 +65,6 @@ UnixSerialUsbAnt::~UnixSerialUsbAnt()
     }
 }
 
-bool UnixSerialUsbAnt::isDevicePresent()
-{
-    QFileInfoList entries = findUsbSerialDevices();
-
-    foreach (const QFileInfo& entry, entries) {
-        if (isGarminUsb1Stick(entry)) {
-            qDebug() << "Garmin USB1 stick found";
-            return true;
-        }
-    }
-
-    return false;
-}
-
 bool UnixSerialUsbAnt::isValid() const
 {
     return !_deviceFileInfo.fileName().isEmpty();

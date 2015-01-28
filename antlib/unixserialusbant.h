@@ -32,15 +32,16 @@
 namespace indoorcycling
 {
 
+/**
+ * @brief ANT+ device that supports ANT+ USB1 Sticks. USB1 sticks use the CP210x USB to UART Bridge. These USB
+ * sticks can be accessed using serial over USB communication. This is the Linux implementation.
+ */
 class UnixSerialUsbAnt : public AntDevice
 {
     Q_OBJECT
 public:
     explicit UnixSerialUsbAnt(QObject *parent = 0);
     virtual ~UnixSerialUsbAnt();
-
-    /** Find a Garmin USB1 Stick. If found, returns true, false otherwise */
-    static bool isDevicePresent();
 
     virtual bool isValid() const;
 
