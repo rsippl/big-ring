@@ -133,10 +133,9 @@ int Usb2AntDevice::writeBytes(QByteArray &bytes)
         return 0;
     }
 #ifdef Q_OS_WIN
-    return usb_interrupt_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 50);
+    return usb_interrupt_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 10);
 #else
-    qDebug() << "writing " << bytes.size() << "bytes";
-    int rc = usb_bulk_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 50);
+    int rc = usb_bulk_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 10);
     if (rc < 0) {
         qWarning("usb error: %s", usb_strerror());
     }
@@ -163,7 +162,7 @@ QByteArray Usb2AntDevice::readBytes()
         }
         QByteArray buffer(64, 0);
 
-        int nrOfBytesRead = usb_bulk_read(_deviceConfiguration->deviceHandle, _deviceConfiguration->readEndpoint, buffer.data(), buffer.size(), 50);
+        int nrOfBytesRead = usb_bulk_read(_deviceConfiguration->deviceHandle, _deviceConfiguration->readEndpoint, buffer.data(), buffer.size(), 10);
         if (nrOfBytesRead <= 0) {
             if (nrOfBytesRead != -ETIMEDOUT) {
                 qDebug() << "usb returns" << nrOfBytesRead << usb_strerror();
