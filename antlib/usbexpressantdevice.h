@@ -21,8 +21,12 @@
 #ifndef USBEXPRESSANTDEVICE_H
 #define USBEXPRESSANTDEVICE_H
 
+/** This file should only be compiled on Windows */
+#ifdef Q_OS_WIN32
+
 #include "antdevice.h"
 #include <QObject>
+
 #include <windows.h>
 extern "C" {
 #include <SiUSBXp.h>
@@ -30,6 +34,11 @@ extern "C" {
 
 namespace indoorcycling
 {
+/**
+ * @brief ANT+ device that supports ANT+ USB1 Sticks. USB1 sticks use the CP210x USB to UART Bridge. These USB
+ * sticks can be accessed using serial over USB communication. This is the Windows version, that uses the
+ * USBXpress® Development Tools from http://www.silabs.com/products/mcu/Pages/USBXpress.aspx.
+ */
 class UsbExpressAntDevice: public AntDevice
 {
     Q_OBJECT
@@ -37,7 +46,6 @@ public:
     UsbExpressAntDevice(QObject* parent = 0);
     virtual ~UsbExpressAntDevice();
 
-    static bool isDevicePresent();
     virtual int numberOfChannels() const;
     virtual bool isValid() const;
     virtual int writeBytes(QByteArray &bytes);
@@ -50,4 +58,6 @@ private:
     Qt::HANDLE _deviceHandle;
 };
 }
+#endif
+
 #endif // USBEXPRESSANTDEVICE_H
