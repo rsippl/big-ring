@@ -85,7 +85,6 @@ void ANTController::initialize()
 
 void ANTController::heartRateReceived(quint8 bpm)
 {
-    qDebug() << "HR" << bpm;
     _heartRate = bpm;
     emit heartRateMeasured(bpm);
 }
