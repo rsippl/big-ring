@@ -42,7 +42,7 @@ AntDeviceFinder::~AntDeviceFinder()
 
 QSharedPointer<AntDevice> AntDeviceFinder::openAntDevice()
 {
-    AntDeviceType type = Usb2AntDevice::findAntDeviceType();
+    AntDeviceType type = findAntDeviceType();
     switch(type) {
     case ANT_DEVICE_USB_1:
 #ifdef Q_OS_LINUX
