@@ -60,7 +60,6 @@ void Run::start()
     connect(_videoWidget, &NewVideoWidget::readyToPlay, this, [this](bool ready) {
         if (ready) {
             qDebug() << "starting run";
-            _simulation->cyclist().setPower(300);
             this->_simulation->play(true);
         }
     });
