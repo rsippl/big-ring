@@ -42,6 +42,7 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     setFocusPolicy(Qt::StrongFocus);
     QGLWidget* viewPortWidget = new QGLWidget(QGLFormat(QGL::SampleBuffers));
     setViewport(viewPortWidget);
+    setFrameShape(QFrame::NoFrame);
 
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     QGraphicsScene* scene = new QGraphicsScene(this);
