@@ -30,6 +30,7 @@
 #include "reallifevideoimporter.h"
 
 class Cyclist;
+class VideoListView;
 class VideoTileView;
 class NewVideoWidget;
 class Run;
@@ -65,6 +66,7 @@ private:
     QScopedPointer<Run,QScopedPointerDeleteLater> _run;
 
     QStackedWidget* const _stackedWidget;
+    VideoListView* const _listView;
     VideoTileView* const _tileView;
     NewVideoWidget* const _videoWidget;
     RealLifeVideoList _rlvList;

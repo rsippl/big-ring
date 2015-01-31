@@ -17,12 +17,18 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     videotileview.cpp \
     videotile.cpp \
-    videolightbox.cpp
+    videolightbox.cpp \
+    videolistview.cpp \
+    videolistmodel.cpp \
+    videoitemdelegate.cpp
 
 HEADERS  += mainwindow.h \
     videotileview.h \
     videotile.h \
-    videolightbox.h
+    videolightbox.h \
+    videolistview.h \
+    videolistmodel.h \
+    videoitemdelegate.h
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib

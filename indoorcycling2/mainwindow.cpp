@@ -27,6 +27,7 @@
 
 #include "cyclist.h"
 #include "run.h"
+#include "videolistview.h"
 #include "videotileview.h"
 #include "newvideowidget.h"
 #include "simulation.h"
@@ -38,6 +39,7 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     _cyclist(new Cyclist(this)),
     _simulation(new Simulation(*_cyclist, this)),
     _stackedWidget(new QStackedWidget),
+    _listView(new VideoListView),
     _tileView(new VideoTileView),
     _videoWidget(new NewVideoWidget(*_simulation))
 {
@@ -49,7 +51,7 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     _importer->parseRealLiveVideoFilesFromDir(dir);
 
     _tileView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    _stackedWidget->addWidget(_tileView);
+    _stackedWidget->addWidget(_listView);
     _stackedWidget->addWidget(_videoWidget);
 
     layout->addWidget(_stackedWidget);
@@ -59,7 +61,7 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
         startRun(rlv);
     });
 
-    _tileView->show();
+//    _tileView->show();
 }
 
 MainWindow::~MainWindow()
@@ -101,6 +103,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::importFinished(RealLifeVideoList rlvs)
 {
+    _listView->setVideos(rlvs);
     _tileView->rlvsLoaded(rlvs);
     qDebug() << "import finished";
     _rlvList = rlvs;
