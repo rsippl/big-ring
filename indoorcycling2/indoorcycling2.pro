@@ -7,7 +7,7 @@ QT_VERSION = 5
 QT       += core gui
 
 
-TARGET = indoorcycling2
+TARGET = ../bin/indoorcycling2
 TEMPLATE = app
 
 include(../mainlib/mainlib.pri)

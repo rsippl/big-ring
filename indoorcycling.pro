@@ -6,7 +6,6 @@ include(config.pri)
 
 SUBDIRS += \
     mainlib \
-    indoorcycling1 \
     indoorcycling2 \
     antlib \
 
@@ -16,6 +15,5 @@ SUBDIRS += \
 #    test.depends = mainlib antlib indoorcycling1 indoorcycling2 google_test
 #}
 
-indoorcycling1.depends = antlib mainlib
 indoorcycling2.depends = antlib mainlib
 
