@@ -68,6 +68,7 @@ private:
     VideoTileView* const _tileView;
     NewVideoWidget* const _videoWidget;
     RealLifeVideoList _rlvList;
+    QRect _savedGeometry;
 };
 
 #endif // MAINWINDOW_H

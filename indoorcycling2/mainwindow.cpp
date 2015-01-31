@@ -72,7 +72,13 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     qDebug() << "received key" << event->key() << event->text();
     switch(event->key()) {
     case Qt::Key_F:
-        showFullScreen();
+        if (isFullScreen()) {
+            showNormal();
+            setGeometry(_savedGeometry);
+        } else {
+            _savedGeometry = geometry();
+            showFullScreen();
+        }
         break;
     case Qt::Key_M:
         if (isMaximized()) {
