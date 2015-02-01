@@ -29,6 +29,9 @@ QVariant VideoListModel::data(const QModelIndex &index, int role) const
 
         case Qt::ToolTipRole:
             return QVariant::fromValue(_rlvs[index.row()].totalDistance());
+
+        case VideoDataRole:
+            return QVariant::fromValue(_rlvs[index.row()]);
         }
     }
     return QVariant();

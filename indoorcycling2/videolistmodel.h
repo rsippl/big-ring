@@ -4,6 +4,7 @@
 #include <QtCore/QAbstractListModel>
 #include "reallifevideo.h"
 
+const int VideoDataRole = Qt::UserRole + 1;
 class VideoListModel : public QAbstractListModel
 {
     Q_OBJECT
