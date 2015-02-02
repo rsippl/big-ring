@@ -3,18 +3,18 @@
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
- * Big Ring Indoor Video Cycling is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation, either version 3 of the 
+ * Big Ring Indoor Video Cycling is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * Big Ring Indoor Video Cycling  is distributed in the hope that it will 
+ * Big Ring Indoor Video Cycling  is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with Big Ring Indoor Video Cycling.  If not, see 
+ * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
@@ -34,12 +34,9 @@
 #include "thumbnailer.h"
 
 VideoLightBox::VideoLightBox(const RealLifeVideo& rlv) :
-    QGraphicsWidget(), _rlv(rlv), _thumbnailer(new Thumbnailer(this)), _thumbnailItem(nullptr),
+    QGraphicsWidget(), _rlv(rlv), _thumbnailItem(nullptr), _thumbnailer(new Thumbnailer(this)),
     _profileItem(nullptr)
 {
-    auto layout = new QGraphicsGridLayout;
-
-
     _thumbnailItem = addThumbnail();
     _thumbnailItem->setPos(0, 0);
 
@@ -85,7 +82,7 @@ QGraphicsItem *VideoLightBox::addFlag() {
 
         qDebug() << "flag for" << _rlv.name() << "is" << filename;
         QGraphicsSvgItem* flagItem = new QGraphicsSvgItem(filename, this);
-        QSize defaultSize = flagItem->renderer()->defaultSize();
+
         flagItem->setTransform(QTransform::fromScale(.35, .2));
         return flagItem;
     }
@@ -141,7 +138,7 @@ void VideoLightBox::mousePressEvent(QGraphicsSceneMouseEvent *event)
     event->accept();
 }
 
-void VideoLightBox::thumbnailUpdated(QPixmap updatedPixmap)
+void VideoLightBox::thumbnailUpdated(const RealLifeVideo&, QPixmap updatedPixmap)
 {
     _thumbnailItem->setPixmap(updatedPixmap);
 }

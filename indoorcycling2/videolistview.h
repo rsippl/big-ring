@@ -5,6 +5,7 @@
 #include <QtWidgets/QListView>
 
 class VideoListModel;
+class VideoDetailsWidget;
 
 #include "reallifevideo.h"
 
@@ -20,8 +21,12 @@ signals:
 public slots:
     void setVideos(RealLifeVideoList& rlvs);
 
+private slots:
+    void selectionChanged(const QItemSelection & selected, const QItemSelection & deselected);
+
 private:
     QListView* _listView;
+    VideoDetailsWidget* _detailsWidget;
     VideoListModel* _videoListModel;
 };
 

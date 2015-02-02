@@ -1,6 +1,7 @@
 #ifndef VIDEOITEMDELEGATE_H
 #define VIDEOITEMDELEGATE_H
 #include <QtWidgets/QAbstractItemDelegate>
+#include <QtWidgets/QLabel>
 class RealLifeVideo;
 class VideoItemDelegate: public QAbstractItemDelegate
 {
@@ -8,8 +9,8 @@ class VideoItemDelegate: public QAbstractItemDelegate
 public:
     VideoItemDelegate(QObject* parent);
 
-    virtual void paint(QPainter* painter, const QStyleOptionViewItem&, const QModelIndex&) const;
-    virtual QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    virtual void paint(QPainter* painter, const QStyleOptionViewItem&, const QModelIndex&) const override;
+    virtual QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
 private:
     void paintProfile(QPainter* painter, QRect& rect, RealLifeVideo& rlv) const;

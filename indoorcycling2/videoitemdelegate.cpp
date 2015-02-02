@@ -37,11 +37,13 @@ QColor colorForSlope(const float slope) {
 VideoItemDelegate::VideoItemDelegate(QObject *parent):
     QAbstractItemDelegate(parent)
 {
+    QPixmapCache::setCacheLimit(102400);
 }
 
 void VideoItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    painter->setBrush(QBrush(Qt::darkGray));
+    QBrush rectBrush = (option.state & QStyle::State_Selected) ? Qt::lightGray : Qt::darkGray;
+    painter->setBrush(rectBrush);
     painter->drawRoundedRect(option.rect, 15, 15);
     QVariant rlvData = index.data(VideoDataRole);
     RealLifeVideo video = rlvData.value<RealLifeVideo>();
@@ -50,6 +52,8 @@ void VideoItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     QRect profileRect(option.rect.topLeft(), QSize(rectSize).scaled(.9 * rectSize.width(), .9 * rectSize.height(), Qt::KeepAspectRatio));
     profileRect.moveCenter(option.rect.center());
     paintProfile(painter, profileRect, video);
+
+    painter->drawText(option.rect, video.name());
 }
 
 QSize VideoItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const

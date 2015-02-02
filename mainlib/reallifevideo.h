@@ -109,6 +109,7 @@ public:
     /** Set duration of video, in microseconds */
     void setDuration(quint64 duration);
 
+    bool operator==(const RealLifeVideo& other) const;
     static bool compareByName(const RealLifeVideo& rlv1, const RealLifeVideo& rlv2);
 private:
     void calculateVideoCorrectionFactor(quint64 totalNrOfFrames);

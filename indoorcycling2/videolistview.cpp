@@ -1,17 +1,26 @@
 #include "videolistview.h"
 
-#include <QtWidgets/QVBoxLayout>
+#include <QtCore/QtDebug>
+#include <QtCore/QItemSelection>
+#include <QtWidgets/QHBoxLayout>
+
 
 #include "videolistmodel.h"
 #include "videoitemdelegate.h"
+#include "videodetailswidget.h"
 
 VideoListView::VideoListView(QWidget *parent) :
-    QWidget(parent), _listView(new QListView), _videoListModel(new VideoListModel)
+    QWidget(parent), _listView(new QListView(this)), _detailsWidget(new VideoDetailsWidget(this)), _videoListModel(new VideoListModel)
 {
-    QVBoxLayout* layout = new QVBoxLayout;
+    QHBoxLayout* layout = new QHBoxLayout;
     _listView->setModel(_videoListModel);
     _listView->setItemDelegate(new VideoItemDelegate(this));
+    _listView->setMaximumWidth(500);
+    connect(_listView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &VideoListView::selectionChanged);
+
     layout->addWidget(_listView);
+    layout->addWidget(_detailsWidget);
+
 
     setLayout(layout);
 }
@@ -19,4 +28,11 @@ VideoListView::VideoListView(QWidget *parent) :
 void VideoListView::setVideos(RealLifeVideoList &rlvs)
 {
     _videoListModel->setVideos(rlvs);
+}
+
+void VideoListView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
+{
+    qDebug() << "selection changed" << _videoListModel->data(selected.indexes()[0], Qt::DisplayRole);
+    RealLifeVideo rlv = selected.indexes()[0].data(VideoDataRole).value<RealLifeVideo>();
+    _detailsWidget->setVideo(rlv);
 }
