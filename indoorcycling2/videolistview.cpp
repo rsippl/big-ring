@@ -28,6 +28,10 @@ VideoListView::VideoListView(QWidget *parent) :
 void VideoListView::setVideos(RealLifeVideoList &rlvs)
 {
     _videoListModel->setVideos(rlvs);
+    QModelIndex index = _videoListModel->index(0);
+    if (index.isValid()) {
+        _listView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
+    }
 }
 
 void VideoListView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)

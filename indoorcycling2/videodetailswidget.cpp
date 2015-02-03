@@ -4,6 +4,7 @@
 #include <QtWidgets/QGroupBox>
 
 #include "thumbnailer.h"
+#include "videoscreenshotlabel.h"
 
 VideoDetailsWidget::VideoDetailsWidget(QWidget *parent) :
     QWidget(parent), _thumbnailer(new Thumbnailer(this))
@@ -11,8 +12,8 @@ VideoDetailsWidget::VideoDetailsWidget(QWidget *parent) :
     QVBoxLayout* layout = new QVBoxLayout(this);
     setLayout(layout);
 
-    layout->addWidget(setupDetails());
     layout->addWidget(setupVideoScreenshot());
+    layout->addWidget(setupDetails());
 
     connect(_thumbnailer, &Thumbnailer::pixmapUpdated, _thumbnailer, [this](const RealLifeVideo& rlv, QPixmap pixmap){
         updateVideoScreenshotLabel(rlv, pixmap);
@@ -39,15 +40,15 @@ QWidget *VideoDetailsWidget::setupDetails()
     layout->addWidget(_distanceLabel);
 
     detailsGroupBox->setLayout(layout);
-
     return detailsGroupBox;
 }
 
 QWidget *VideoDetailsWidget::setupVideoScreenshot()
 {
-    _videoScreenshotLabel = new QLabel;
+    _videoScreenshotLabel = new VideoScreenshotLabel;
     _videoScreenshotLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    _videoScreenshotLabel->setScaledContents(true);
+//    _videoScreenshotLabel->setScaledContents(true);
+
     return _videoScreenshotLabel;
 }
 

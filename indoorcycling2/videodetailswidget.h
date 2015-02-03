@@ -3,10 +3,10 @@
 
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QWidget>
-
 #include "reallifevideo.h"
 
 class Thumbnailer;
+class VideoScreenshotLabel;
 
 class VideoDetailsWidget : public QWidget
 {
@@ -29,7 +29,7 @@ private:
     Thumbnailer* _thumbnailer;
     QLabel* _nameLabel;
     QLabel* _distanceLabel;
-    QLabel* _videoScreenshotLabel;
+    VideoScreenshotLabel* _videoScreenshotLabel;
 };
 
 #endif // VIDEODETAILSWIDGET_H
