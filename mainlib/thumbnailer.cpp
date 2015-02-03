@@ -30,6 +30,7 @@
 
 extern "C" {
 #include <gst/gst.h>
+#include <gst/app/gstappsink.h>
 }
 
 namespace
@@ -67,6 +68,7 @@ QPixmap createThumbnailFor(const RealLifeVideo &rlv, const QString& filename, QP
 struct GstPipelineDeleter {
     void operator()(GstElement* pipeline)
     {
+        qDebug() << "freeing gstreamer pipeline";
         gst_element_set_state(pipeline, GST_STATE_NULL);
         gst_object_unref (GST_OBJECT (pipeline));
     }
@@ -128,6 +130,7 @@ QPixmap Thumbnailer::thumbnailFor(const RealLifeVideo &rlv)
 
     QFutureWatcher<QPixmap>* watcher = new QFutureWatcher<QPixmap>(this);
     connect(watcher, &QFutureWatcher<QPixmap>::finished, watcher, [rlv, watcher,this]() {
+        qDebug() << "pixmap ready for" << rlv.name();
         emit pixmapUpdated(rlv, watcher->future().result());
         watcher->deleteLater();
     });
@@ -238,10 +241,18 @@ bool openVideoFile(GstElement* pipeline)
 QPixmap getStillImage(GstElement* pipeline)
 {
     GstElement* sink = gst_bin_get_by_name (GST_BIN (pipeline), "sink");
+    gst_element_set_state(sink, GST_STATE_PLAYING);
     GstSample *sample = nullptr;
     /* get the preroll buffer from appsink, this block untils appsink really
        * prerolls */
-    g_signal_emit_by_name (sink, "pull-preroll", &sample, nullptr);
+    qDebug() << "pull pre-roll";
+    sample = gst_app_sink_pull_preroll(GST_APP_SINK(sink));
+    qDebug() << "pulled pre-roll";
+
+    for (int i = 0; i < 10; ++i) {
+        gst_sample_unref(sample);
+        sample = gst_app_sink_pull_sample(GST_APP_SINK(sink));
+    }
 
     QPixmap pixmap;
     if (sample) {
