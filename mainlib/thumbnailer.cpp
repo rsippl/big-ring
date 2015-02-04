@@ -27,6 +27,8 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QUrl>
 #include <QtCore/QtDebug>
+#include <QtGui/QFont>
+#include <QtGui/QPainter>
 
 extern "C" {
 #include <gst/gst.h>
@@ -120,6 +122,16 @@ Thumbnailer::Thumbnailer(QObject *parent): QObject(parent)
 
     _emptyPixmap = QPixmap(DEFAULT_IMAGE_SIZE);
     _emptyPixmap.fill(Qt::black);
+
+    QFont font;
+    font.setPointSize(72);
+    QPainter p(&_emptyPixmap);
+
+    p.setFont(font);
+    QTextOption textOption;
+    textOption.setAlignment(Qt::AlignCenter);
+    p.setPen(Qt::white);
+    p.drawText(_emptyPixmap.rect(), QString(tr("Loading screenshot")), textOption);
 }
 
 QPixmap Thumbnailer::thumbnailFor(const RealLifeVideo &rlv)
