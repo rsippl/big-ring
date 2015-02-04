@@ -15,7 +15,7 @@ public:
     explicit VideoDetailsWidget(QWidget *parent = 0);
 
 signals:
-
+    void playClicked(RealLifeVideo& rlv);
 public slots:
     void setVideo(RealLifeVideo& rlv);
 

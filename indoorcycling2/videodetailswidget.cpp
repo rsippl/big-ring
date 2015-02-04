@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QGroupBox>
+#include <QtWidgets/QPushButton>
 
 #include "thumbnailer.h"
 #include "videoscreenshotlabel.h"
@@ -31,13 +32,18 @@ void VideoDetailsWidget::setVideo(RealLifeVideo &rlv)
 
 QWidget *VideoDetailsWidget::setupDetails()
 {
-    QGroupBox* detailsGroupBox = new QGroupBox("Details", this);
+    QGroupBox* detailsGroupBox = new QGroupBox(tr("Details"), this);
     QVBoxLayout* layout = new QVBoxLayout(this);
 
     _nameLabel = new QLabel;
     layout->addWidget(_nameLabel);
     _distanceLabel = new QLabel;
     layout->addWidget(_distanceLabel);
+    QPushButton* startButton = new QPushButton(tr("Start"));
+    layout->addWidget(startButton);
+    connect(startButton, &QPushButton::clicked, startButton, [this](){
+        emit playClicked(_currentRlv);
+    });
 
     detailsGroupBox->setLayout(layout);
     return detailsGroupBox;

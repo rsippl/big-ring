@@ -17,6 +17,7 @@ public:
     explicit VideoListView(QWidget *parent = 0);
 
 signals:
+    void videoSelected(RealLifeVideo& rlv);
 
 public slots:
     void setVideos(RealLifeVideoList& rlvs);

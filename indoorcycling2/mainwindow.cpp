@@ -40,7 +40,6 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     _simulation(new Simulation(*_cyclist, this)),
     _stackedWidget(new QStackedWidget),
     _listView(new VideoListView),
-    _tileView(new VideoTileView),
     _videoWidget(new NewVideoWidget(*_simulation))
 {
     QVBoxLayout* layout = new QVBoxLayout;
@@ -50,18 +49,16 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     connect(_importer, &RealLifeVideoImporter::importFinished, this, &MainWindow::importFinished);
     _importer->parseRealLiveVideoFilesFromDir(dir);
 
-    _tileView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//    _tileView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     _stackedWidget->addWidget(_listView);
     _stackedWidget->addWidget(_videoWidget);
 
     layout->addWidget(_stackedWidget);
 
-    connect(_tileView, &VideoTileView::startRlv, _tileView, [=](RealLifeVideo& rlv) {
+    connect(_listView, &VideoListView::videoSelected, _listView, [=](RealLifeVideo& rlv) {
         qDebug() << "main window:" << rlv.name();
         startRun(rlv);
     });
-
-//    _tileView->show();
 }
 
 MainWindow::~MainWindow()
@@ -104,7 +101,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 void MainWindow::importFinished(RealLifeVideoList rlvs)
 {
     _listView->setVideos(rlvs);
-    _tileView->rlvsLoaded(rlvs);
+//    _tileView->rlvsLoaded(rlvs);
     qDebug() << "import finished";
     _rlvList = rlvs;
 }
@@ -117,8 +114,8 @@ void MainWindow::startRun(RealLifeVideo rlv)
     _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_videoWidget));
     connect(_run.data(), &Run::stopped, _run.data(), [this]() {
         qDebug() << "run finished";
-        _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_tileView));
         _run.reset();
+        _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
     });
     _run->start();
 

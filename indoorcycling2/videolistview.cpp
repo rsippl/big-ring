@@ -21,6 +21,8 @@ VideoListView::VideoListView(QWidget *parent) :
     layout->addWidget(_listView);
     layout->addWidget(_detailsWidget);
 
+    connect(_detailsWidget, &VideoDetailsWidget::playClicked, this, &VideoListView::videoSelected);
+
 
     setLayout(layout);
 }
