@@ -41,12 +41,6 @@ namespace
  * @brief Size for default empty images.
  */
 const QSize DEFAULT_IMAGE_SIZE(1920, 1080);
-/*!
- * \brief GSTREAMER_CAPS caps (capabilities) for gstreamer.
- *
- *
- */
-const QString GSTREAMER_CAPS = QString("");
 
 /**
  * @brief template for the gstreamer pipeline.
