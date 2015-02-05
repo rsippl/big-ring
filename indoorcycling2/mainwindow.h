@@ -30,7 +30,7 @@
 #include "reallifevideoimporter.h"
 
 class Cyclist;
-class VideoTileView;
+class VideoListView;
 class NewVideoWidget;
 class Run;
 class Simulation;
@@ -56,7 +56,6 @@ private:
     void step();
     void startRun(RealLifeVideo rlv);
 
-//    Ui::MainWindow *_ui;
     RealLifeVideoImporter *_importer;
 
     ANTController* _antController;
@@ -65,9 +64,8 @@ private:
     QScopedPointer<Run,QScopedPointerDeleteLater> _run;
 
     QStackedWidget* const _stackedWidget;
-    VideoTileView* const _tileView;
+    VideoListView* const _listView;
     NewVideoWidget* const _videoWidget;
-    RealLifeVideoList _rlvList;
     QRect _savedGeometry;
 };
 

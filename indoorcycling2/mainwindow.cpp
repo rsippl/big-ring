@@ -19,15 +19,15 @@
  */
 
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 #include <QtCore/QtDebug>
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
 
+#include <QtWidgets/QVBoxLayout>
 
 #include "cyclist.h"
 #include "run.h"
-#include "videotileview.h"
+#include "videolistview.h"
 #include "newvideowidget.h"
 #include "simulation.h"
 
@@ -38,7 +38,7 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     _cyclist(new Cyclist(this)),
     _simulation(new Simulation(*_cyclist, this)),
     _stackedWidget(new QStackedWidget),
-    _tileView(new VideoTileView),
+    _listView(new VideoListView),
     _videoWidget(new NewVideoWidget(*_simulation))
 {
     QVBoxLayout* layout = new QVBoxLayout;
@@ -48,18 +48,14 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     connect(_importer, &RealLifeVideoImporter::importFinished, this, &MainWindow::importFinished);
     _importer->parseRealLiveVideoFilesFromDir(dir);
 
-    _tileView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    _stackedWidget->addWidget(_tileView);
+    _stackedWidget->addWidget(_listView);
     _stackedWidget->addWidget(_videoWidget);
 
     layout->addWidget(_stackedWidget);
 
-    connect(_tileView, &VideoTileView::startRlv, _tileView, [=](RealLifeVideo& rlv) {
-        qDebug() << "main window:" << rlv.name();
+    connect(_listView, &VideoListView::videoSelected, _listView, [=](RealLifeVideo& rlv) {
         startRun(rlv);
     });
-
-    _tileView->show();
 }
 
 MainWindow::~MainWindow()
@@ -101,9 +97,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::importFinished(RealLifeVideoList rlvs)
 {
-    _tileView->rlvsLoaded(rlvs);
-    qDebug() << "import finished";
-    _rlvList = rlvs;
+    _listView->setVideos(rlvs);
 }
 
 void MainWindow::startRun(RealLifeVideo rlv)
@@ -112,20 +106,25 @@ void MainWindow::startRun(RealLifeVideo rlv)
     _run.reset(new Run(*_antController, _simulation, rlv, course, _videoWidget));
 
     _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_videoWidget));
+    _savedGeometry = geometry();
+    if (isMaximized()) {
+        showFullScreen();
+    }
     connect(_run.data(), &Run::stopped, _run.data(), [this]() {
         qDebug() << "run finished";
-        _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_tileView));
         _run.reset();
+        _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
+        showNormal();
+        setGeometry(_savedGeometry);
     });
     _run->start();
-
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     qDebug() << "closing main window";
     if (_antController->isRunning()) {
-        connect(_antController, &ANTController::finished, this, &QMainWindow::close);
+        connect(_antController, &ANTController::finished, this, &QWidget::close);
         _antController->quit();
         event->ignore();
     } else {

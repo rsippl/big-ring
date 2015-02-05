@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Ilja Booij (ibooij@gmail.com)
+ * Copyright (c) 2015 Ilja Booij (ibooij@gmail.com)
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
@@ -17,39 +17,44 @@
  * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
+#ifndef VIDEOLISTVIEW_H
+#define VIDEOLISTVIEW_H
 
-#ifndef PROFILEITEM_H
-#define PROFILEITEM_H
+#include <QtCore/QSortFilterProxyModel>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QListView>
+#include <QtWidgets/QLineEdit>
 
-#include <QtCore/QObject>
-#include <QtWidgets/QGraphicsWidget>
+class VideoListModel;
+class VideoDetailsWidget;
 
 #include "reallifevideo.h"
-#include "simulation.h"
 
-class ProfilePainter;
-
-class ProfileItem : public QGraphicsWidget
+class VideoListView : public QWidget
 {
     Q_OBJECT
-public:
-    explicit ProfileItem(QGraphicsItem *parent = 0);
-    explicit ProfileItem(Simulation* simulation, QGraphicsItem *parent = 0);
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    virtual void setGeometry(const QRectF &rect) override;
+public:
+    explicit VideoListView(QWidget *parent = 0);
+
 signals:
+    void videoSelected(RealLifeVideo& rlv);
 
 public slots:
-    void setRlv(const RealLifeVideo& rlv);
+    void setVideos(RealLifeVideoList& rlvs);
+
+private slots:
+    void selectionChanged(const QItemSelection & selected, const QItemSelection & deselected);
 
 private:
-    ProfilePainter* _profilePainter;
-    QRect _internalRect;
-    bool _dirty;
-    RealLifeVideo _rlv;
-    Simulation* _simulation;
-    QPixmap _profilePixmap;
+    void listViewContentChanged();
+
+    QLineEdit* _filterLineEdit;
+    QListView* _listView;
+    QSortFilterProxyModel* _filterProxyModel;
+    VideoDetailsWidget* _detailsWidget;
+    VideoListModel* _videoListModel;
+
 };
 
-#endif // PROFILEITEM_H
+#endif // VIDEOLISTVIEW_H

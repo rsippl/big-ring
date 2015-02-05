@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Ilja Booij (ibooij@gmail.com)
+ * Copyright (c) 2015 Ilja Booij (ibooij@gmail.com)
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
@@ -17,39 +17,42 @@
  * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
+#ifndef VIDEODETAILSWIDGET_H
+#define VIDEODETAILSWIDGET_H
 
-#ifndef PROFILEITEM_H
-#define PROFILEITEM_H
-
-#include <QtCore/QObject>
-#include <QtWidgets/QGraphicsWidget>
-
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QWidget>
 #include "reallifevideo.h"
-#include "simulation.h"
 
 class ProfilePainter;
+class Thumbnailer;
+class VideoScreenshotLabel;
 
-class ProfileItem : public QGraphicsWidget
+class VideoDetailsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ProfileItem(QGraphicsItem *parent = 0);
-    explicit ProfileItem(Simulation* simulation, QGraphicsItem *parent = 0);
+    explicit VideoDetailsWidget(QWidget *parent = 0);
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    virtual void setGeometry(const QRectF &rect) override;
 signals:
-
+    void playClicked(RealLifeVideo& rlv);
 public slots:
-    void setRlv(const RealLifeVideo& rlv);
+    void setVideo(RealLifeVideo& rlv);
 
 private:
+    QWidget* setupDetails();
+    QWidget* setupVideoScreenshot();
+    QWidget* setupProfileLabel();
+
+    void updateVideoScreenshotLabel(const RealLifeVideo& rlv, QPixmap& pixmap);
+
+    RealLifeVideo _currentRlv;
     ProfilePainter* _profilePainter;
-    QRect _internalRect;
-    bool _dirty;
-    RealLifeVideo _rlv;
-    Simulation* _simulation;
-    QPixmap _profilePixmap;
+    Thumbnailer* _thumbnailer;
+    QLabel* _nameLabel;
+    QLabel* _distanceLabel;
+    VideoScreenshotLabel* _videoScreenshotLabel;
+    QLabel* _profileLabel;
 };
 
-#endif // PROFILEITEM_H
+#endif // VIDEODETAILSWIDGET_H

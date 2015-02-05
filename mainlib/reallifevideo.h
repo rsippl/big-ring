@@ -3,18 +3,18 @@
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
- * Big Ring Indoor Video Cycling is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation, either version 3 of the 
+ * Big Ring Indoor Video Cycling is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * Big Ring Indoor Video Cycling  is distributed in the hope that it will 
+ * Big Ring Indoor Video Cycling  is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with Big Ring Indoor Video Cycling.  If not, see 
+ * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
@@ -109,6 +109,7 @@ public:
     /** Set duration of video, in microseconds */
     void setDuration(quint64 duration);
 
+    bool operator==(const RealLifeVideo& other) const;
     static bool compareByName(const RealLifeVideo& rlv1, const RealLifeVideo& rlv2);
 private:
     void calculateVideoCorrectionFactor(quint64 totalNrOfFrames);
@@ -122,4 +123,5 @@ private:
 };
 typedef QList<RealLifeVideo> RealLifeVideoList;
 
+Q_DECLARE_METATYPE(RealLifeVideo)
 #endif // REALLIVEVIDEO_H

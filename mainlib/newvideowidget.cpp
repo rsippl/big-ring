@@ -189,7 +189,6 @@ bool NewVideoWidget::isReadyToPlay()
 
 void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
 {
-    qDebug() << __FILE__ <<  "setting video to " << rlv.name();
     Q_EMIT(readyToPlay(false));
     _rlv = rlv;
     _profileItem->setRlv(rlv);
@@ -281,7 +280,7 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
     qDebug() << "width of screen is" << resizeEvent->size().width();
 
 //    _profileItem->setGeometry(QRectF(resizeEvent->size().width() * 1 / 8, resizeEvent->size().height() * 27 / 32, resizeEvent->size().width() * 6 / 8, resizeEvent->size().height() * 1 / 8));
-    _profileItem->setGeometry(QRectF(mapToScene(resizeEvent->size().width() * 1 / 8, resizeEvent->size().height() * 27 / 32), QSizeF(sceneRect().width() * 6 / 8, sceneRect().height() * 1 / 8)));
+    _profileItem->setGeometry(QRectF(mapToScene(resizeEvent->size().width() * 1 / 16, resizeEvent->size().height() * 27 / 32), QSizeF(sceneRect().width() * 7 / 8, sceneRect().height() * 1 / 8)));
 //    scenePosition = mapToScene(width() * 1 / 8, height() * 27 / 32);
 //    _profileItem->setPos(scenePosition);
 }

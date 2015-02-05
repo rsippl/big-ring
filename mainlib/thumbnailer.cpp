@@ -3,18 +3,18 @@
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
- * Big Ring Indoor Video Cycling is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation, either version 3 of the 
+ * Big Ring Indoor Video Cycling is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * Big Ring Indoor Video Cycling  is distributed in the hope that it will 
+ * Big Ring Indoor Video Cycling  is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with Big Ring Indoor Video Cycling.  If not, see 
+ * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
@@ -27,9 +27,12 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QUrl>
 #include <QtCore/QtDebug>
+#include <QtGui/QFont>
+#include <QtGui/QPainter>
 
 extern "C" {
 #include <gst/gst.h>
+#include <gst/app/gstappsink.h>
 }
 
 namespace
@@ -38,12 +41,6 @@ namespace
  * @brief Size for default empty images.
  */
 const QSize DEFAULT_IMAGE_SIZE(1920, 1080);
-/*!
- * \brief GSTREAMER_CAPS caps (capabilities) for gstreamer.
- *
- *
- */
-const QString GSTREAMER_CAPS = QString("");
 
 /**
  * @brief template for the gstreamer pipeline.
@@ -67,6 +64,7 @@ QPixmap createThumbnailFor(const RealLifeVideo &rlv, const QString& filename, QP
 struct GstPipelineDeleter {
     void operator()(GstElement* pipeline)
     {
+        qDebug() << "freeing gstreamer pipeline";
         gst_element_set_state(pipeline, GST_STATE_NULL);
         gst_object_unref (GST_OBJECT (pipeline));
     }
@@ -118,6 +116,16 @@ Thumbnailer::Thumbnailer(QObject *parent): QObject(parent)
 
     _emptyPixmap = QPixmap(DEFAULT_IMAGE_SIZE);
     _emptyPixmap.fill(Qt::black);
+
+    QFont font;
+    font.setPointSize(72);
+    QPainter p(&_emptyPixmap);
+
+    p.setFont(font);
+    QTextOption textOption;
+    textOption.setAlignment(Qt::AlignCenter);
+    p.setPen(Qt::white);
+    p.drawText(_emptyPixmap.rect(), QString(tr("Loading screenshot")), textOption);
 }
 
 QPixmap Thumbnailer::thumbnailFor(const RealLifeVideo &rlv)
@@ -127,8 +135,9 @@ QPixmap Thumbnailer::thumbnailFor(const RealLifeVideo &rlv)
     }
 
     QFutureWatcher<QPixmap>* watcher = new QFutureWatcher<QPixmap>(this);
-    connect(watcher, &QFutureWatcher<QPixmap>::finished, watcher, [watcher,this]() {
-        emit pixmapUpdated(watcher->future().result());
+    connect(watcher, &QFutureWatcher<QPixmap>::finished, watcher, [rlv, watcher,this]() {
+        qDebug() << "pixmap ready for" << rlv.name();
+        emit pixmapUpdated(rlv, watcher->future().result());
         watcher->deleteLater();
     });
     watcher->setFuture(QtConcurrent::run(createThumbnailFor, rlv, cacheFilePathFor(rlv), _emptyPixmap));
@@ -238,10 +247,18 @@ bool openVideoFile(GstElement* pipeline)
 QPixmap getStillImage(GstElement* pipeline)
 {
     GstElement* sink = gst_bin_get_by_name (GST_BIN (pipeline), "sink");
+    gst_element_set_state(sink, GST_STATE_PLAYING);
     GstSample *sample = nullptr;
     /* get the preroll buffer from appsink, this block untils appsink really
        * prerolls */
-    g_signal_emit_by_name (sink, "pull-preroll", &sample, nullptr);
+    qDebug() << "pull pre-roll";
+    sample = gst_app_sink_pull_preroll(GST_APP_SINK(sink));
+    qDebug() << "pulled pre-roll";
+
+    for (int i = 0; i < 10; ++i) {
+        gst_sample_unref(sample);
+        sample = gst_app_sink_pull_sample(GST_APP_SINK(sink));
+    }
 
     QPixmap pixmap;
     if (sample) {

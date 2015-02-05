@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Ilja Booij (ibooij@gmail.com)
+ * Copyright (c) 2015 Ilja Booij (ibooij@gmail.com)
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
@@ -17,39 +17,28 @@
  * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-
-#ifndef PROFILEITEM_H
-#define PROFILEITEM_H
+#ifndef PROFILEPAINTER_H
+#define PROFILEPAINTER_H
 
 #include <QtCore/QObject>
-#include <QtWidgets/QGraphicsWidget>
+#include <QtGui/QPixmap>
 
 #include "reallifevideo.h"
-#include "simulation.h"
 
-class ProfilePainter;
-
-class ProfileItem : public QGraphicsWidget
+class ProfilePainter : public QObject
 {
     Q_OBJECT
 public:
-    explicit ProfileItem(QGraphicsItem *parent = 0);
-    explicit ProfileItem(Simulation* simulation, QGraphicsItem *parent = 0);
+    explicit ProfilePainter(QObject *parent = 0);
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    virtual void setGeometry(const QRectF &rect) override;
-signals:
-
-public slots:
-    void setRlv(const RealLifeVideo& rlv);
-
+    QPixmap paintProfile(const RealLifeVideo& rlv, const QRect& rect) const;
 private:
-    ProfilePainter* _profilePainter;
-    QRect _internalRect;
-    bool _dirty;
-    RealLifeVideo _rlv;
-    Simulation* _simulation;
-    QPixmap _profilePixmap;
+    QPixmap drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv) const;
+    qreal distanceToX(const QRect& rect, const RealLifeVideo& rlv, float distance) const;
+    float xToDistance(const QRect& rect, const RealLifeVideo& rlv, int x) const;
+    int altitudeToHeight(const QRect& rect, float altitudeAboveMinimum, float altitudeDiff) const;
+    QPair<float,float> findMinimumAndMaximumAltiude(const float startAltitude, const QList<ProfileEntry>& profileEntries) const;
+    QColor colorForSlope(const float slope) const;
 };
 
-#endif // PROFILEITEM_H
+#endif // PROFILEPAINTER_H

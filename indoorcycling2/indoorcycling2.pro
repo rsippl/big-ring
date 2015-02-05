@@ -15,14 +15,18 @@ include(../mainlib/mainlib.pri)
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    videotileview.cpp \
-    videotile.cpp \
-    videolightbox.cpp
+    videolistview.cpp \
+    videolistmodel.cpp \
+    videoitemdelegate.cpp \
+    videodetailswidget.cpp \
+    videoscreenshotlabel.cpp
 
 HEADERS  += mainwindow.h \
-    videotileview.h \
-    videotile.h \
-    videolightbox.h
+    videolistview.h \
+    videolistmodel.h \
+    videoitemdelegate.h \
+    videodetailswidget.h \
+    videoscreenshotlabel.h
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib
@@ -55,4 +59,7 @@ message("Master pro file path : ["$${MAINLIB_LIBRARY_DEPENCIES}"]")
 LIBS += $${MAINLIB_LIBRARY_DEPENCIES}
 
 FORMS +=
+
+RESOURCES += \
+    uiresources.qrc
 

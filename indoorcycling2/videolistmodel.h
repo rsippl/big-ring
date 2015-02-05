@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 Ilja Booij (ibooij@gmail.com)
+ * Copyright (c) 2015 Ilja Booij (ibooij@gmail.com)
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
@@ -17,39 +17,29 @@
  * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
+#ifndef VIDEOLISTMODEL_H
+#define VIDEOLISTMODEL_H
 
-#ifndef PROFILEITEM_H
-#define PROFILEITEM_H
-
-#include <QtCore/QObject>
-#include <QtWidgets/QGraphicsWidget>
-
+#include <QtCore/QAbstractListModel>
 #include "reallifevideo.h"
-#include "simulation.h"
 
-class ProfilePainter;
-
-class ProfileItem : public QGraphicsWidget
+const int VideoDataRole = Qt::UserRole + 1;
+class VideoListModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
-    explicit ProfileItem(QGraphicsItem *parent = 0);
-    explicit ProfileItem(Simulation* simulation, QGraphicsItem *parent = 0);
+    explicit VideoListModel(QObject *parent = 0);
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    virtual void setGeometry(const QRectF &rect) override;
+
+    virtual int rowCount(const QModelIndex &parent) const;
+    virtual QVariant data(const QModelIndex &index, int role) const;
 signals:
 
 public slots:
-    void setRlv(const RealLifeVideo& rlv);
+    void setVideos(RealLifeVideoList& rlvs);
 
 private:
-    ProfilePainter* _profilePainter;
-    QRect _internalRect;
-    bool _dirty;
-    RealLifeVideo _rlv;
-    Simulation* _simulation;
-    QPixmap _profilePixmap;
+    RealLifeVideoList _rlvs;
 };
 
-#endif // PROFILEITEM_H
+#endif // VIDEOLISTMODEL_H
