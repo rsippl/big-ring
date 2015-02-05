@@ -189,7 +189,6 @@ bool NewVideoWidget::isReadyToPlay()
 
 void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
 {
-    qDebug() << __FILE__ <<  "setting video to " << rlv.name();
     Q_EMIT(readyToPlay(false));
     _rlv = rlv;
     _profileItem->setRlv(rlv);
