@@ -33,7 +33,7 @@ void VideoItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 
 QSize VideoItemDelegate::sizeHint(const QStyleOptionViewItem &, const QModelIndex &) const
 {
-    return QSize(300, 100);
+    return QSize(200, 100);
 }
 
 void VideoItemDelegate::paintProfile(QPainter *painter, QRect &rect, RealLifeVideo &rlv) const
