@@ -1,5 +1,6 @@
 #include "videodetailswidget.h"
 
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QPushButton>
@@ -14,9 +15,13 @@ VideoDetailsWidget::VideoDetailsWidget(QWidget *parent) :
     QVBoxLayout* layout = new QVBoxLayout(this);
     setLayout(layout);
 
-    layout->addWidget(setupVideoScreenshot());
+    QHBoxLayout* topLayout = new QHBoxLayout(this);
+    topLayout->addWidget(setupVideoScreenshot(), 2);
+    topLayout->addWidget(setupDetails(), 1);
+
+    layout->addLayout(topLayout);
     layout->addWidget(setupProfileLabel());
-    layout->addWidget(setupDetails());
+
 
     connect(_thumbnailer, &Thumbnailer::pixmapUpdated, _thumbnailer, [this](const RealLifeVideo& rlv, QPixmap pixmap){
         updateVideoScreenshotLabel(rlv, pixmap);
@@ -62,6 +67,7 @@ QWidget *VideoDetailsWidget::setupProfileLabel()
 {
     _profileLabel = new QLabel;
     _profileLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    _profileLabel->setScaledContents(true);
     return _profileLabel;
 }
 
