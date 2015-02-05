@@ -2,6 +2,8 @@
 #define VIDEOITEMDELEGATE_H
 #include <QtWidgets/QAbstractItemDelegate>
 #include <QtWidgets/QLabel>
+
+class ProfilePainter;
 class RealLifeVideo;
 class VideoItemDelegate: public QAbstractItemDelegate
 {
@@ -19,6 +21,8 @@ private:
     qreal distanceToX(const QRect& rect, const RealLifeVideo& rlv, float distance) const;
     float xToDistance(const QRect& rect, const RealLifeVideo& rlv, int x) const;
     int altitudeToHeight(const QRect& rect, float altitudeAboveMinimum, float altitudeDiff) const;
+
+    ProfilePainter* _profilePainter;
 };
 
 #endif // VIDEOITEMDELEGATE_H

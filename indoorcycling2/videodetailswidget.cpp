@@ -4,16 +4,18 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QPushButton>
 
+#include "profilepainter.h"
 #include "thumbnailer.h"
 #include "videoscreenshotlabel.h"
 
 VideoDetailsWidget::VideoDetailsWidget(QWidget *parent) :
-    QWidget(parent), _thumbnailer(new Thumbnailer(this))
+    QWidget(parent), _profilePainter(new ProfilePainter(this)), _thumbnailer(new Thumbnailer(this))
 {
     QVBoxLayout* layout = new QVBoxLayout(this);
     setLayout(layout);
 
     layout->addWidget(setupVideoScreenshot());
+    layout->addWidget(setupProfileLabel());
     layout->addWidget(setupDetails());
 
     connect(_thumbnailer, &Thumbnailer::pixmapUpdated, _thumbnailer, [this](const RealLifeVideo& rlv, QPixmap pixmap){
@@ -26,8 +28,8 @@ void VideoDetailsWidget::setVideo(RealLifeVideo &rlv)
     _currentRlv = rlv;
     _nameLabel->setText(rlv.name());
     _distanceLabel->setText(QString("%1 km").arg(QString::number(rlv.totalDistance() / 1000, 'f', 1)));
-    qDebug() << "label size" << _videoScreenshotLabel->size();
     _videoScreenshotLabel->setPixmap(_thumbnailer->thumbnailFor(rlv));
+    _profileLabel->setPixmap(_profilePainter->paintProfile(rlv, _profileLabel->rect()));
 }
 
 QWidget *VideoDetailsWidget::setupDetails()
@@ -53,14 +55,18 @@ QWidget *VideoDetailsWidget::setupVideoScreenshot()
 {
     _videoScreenshotLabel = new VideoScreenshotLabel;
     _videoScreenshotLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-//    _videoScreenshotLabel->setScaledContents(true);
-
     return _videoScreenshotLabel;
+}
+
+QWidget *VideoDetailsWidget::setupProfileLabel()
+{
+    _profileLabel = new QLabel;
+    _profileLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    return _profileLabel;
 }
 
 void VideoDetailsWidget::updateVideoScreenshotLabel(const RealLifeVideo &rlv, QPixmap &pixmap)
 {
-    qDebug() << "updated pixmap" << rlv.name();
     RealLifeVideo thisRlv = rlv;
     if (thisRlv == _currentRlv) {
         _videoScreenshotLabel->setPixmap(pixmap);

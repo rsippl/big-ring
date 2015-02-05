@@ -15,7 +15,7 @@ void VideoListModel::setVideos(RealLifeVideoList &rlvs)
     endInsertRows();
 }
 
-int VideoListModel::rowCount(const QModelIndex &parent) const
+int VideoListModel::rowCount(const QModelIndex &) const
 {
     return _rlvs.size();
 }

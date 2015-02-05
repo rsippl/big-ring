@@ -36,7 +36,7 @@ void VideoListView::setVideos(RealLifeVideoList &rlvs)
     }
 }
 
-void VideoListView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
+void VideoListView::selectionChanged(const QItemSelection &selected, const QItemSelection &)
 {
     qDebug() << "selection changed" << _videoListModel->data(selected.indexes()[0], Qt::DisplayRole);
     RealLifeVideo rlv = selected.indexes()[0].data(VideoDataRole).value<RealLifeVideo>();

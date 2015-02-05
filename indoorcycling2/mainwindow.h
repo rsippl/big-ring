@@ -31,7 +31,6 @@
 
 class Cyclist;
 class VideoListView;
-class VideoTileView;
 class NewVideoWidget;
 class Run;
 class Simulation;
@@ -57,7 +56,6 @@ private:
     void step();
     void startRun(RealLifeVideo rlv);
 
-//    Ui::MainWindow *_ui;
     RealLifeVideoImporter *_importer;
 
     ANTController* _antController;

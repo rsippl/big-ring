@@ -28,7 +28,6 @@
 #include "cyclist.h"
 #include "run.h"
 #include "videolistview.h"
-#include "videotileview.h"
 #include "newvideowidget.h"
 #include "simulation.h"
 
