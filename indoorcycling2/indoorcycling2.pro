@@ -15,7 +15,6 @@ include(../mainlib/mainlib.pri)
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    videolightbox.cpp \
     videolistview.cpp \
     videolistmodel.cpp \
     videoitemdelegate.cpp \
@@ -23,7 +22,6 @@ SOURCES += main.cpp\
     videoscreenshotlabel.cpp
 
 HEADERS  += mainwindow.h \
-    videolightbox.h \
     videolistview.h \
     videolistmodel.h \
     videoitemdelegate.h \
