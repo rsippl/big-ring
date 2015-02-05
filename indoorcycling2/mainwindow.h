@@ -66,7 +66,6 @@ private:
     QStackedWidget* const _stackedWidget;
     VideoListView* const _listView;
     NewVideoWidget* const _videoWidget;
-    RealLifeVideoList _rlvList;
     QRect _savedGeometry;
 };
 

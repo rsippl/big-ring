@@ -48,14 +48,12 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     connect(_importer, &RealLifeVideoImporter::importFinished, this, &MainWindow::importFinished);
     _importer->parseRealLiveVideoFilesFromDir(dir);
 
-//    _tileView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     _stackedWidget->addWidget(_listView);
     _stackedWidget->addWidget(_videoWidget);
 
     layout->addWidget(_stackedWidget);
 
     connect(_listView, &VideoListView::videoSelected, _listView, [=](RealLifeVideo& rlv) {
-        qDebug() << "main window:" << rlv.name();
         startRun(rlv);
     });
 }
@@ -100,9 +98,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 void MainWindow::importFinished(RealLifeVideoList rlvs)
 {
     _listView->setVideos(rlvs);
-//    _tileView->rlvsLoaded(rlvs);
-    qDebug() << "import finished";
-    _rlvList = rlvs;
 }
 
 void MainWindow::startRun(RealLifeVideo rlv)
@@ -111,13 +106,18 @@ void MainWindow::startRun(RealLifeVideo rlv)
     _run.reset(new Run(*_antController, _simulation, rlv, course, _videoWidget));
 
     _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_videoWidget));
+    _savedGeometry = geometry();
+    if (isMaximized()) {
+        showFullScreen();
+    }
     connect(_run.data(), &Run::stopped, _run.data(), [this]() {
         qDebug() << "run finished";
         _run.reset();
         _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
+        showNormal();
+        setGeometry(_savedGeometry);
     });
     _run->start();
-
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
