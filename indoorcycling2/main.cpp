@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
     a.setOrganizationDomain("org.github.ibooij");
     a.setOrganizationName("Ilja Booij");
-    a.setApplicationName("Big Ring Video Indoor Cycling");
+    a.setApplicationName("Big Ring Indoor Video Cycling");
 
     gst_init(&argc, &argv);
     QString dir;
