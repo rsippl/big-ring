@@ -19,11 +19,11 @@
  */
 
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 #include <QtCore/QtDebug>
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
 
+#include <QtWidgets/QVBoxLayout>
 
 #include "cyclist.h"
 #include "run.h"
@@ -124,7 +124,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     qDebug() << "closing main window";
     if (_antController->isRunning()) {
-        connect(_antController, &ANTController::finished, this, &QMainWindow::close);
+        connect(_antController, &ANTController::finished, this, &QWidget::close);
         _antController->quit();
         event->ignore();
     } else {
