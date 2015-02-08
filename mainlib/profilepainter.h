@@ -32,6 +32,8 @@ public:
     explicit ProfilePainter(QObject *parent = 0);
 
     QPixmap paintProfile(const RealLifeVideo& rlv, const QRect& rect) const;
+    QPixmap paintProfileWithHighLight(const RealLifeVideo &rlv, qreal startDistance, qreal endDistance,
+                                      const QRect &rect) const;
 private:
     QPixmap drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv) const;
     qreal distanceToX(const QRect& rect, const RealLifeVideo& rlv, float distance) const;

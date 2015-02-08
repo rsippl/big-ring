@@ -52,6 +52,30 @@ QPixmap ProfilePainter::paintProfile(const RealLifeVideo &rlv, const QRect &rect
     return profilePixmap;
 }
 
+QPixmap ProfilePainter::paintProfileWithHighLight(const RealLifeVideo &rlv, qreal startDistance, qreal endDistance,
+                                                  const QRect &rect) const
+{
+    QPixmap profilePixmap = paintProfile(rlv, rect);
+    if (profilePixmap.isNull()) {
+        return profilePixmap;
+    }
+
+    int startX = distanceToX(rect, rlv, startDistance);
+    int endX = distanceToX(rect, rlv, endDistance);
+
+    QPixmap copy(profilePixmap);
+    QPainter painter(&copy);
+
+    // TODO: get this color directly from the stylesheet. I don't know how to do this.
+    QColor color("#3D7848");
+    color.setAlphaF(0.5);
+    painter.setBrush(color);
+    painter.drawRect(startX, 0, endX - startX, rect.height());
+    painter.end();
+
+    return copy;
+}
+
 QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv) const
 {
     if (rect.isEmpty()) {
@@ -83,6 +107,7 @@ QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv)
         QRect  box(x, rect.bottom() - y, 1, rect.bottom());
         painter.drawRect(box);
     }
+    painter.end();
     return pixmap;
 }
 

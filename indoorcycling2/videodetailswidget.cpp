@@ -25,6 +25,7 @@
 #include <QtWidgets/QPushButton>
 
 #include "profilepainter.h"
+#include "profilewidget.h"
 #include "thumbnailer.h"
 #include "videoscreenshotlabel.h"
 
@@ -53,7 +54,7 @@ void VideoDetailsWidget::setVideo(RealLifeVideo &rlv)
     _nameLabel->setText(rlv.name());
     _distanceLabel->setText(QString("%1 km").arg(QString::number(rlv.totalDistance() / 1000, 'f', 1)));
     _videoScreenshotLabel->setPixmap(_thumbnailer->thumbnailFor(rlv));
-    _profileLabel->setPixmap(_profilePainter->paintProfile(rlv, _profileLabel->rect()));
+    _profileLabel->setVideo(rlv);
 
     _courseListWidget->clear();
     for (const Course& course: rlv.courses()) {
@@ -93,6 +94,7 @@ QWidget *VideoDetailsWidget::setupCourseList()
 {
     _courseListWidget = new QListWidget(this);
     connect(_courseListWidget, &QListWidget::currentRowChanged, _courseListWidget, [this](int row) {
+        _profileLabel->setCourseIndex(row);
         if (row >= 0) {
             qDebug() << "course selected:" << _currentRlv.courses()[row].name();
         }
@@ -103,9 +105,8 @@ QWidget *VideoDetailsWidget::setupCourseList()
 
 QWidget *VideoDetailsWidget::setupProfileLabel()
 {
-    _profileLabel = new QLabel;
+    _profileLabel = new ProfileWidget;
     _profileLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    _profileLabel->setScaledContents(true);
     return _profileLabel;
 }
 

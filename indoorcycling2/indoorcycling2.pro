@@ -19,14 +19,16 @@ SOURCES += main.cpp\
     videolistmodel.cpp \
     videoitemdelegate.cpp \
     videodetailswidget.cpp \
-    videoscreenshotlabel.cpp
+    videoscreenshotlabel.cpp \
+    profilewidget.cpp
 
 HEADERS  += mainwindow.h \
     videolistview.h \
     videolistmodel.h \
     videoitemdelegate.h \
     videodetailswidget.h \
-    videoscreenshotlabel.h
+    videoscreenshotlabel.h \
+    profilewidget.h
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib
