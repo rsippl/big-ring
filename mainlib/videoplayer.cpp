@@ -120,10 +120,13 @@ void VideoPlayer::stepToFrame(quint32 frameNumber)
 {
     if (_loadState == DONE) {
         qint32 stepSize = frameNumber - _currentFrameNumber;
+        if (stepSize > 5) {
+            qDebug() << "step size is too big:" << stepSize << "current frame number:" << _currentFrameNumber;
+        }
         if (stepSize > 0) {
             gst_element_send_event(_pipeline, gst_event_new_step(GST_FORMAT_BUFFERS, stepSize, 1.0, true, false));
         }
-        _currentFrameNumber = frameNumber;
+        updateCurrentFrameNumber(frameNumber);
     } else {
         qDebug() << "stepping when video not ready. Ignoring.";
     }
@@ -182,23 +185,23 @@ void VideoPlayer::loadVideo(QString uri)
     }
     gst_element_set_state(_pipeline, GST_STATE_PAUSED);
 
-    _loadState = VIDEO_LOADING;
+    updateLoadState(VIDEO_LOADING);
 }
 
 void VideoPlayer::handleAsyncDone()
 {
     if (_loadState == VIDEO_LOADING) {
         GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(_playbin), GST_DEBUG_GRAPH_SHOW_ALL, "pipeline.dot");
-        qDebug() << "video loading done";
+        qDebug()  << "video loading done";
         gint64 nanoSeconds;
         gst_element_query_duration(_pipeline, GST_FORMAT_TIME, &nanoSeconds);
-        _loadState = VIDEO_LOADED;
+        updateLoadState(VIDEO_LOADED);
         qDebug() << "video length" << nanoSeconds;
+        updateCurrentFrameNumber(0u);
         emit videoLoaded(nanoSeconds);
-        _currentFrameNumber = 0u;
     } else if (_loadState == SEEKING) {
         qDebug() << "seek done";
-        _loadState = DONE;
+        updateLoadState(DONE);
         emit seekDone();
     }
 }
@@ -208,7 +211,7 @@ bool VideoPlayer::seekToFrame(quint32 frameNumber, float frameRate)
     if (_loadState == VIDEO_LOADED || _loadState == DONE) {
         if (frameNumber > _currentFrameNumber && frameNumber - _currentFrameNumber < 100) {
             qDebug() << "will seek" << frameNumber - _currentFrameNumber << "frames to start";
-            _loadState = DONE;
+            updateLoadState(DONE);
             stepToFrame(frameNumber);
             emit seekDone();
         } else {
@@ -217,8 +220,9 @@ bool VideoPlayer::seekToFrame(quint32 frameNumber, float frameRate)
             qDebug() << "need to seek to seconds: " << seconds;
             quint64 milliseconds = static_cast<quint64>(seconds * 1000);
             gst_element_seek_simple(_pipeline, GST_FORMAT_TIME, static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), milliseconds * GST_MSECOND);
-            _currentFrameNumber = frameNumber;
-            _loadState = SEEKING;
+            updateCurrentFrameNumber(frameNumber);
+
+            updateLoadState(SEEKING);
         }
         return true;
     }
@@ -254,6 +258,16 @@ void VideoPlayer::handleError(GstMessage *msg)
     g_error_free(err);
     g_free(debug);
     stop();
+}
+
+void VideoPlayer::updateCurrentFrameNumber(const quint32 frameNumber)
+{
+    _currentFrameNumber = frameNumber;
+}
+
+void VideoPlayer::updateLoadState(const VideoPlayer::LoadState loadState)
+{
+    _loadState = loadState;
 }
 
 void VideoPlayer::onBusMessage(GstBus*, GstMessage *msg, VideoPlayer *context)
