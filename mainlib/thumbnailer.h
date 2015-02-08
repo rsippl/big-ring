@@ -38,29 +38,32 @@ class Thumbnailer : public QObject
 public:
     explicit Thumbnailer(QObject* parent = 0);
 
-    QPixmap thumbnailFor(const RealLifeVideo& rlv);
-    QString cacheFilePathFor(const RealLifeVideo& rlv);
-    static QDir thumbnailDirectory();
+    QPixmap thumbnailFor(RealLifeVideo &rlv, const qreal distance = 0.0);
 
 signals:
-    void pixmapUpdated(const RealLifeVideo& rlv, QPixmap pixmap);
+    void pixmapUpdated(const RealLifeVideo& rlv, const qreal distance, QPixmap pixmap);
 
 private:
+    static QDir thumbnailDirectory();
+    QString cacheFilePathFor(const RealLifeVideo& rlv, const qreal distance);
+
     /*!
      * \brief Create the cache directory in which the thumbnails will be stored, if it does not exist yet.
      */
     void createCacheDirectoryIfNotExists();
+
     /**
-     * @brief check if a thumnail exists for a RealLifeVideo.
+     * @brief check if a thumnail exists for a RealLifeVideo for a given distance.
      * @param rlv the video..
+     * @param distance distance in the video.
      * @return true if there is a thumbnail.
      */
-    bool doesThumbnailExistsFor(const RealLifeVideo& rlv);
+    bool doesThumbnailExistsFor(const RealLifeVideo& rlv, const qreal distance);
 
     /**
      * Load the thumbnail for a RealLifeVideo.
      */
-    QPixmap loadThumbnailFor(const RealLifeVideo& rlv);
+    QPixmap loadThumbnailFor(const RealLifeVideo& rlv, const qreal distance);
 
     /**
      * @brief The directory where thumbnails are cached.

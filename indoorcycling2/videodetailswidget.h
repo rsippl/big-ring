@@ -47,9 +47,10 @@ private:
     QWidget* setupVideoScreenshot();
     QWidget* setupProfileLabel();
 
-    void updateVideoScreenshotLabel(const RealLifeVideo& rlv, QPixmap& pixmap);
+    void updateVideoScreenshotLabel(const RealLifeVideo& rlv, const qreal distance, QPixmap& pixmap);
 
     RealLifeVideo _currentRlv;
+    int _courseIndex;
     ProfilePainter* _profilePainter;
     Thumbnailer* _thumbnailer;
     QLabel* _nameLabel;

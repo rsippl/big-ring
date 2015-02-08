@@ -56,7 +56,7 @@ const QString GSTREAMER_PIPELINE_TEMPLATE = QString("uridecodebin uri=%2 ! video
  * @param rlv the rlv to create the thumbnail for.
  * @return the pixmap created
  */
-QPixmap createThumbnailFor(const RealLifeVideo &rlv, const QString& filename, QPixmap defaultPixmap);
+QPixmap createThumbnailFor(RealLifeVideo &rlv, const qreal distance, const QString& filename, QPixmap defaultPixmap);
 
 /**
  * @brief Custom deleter for smart pointers to GstElement* pipelines.
@@ -93,7 +93,7 @@ bool openVideoFile(GstElement* pipeline);
  * @param pipeline the pipeline
  * @return a still image. This will return a null pixmap (pixmap.isNull() will be true) when not successful.
  */
-QPixmap getStillImage(GstElement* pipeline);
+QPixmap getStillImage(GstElement* pipeline, RealLifeVideo& rlv, const qreal distance);
 /**
  * @brief convert a GstSample to a QPixmap.
  * @param sample the sample.
@@ -128,19 +128,19 @@ Thumbnailer::Thumbnailer(QObject *parent): QObject(parent)
     p.drawText(_emptyPixmap.rect(), QString(tr("Loading screenshot")), textOption);
 }
 
-QPixmap Thumbnailer::thumbnailFor(const RealLifeVideo &rlv)
+QPixmap Thumbnailer::thumbnailFor(RealLifeVideo &rlv, const qreal distance)
 {
-    if (doesThumbnailExistsFor(rlv)) {
-        return loadThumbnailFor(rlv);
+    if (doesThumbnailExistsFor(rlv, distance)) {
+        return loadThumbnailFor(rlv, distance);
     }
 
     QFutureWatcher<QPixmap>* watcher = new QFutureWatcher<QPixmap>(this);
-    connect(watcher, &QFutureWatcher<QPixmap>::finished, watcher, [rlv, watcher,this]() {
+    connect(watcher, &QFutureWatcher<QPixmap>::finished, watcher, [rlv, distance, watcher,this]() {
         qDebug() << "pixmap ready for" << rlv.name();
-        emit pixmapUpdated(rlv, watcher->future().result());
+        emit pixmapUpdated(rlv, distance, watcher->future().result());
         watcher->deleteLater();
     });
-    watcher->setFuture(QtConcurrent::run(createThumbnailFor, rlv, cacheFilePathFor(rlv), _emptyPixmap));
+    watcher->setFuture(QtConcurrent::run(createThumbnailFor, rlv, distance, cacheFilePathFor(rlv, distance), _emptyPixmap));
 
     return _emptyPixmap;
 }
@@ -153,9 +153,9 @@ void Thumbnailer::createCacheDirectoryIfNotExists()
     }
 }
 
-QString Thumbnailer::cacheFilePathFor(const RealLifeVideo &rlv)
+QString Thumbnailer::cacheFilePathFor(const RealLifeVideo &rlv, const qreal distance)
 {
-    QString filename = QString("%1.jpg").arg(rlv.name());
+    QString filename = QString("%1_%2.jpg").arg(rlv.name()).arg(distance);
     return _cacheDirectory.absoluteFilePath(filename);
 }
 
@@ -169,22 +169,22 @@ QDir Thumbnailer::thumbnailDirectory()
     }
 }
 
-bool Thumbnailer::doesThumbnailExistsFor(const RealLifeVideo &rlv)
+bool Thumbnailer::doesThumbnailExistsFor(const RealLifeVideo &rlv, const qreal distance)
 {
-    QFile cacheFile(cacheFilePathFor(rlv));
+    QFile cacheFile(cacheFilePathFor(rlv, distance));
     return cacheFile.exists() && cacheFile.size() > 0;
 }
 
-QPixmap Thumbnailer::loadThumbnailFor(const RealLifeVideo &rlv)
+QPixmap Thumbnailer::loadThumbnailFor(const RealLifeVideo &rlv, const qreal distance)
 {
-    QString path = cacheFilePathFor(rlv);
+    QString path = cacheFilePathFor(rlv, distance);
     return QPixmap(path);
 }
 
 // the following functions are in anonymous namespace so they're not exported.
 namespace {
 
-QPixmap createThumbnailFor(const RealLifeVideo &rlv, const QString& filename, QPixmap defaultPixmap)
+QPixmap createThumbnailFor(RealLifeVideo &rlv, const qreal distance, const QString& filename, QPixmap defaultPixmap)
 {
     qDebug() << QString("generating cache file for %1").arg(rlv.name());
 
@@ -200,7 +200,7 @@ QPixmap createThumbnailFor(const RealLifeVideo &rlv, const QString& filename, QP
         return defaultPixmap;
     }
 
-    QPixmap pixmap = getStillImage(pipeline.get());
+    QPixmap pixmap = getStillImage(pipeline.get(), rlv, distance);
     if (pixmap.isNull()) {
         qWarning("Unable to get sample for video %s, Aborting creation of video file", qPrintable(rlv.name()));
         return defaultPixmap;
@@ -244,21 +244,25 @@ bool openVideoFile(GstElement* pipeline)
     return true;
 }
 
-QPixmap getStillImage(GstElement* pipeline)
+QPixmap getStillImage(GstElement* pipeline, RealLifeVideo& rlv, const qreal distance)
 {
     GstElement* sink = gst_bin_get_by_name (GST_BIN (pipeline), "sink");
-    gst_element_set_state(sink, GST_STATE_PLAYING);
-    GstSample *sample = nullptr;
-    /* get the preroll buffer from appsink, this block untils appsink really
-       * prerolls */
-    qDebug() << "pull pre-roll";
-    sample = gst_app_sink_pull_preroll(GST_APP_SINK(sink));
-    qDebug() << "pulled pre-roll";
+    gst_element_set_state(sink, GST_STATE_PAUSED);
 
-    for (int i = 0; i < 10; ++i) {
-        gst_sample_unref(sample);
-        sample = gst_app_sink_pull_sample(GST_APP_SINK(sink));
-    }
+    gst_app_sink_pull_preroll(GST_APP_SINK(sink));
+    gint64 nanoSeconds;
+    gst_element_query_duration(pipeline, GST_FORMAT_TIME, &nanoSeconds);
+    rlv.setDuration(nanoSeconds / 1000);
+    // first frame might be empty (black), so take 5th frame as minimum.
+    quint32 frameNr = qMax(5u, rlv.frameForDistance(distance));
+
+    qreal time = frameNr / rlv.videoInformation().frameRate();
+    gst_element_seek_simple(pipeline, GST_FORMAT_TIME, static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE), time * GST_SECOND);
+
+    GstState state;
+    gst_element_get_state(pipeline, &state, NULL, GST_CLOCK_TIME_NONE);
+    GstSample *sample = gst_app_sink_pull_preroll(GST_APP_SINK(sink));
+
 
     QPixmap pixmap;
     if (sample) {

@@ -43,8 +43,8 @@ VideoDetailsWidget::VideoDetailsWidget(QWidget *parent) :
     layout->addWidget(setupProfileLabel(), 1);
 
 
-    connect(_thumbnailer, &Thumbnailer::pixmapUpdated, _thumbnailer, [this](const RealLifeVideo& rlv, QPixmap pixmap){
-        updateVideoScreenshotLabel(rlv, pixmap);
+    connect(_thumbnailer, &Thumbnailer::pixmapUpdated, _thumbnailer, [this](const RealLifeVideo& rlv, const qreal distance, QPixmap pixmap){
+        updateVideoScreenshotLabel(rlv, distance, pixmap);
     });
 }
 
@@ -94,8 +94,10 @@ QWidget *VideoDetailsWidget::setupCourseList()
 {
     _courseListWidget = new QListWidget(this);
     connect(_courseListWidget, &QListWidget::currentRowChanged, _courseListWidget, [this](int row) {
-        _profileLabel->setCourseIndex(row);
+        _courseIndex = row;
+        _profileLabel->setCourseIndex(_courseIndex);
         if (row >= 0) {
+            _videoScreenshotLabel->setPixmap(_thumbnailer->thumbnailFor(_currentRlv, _currentRlv.courses()[row].start()));
             qDebug() << "course selected:" << _currentRlv.courses()[row].name();
         }
     });
@@ -110,10 +112,10 @@ QWidget *VideoDetailsWidget::setupProfileLabel()
     return _profileLabel;
 }
 
-void VideoDetailsWidget::updateVideoScreenshotLabel(const RealLifeVideo &rlv, QPixmap &pixmap)
+void VideoDetailsWidget::updateVideoScreenshotLabel(const RealLifeVideo &rlv, const qreal distance, QPixmap &pixmap)
 {
     RealLifeVideo thisRlv = rlv;
-    if (thisRlv == _currentRlv) {
+    if (thisRlv == _currentRlv && _courseIndex >= 0 && qFuzzyCompare(distance, static_cast<qreal>(_currentRlv.courses()[_courseIndex].start()))) {
         _videoScreenshotLabel->setPixmap(pixmap);
     }
 }
