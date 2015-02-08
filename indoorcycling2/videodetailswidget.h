@@ -21,6 +21,7 @@
 #define VIDEODETAILSWIDGET_H
 
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QListWidget>
 #include <QtWidgets/QWidget>
 #include "reallifevideo.h"
 
@@ -35,12 +36,13 @@ public:
     explicit VideoDetailsWidget(QWidget *parent = 0);
 
 signals:
-    void playClicked(RealLifeVideo& rlv);
+    void playClicked(RealLifeVideo& rlv, int courseNr);
 public slots:
     void setVideo(RealLifeVideo& rlv);
 
 private:
     QWidget* setupDetails();
+    QWidget* setupCourseList();
     QWidget* setupVideoScreenshot();
     QWidget* setupProfileLabel();
 
@@ -53,6 +55,7 @@ private:
     QLabel* _distanceLabel;
     VideoScreenshotLabel* _videoScreenshotLabel;
     QLabel* _profileLabel;
+    QListWidget* _courseListWidget;
 };
 
 #endif // VIDEODETAILSWIDGET_H

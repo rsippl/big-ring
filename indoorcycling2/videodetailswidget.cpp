@@ -35,11 +35,11 @@ VideoDetailsWidget::VideoDetailsWidget(QWidget *parent) :
     setLayout(layout);
 
     QHBoxLayout* topLayout = new QHBoxLayout(this);
-    topLayout->addWidget(setupVideoScreenshot(), 2);
     topLayout->addWidget(setupDetails(), 1);
+    topLayout->addWidget(setupVideoScreenshot(), 2);
 
-    layout->addLayout(topLayout);
-    layout->addWidget(setupProfileLabel());
+    layout->addLayout(topLayout, 2);
+    layout->addWidget(setupProfileLabel(), 1);
 
 
     connect(_thumbnailer, &Thumbnailer::pixmapUpdated, _thumbnailer, [this](const RealLifeVideo& rlv, QPixmap pixmap){
@@ -54,6 +54,12 @@ void VideoDetailsWidget::setVideo(RealLifeVideo &rlv)
     _distanceLabel->setText(QString("%1 km").arg(QString::number(rlv.totalDistance() / 1000, 'f', 1)));
     _videoScreenshotLabel->setPixmap(_thumbnailer->thumbnailFor(rlv));
     _profileLabel->setPixmap(_profilePainter->paintProfile(rlv, _profileLabel->rect()));
+
+    _courseListWidget->clear();
+    for (const Course& course: rlv.courses()) {
+        new QListWidgetItem(course.name(), _courseListWidget);
+    }
+    _courseListWidget->setCurrentRow(0);
 }
 
 QWidget *VideoDetailsWidget::setupDetails()
@@ -65,10 +71,11 @@ QWidget *VideoDetailsWidget::setupDetails()
     layout->addWidget(_nameLabel);
     _distanceLabel = new QLabel;
     layout->addWidget(_distanceLabel);
+    layout->addWidget(setupCourseList());
     QPushButton* startButton = new QPushButton(tr("Start"));
     layout->addWidget(startButton);
     connect(startButton, &QPushButton::clicked, startButton, [this](){
-        emit playClicked(_currentRlv);
+        emit playClicked(_currentRlv, _courseListWidget->currentRow());
     });
 
     detailsGroupBox->setLayout(layout);
@@ -80,6 +87,18 @@ QWidget *VideoDetailsWidget::setupVideoScreenshot()
     _videoScreenshotLabel = new VideoScreenshotLabel;
     _videoScreenshotLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     return _videoScreenshotLabel;
+}
+
+QWidget *VideoDetailsWidget::setupCourseList()
+{
+    _courseListWidget = new QListWidget(this);
+    connect(_courseListWidget, &QListWidget::currentRowChanged, _courseListWidget, [this](int row) {
+        if (row >= 0) {
+            qDebug() << "course selected:" << _currentRlv.courses()[row].name();
+        }
+    });
+
+    return _courseListWidget;
 }
 
 QWidget *VideoDetailsWidget::setupProfileLabel()

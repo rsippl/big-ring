@@ -38,7 +38,7 @@ public:
     explicit VideoListView(QWidget *parent = 0);
 
 signals:
-    void videoSelected(RealLifeVideo& rlv);
+    void videoSelected(RealLifeVideo& rlv, int courseNr);
 
 public slots:
     void setVideos(RealLifeVideoList& rlvs);

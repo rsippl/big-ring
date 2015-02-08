@@ -54,7 +54,7 @@ private slots:
     void importFinished(RealLifeVideoList rlvs);
 private:
     void step();
-    void startRun(RealLifeVideo rlv);
+    void startRun(RealLifeVideo rlv, int courseNr);
 
     RealLifeVideoImporter *_importer;
 

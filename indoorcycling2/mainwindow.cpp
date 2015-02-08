@@ -53,8 +53,8 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
 
     layout->addWidget(_stackedWidget);
 
-    connect(_listView, &VideoListView::videoSelected, _listView, [=](RealLifeVideo& rlv) {
-        startRun(rlv);
+    connect(_listView, &VideoListView::videoSelected, _listView, [=](RealLifeVideo& rlv, int courseNr) {
+        startRun(rlv, courseNr);
     });
 }
 
@@ -100,9 +100,9 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
     _listView->setVideos(rlvs);
 }
 
-void MainWindow::startRun(RealLifeVideo rlv)
+void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
 {
-    Course course = rlv.courses()[0];
+    Course course = rlv.courses()[courseNr];
     _run.reset(new Run(*_antController, _simulation, rlv, course, _videoWidget));
 
     _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_videoWidget));
