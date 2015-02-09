@@ -32,20 +32,19 @@
 VideoDetailsWidget::VideoDetailsWidget(QWidget *parent) :
     QWidget(parent), _profilePainter(new ProfilePainter(this)), _thumbnailer(new Thumbnailer(this))
 {
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    setLayout(layout);
+    QVBoxLayout* layout = new QVBoxLayout;
 
-    QHBoxLayout* topLayout = new QHBoxLayout(this);
+    QHBoxLayout* topLayout = new QHBoxLayout;
     topLayout->addWidget(setupDetails(), 1);
     topLayout->addWidget(setupVideoScreenshot(), 2);
 
     layout->addLayout(topLayout, 2);
     layout->addWidget(setupProfileLabel(), 1);
 
-
     connect(_thumbnailer, &Thumbnailer::pixmapUpdated, _thumbnailer, [this](const RealLifeVideo& rlv, const qreal distance, QPixmap pixmap){
         updateVideoScreenshotLabel(rlv, distance, pixmap);
     });
+    setLayout(layout);
 }
 
 void VideoDetailsWidget::setVideo(RealLifeVideo &rlv)
