@@ -43,10 +43,11 @@ QPixmap ProfilePainter::paintProfile(const RealLifeVideo &rlv, const QRect &rect
     if (rlv.isValid()) {
         QRect profileRect = QRect(QPoint(0,0),rect.size());
 
-        if (!QPixmapCache::find(rlv.name(), &profilePixmap) || profilePixmap.size() != rect.size()) {
-            qDebug() << "creating new profile pixmap for" << rlv.name();
+        const QString pixmapName = QString("%1_%2x%3").arg(rlv.name()).arg(rect.size().width()).arg(rect.size().height());
+        if (!QPixmapCache::find(pixmapName, &profilePixmap)) {
+            qDebug() << "creating new profile pixmap for" << pixmapName;
             profilePixmap = drawProfilePixmap(profileRect, rlv);
-            QPixmapCache::insert(rlv.name(), profilePixmap);
+            QPixmapCache::insert(pixmapName, profilePixmap);
         }
     }
     return profilePixmap;
