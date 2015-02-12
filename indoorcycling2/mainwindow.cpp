@@ -23,10 +23,13 @@
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
 
+#include <QtWidgets/QAction>
+#include <QtWidgets/QMenu>
 #include <QtWidgets/QVBoxLayout>
 
 #include "cyclist.h"
 #include "run.h"
+#include "preferencesdialog.h"
 #include "videolistview.h"
 #include "newvideowidget.h"
 #include "simulation.h"
@@ -37,10 +40,11 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     _antController(new ANTController(this)),
     _cyclist(new Cyclist(this)),
     _simulation(new Simulation(*_cyclist, this)),
+    _menuBar(new QMenuBar),
     _stackedWidget(new QStackedWidget),
-    _listView(new VideoListView),
-    _videoWidget(new NewVideoWidget(*_simulation))
+    _listView(new VideoListView)
 {
+    setupMenuBar();
     QVBoxLayout* layout = new QVBoxLayout;
     layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
@@ -49,8 +53,8 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     _importer->parseRealLiveVideoFilesFromDir(dir);
 
     _stackedWidget->addWidget(_listView);
-    _stackedWidget->addWidget(_videoWidget);
 
+    layout->addWidget(_menuBar);
     layout->addWidget(_stackedWidget);
 
     connect(_listView, &VideoListView::videoSelected, _listView, [=](RealLifeVideo& rlv, int courseNr) {
@@ -100,12 +104,34 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
     _listView->setVideos(rlvs);
 }
 
+void MainWindow::setupMenuBar()
+{
+    QMenu* fileMenu = _menuBar->addMenu(tr("File"));
+
+    QAction* showPreferencesAction = new QAction(tr("Preferences"), this);
+    connect(showPreferencesAction, &QAction::triggered, showPreferencesAction, [=]() {
+        PreferencesDialog dialog(this);
+        dialog.exec();
+    });
+    fileMenu->addAction(showPreferencesAction);
+
+    QAction* quitAction = new QAction(tr("&Quit"), this);
+    quitAction->setShortcut(QKeySequence::Quit);
+    connect(quitAction, &QAction::triggered, this, &QWidget::close);
+    fileMenu->addAction(quitAction);
+    this->addAction(quitAction);
+
+
+}
+
 void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
 {
     Course course = rlv.courses()[courseNr];
-    _run.reset(new Run(*_antController, _simulation, rlv, course, _videoWidget));
+    _videoWidget.reset(new NewVideoWidget(*_simulation));
+    _stackedWidget->addWidget(_videoWidget.data());
+    _run.reset(new Run(*_antController, _simulation, rlv, course, _videoWidget.data()));
 
-    _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_videoWidget));
+    _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_videoWidget.data()));
     _savedGeometry = geometry();
     if (isMaximized()) {
         showFullScreen();
@@ -114,6 +140,8 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
         qDebug() << "run finished";
         _run.reset();
         _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
+        _stackedWidget->removeWidget(_videoWidget.data());
+        _videoWidget.reset();
         showNormal();
         setGeometry(_savedGeometry);
     });

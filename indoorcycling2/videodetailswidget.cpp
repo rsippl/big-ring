@@ -26,14 +26,15 @@
 
 #include "profilepainter.h"
 #include "profilewidget.h"
+#include "quantityprinter.h"
 #include "thumbnailer.h"
 #include "videoscreenshotlabel.h"
 
 VideoDetailsWidget::VideoDetailsWidget(QWidget *parent) :
-    QWidget(parent), _profilePainter(new ProfilePainter(this)), _thumbnailer(new Thumbnailer(this))
+    QWidget(parent), _profilePainter(new ProfilePainter(this)), _thumbnailer(new Thumbnailer(this)),
+    _quantityPrinter(new QuantityPrinter(this))
 {
     QVBoxLayout* layout = new QVBoxLayout;
-
     QHBoxLayout* topLayout = new QHBoxLayout;
     topLayout->addWidget(setupDetails(), 1);
     topLayout->addWidget(setupVideoScreenshot(), 2);
@@ -51,7 +52,8 @@ void VideoDetailsWidget::setVideo(RealLifeVideo &rlv)
 {
     _currentRlv = rlv;
     _nameLabel->setText(rlv.name());
-    _distanceLabel->setText(QString("%1 km").arg(QString::number(rlv.totalDistance() / 1000, 'f', 1)));
+
+    _distanceLabel->setText(_quantityPrinter->printDistance(rlv.totalDistance()));
     _videoScreenshotLabel->setPixmap(_thumbnailer->thumbnailFor(rlv));
     _profileLabel->setVideo(rlv);
 

@@ -54,8 +54,6 @@ public slots:
 
     void goToFullscreen();
 protected:
-    virtual void focusOutEvent(QFocusEvent*) override;
-    virtual void focusInEvent(QFocusEvent*) override;
     void resizeEvent(QResizeEvent *) override;
     virtual void enterEvent(QEvent *) override;
     virtual void leaveEvent(QEvent *) override;
@@ -90,8 +88,7 @@ private:
     QGraphicsItem* _gradeItem;
     QGraphicsTextItem* _pausedItem;
     ProfileItem* _profileItem;
-
-    QScopedPointer<indoorcycling::ScreenSaverBlocker,QScopedPointerDeleteLater> _screenSaverBlocker;
+    indoorcycling::ScreenSaverBlocker* _screenSaverBlocker;
     QTimer* _mouseIdleTimer;
 };
 

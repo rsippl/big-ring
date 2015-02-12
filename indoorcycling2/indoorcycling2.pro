@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     videoitemdelegate.cpp \
     videodetailswidget.cpp \
     videoscreenshotlabel.cpp \
-    profilewidget.cpp
+    profilewidget.cpp \
+    preferencesdialog.cpp
 
 HEADERS  += mainwindow.h \
     videolistview.h \
@@ -28,7 +29,8 @@ HEADERS  += mainwindow.h \
     videoitemdelegate.h \
     videodetailswidget.h \
     videoscreenshotlabel.h \
-    profilewidget.h
+    profilewidget.h \
+    preferencesdialog.h
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib
@@ -59,8 +61,6 @@ else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../antlib/libantlib.a
 message("Master pro file path : ["$${MAINLIB_LIBRARY_DEPENCIES}"]")
 LIBS += $${MAINLIB_LIBRARY_DEPENCIES}
-
-FORMS +=
 
 RESOURCES += \
     uiresources.qrc

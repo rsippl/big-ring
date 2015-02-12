@@ -22,6 +22,7 @@
 #define MAINWINDOW_H
 
 #include <QtCore/QScopedPointer>
+#include <QtWidgets/QMenuBar>
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QStackedWidget>
 
@@ -53,6 +54,7 @@ protected:
 private slots:
     void importFinished(RealLifeVideoList rlvs);
 private:
+    void setupMenuBar();
     void step();
     void startRun(RealLifeVideo rlv, int courseNr);
 
@@ -63,9 +65,10 @@ private:
     Simulation* _simulation;
     QScopedPointer<Run,QScopedPointerDeleteLater> _run;
 
+    QMenuBar* const _menuBar;
     QStackedWidget* const _stackedWidget;
     VideoListView* const _listView;
-    NewVideoWidget* const _videoWidget;
+    QScopedPointer<NewVideoWidget> _videoWidget;
     QRect _savedGeometry;
 };
 

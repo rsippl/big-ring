@@ -3,18 +3,18 @@
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
- * Big Ring Indoor Video Cycling is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation, either version 3 of the 
+ * Big Ring Indoor Video Cycling is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * Big Ring Indoor Video Cycling  is distributed in the hope that it will 
+ * Big Ring Indoor Video Cycling  is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with Big Ring Indoor Video Cycling.  If not, see 
+ * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
@@ -25,6 +25,7 @@
 #include <QtGui/QFont>
 #include <QtWidgets/QGraphicsItem>
 
+#include "quantityprinter.h"
 #include "simulation.h"
 
 class SensorItem : public QObject, public QGraphicsItem
@@ -33,15 +34,18 @@ class SensorItem : public QObject, public QGraphicsItem
     Q_INTERFACES(QGraphicsItem)
 public:
     explicit
-    SensorItem(const QString& unitString, const QVariant &exampleValue = QVariant::fromValue(123), QObject *parent = 0);
+    SensorItem(const enum QuantityPrinter::Quantity, QObject *parent = 0);
 
     virtual QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public slots:
     void setValue(QVariant value);
 private:
-    const QString _unitString;
-    int _fieldWidth;
+    const QuantityPrinter* _quantityPrinter;
+    const QuantityPrinter::Quantity _quantity;
+    int _textItemWidth;
+    int _unitItemWidth;
+
     QGraphicsTextItem* _textItem;
     QGraphicsTextItem* _unitItem;
 };

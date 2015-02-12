@@ -1,8 +1,6 @@
 TEMPLATE = subdirs
 CONFIG += debug
-CONFIG+= sanitizer sanitize_address
 include(config.pri)
-
 
 SUBDIRS += \
     mainlib \

@@ -36,7 +36,7 @@
 
 
 NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
-    QGraphicsView(parent), _mouseIdleTimer(new QTimer(this))
+    QGraphicsView(parent), _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this, this)), _mouseIdleTimer(new QTimer(this))
 {
     setMinimumSize(800, 600);
     setFocusPolicy(Qt::StrongFocus);
@@ -74,7 +74,8 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     _pausedItem->setFont(bigFont);
     _pausedItem->setDefaultTextColor(Qt::white);
     _pausedItem->setPlainText("Paused");
-    connect(&simulation, &Simulation::playing, &simulation, [=](bool playing) {
+
+    connect(&simulation, &Simulation::playing, this, [=](bool playing) {
         if (playing) {
             _pausedItem->hide();
         } else {
@@ -111,15 +112,13 @@ void NewVideoWidget::setupVideoPlayer(QGLWidget* paintWidget)
 
 void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
 {
-
     _clockItem = new ClockGraphicsItem(simulation);
     scene->addItem(_clockItem);
-
 }
 
 void NewVideoWidget::addWattage(Simulation &simulation, QGraphicsScene *scene)
 {
-    SensorItem* wattageItem = new SensorItem("W");
+    SensorItem* wattageItem = new SensorItem(QuantityPrinter::Power);
     scene->addItem(wattageItem);
     connect(&simulation.cyclist(), &Cyclist::powerChanged, this, [wattageItem](float power) {
         wattageItem->setValue(QVariant::fromValue(power));
@@ -129,7 +128,7 @@ void NewVideoWidget::addWattage(Simulation &simulation, QGraphicsScene *scene)
 
 void NewVideoWidget::addCadence(Simulation &simulation, QGraphicsScene *scene)
 {
-    SensorItem* cadenceItem = new SensorItem("RPM");
+    SensorItem* cadenceItem = new SensorItem(QuantityPrinter::Cadence);
     scene->addItem(cadenceItem);
     connect(&simulation.cyclist(), &Cyclist::cadenceChanged, this, [cadenceItem](quint8 cadence) {
         cadenceItem->setValue(QVariant::fromValue(static_cast<int>(cadence)));
@@ -139,27 +138,27 @@ void NewVideoWidget::addCadence(Simulation &simulation, QGraphicsScene *scene)
 
 void NewVideoWidget::addSpeed(Simulation &simulation, QGraphicsScene *scene)
 {
-    SensorItem* speedItem = new SensorItem("KM/H", "000.0");
+    SensorItem* speedItem = new SensorItem(QuantityPrinter::Speed);
     scene->addItem(speedItem);
     connect(&simulation.cyclist(), &Cyclist::speedChanged, this, [speedItem](float speed) {
-        speedItem->setValue(QVariant::fromValue(QString("%1").arg(speed * 3.6, 1, 'f', 1)));
+        speedItem->setValue(QVariant::fromValue(speed));
     });
     _speedItem = speedItem;
 }
 
 void NewVideoWidget::addGrade(Simulation &simulation, QGraphicsScene *scene)
 {
-    SensorItem* gradeItem = new SensorItem("%", "-00.0");
+    SensorItem* gradeItem = new SensorItem(QuantityPrinter::Grade);
     scene->addItem(gradeItem);
     connect(&simulation, &Simulation::slopeChanged, this, [gradeItem](float grade) {
-        gradeItem->setValue(QVariant::fromValue(QString("%1").arg(grade, 1, 'f', 1)));
+        gradeItem->setValue(QVariant::fromValue(grade));
     });
     _gradeItem = gradeItem;
 }
 
 void NewVideoWidget::addDistance(Simulation &simulation, QGraphicsScene *scene)
 {
-    SensorItem* distanceItem = new SensorItem("M", "000000");
+    SensorItem* distanceItem = new SensorItem(QuantityPrinter::Distance);
     scene->addItem(distanceItem);
     connect(&simulation.cyclist(), &Cyclist::distanceTravelledChanged, this, [distanceItem](float distance) {
         distanceItem->setValue(QVariant::fromValue(static_cast<int>(distance)));
@@ -169,7 +168,7 @@ void NewVideoWidget::addDistance(Simulation &simulation, QGraphicsScene *scene)
 
 void NewVideoWidget::addHeartRate(Simulation &simulation, QGraphicsScene *scene)
 {
-    SensorItem* heartRateItem = new SensorItem("BPM", "000");
+    SensorItem* heartRateItem = new SensorItem(QuantityPrinter::HeartRate);
     scene->addItem(heartRateItem);
     connect(&simulation.cyclist(), &Cyclist::heartRateChanged, this, [heartRateItem](quint8 heartRate) {
         heartRateItem->setValue(QVariant::fromValue(static_cast<int>(heartRate)));
@@ -225,22 +224,6 @@ void NewVideoWidget::setDistance(float distance)
 void NewVideoWidget::goToFullscreen()
 {
     showFullScreen();
-}
-
-void NewVideoWidget::focusInEvent(QFocusEvent *event)
-{
-    qDebug() << "gained focus. Blocking screen saver" << hasFocus();
-    _screenSaverBlocker.reset(new indoorcycling::ScreenSaverBlocker(this));
-
-    QWidget::focusInEvent(event);
-}
-
-
-void NewVideoWidget::focusOutEvent(QFocusEvent *event)
-{
-    qDebug() << "lost focus";
-    _screenSaverBlocker.reset();
-    QWidget::focusOutEvent(event);
 }
 
 void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)

@@ -23,8 +23,8 @@
 #include <QtGui/QFontMetrics>
 #include <QtGui/QPainter>
 
-SensorItem::SensorItem(const QString &unitString, const QVariant& exampleValue, QObject *parent) :
-    QObject(parent), _unitString(unitString), _fieldWidth(exampleValue.toString().size())
+SensorItem::SensorItem(const QuantityPrinter::Quantity quantity, QObject *parent) :
+    QObject(parent), _quantityPrinter(new QuantityPrinter(this)), _quantity(quantity)
 {
     QFont font = QFont("Liberation Mono");
     font.setBold(true);
@@ -36,7 +36,8 @@ SensorItem::SensorItem(const QString &unitString, const QVariant& exampleValue, 
     _textItem->setOpacity(0.6);
 
     _textItem->hide();
-    _textItem->setPlainText(QString("%1").arg(exampleValue.toString()));
+    _textItem->setPlainText(QString("00000"));
+    _textItemWidth = _textItem->boundingRect().width();
     _textItem->setPos(10, 5);
 
     QFont unitFont = QFont("Liberation Mono");
@@ -48,12 +49,12 @@ SensorItem::SensorItem(const QString &unitString, const QVariant& exampleValue, 
     _unitItem->setOpacity(0.6);
 
     _unitItem->setPos(_textItem->boundingRect().width() + 5, _textItem->boundingRect().bottom() - _unitItem->boundingRect().height() - 3);
-    _unitItem->setPlainText(_unitString);
+    _unitItem->setPlainText(QString("%1").arg(_quantityPrinter->unitString(quantity, QuantityPrinter::Precise), 3));
 }
 
 QRectF SensorItem::boundingRect() const
 {
-    return QRectF(0, 0, _textItem->boundingRect().width() + 5 + _unitItem->boundingRect().width() + 20, _textItem->boundingRect().height());
+    return QRectF(0, 0, _textItemWidth + 5 + _unitItem->boundingRect().width() + 20, _textItem->boundingRect().height());
 }
 
 void SensorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
@@ -69,7 +70,8 @@ void SensorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWid
 
 void SensorItem::setValue(QVariant value)
 {
-    _textItem->setPlainText(QString("%1").arg(value.toString(), _fieldWidth));
+    _unitItem->setPlainText(_quantityPrinter->unitString(_quantity, QuantityPrinter::Precise, value));
+    _textItem->setPlainText(_quantityPrinter->print(value, _quantity, QuantityPrinter::Precise));
     _textItem->show();
 }
 

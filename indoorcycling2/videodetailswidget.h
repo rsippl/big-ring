@@ -28,6 +28,7 @@
 class ProfilePainter;
 class Thumbnailer;
 class ProfileWidget;
+class QuantityPrinter;
 class VideoScreenshotLabel;
 
 class VideoDetailsWidget : public QWidget
@@ -58,6 +59,7 @@ private:
     VideoScreenshotLabel* _videoScreenshotLabel;
     ProfileWidget* _profileLabel;
     QListWidget* _courseListWidget;
+    QuantityPrinter* _quantityPrinter;
 };
 
 #endif // VIDEODETAILSWIDGET_H

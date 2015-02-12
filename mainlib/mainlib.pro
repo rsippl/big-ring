@@ -26,7 +26,8 @@ HEADERS += \
     openglpainter.h \
     run.h \
     screensaverblocker.h \
-    profilepainter.h
+    profilepainter.h \
+    quantityprinter.h
 
 SOURCES += \
     cyclist.cpp \
@@ -45,7 +46,8 @@ SOURCES += \
     openglpainter.cpp \
     run.cpp \
     screensaverblocker.cpp \
-    profilepainter.cpp
+    profilepainter.cpp \
+    quantityprinter.cpp
 
 
 
