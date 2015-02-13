@@ -20,6 +20,8 @@
 
 #include "newvideowidget.h"
 
+#include <functional>
+
 #include <QtCore/QtDebug>
 #include <QtCore/QUrl>
 #include <QtOpenGL/QGLWidget>
@@ -56,12 +58,7 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     setCacheMode(QGraphicsView::CacheNone);
 
     addClock(simulation, scene);
-    addWattage(simulation, scene);
-    addHeartRate(simulation, scene);
-    addCadence(simulation, scene);
-    addSpeed(simulation, scene);
-    addDistance(simulation, scene);
-    addGrade(simulation, scene);
+    addSensorItems(simulation, scene);
 
     _profileItem = new ProfileItem(&simulation);
     scene->addItem(_profileItem);
@@ -116,6 +113,150 @@ void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
     scene->addItem(_clockItem);
 }
 
+void NewVideoWidget::addHeartRate(Simulation &simulation, QGraphicsScene *scene)
+{
+    SensorItem* heartRateItem = new SensorItem(QuantityPrinter::HeartRate);
+    scene->addItem(heartRateItem);
+    connect(&simulation.cyclist(), &Cyclist::heartRateChanged, this, [heartRateItem](quint8 heartRate) {
+        heartRateItem->setValue(QVariant::fromValue(static_cast<int>(heartRate)));
+    });
+    _heartRateItem = heartRateItem;
+}
+
+NewVideoWidget::~NewVideoWidget()
+{
+
+}
+
+bool NewVideoWidget::isReadyToPlay()
+{
+    return _videoPlayer->isReadyToPlay();
+}
+
+void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
+{
+    Q_EMIT(readyToPlay(false));
+    _rlv = rlv;
+    _profileItem->setRlv(rlv);
+    _videoPlayer->stop();
+
+    QString uri = rlv.videoInformation().videoFilename();
+    if (uri.indexOf("://") < 0) {
+        uri = QUrl::fromLocalFile(uri).toEncoded();
+    }
+    _videoPlayer->loadVideo(uri);
+}
+
+void NewVideoWidget::setCourse(Course &course)
+{
+    _course = course;
+    seekToStart(_course);
+}
+
+void NewVideoWidget::setCourseIndex(int index)
+{
+    if (!_rlv.isValid()) {
+        return;
+    }
+    Course course = _rlv.courses()[qMax(0, index)];
+    setCourse(course);
+}
+
+void NewVideoWidget::setDistance(float distance)
+{
+    _videoPlayer->stepToFrame(_rlv.frameForDistance(distance));
+}
+
+void NewVideoWidget::goToFullscreen()
+{
+    showFullScreen();
+}
+
+void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
+{
+    setSceneRect(viewport()->rect());
+    QRectF clockItemRect = _clockItem->boundingRect();
+    clockItemRect.moveCenter(QPointF(sceneRect().width() / 2, 0.0));
+    clockItemRect.moveTop(0.0);
+    _clockItem->setPos(clockItemRect.topLeft());
+
+
+    QPointF scenePosition = mapToScene(width() / 2, 0);
+    scenePosition = mapToScene(0, height() /8);
+    _wattageItem->setPos(scenePosition);
+    scenePosition = mapToScene(0, 2* height() /8);
+    _heartRateItem->setPos(scenePosition);
+    scenePosition = mapToScene(0, 3 * height() /8);
+    _cadenceItem->setPos(scenePosition);
+    scenePosition = mapToScene(width(), 1 * height() / 8);
+    _speedItem->setPos(scenePosition.x() - _speedItem->boundingRect().width(), scenePosition.y());
+    scenePosition = mapToScene(width(), 2 * height() /8);
+    _distanceItem->setPos(scenePosition.x() - _distanceItem->boundingRect().width(), scenePosition.y());
+    scenePosition = mapToScene(width(), 3 * height() / 8);
+    _gradeItem->setPos(scenePosition.x() - _gradeItem->boundingRect().width(), scenePosition.y());
+    resizeEvent->accept();
+
+    QPointF center = mapToScene(viewport()->rect().center());
+    _pausedItem->setPos(center);
+
+    _profileItem->setGeometry(QRectF(mapToScene(resizeEvent->size().width() * 1 / 16, resizeEvent->size().height() * 27 / 32), QSizeF(sceneRect().width() * 7 / 8, sceneRect().height() * 1 / 8)));
+
+}
+
+void NewVideoWidget::enterEvent(QEvent *)
+{
+    QApplication::setOverrideCursor(Qt::BlankCursor);
+    _mouseIdleTimer->start();
+}
+
+void NewVideoWidget::leaveEvent(QEvent *)
+{
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
+    _mouseIdleTimer->stop();
+}
+
+void NewVideoWidget::mouseMoveEvent(QMouseEvent *)
+{
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
+    _mouseIdleTimer->stop();
+    _mouseIdleTimer->start();
+}
+
+void NewVideoWidget::closeEvent(QCloseEvent *)
+{
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
+}
+
+/*!
+ *
+ * \brief Draw background by telling the video sink to update the complete background.
+ * \param painter the painter used for drawing.
+ */
+void NewVideoWidget::drawBackground(QPainter *painter, const QRectF &)
+{
+    QPointF topLeft = mapToScene(viewport()->rect().topLeft());
+    QPointF bottemRight = mapToScene(viewport()->rect().bottomRight());
+    const QRectF r = QRectF(topLeft, bottemRight);
+    _videoPlayer->displayCurrentFrame(painter, r, Qt::KeepAspectRatioByExpanding);
+
+}
+
+void NewVideoWidget::seekToStart(Course &course)
+{
+    quint32 frame = _rlv.frameForDistance(course.start());
+    _videoPlayer->seekToFrame(frame, _rlv.videoInformation().frameRate());
+}
+
+void NewVideoWidget::addSensorItems(Simulation &simulation, QGraphicsScene *scene)
+{
+    addWattage(simulation, scene);
+    addHeartRate(simulation, scene);
+    addCadence(simulation, scene);
+    addSpeed(simulation, scene);
+    addDistance(simulation, scene);
+    addGrade(simulation, scene);
+}
+
 void NewVideoWidget::addWattage(Simulation &simulation, QGraphicsScene *scene)
 {
     SensorItem* wattageItem = new SensorItem(QuantityPrinter::Power);
@@ -165,151 +306,3 @@ void NewVideoWidget::addDistance(Simulation &simulation, QGraphicsScene *scene)
     });
     _distanceItem = distanceItem;
 }
-
-void NewVideoWidget::addHeartRate(Simulation &simulation, QGraphicsScene *scene)
-{
-    SensorItem* heartRateItem = new SensorItem(QuantityPrinter::HeartRate);
-    scene->addItem(heartRateItem);
-    connect(&simulation.cyclist(), &Cyclist::heartRateChanged, this, [heartRateItem](quint8 heartRate) {
-        heartRateItem->setValue(QVariant::fromValue(static_cast<int>(heartRate)));
-    });
-    _heartRateItem = heartRateItem;
-}
-
-NewVideoWidget::~NewVideoWidget()
-{
-
-}
-
-bool NewVideoWidget::isReadyToPlay()
-{
-    return _videoPlayer->isReadyToPlay();
-}
-
-void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
-{
-    Q_EMIT(readyToPlay(false));
-    _rlv = rlv;
-    _profileItem->setRlv(rlv);
-    _videoPlayer->stop();
-
-    QString uri = rlv.videoInformation().videoFilename();
-    if (uri.indexOf("://") < 0) {
-        uri = QUrl::fromLocalFile(uri).toEncoded();
-    }
-    _videoPlayer->loadVideo(uri);
-}
-
-void NewVideoWidget::setCourse(Course &course)
-{
-    _course = course;
-    seekToStart(_course);
-    qDebug() << "VideoWidget: course set to " << _course.name();
-}
-
-void NewVideoWidget::setCourseIndex(int index)
-{
-    if (!_rlv.isValid()) {
-        return;
-    }
-    Course course = _rlv.courses()[qMax(0, index)];
-    setCourse(course);
-}
-
-void NewVideoWidget::setDistance(float distance)
-{
-    _videoPlayer->stepToFrame(_rlv.frameForDistance(distance));
-}
-
-void NewVideoWidget::goToFullscreen()
-{
-    showFullScreen();
-}
-
-void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
-{
-    setSceneRect(viewport()->rect());
-    qDebug() << "view port rect = " << viewport()->rect();
-    qDebug() << "scene rect" << sceneRect();
-    QRectF clockItemRect = _clockItem->boundingRect();
-    clockItemRect.moveCenter(QPointF(sceneRect().width() / 2, 0.0));
-    clockItemRect.moveTop(0.0);
-    qDebug() << "clock item rect = " << clockItemRect << clockItemRect.topLeft();
-    _clockItem->setPos(clockItemRect.topLeft());
-
-//    _clockItem->boundingRect().moveCenter(scene);
-    QPointF scenePosition = mapToScene(width() / 2, 0);
-    qDebug() << "scene position?" << scenePosition << _clockItem->scenePos();
-//    _clockItem->setPos(scenePosition.x() - (_clockItem->boundingRect().width() / 2), scenePosition.y());
-    scenePosition = mapToScene(0, height() /8);
-    _wattageItem->setPos(scenePosition);
-    scenePosition = mapToScene(0, 2* height() /8);
-    _heartRateItem->setPos(scenePosition);
-    scenePosition = mapToScene(0, 3 * height() /8);
-    _cadenceItem->setPos(scenePosition);
-    scenePosition = mapToScene(width(), 1 * height() / 8);
-    _speedItem->setPos(scenePosition.x() - _speedItem->boundingRect().width(), scenePosition.y());
-    scenePosition = mapToScene(width(), 2 * height() /8);
-    _distanceItem->setPos(scenePosition.x() - _distanceItem->boundingRect().width(), scenePosition.y());
-    scenePosition = mapToScene(width(), 3 * height() / 8);
-    _gradeItem->setPos(scenePosition.x() - _gradeItem->boundingRect().width(), scenePosition.y());
-    resizeEvent->accept();
-
-    QPointF center = mapToScene(viewport()->rect().center());
-    _pausedItem->setPos(center);
-
-    qDebug() << "setting position of profile item to " << resizeEvent->size().width() * 1/8;
-    qDebug() << "right is at  " << resizeEvent->size().width() * 1 / 8 + (resizeEvent->size().width() * 6 / 8);
-    qDebug() << "width of screen is" << resizeEvent->size().width();
-
-//    _profileItem->setGeometry(QRectF(resizeEvent->size().width() * 1 / 8, resizeEvent->size().height() * 27 / 32, resizeEvent->size().width() * 6 / 8, resizeEvent->size().height() * 1 / 8));
-    _profileItem->setGeometry(QRectF(mapToScene(resizeEvent->size().width() * 1 / 16, resizeEvent->size().height() * 27 / 32), QSizeF(sceneRect().width() * 7 / 8, sceneRect().height() * 1 / 8)));
-//    scenePosition = mapToScene(width() * 1 / 8, height() * 27 / 32);
-//    _profileItem->setPos(scenePosition);
-}
-
-void NewVideoWidget::enterEvent(QEvent *)
-{
-    QApplication::setOverrideCursor(Qt::BlankCursor);
-    _mouseIdleTimer->start();
-}
-
-void NewVideoWidget::leaveEvent(QEvent *)
-{
-    QApplication::setOverrideCursor(Qt::ArrowCursor);
-    _mouseIdleTimer->stop();
-}
-
-void NewVideoWidget::mouseMoveEvent(QMouseEvent *)
-{
-    QApplication::setOverrideCursor(Qt::ArrowCursor);
-    _mouseIdleTimer->stop();
-    _mouseIdleTimer->start();
-}
-
-void NewVideoWidget::closeEvent(QCloseEvent *)
-{
-    QApplication::setOverrideCursor(Qt::ArrowCursor);
-}
-
-/*!
- *
- * \brief Draw background by telling the video sink to update the complete background.
- * \param painter the painter used for drawing.
- */
-void NewVideoWidget::drawBackground(QPainter *painter, const QRectF &)
-{
-    QPointF topLeft = mapToScene(viewport()->rect().topLeft());
-    QPointF bottemRight = mapToScene(viewport()->rect().bottomRight());
-    const QRectF r = QRectF(topLeft, bottemRight);
-    _videoPlayer->displayCurrentFrame(painter, r, Qt::KeepAspectRatioByExpanding);
-
-}
-
-void NewVideoWidget::seekToStart(Course &course)
-{
-    quint32 frame = _rlv.frameForDistance(course.start());
-    _videoPlayer->seekToFrame(frame, _rlv.videoInformation().frameRate());
-}
-
-

@@ -53,7 +53,7 @@ void VideoDetailsWidget::setVideo(RealLifeVideo &rlv)
     _currentRlv = rlv;
     _nameLabel->setText(rlv.name());
 
-    _distanceLabel->setText(_quantityPrinter->printDistance(rlv.totalDistance()));
+    _distanceLabel->setText(QString("%1 %2").arg(_quantityPrinter->printDistance(rlv.totalDistance())).arg(_quantityPrinter->unitString(QuantityPrinter::Distance)));
     _videoScreenshotLabel->setPixmap(_thumbnailer->thumbnailFor(rlv));
     _profileLabel->setVideo(rlv);
 
@@ -62,6 +62,17 @@ void VideoDetailsWidget::setVideo(RealLifeVideo &rlv)
         new QListWidgetItem(course.name(), _courseListWidget);
     }
     _courseListWidget->setCurrentRow(0);
+}
+
+void VideoDetailsWidget::paintEvent(QPaintEvent *paintEvent)
+{
+    // make sure that distance label is updated with the correct distance. This might change due to the fact that
+    // settings have changed.
+    if (_currentRlv.isValid()) {
+        _distanceLabel->setText(QString("%1 %2").arg(_quantityPrinter->printDistance(_currentRlv.totalDistance())).arg(_quantityPrinter->unitString(QuantityPrinter::Distance)));
+    }
+    QWidget::paintEvent(paintEvent);
+
 }
 
 QWidget *VideoDetailsWidget::setupDetails()

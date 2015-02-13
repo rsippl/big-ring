@@ -35,6 +35,7 @@ namespace indoorcycling {
 class ScreenSaverBlocker;
 }
 
+class SensorItem;
 class NewVideoWidget : public QGraphicsView
 {
     Q_OBJECT
@@ -66,6 +67,8 @@ private:
 
     void seekToStart(Course& course);
     void step(int stepSize);
+
+    void addSensorItems(Simulation& simulation, QGraphicsScene* scene);
 
     void addClock(Simulation& simulation, QGraphicsScene* scene);
     void addWattage(Simulation& simulation, QGraphicsScene* scene);

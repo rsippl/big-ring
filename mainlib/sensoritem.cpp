@@ -47,14 +47,15 @@ SensorItem::SensorItem(const QuantityPrinter::Quantity quantity, QObject *parent
     _unitItem->setFont(unitFont);
     _unitItem->setDefaultTextColor(Qt::white);
     _unitItem->setOpacity(0.6);
-
+    _unitItem->setPlainText("WWW");
+    _unitItemWidth = _unitItem->boundingRect().width();
     _unitItem->setPos(_textItem->boundingRect().width() + 5, _textItem->boundingRect().bottom() - _unitItem->boundingRect().height() - 3);
     _unitItem->setPlainText(QString("%1").arg(_quantityPrinter->unitString(quantity, QuantityPrinter::Precise), 3));
 }
 
 QRectF SensorItem::boundingRect() const
 {
-    return QRectF(0, 0, _textItemWidth + 5 + _unitItem->boundingRect().width() + 20, _textItem->boundingRect().height());
+    return QRectF(0, 0, _textItemWidth + 5 + _unitItemWidth + 20, _textItem->boundingRect().height());
 }
 
 void SensorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)

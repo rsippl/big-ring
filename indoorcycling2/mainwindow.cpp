@@ -29,7 +29,7 @@
 
 #include "cyclist.h"
 #include "run.h"
-#include "preferencesdialog.h"
+#include "settingsdialog.h"
 #include "videolistview.h"
 #include "newvideowidget.h"
 #include "simulation.h"
@@ -110,8 +110,9 @@ void MainWindow::setupMenuBar()
 
     QAction* showPreferencesAction = new QAction(tr("Preferences"), this);
     connect(showPreferencesAction, &QAction::triggered, showPreferencesAction, [=]() {
-        PreferencesDialog dialog(this);
+        SettingsDialog dialog(this);
         dialog.exec();
+        update();
     });
     fileMenu->addAction(showPreferencesAction);
 

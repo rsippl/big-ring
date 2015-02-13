@@ -41,7 +41,8 @@ signals:
     void playClicked(RealLifeVideo& rlv, int courseNr);
 public slots:
     void setVideo(RealLifeVideo& rlv);
-
+protected:
+    virtual void paintEvent(QPaintEvent *);
 private:
     QWidget* setupDetails();
     QWidget* setupCourseList();
