@@ -36,6 +36,8 @@ class ScreenSaverBlocker;
 }
 
 class SensorItem;
+class ClockGraphicsItem;
+
 class NewVideoWidget : public QGraphicsView
 {
     Q_OBJECT
@@ -82,7 +84,7 @@ private:
     Course _course;
     VideoPlayer* _videoPlayer;
 
-    QGraphicsItem* _clockItem;
+    ClockGraphicsItem* _clockItem;
     QGraphicsItem* _wattageItem;
     QGraphicsItem* _heartRateItem;
     QGraphicsItem* _cadenceItem;

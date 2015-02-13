@@ -109,7 +109,8 @@ void NewVideoWidget::setupVideoPlayer(QGLWidget* paintWidget)
 
 void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
 {
-    _clockItem = new ClockGraphicsItem(simulation);
+    _clockItem = new ClockGraphicsItem;
+    connect(&simulation, &Simulation::runTimeChanged, _clockItem, &ClockGraphicsItem::setTime);
     scene->addItem(_clockItem);
 }
 
