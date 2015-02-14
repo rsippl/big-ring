@@ -18,19 +18,15 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#include "cyclist.h"
 #include "profileitem.h"
 #include "profilepainter.h"
 
 #include <QtCore/QtDebug>
 #include <QtGui/QPainter>
 
-ProfileItem::ProfileItem(QGraphicsItem *parent): ProfileItem(nullptr, parent)
-{
-    // empty
-}
-
-ProfileItem::ProfileItem(Simulation *simulation, QGraphicsItem *parent) :
-    QGraphicsWidget(parent), _profilePainter(new ProfilePainter(this)), _dirty(false), _simulation(simulation)
+ProfileItem::ProfileItem(QGraphicsItem *parent):
+    QGraphicsWidget(parent), _profilePainter(new ProfilePainter(this)), _dirty(false), _cyclist(nullptr)
 {
     setOpacity(0.75);
     QFont font("Sans");
@@ -57,8 +53,8 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
         if (!_profilePixmap.isNull()) {
             painter->drawPixmap(_internalRect, _profilePixmap);
 
-            if (_simulation) {
-                float distanceRatio = _simulation->cyclist().distance() / _rlv.totalDistance();
+            if (_cyclist) {
+                float distanceRatio = _cyclist->distance() / _rlv.totalDistance();
                 QBrush brush(Qt::black);
                 QPen pen(QColor(Qt::black));
                 painter->setOpacity(0.4);
@@ -87,4 +83,9 @@ void ProfileItem::setRlv(const RealLifeVideo &rlv)
     _rlv = rlv;
     _dirty = true;
     update();
+}
+
+void ProfileItem::setCyclist(const Cyclist *cylist)
+{
+    _cyclist = cylist;
 }

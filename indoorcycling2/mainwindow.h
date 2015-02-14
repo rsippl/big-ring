@@ -61,8 +61,6 @@ private:
     RealLifeVideoImporter *_importer;
 
     ANTController* _antController;
-    Cyclist* _cyclist;
-    Simulation* _simulation;
     QScopedPointer<Run,QScopedPointerDeleteLater> _run;
 
     QMenuBar* const _menuBar;

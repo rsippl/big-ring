@@ -42,7 +42,7 @@ class NewVideoWidget : public QGraphicsView
 {
     Q_OBJECT
 public:
-    explicit NewVideoWidget(Simulation &simulation, QWidget *parent = 0);
+    explicit NewVideoWidget(QWidget *parent = 0);
     ~NewVideoWidget();
 
     bool isReadyToPlay();
@@ -54,6 +54,7 @@ public slots:
     void setCourse(Course& course);
     void setCourseIndex(int index);
     void setDistance(float distance);
+    void setSimulation(const Simulation &cyclist);
 
     void goToFullscreen();
 protected:
@@ -70,27 +71,21 @@ private:
     void seekToStart(Course& course);
     void step(int stepSize);
 
-    void addSensorItems(Simulation& simulation, QGraphicsScene* scene);
+    void addSensorItems(QGraphicsScene* scene);
 
-    void addClock(Simulation& simulation, QGraphicsScene* scene);
-    void addWattage(Simulation& simulation, QGraphicsScene* scene);
-    void addCadence(Simulation& simulation, QGraphicsScene* scene);
-    void addSpeed(Simulation& simulation, QGraphicsScene* scene);
-    void addGrade(Simulation& simulation, QGraphicsScene* scene);
-    void addDistance(Simulation& simulation, QGraphicsScene* scene);
-    void addHeartRate(Simulation& simulation, QGraphicsScene* scene);
+    void addClock(QGraphicsScene* scene);
 
     RealLifeVideo _rlv;
     Course _course;
     VideoPlayer* _videoPlayer;
 
     ClockGraphicsItem* _clockItem;
-    QGraphicsItem* _wattageItem;
-    QGraphicsItem* _heartRateItem;
-    QGraphicsItem* _cadenceItem;
-    QGraphicsItem* _speedItem;
-    QGraphicsItem* _distanceItem;
-    QGraphicsItem* _gradeItem;
+    SensorItem* _wattageItem;
+    SensorItem* _heartRateItem;
+    SensorItem* _cadenceItem;
+    SensorItem* _speedItem;
+    SensorItem* _distanceItem;
+    SensorItem* _gradeItem;
     QGraphicsTextItem* _pausedItem;
     ProfileItem* _profileItem;
     indoorcycling::ScreenSaverBlocker* _screenSaverBlocker;

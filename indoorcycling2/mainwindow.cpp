@@ -38,8 +38,6 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     QWidget(parent, Qt::Window),
     _importer(new RealLifeVideoImporter(this)),
     _antController(new ANTController(this)),
-    _cyclist(new Cyclist(this)),
-    _simulation(new Simulation(*_cyclist, this)),
     _menuBar(new QMenuBar),
     _stackedWidget(new QStackedWidget),
     _listView(new VideoListView)
@@ -128,15 +126,25 @@ void MainWindow::setupMenuBar()
 void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
 {
     Course course = rlv.courses()[courseNr];
-    _videoWidget.reset(new NewVideoWidget(*_simulation));
+    _run.reset(new Run(*_antController, rlv, course));
+    _videoWidget.reset(new NewVideoWidget);
+    _videoWidget->setRealLifeVideo(rlv);
+    _videoWidget->setCourseIndex(courseNr);
     _stackedWidget->addWidget(_videoWidget.data());
-    _run.reset(new Run(*_antController, _simulation, rlv, course, _videoWidget.data()));
+    _videoWidget->setSimulation(_run->simulation());
 
     _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_videoWidget.data()));
     _savedGeometry = geometry();
     if (isMaximized()) {
         showFullScreen();
     }
+    connect(&_run->simulation().cyclist(), &Cyclist::distanceChanged, _videoWidget.data(), &NewVideoWidget::setDistance);
+    connect(_videoWidget.data(), &NewVideoWidget::readyToPlay, this, [this](bool ready) {
+        qDebug() << "run can start?" << ready;
+        if (ready) {
+            _run->start();
+        }
+    });
     connect(_run.data(), &Run::stopped, _run.data(), [this]() {
         qDebug() << "run finished";
         _run.reset();
@@ -146,7 +154,6 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
         showNormal();
         setGeometry(_savedGeometry);
     });
-    _run->start();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

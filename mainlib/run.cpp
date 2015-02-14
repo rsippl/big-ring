@@ -21,28 +21,36 @@
 #include "run.h"
 
 #include "antcontroller.h"
-#include "cyclist.h"
 #include "newvideowidget.h"
-#include "simulation.h"
 
 #include <QtCore/QtDebug>
 
-Run::Run(const ANTController& antController, Simulation *simulation, RealLifeVideo& rlv, Course& course,
-         NewVideoWidget *videoWidget, QObject* parent) :
-    QObject(parent), _antController(antController), _rlv(rlv), _course(course),
-    _simulation(simulation), _videoWidget(videoWidget)
+Run::Run(const ANTController& antController, RealLifeVideo& rlv, Course& course, QObject* parent) :
+    QObject(parent), _antController(antController), _rlv(rlv), _course(course)
 {
+    QSettings settings;
+    const int weight = settings.value("cyclist.weight", QVariant::fromValue(82)).toInt();
+   _cyclist = new Cyclist(weight, this);
+
+   _simulation = new Simulation(*_cyclist, this);
+
+    qDebug() << "new run";
     _simulation->rlvSelected(rlv);
     _simulation->courseSelected(course);
 
-    connect(&antController, SIGNAL(heartRateMeasured(quint8)), &_simulation->cyclist(), SLOT(setHeartRate(quint8)));
-    connect(&antController, SIGNAL(cadenceMeasured(quint8)), &_simulation->cyclist(), SLOT(setCadence(quint8)));
-    connect(&antController, SIGNAL(powerMeasured(quint16)), &_simulation->cyclist(), SLOT(setPower(quint16)));
+    connect(&antController, &ANTController::heartRateMeasured, &_simulation->cyclist(), &Cyclist::setHeartRate);
+    connect(&antController, &ANTController::cadenceMeasured, &_simulation->cyclist(), &Cyclist::setCadence);
+    connect(&antController, &ANTController::powerMeasured, &_simulation->cyclist(), &Cyclist::setPower);
 }
 
 Run::~Run()
 {
     // empty
+}
+
+const Simulation &Run::simulation() const
+{
+    return *_simulation;
 }
 
 bool Run::isRunning() const
@@ -52,19 +60,12 @@ bool Run::isRunning() const
 
 void Run::start()
 {
-    _videoWidget->setRealLifeVideo(_rlv);
-    _videoWidget->setCourse(_course);
-
-    connect(&_simulation->cyclist(), &Cyclist::distanceChanged, _videoWidget, &NewVideoWidget::setDistance);
-
-    connect(_videoWidget, &NewVideoWidget::readyToPlay, this, [this](bool ready) {
-        if (ready) {
-            qDebug() << "starting run";
-            this->_simulation->cyclist().setPower(300);
-            this->_simulation->play(true);
-        }
-    });
     _running = true;
+    _simulation->play(true);
+    QSettings settings;
+    if (settings.value("useRobot", QVariant::fromValue(false)).toBool()) {
+        startRobot(settings);
+    }
 }
 
 void Run::stop()
@@ -76,4 +77,18 @@ void Run::stop()
 void Run::pause()
 {
     _simulation->play(false);
+}
+
+void Run::startRobot(const QSettings& settings)
+{
+    const int powerValue = settings.value("robotPower").toInt();
+
+    QTimer* startTimer = new QTimer(this);
+    connect(startTimer, &QTimer::timeout, startTimer, [=]() {
+        _cyclist->setPower(powerValue);
+        _cyclist->setCadence(80);
+        _cyclist->setHeartRate(150);
+    });
+    startTimer->setSingleShot(true);
+    startTimer->start(1000);
 }

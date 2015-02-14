@@ -25,8 +25,8 @@
 #include <QtWidgets/QGraphicsWidget>
 
 #include "reallifevideo.h"
-#include "simulation.h"
 
+class Cyclist;
 class ProfilePainter;
 
 class ProfileItem : public QGraphicsWidget
@@ -34,7 +34,6 @@ class ProfileItem : public QGraphicsWidget
     Q_OBJECT
 public:
     explicit ProfileItem(QGraphicsItem *parent = 0);
-    explicit ProfileItem(Simulation* simulation, QGraphicsItem *parent = 0);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     virtual void setGeometry(const QRectF &rect) override;
@@ -42,13 +41,13 @@ signals:
 
 public slots:
     void setRlv(const RealLifeVideo& rlv);
-
+    void setCyclist(const Cyclist* cylist);
 private:
     ProfilePainter* _profilePainter;
     QRect _internalRect;
     bool _dirty;
     RealLifeVideo _rlv;
-    Simulation* _simulation;
+    const Cyclist* _cyclist;
     QPixmap _profilePixmap;
 };
 

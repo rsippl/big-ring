@@ -37,7 +37,7 @@
 #include "videoplayer.h"
 
 
-NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
+NewVideoWidget::NewVideoWidget(QWidget *parent) :
     QGraphicsView(parent), _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this, this)), _mouseIdleTimer(new QTimer(this))
 {
     setMinimumSize(800, 600);
@@ -57,10 +57,10 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     setCacheMode(QGraphicsView::CacheNone);
 
-    addClock(simulation, scene);
-    addSensorItems(simulation, scene);
+    addClock(scene);
+    addSensorItems(scene);
 
-    _profileItem = new ProfileItem(&simulation);
+    _profileItem = new ProfileItem;
     scene->addItem(_profileItem);
 
     setupVideoPlayer(viewPortWidget);
@@ -71,15 +71,6 @@ NewVideoWidget::NewVideoWidget( Simulation& simulation, QWidget *parent) :
     _pausedItem->setFont(bigFont);
     _pausedItem->setDefaultTextColor(Qt::white);
     _pausedItem->setPlainText("Paused");
-
-    connect(&simulation, &Simulation::playing, this, [=](bool playing) {
-        if (playing) {
-            _pausedItem->hide();
-        } else {
-            _pausedItem->show();
-        }
-    });
-    scene->addItem(_pausedItem);
 
     _mouseIdleTimer->setInterval(500);
     _mouseIdleTimer->setSingleShot(true);
@@ -107,26 +98,15 @@ void NewVideoWidget::setupVideoPlayer(QGLWidget* paintWidget)
     });
 }
 
-void NewVideoWidget::addClock(Simulation &simulation, QGraphicsScene* scene)
+void NewVideoWidget::addClock(QGraphicsScene* scene)
 {
     _clockItem = new ClockGraphicsItem;
-    connect(&simulation, &Simulation::runTimeChanged, _clockItem, &ClockGraphicsItem::setTime);
     scene->addItem(_clockItem);
-}
-
-void NewVideoWidget::addHeartRate(Simulation &simulation, QGraphicsScene *scene)
-{
-    SensorItem* heartRateItem = new SensorItem(QuantityPrinter::HeartRate);
-    scene->addItem(heartRateItem);
-    connect(&simulation.cyclist(), &Cyclist::heartRateChanged, this, [heartRateItem](quint8 heartRate) {
-        heartRateItem->setValue(QVariant::fromValue(static_cast<int>(heartRate)));
-    });
-    _heartRateItem = heartRateItem;
 }
 
 NewVideoWidget::~NewVideoWidget()
 {
-
+    // empty
 }
 
 bool NewVideoWidget::isReadyToPlay()
@@ -166,6 +146,33 @@ void NewVideoWidget::setCourseIndex(int index)
 void NewVideoWidget::setDistance(float distance)
 {
     _videoPlayer->stepToFrame(_rlv.frameForDistance(distance));
+}
+
+void NewVideoWidget::setSimulation(const Simulation& simulation)
+{
+    connect(&simulation, &Simulation::runTimeChanged, _clockItem, &ClockGraphicsItem::setTime);
+
+    const Cyclist& cyclist = simulation.cyclist();
+    _profileItem->setCyclist(&cyclist);
+    connect(&cyclist, &Cyclist::powerChanged, this, [this](int power) {
+        _wattageItem->setValue(QVariant::fromValue(power));
+    });
+    connect(&cyclist, &Cyclist::cadenceChanged, this, [this](int cadence) {
+        _cadenceItem->setValue(QVariant::fromValue(cadence));
+    });
+    connect(&cyclist, &Cyclist::speedChanged, this, [this](float speed) {
+        _speedItem->setValue(QVariant::fromValue(speed));
+    });
+    connect(&simulation, &Simulation::slopeChanged, this, [this](float grade) {
+        _gradeItem->setValue(QVariant::fromValue(grade));
+    });
+    connect(&cyclist, &Cyclist::heartRateChanged, this, [this](int heartRate) {
+        _heartRateItem->setValue(QVariant::fromValue(heartRate));
+    });
+    connect(&cyclist, &Cyclist::distanceTravelledChanged, this, [this](float distance) {
+        _distanceItem->setValue(QVariant::fromValue(distance));
+    });
+
 }
 
 void NewVideoWidget::goToFullscreen()
@@ -248,62 +255,19 @@ void NewVideoWidget::seekToStart(Course &course)
     _videoPlayer->seekToFrame(frame, _rlv.videoInformation().frameRate());
 }
 
-void NewVideoWidget::addSensorItems(Simulation &simulation, QGraphicsScene *scene)
+void NewVideoWidget::addSensorItems(QGraphicsScene *scene)
 {
-    addWattage(simulation, scene);
-    addHeartRate(simulation, scene);
-    addCadence(simulation, scene);
-    addSpeed(simulation, scene);
-    addDistance(simulation, scene);
-    addGrade(simulation, scene);
+    _wattageItem = new SensorItem(QuantityPrinter::Power);
+    scene->addItem(_wattageItem);
+    _heartRateItem = new SensorItem(QuantityPrinter::HeartRate);
+    scene->addItem(_heartRateItem);
+    _cadenceItem = new SensorItem(QuantityPrinter::Cadence);
+    scene->addItem(_cadenceItem);
+    _speedItem = new SensorItem(QuantityPrinter::Speed);
+    scene->addItem(_speedItem);
+    _distanceItem = new SensorItem(QuantityPrinter::Distance);
+    scene->addItem(_distanceItem);
+    _gradeItem = new SensorItem(QuantityPrinter::Grade);
+    scene->addItem(_gradeItem);
 }
 
-void NewVideoWidget::addWattage(Simulation &simulation, QGraphicsScene *scene)
-{
-    SensorItem* wattageItem = new SensorItem(QuantityPrinter::Power);
-    scene->addItem(wattageItem);
-    connect(&simulation.cyclist(), &Cyclist::powerChanged, this, [wattageItem](float power) {
-        wattageItem->setValue(QVariant::fromValue(power));
-    });
-    _wattageItem = wattageItem;
-}
-
-void NewVideoWidget::addCadence(Simulation &simulation, QGraphicsScene *scene)
-{
-    SensorItem* cadenceItem = new SensorItem(QuantityPrinter::Cadence);
-    scene->addItem(cadenceItem);
-    connect(&simulation.cyclist(), &Cyclist::cadenceChanged, this, [cadenceItem](quint8 cadence) {
-        cadenceItem->setValue(QVariant::fromValue(static_cast<int>(cadence)));
-    });
-    _cadenceItem = cadenceItem;
-}
-
-void NewVideoWidget::addSpeed(Simulation &simulation, QGraphicsScene *scene)
-{
-    SensorItem* speedItem = new SensorItem(QuantityPrinter::Speed);
-    scene->addItem(speedItem);
-    connect(&simulation.cyclist(), &Cyclist::speedChanged, this, [speedItem](float speed) {
-        speedItem->setValue(QVariant::fromValue(speed));
-    });
-    _speedItem = speedItem;
-}
-
-void NewVideoWidget::addGrade(Simulation &simulation, QGraphicsScene *scene)
-{
-    SensorItem* gradeItem = new SensorItem(QuantityPrinter::Grade);
-    scene->addItem(gradeItem);
-    connect(&simulation, &Simulation::slopeChanged, this, [gradeItem](float grade) {
-        gradeItem->setValue(QVariant::fromValue(grade));
-    });
-    _gradeItem = gradeItem;
-}
-
-void NewVideoWidget::addDistance(Simulation &simulation, QGraphicsScene *scene)
-{
-    SensorItem* distanceItem = new SensorItem(QuantityPrinter::Distance);
-    scene->addItem(distanceItem);
-    connect(&simulation.cyclist(), &Cyclist::distanceTravelledChanged, this, [distanceItem](float distance) {
-        distanceItem->setValue(QVariant::fromValue(static_cast<int>(distance)));
-    });
-    _distanceItem = distanceItem;
-}
