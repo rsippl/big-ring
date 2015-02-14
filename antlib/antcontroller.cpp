@@ -75,15 +75,15 @@ void ANTController::initialize()
     connect(antTimer, SIGNAL(timeout()), ant, SLOT(readCycle()));
     connect(ant, SIGNAL(initializationSucceeded()), antTimer, SLOT(start()));
     connect(ant, SIGNAL(foundDevice(int,int,int,QString,QString)), SLOT(foundDevice(int,int,int,QString,QString)));
-    connect(ant, SIGNAL(heartRateMeasured(quint8)), SLOT(heartRateReceived(quint8)));
-    connect(ant, SIGNAL(powerMeasured(float)), SLOT(powerReceived(float)));
-    connect(ant, SIGNAL(cadenceMeasured(float)), SLOT(cadenceReceived(float)));
+    connect(ant, &ANT::heartRateMeasured, this, &ANTController::heartRateReceived);
+    connect(ant, &ANT::powerMeasured, this, &ANTController::powerReceived);
+    connect(ant, &ANT::cadenceMeasured, this, &ANTController::cadenceReceived);
 
     antThread->start();
 }
 
 
-void ANTController::heartRateReceived(quint8 bpm)
+void ANTController::heartRateReceived(int bpm)
 {
     _heartRate = bpm;
     emit heartRateMeasured(bpm);
@@ -91,7 +91,7 @@ void ANTController::heartRateReceived(quint8 bpm)
 
 void ANTController::cadenceReceived(float cadence)
 {
-    _cadence = static_cast<quint8>(cadence);
+    _cadence = static_cast<int>(cadence);
     emit cadenceMeasured(_cadence);
 }
 
@@ -102,7 +102,7 @@ void ANTController::quit()
 
 void ANTController::powerReceived(float power)
 {
-    _power = static_cast<quint16>(power);
+    _power = static_cast<int>(power);
     emit powerMeasured(_power);
 }
 

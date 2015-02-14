@@ -120,9 +120,13 @@ signals:
     void searchTimeout(int number); // search timed out
     void searchComplete(int number); // search completed successfully
 
-    void heartRateMeasured(quint8);
-    void powerMeasured(float);
-    void cadenceMeasured(float);
-    void speedMeasured(float);
+    /** heart rate in beats per minute */
+    void heartRateMeasured(int bpm);
+    /** power in watts */
+    void powerMeasured(float watts);
+    /** cadence in revolutions per minute */
+    void cadenceMeasured(float rpm);
+    /** wheel speed in revolutions per minute */
+    void speedMeasured(float rpm);
 };
 #endif

@@ -211,9 +211,12 @@ signals:
     void searchComplete(int channel);         // searchComplete
     void signalStrength(int channel, double reliability);
 
-    void heartRateMeasured(quint8);
-    void powerMeasured(float);
-    void cadenceMeasured(float);
+    /** heart rate in beats per minute */
+    void heartRateMeasured(int bpm);
+    /** power in watts */
+    void powerMeasured(float watts);
+    /** cadence in revolutions per minute */
+    void cadenceMeasured(float rpm);
 
 public slots:
 
