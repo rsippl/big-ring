@@ -47,11 +47,15 @@ private:
 class Course
 {
 public:
+    enum Type { Invalid, Normal, Unfinished };
+    explicit Course(const QString& name, const Type type, float start, float end);
     explicit Course(const QString& name, float start, float end);
+    explicit Course(float start, float end);
     explicit Course();
 
-    bool isValid() const { return (!_name.isEmpty()); }
+    bool isValid() const { return !_type == Invalid;}
     const QString& name() const { return _name; }
+    Type type() const { return _type; }
     /*! start distance of course in  meters */
     float start() const { return _start; }
     /*! end distance of course in meters */
@@ -59,6 +63,7 @@ public:
 
 private:
     QString _name;
+    Type _type;
     float _start;
     float _end;
 };
@@ -94,6 +99,9 @@ public:
     const QString name() const;
     const VideoInformation& videoInformation() const;
     const QList<Course>& courses() const;
+
+    /** Set the distance for the current unfinished run */
+    void setUnfinishedRun(float distance);
 
     void printDistanceMapping();
     /** Get the number or frames per meter for a certain distance */

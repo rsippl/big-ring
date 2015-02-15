@@ -23,6 +23,7 @@
 #include "antcontroller.h"
 #include "newvideowidget.h"
 
+#include <QtCore/QTimer>
 #include <QtCore/QtDebug>
 
 Run::Run(const ANTController& antController, RealLifeVideo& rlv, Course& course, QObject* parent) :
@@ -66,6 +67,12 @@ void Run::start()
     if (settings.value("useRobot", QVariant::fromValue(false)).toBool()) {
         startRobot(settings);
     }
+    QTimer* saveTimer = new QTimer(this);
+    saveTimer->setInterval(1000);
+    connect(saveTimer, &QTimer::timeout, this, [=]() {
+        saveRun();
+    });
+    saveTimer->start();
 }
 
 void Run::stop()
@@ -91,4 +98,14 @@ void Run::startRobot(const QSettings& settings)
     });
     startTimer->setSingleShot(true);
     startTimer->start(1000);
+}
+
+void Run::saveRun()
+{
+    _rlv.setUnfinishedRun(_cyclist->distance());
+    QSettings settings;
+    settings.beginGroup("unfinished_runs");
+    const QString key = _rlv.name();
+    settings.setValue(key, QVariant::fromValue(_cyclist->distance()));
+    settings.endGroup();
 }

@@ -49,7 +49,7 @@ public slots:
 
 private:
     void startRobot(const QSettings &settings);
-
+    void saveRun();
 
     const ANTController& _antController;
     RealLifeVideo _rlv;

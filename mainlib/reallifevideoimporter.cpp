@@ -77,7 +77,16 @@ namespace
 RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QFileInfo>& videoFiles)
 {
     RlvFileParser parser(videoFiles);
-    return parser.parseRlvFile(rlvFile);
+    RealLifeVideo rlv = parser.parseRlvFile(rlvFile);
+    QSettings settings;
+    settings.beginGroup("unfinished_runs");
+    const QString key = rlv.name();
+    if (settings.contains(key)) {
+        float distance = settings.value(key).toFloat();
+        rlv.setUnfinishedRun(distance);
+    }
+    settings.endGroup();
+    return rlv;
 }
 
 QList<QFileInfo> findFiles(const QString& root, const QString& pattern)

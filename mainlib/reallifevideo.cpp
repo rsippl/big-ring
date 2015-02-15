@@ -39,13 +39,27 @@ public:
     float _videoCorrectionFactor;
 };
 
-Course::Course():
-    _start(0.0), _end(0.0)
+Course::Course(const QString &name, const Type type, float start, float end):
+    _name(name), _type(type), _start(start), _end(end)
 {}
 
 Course::Course(const QString &name, float start, float end):
-    _name(name), _start(start), _end(end)
-{}
+    Course(name, Normal, start, end)
+{
+    // empty
+}
+
+Course::Course(): Course("", Invalid, 0, 0)
+{
+    // empty
+}
+
+
+Course::Course(float start, float end):
+    Course(QObject::tr("Unfinished Run"), Unfinished, start, end)
+{
+    // empty
+}
 
 RealLifeVideo::RealLifeVideo(const QString& name, const VideoInformation& videoInformation,
                              QList<Course>& courses, QList<DistanceMappingEntry> distanceMappings, Profile profile):
@@ -116,6 +130,15 @@ const VideoInformation &RealLifeVideo::videoInformation() const
 const QList<Course> &RealLifeVideo::courses() const
 {
     return _d->_courses;
+}
+
+void RealLifeVideo::setUnfinishedRun(float distance)
+{
+    if (!_d->_courses.isEmpty() && _d->_courses.last().type() == Course::Unfinished) {
+        _d->_courses.removeLast();
+    }
+    Course unfinishedCourse(distance, totalDistance());
+    _d->_courses.append(unfinishedCourse);
 }
 
 void RealLifeVideo::printDistanceMapping()
