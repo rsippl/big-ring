@@ -54,6 +54,16 @@ const Simulation &Run::simulation() const
     return *_simulation;
 }
 
+void Run::saveProgress()
+{
+    _rlv.setUnfinishedRun(_cyclist->distance());
+    QSettings settings;
+    settings.beginGroup("unfinished_runs");
+    const QString key = _rlv.name();
+    settings.setValue(key, QVariant::fromValue(_cyclist->distance()));
+    settings.endGroup();
+}
+
 bool Run::isRunning() const
 {
     return _running;
@@ -67,12 +77,11 @@ void Run::start()
     if (settings.value("useRobot", QVariant::fromValue(false)).toBool()) {
         startRobot(settings);
     }
-    QTimer* saveTimer = new QTimer(this);
-    saveTimer->setInterval(1000);
-    connect(saveTimer, &QTimer::timeout, this, [=]() {
-        saveRun();
-    });
-    saveTimer->start();
+}
+
+void Run::play()
+{
+    _simulation->play(true);
 }
 
 void Run::stop()
@@ -100,12 +109,3 @@ void Run::startRobot(const QSettings& settings)
     startTimer->start(1000);
 }
 
-void Run::saveRun()
-{
-    _rlv.setUnfinishedRun(_cyclist->distance());
-    QSettings settings;
-    settings.beginGroup("unfinished_runs");
-    const QString key = _rlv.name();
-    settings.setValue(key, QVariant::fromValue(_cyclist->distance()));
-    settings.endGroup();
-}

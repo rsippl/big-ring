@@ -39,17 +39,18 @@ public:
     virtual ~Run();
 
     const Simulation& simulation() const;
+    void saveProgress();
     bool isRunning() const;
 signals:
     void stopped();
 public slots:
     void start();
+    void play();
     void stop();
     void pause();
 
 private:
     void startRobot(const QSettings &settings);
-    void saveRun();
 
     const ANTController& _antController;
     RealLifeVideo _rlv;

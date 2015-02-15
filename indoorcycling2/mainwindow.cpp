@@ -30,6 +30,7 @@
 #include "cyclist.h"
 #include "run.h"
 #include "settingsdialog.h"
+#include "stoprundialog.h"
 #include "videolistview.h"
 #include "newvideowidget.h"
 #include "simulation.h"
@@ -87,7 +88,17 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Escape:
         if (_run) {
-            _run->stop();
+            _run->pause();
+            StopRunDialog stopRunDialog;
+            stopRunDialog.exec();
+            if (stopRunDialog.result() == QDialog::Accepted) {
+                if (stopRunDialog.doesProgressHaveToBeSaved()) {
+                    _run->saveProgress();
+                }
+                _run->stop();
+            } else {
+                _run->play();
+            }
         }
     default:
         QWidget::keyPressEvent(event);
