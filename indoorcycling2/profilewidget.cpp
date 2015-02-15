@@ -37,7 +37,7 @@ void ProfileWidget::paintEvent(QPaintEvent *paintEvent)
     if (_courseIndex >= 0) {
         const Course& course = _currentRlv.courses()[_courseIndex];
         profilePixmap = _profilePainter->paintProfileWithHighLight(_currentRlv, course.start(), course.end(),
-                                                                   this->rect());
+                                                                   this->rect(), palette().highlight());
     } else {
         profilePixmap = _profilePainter->paintProfile(_currentRlv, this->rect());
     }

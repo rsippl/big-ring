@@ -33,7 +33,7 @@ public:
 
     QPixmap paintProfile(const RealLifeVideo& rlv, const QRect& rect) const;
     QPixmap paintProfileWithHighLight(const RealLifeVideo &rlv, qreal startDistance, qreal endDistance,
-                                      const QRect &rect) const;
+                                      const QRect &rect, const QBrush highlightColor) const;
 private:
     QPixmap drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv) const;
     qreal distanceToX(const QRect& rect, const RealLifeVideo& rlv, float distance) const;
