@@ -37,7 +37,7 @@ ClockGraphicsItem::ClockGraphicsItem(QObject *parent) :
 
     QFont font = QFont("Liberation Mono");
     font.setBold(true);
-    font.setPointSize(48);
+    font.setPointSize(30);
 
     _textItem = new QGraphicsTextItem(this);
     _textItem->setFont(font);
