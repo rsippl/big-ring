@@ -161,10 +161,10 @@ bool MainWindow::handleStopRun()
 {
     _run->pause();
 
-    QMessageBox stopRunMessageBox;
-    stopRunMessageBox.setText("Stop Run?");
+    QMessageBox stopRunMessageBox(this);
+    stopRunMessageBox.setText(tr("Save run before closing?"));
     stopRunMessageBox.setIcon(QMessageBox::Question);
-    stopRunMessageBox.setInformativeText("Do you want to save your progress ?");
+    stopRunMessageBox.setInformativeText(tr("If you don't save the run, progress will be lost."));
     stopRunMessageBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     stopRunMessageBox.setDefaultButton(QMessageBox::Save);
 
