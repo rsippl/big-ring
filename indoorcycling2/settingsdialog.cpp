@@ -32,6 +32,7 @@ void SettingsDialog::on_robotCheckBox_toggled(bool checked)
 {
     QSettings settings;
     settings.setValue("useRobot", QVariant::fromValue(checked));
+    settings.setValue("robotPower", _ui->powerSpinBox->value());
     _ui->powerSpinBox->setEnabled(checked);
 }
 
