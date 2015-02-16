@@ -25,12 +25,12 @@
 
 #include <QtWidgets/QAction>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QMessageBox>
 #include <QtWidgets/QVBoxLayout>
 
 #include "cyclist.h"
 #include "run.h"
 #include "settingsdialog.h"
-#include "stoprundialog.h"
 #include "videolistview.h"
 #include "newvideowidget.h"
 #include "simulation.h"
@@ -88,17 +88,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Escape:
         if (_run) {
-            _run->pause();
-            StopRunDialog stopRunDialog;
-            stopRunDialog.exec();
-            if (stopRunDialog.result() == QDialog::Accepted) {
-                if (stopRunDialog.doesProgressHaveToBeSaved()) {
-                    _run->saveProgress();
-                }
-                _run->stop();
-            } else {
-                _run->play();
-            }
+            handleStopRun();
         }
     default:
         QWidget::keyPressEvent(event);
@@ -167,8 +157,37 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     });
 }
 
+bool MainWindow::handleStopRun()
+{
+    _run->pause();
+
+    QMessageBox stopRunMessageBox;
+    stopRunMessageBox.setText("Stop Run?");
+    stopRunMessageBox.setIcon(QMessageBox::Question);
+    stopRunMessageBox.setInformativeText("Do you want to save your progress ?");
+    stopRunMessageBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    stopRunMessageBox.setDefaultButton(QMessageBox::Save);
+
+    switch(stopRunMessageBox.exec()) {
+    case QMessageBox::Save:
+        _run->saveProgress();
+        // fallthrough
+    case QMessageBox::Discard:
+        _run->stop();
+        return true;
+    default:
+        _run->play();
+        return false;
+    }
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    // if the user chooses not stop the run, just ignore the event.
+    if (_run && !handleStopRun()) {
+        event->ignore();
+        return;
+    }
     qDebug() << "closing main window";
     if (_antController->isRunning()) {
         connect(_antController, &ANTController::finished, this, &QWidget::close);

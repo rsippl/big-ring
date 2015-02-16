@@ -57,6 +57,7 @@ private:
     void setupMenuBar();
     void step();
     void startRun(RealLifeVideo rlv, int courseNr);
+    bool handleStopRun();
 
     RealLifeVideoImporter *_importer;
 

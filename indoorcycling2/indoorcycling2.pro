@@ -22,8 +22,7 @@ SOURCES += main.cpp\
     videoscreenshotlabel.cpp \
     profilewidget.cpp \
     preferencesdialog.cpp \
-    settingsdialog.cpp \
-    stoprundialog.cpp
+    settingsdialog.cpp
 
 HEADERS  += mainwindow.h \
     videolistview.h \
@@ -33,8 +32,7 @@ HEADERS  += mainwindow.h \
     videoscreenshotlabel.h \
     profilewidget.h \
     preferencesdialog.h \
-    settingsdialog.h \
-    stoprundialog.h
+    settingsdialog.h
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib
@@ -69,6 +67,5 @@ LIBS += $${MAINLIB_LIBRARY_DEPENCIES}
 RESOURCES +=
 
 FORMS += \
-    settingsdialog.ui \
-    stoprundialog.ui
+    settingsdialog.ui
 
