@@ -27,6 +27,8 @@
 #include "usb.h"
 #include "usbi.h"
 
+#pragma GCC diagnostic ignored "-Wpointer-sign"
+
 static libusb_context *ctx = NULL;
 static int usb_debug = 0;
 
@@ -93,6 +95,7 @@ static int libusb_to_errno(int result)
     }
 }
 
+#ifdef ENABLE_LOGGING
 static void usbi_log(enum usbi_log_level level, const char *function,
     const char *format, ...)
 {
@@ -135,6 +138,7 @@ static void usbi_log(enum usbi_log_level level, const char *function,
 
     fprintf(stream, "\n");
 }
+#endif
 
 API_EXPORTED void usb_init(void)
 {
@@ -934,4 +938,5 @@ API_EXPORTED int usb_detach_kernel_driver_np(usb_dev_handle *dev, int interface)
         return -ENOSYS;
     }
 }
+#pragma GCC diagnostic pop
 
