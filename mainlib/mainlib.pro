@@ -7,7 +7,7 @@ target.path = ../lib
 CONFIG += staticlib
 INCLUDEPATH += thirdparty/include
 
-FORMS += rlvlistwidget.ui
+FORMS +=
 
 HEADERS += \
     cyclist.h \
@@ -15,7 +15,6 @@ HEADERS += \
     reallifevideoimporter.h \
     reallifevideo.h \
     rlvfileparser.h \
-    rlvlistwidget.h \
     simulation.h \
     thumbnailer.h \
     newvideowidget.h \
@@ -35,7 +34,6 @@ SOURCES += \
     reallifevideoimporter.cpp \
     reallifevideo.cpp \
     rlvfileparser.cpp \
-    rlvlistwidget.cpp \
     simulation.cpp \
     thumbnailer.cpp \
     newvideowidget.cpp \

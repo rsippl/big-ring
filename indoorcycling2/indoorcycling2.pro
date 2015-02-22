@@ -21,7 +21,6 @@ SOURCES += main.cpp\
     videodetailswidget.cpp \
     videoscreenshotlabel.cpp \
     profilewidget.cpp \
-    preferencesdialog.cpp \
     settingsdialog.cpp
 
 HEADERS  += mainwindow.h \
@@ -31,7 +30,6 @@ HEADERS  += mainwindow.h \
     videodetailswidget.h \
     videoscreenshotlabel.h \
     profilewidget.h \
-    preferencesdialog.h \
     settingsdialog.h
 
 # added by QtCreator to add mainlib to dependencies.
