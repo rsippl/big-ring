@@ -5,10 +5,7 @@
 
 #include "reallifevideo.h"
 
-class Thumbnailer;
-class AltitudeProfileWidget;
 class QuantityPrinter;
-class VideoScreenshotWidget;
 
 namespace Ui {
 class VideoDetails;
@@ -31,14 +28,11 @@ private slots:
 
     void on_courseListWidget_currentRowChanged(int currentRow);
 
-private:
-    void updateVideoScreenshotLabel(const RealLifeVideo& rlv, const qreal distance, QPixmap& pixmap);
+    void on_newCourseButton_clicked();
 
+private:
     RealLifeVideo _currentRlv;
     int _courseIndex;
-    Thumbnailer* _thumbnailer;
-//    VideoScreenshotWidget* _videoScreenshotWidget;
-//    AltitudeProfileWidget* _profileLabel;
     QuantityPrinter* _quantityPrinter;
     Ui::VideoDetails *ui;
 };

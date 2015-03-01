@@ -3,6 +3,9 @@
 
 #include <QWidget>
 
+#include "reallifevideo.h"
+
+class Thumbnailer;
 namespace Ui {
 class VideoScreenshotWidget;
 }
@@ -20,13 +23,16 @@ public:
     ~VideoScreenshotWidget();
 
 public slots:
-    /** Set a new pixmap. This will repaint the widget */
-    void setPixmap(const QPixmap &);
+    void setVideo(RealLifeVideo& rlv);
+    void setDistance(qreal distance);
 
 protected:
     virtual void paintEvent(QPaintEvent *) override;
 private:
-    QPixmap _videoScreenshot;
+    Thumbnailer* _thumbnailer;
+    RealLifeVideo _rlv;
+    qreal _distance;
+
     Ui::VideoScreenshotWidget *ui;
 };
 

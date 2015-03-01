@@ -61,6 +61,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="newCourseButton">
+        <property name="text">
+         <string>Create New Course</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="pushButton">
         <property name="text">
          <string>Start</string>

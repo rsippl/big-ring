@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     settingsdialog.cpp \
     videoscreenshotwidget.cpp \
     altitudeprofilewidget.cpp \
-    videodetails.cpp
+    videodetails.cpp \
+    createnewcoursedialog.cpp
 
 HEADERS  += mainwindow.h \
     videolistview.h \
@@ -30,7 +31,8 @@ HEADERS  += mainwindow.h \
     settingsdialog.h \
     videoscreenshotwidget.h \
     altitudeprofilewidget.h \
-    videodetails.h
+    videodetails.h \
+    createnewcoursedialog.h
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib
@@ -68,5 +70,6 @@ FORMS += \
     settingsdialog.ui \
     videoscreenshotwidget.ui \
     altitudeprofilewidget.ui \
-    videodetails.ui
+    videodetails.ui \
+    createnewcoursedialog.ui
 

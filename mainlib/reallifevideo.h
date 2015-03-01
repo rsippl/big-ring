@@ -47,7 +47,7 @@ private:
 class Course
 {
 public:
-    enum Type { Invalid, Normal, Unfinished };
+    enum Type { Invalid, Normal, Unfinished, Custom };
     explicit Course(const QString& name, const Type type, float start, float end);
     explicit Course(const QString& name, float start, float end);
     explicit Course(float start, float end);
@@ -102,6 +102,8 @@ public:
 
     /** Set the distance for the current unfinished run */
     void setUnfinishedRun(float distance);
+    /** Add a new custom start point */
+    void addStartPoint(float distance, const QString& name);
 
     void printDistanceMapping();
     /** Get the number or frames per meter for a certain distance */
