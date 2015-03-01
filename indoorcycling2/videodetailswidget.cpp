@@ -28,7 +28,7 @@
 #include "profilewidget.h"
 #include "quantityprinter.h"
 #include "thumbnailer.h"
-#include "videoscreenshotlabel.h"
+#include "videoscreenshotwidget.h"
 
 VideoDetailsWidget::VideoDetailsWidget(QWidget *parent) :
     QWidget(parent), _profilePainter(new ProfilePainter(this)), _thumbnailer(new Thumbnailer(this)),
@@ -54,7 +54,7 @@ void VideoDetailsWidget::setVideo(RealLifeVideo &rlv)
     _nameLabel->setText(rlv.name());
 
     _distanceLabel->setText(QString("%1 %2").arg(_quantityPrinter->printDistance(rlv.totalDistance())).arg(_quantityPrinter->unitString(QuantityPrinter::Distance)));
-    _videoScreenshotLabel->setPixmap(_thumbnailer->thumbnailFor(rlv));
+    _videoScreenshotWidget->setPixmap(_thumbnailer->thumbnailFor(rlv));
     _profileLabel->setVideo(rlv);
 
     _courseListWidget->clear();
@@ -97,9 +97,9 @@ QWidget *VideoDetailsWidget::setupDetails()
 
 QWidget *VideoDetailsWidget::setupVideoScreenshot()
 {
-    _videoScreenshotLabel = new VideoScreenshotLabel;
-    _videoScreenshotLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    return _videoScreenshotLabel;
+    _videoScreenshotWidget = new VideoScreenshotWidget;
+    _videoScreenshotWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    return _videoScreenshotWidget;
 }
 
 QWidget *VideoDetailsWidget::setupCourseList()
@@ -109,7 +109,7 @@ QWidget *VideoDetailsWidget::setupCourseList()
         _courseIndex = row;
         _profileLabel->setCourseIndex(_courseIndex);
         if (row >= 0) {
-            _videoScreenshotLabel->setPixmap(_thumbnailer->thumbnailFor(_currentRlv, _currentRlv.courses()[row].start()));
+            _videoScreenshotWidget->setPixmap(_thumbnailer->thumbnailFor(_currentRlv, _currentRlv.courses()[row].start()));
             qDebug() << "course selected:" << _currentRlv.courses()[row].name();
         }
     });
@@ -128,6 +128,6 @@ void VideoDetailsWidget::updateVideoScreenshotLabel(const RealLifeVideo &rlv, co
 {
     RealLifeVideo thisRlv = rlv;
     if (thisRlv == _currentRlv && _courseIndex >= 0 && qFuzzyCompare(distance, static_cast<qreal>(_currentRlv.courses()[_courseIndex].start()))) {
-        _videoScreenshotLabel->setPixmap(pixmap);
+        _videoScreenshotWidget->setPixmap(pixmap);
     }
 }
