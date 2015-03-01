@@ -26,7 +26,7 @@
 #include <QtWidgets/QLineEdit>
 
 class VideoListModel;
-class VideoDetailsWidget;
+class VideoDetails;
 
 #include "reallifevideo.h"
 
@@ -52,7 +52,7 @@ private:
     QLineEdit* _filterLineEdit;
     QListView* _listView;
     QSortFilterProxyModel* _filterProxyModel;
-    VideoDetailsWidget* _detailsWidget;
+    VideoDetails* _detailsWidget;
     VideoListModel* _videoListModel;
 
 };

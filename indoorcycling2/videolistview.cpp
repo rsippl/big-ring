@@ -28,10 +28,10 @@
 
 #include "videolistmodel.h"
 #include "videoitemdelegate.h"
-#include "videodetailswidget.h"
+#include "videodetails.h"
 
 VideoListView::VideoListView(QWidget *parent) :
-    QWidget(parent), _filterLineEdit(new QLineEdit(this)), _listView(new QListView(this)), _filterProxyModel(new QSortFilterProxyModel(this)), _detailsWidget(new VideoDetailsWidget(this)), _videoListModel(new VideoListModel)
+    QWidget(parent), _filterLineEdit(new QLineEdit(this)), _listView(new QListView(this)), _filterProxyModel(new QSortFilterProxyModel(this)), _detailsWidget(new VideoDetails(this)), _videoListModel(new VideoListModel)
 {
     QHBoxLayout* layout = new QHBoxLayout;
     _filterProxyModel->setSourceModel(_videoListModel);
@@ -59,7 +59,7 @@ VideoListView::VideoListView(QWidget *parent) :
     layout->addLayout(leftLayout, 1);
     layout->addWidget(_detailsWidget, 3);
 
-    connect(_detailsWidget, &VideoDetailsWidget::playClicked, this, &VideoListView::videoSelected);
+    connect(_detailsWidget, &VideoDetails::playClicked, this, &VideoListView::videoSelected);
     connect(_filterLineEdit, &QLineEdit::textChanged, _filterLineEdit, [=](const QString& text) {
         _filterProxyModel->setFilterRegExp(QRegExp(text, Qt::CaseInsensitive, QRegExp::FixedString));
     });
