@@ -28,7 +28,7 @@ SensorItem::SensorItem(const QuantityPrinter::Quantity quantity, QObject *parent
 {
     QFont font = QFont("Liberation Mono");
     font.setBold(true);
-    font.setPointSize(36);
+    font.setPointSize(24);
 
     _textItem = new QGraphicsTextItem(this);
     _textItem->setFont(font);
@@ -42,7 +42,7 @@ SensorItem::SensorItem(const QuantityPrinter::Quantity quantity, QObject *parent
 
     QFont unitFont = QFont("Liberation Mono");
     unitFont.setBold(true);
-    unitFont.setPointSize(18);
+    unitFont.setPointSize(16);
     _unitItem = new QGraphicsTextItem(this);
     _unitItem->setFont(unitFont);
     _unitItem->setDefaultTextColor(Qt::white);

@@ -23,21 +23,15 @@
 #include <QtGui/QFont>
 #include <QtCore/QTime>
 #include <QtGui/QPainter>
-#include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtDebug>
 #include "simulation.h"
 
 ClockGraphicsItem::ClockGraphicsItem(QObject *parent) :
     QObject(parent)
 {
-    QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect(this);
-    effect->setBlurRadius(10);
-    effect->setOffset(4);
-    setGraphicsEffect(effect);
-
     QFont font = QFont("Liberation Mono");
     font.setBold(true);
-    font.setPointSize(48);
+    font.setPointSize(30);
 
     _textItem = new QGraphicsTextItem(this);
     _textItem->setFont(font);
