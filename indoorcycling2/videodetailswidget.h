@@ -25,9 +25,8 @@
 #include <QtWidgets/QWidget>
 #include "reallifevideo.h"
 
-class ProfilePainter;
 class Thumbnailer;
-class ProfileWidget;
+class AltitudeProfileWidget;
 class QuantityPrinter;
 class VideoScreenshotWidget;
 
@@ -53,12 +52,11 @@ private:
 
     RealLifeVideo _currentRlv;
     int _courseIndex;
-    ProfilePainter* _profilePainter;
     Thumbnailer* _thumbnailer;
     QLabel* _nameLabel;
     QLabel* _distanceLabel;
     VideoScreenshotWidget* _videoScreenshotWidget;
-    ProfileWidget* _profileLabel;
+    AltitudeProfileWidget* _profileLabel;
     QListWidget* _courseListWidget;
     QuantityPrinter* _quantityPrinter;
 };

@@ -24,14 +24,13 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QPushButton>
 
-#include "profilepainter.h"
-#include "profilewidget.h"
+#include "altitudeprofilewidget.h"
 #include "quantityprinter.h"
 #include "thumbnailer.h"
 #include "videoscreenshotwidget.h"
 
 VideoDetailsWidget::VideoDetailsWidget(QWidget *parent) :
-    QWidget(parent), _profilePainter(new ProfilePainter(this)), _thumbnailer(new Thumbnailer(this)),
+    QWidget(parent), _thumbnailer(new Thumbnailer(this)),
     _quantityPrinter(new QuantityPrinter(this))
 {
     QVBoxLayout* layout = new QVBoxLayout;
@@ -119,7 +118,7 @@ QWidget *VideoDetailsWidget::setupCourseList()
 
 QWidget *VideoDetailsWidget::setupProfileLabel()
 {
-    _profileLabel = new ProfileWidget;
+    _profileLabel = new AltitudeProfileWidget;
     _profileLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     return _profileLabel;
 }
