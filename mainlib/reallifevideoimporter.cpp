@@ -79,13 +79,6 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QFileInfo>& vid
     RlvFileParser parser(videoFiles);
     RealLifeVideo rlv = parser.parseRlvFile(rlvFile);
     QSettings settings;
-    settings.beginGroup("unfinished_runs");
-    const QString key = rlv.name();
-    if (settings.contains(key)) {
-        float distance = settings.value(key).toFloat();
-        rlv.setUnfinishedRun(distance);
-    }
-    settings.endGroup();
     settings.beginGroup(QString("%1.custom_courses").arg(rlv.name()));
     QStringList customCourseNames = settings.allKeys();
     for (QString customCourseName: customCourseNames) {
@@ -93,6 +86,14 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QFileInfo>& vid
         rlv.addStartPoint(startDistance, customCourseName);
     }
     settings.endGroup();
+    settings.beginGroup("unfinished_runs");
+    const QString key = rlv.name();
+    if (settings.contains(key)) {
+        float distance = settings.value(key).toFloat();
+        rlv.setUnfinishedRun(distance);
+    }
+    settings.endGroup();
+
     return rlv;
 }
 
