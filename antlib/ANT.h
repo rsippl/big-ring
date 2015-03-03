@@ -25,7 +25,6 @@
 // QT stuff
 //
 #include <QObject>
-#include <QQueue>
 #include <QStringList>
 #include <QFile>
 #include <QSharedPointer>
@@ -33,24 +32,31 @@
 
 #include <QDebug>
 
-// timeouts for read/write of serial port in ms
-#define ANT_READTIMEOUT    1000
-#define ANT_WRITETIMEOUT   2000
+enum AntChannelType {
+    CHANNEL_TYPE_UNUSED,
+    CHANNEL_TYPE_HR,
+    CHANNEL_TYPE_POWER,
+    CHANNEL_TYPE_SPEED,
+    CHANNEL_TYPE_CADENCE,
+    CHANNEL_TYPE_SandC
+};
 
 namespace indoorcycling {
 class AntDeviceFinder;
 class AntDevice;
+
 }
 class ANTMessage;
 class ANTChannel;
 class AntDevice;
+
 typedef struct ant_sensor_type {
     int type;
     int period;
     int device_id;
     int frequency;
     int network;
-    const char *descriptive_name;
+    QString descriptive_name;
     char suffix;
     const char *iconname;
 
@@ -59,15 +65,6 @@ typedef struct ant_sensor_type {
 #define DEFAULT_NETWORK_NUMBER 0
 #define ANT_SPORT_NETWORK_NUMBER 1
 #define RX_BURST_DATA_LEN 128
-
-struct setChannelAtom {
-    setChannelAtom() : channel(0), device_number(0), channel_type(0) {}
-    setChannelAtom(int x, int y, int z) : channel(x), device_number(y), channel_type(z) {}
-
-    int channel;
-    int device_number;
-    int channel_type;
-};
 
 //======================================================================
 // ANT Constants
@@ -215,9 +212,10 @@ signals:
     void heartRateMeasured(int bpm);
     /** power in watts */
     void powerMeasured(float watts);
-    /** cadence in revolutions per minute */
-    void cadenceMeasured(float rpm);
-
+    /** cadence in revolutions per minute. Also sets the channel type, as this can come from both cadence and power sensors */
+    void cadenceMeasured(float rpm, AntChannelType channelType);
+    /** speed in wheel revolutions per minute */
+    void speedMeasured(float rpm);
 public slots:
 
     /** Initialize ANT+ device */
@@ -236,11 +234,11 @@ private slots:
     void slotSearchTimeout(int number); // search timed out
     void slotSearchComplete(int number); // search completed successfully
 public:
-    static const ant_sensor_type_t ant_sensor_types[];
+    static const QVector<ant_sensor_type_t> ant_sensor_types;
     ANTChannel *antChannel[ANT_MAX_CHANNELS];
 
     // ANT Devices and Channels
-    int addDevice(int device_number, int device_type, int channel_number);
+    int addDevice(int device_number, AntChannelType device_type, int channel_number);
 
     // transmission
     void sendMessage(ANTMessage);
@@ -252,10 +250,7 @@ public:
 private:
     void configureDeviceChannels();
 
-    static int interpretSuffix(char c); // utility to convert e.g. 'c' to CHANNEL_TYPE_CADENCE
-    static const char *deviceTypeDescription(int type); // utility to convert CHANNEL_TYPE_XXX to human string
-    static char deviceTypeCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
-    static char deviceIdCode(int type); // utility to convert CHANNEL_TYPE_XXX to 'c', 'p' et al
+    static const QString deviceTypeDescription(int type); // utility to convert CHANNEL_TYPE_XXX to human string
 
     int channels;  // how many 4 or 8 ? depends upon the USB stick...
 
@@ -268,8 +263,6 @@ private:
     int bytes;
     int checksum;
     int powerchannels; // how many power channels do we have?
-
-    QQueue<setChannelAtom> channelQueue; // messages for configuring channels from controller
 
     // antlog.bin ant message stream
     QFile antlog;

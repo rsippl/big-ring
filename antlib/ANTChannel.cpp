@@ -50,7 +50,6 @@ ANTChannel::init()
     messages_received=0;
     messages_dropped=0;
     setId();
-    srm_offset=400; // default relatively arbitrary, but matches common 'indoors' values
     burstInit();
 }
 
@@ -68,24 +67,6 @@ void ANTChannel::setId()
     }
 }
 
-// The description of the device
-const char * ANTChannel::getDescription()
-{
-    return parent->ant_sensor_types[channel_type].descriptive_name;
-}
-
-// Get device type
-int ANTChannel::interpretDescription(char *description)
-{
-    const ant_sensor_type_t *st=parent->ant_sensor_types;
-
-    do {
-        if (0==strcmp(st->descriptive_name,description))
-            return st->type;
-    } while (++st, st->type != CHANNEL_TYPE_GUARD);
-    return -1;
-}
-
 // Open an ant channel assignment.
 void ANTChannel::open(int device, int chan_type)
 {
@@ -95,14 +76,8 @@ void ANTChannel::open(int device, int chan_type)
 
     setId();
 
-#if 0
-    if (channel_assigned) {
-        parent->sendMessage(ANTMessage::unassignChannel(number));
-    } else {
-#endif
-        attemptTransition(ANT_UNASSIGN_CHANNEL);
-        //}
-    }
+    attemptTransition(ANT_UNASSIGN_CHANNEL);
+}
 
     // close an ant channel assignment
     void ANTChannel::close()
@@ -220,11 +195,11 @@ void ANTChannel::open(int device, int chan_type)
         if (lastStdPwrMessage.type && events) {
             stdNullCount = 0;
             emit powerMeasured(antMessage.instantPower);
-            emit cadenceMeasured(antMessage.instantCadence);
+            emit cadenceMeasured(antMessage.instantCadence, CHANNEL_TYPE_POWER);
         } else {
             stdNullCount++;
             if (stdNullCount >= 6) { //XXX 6 for standard power?
-                emit cadenceMeasured(0.0f);
+                emit cadenceMeasured(0.0f, CHANNEL_TYPE_POWER);
                 emit powerMeasured(0.0f);
             }
         }
@@ -344,7 +319,7 @@ void ANTChannel::open(int device, int chan_type)
                     uint16_t revs = antMessage.crankRevolutions - lastMessage.crankRevolutions;
                     if (time) {
                         float cadence = 1024*60*revs / time;
-                        emit cadenceMeasured(cadence);
+                        emit cadenceMeasured(cadence, CHANNEL_TYPE_CADENCE);
                     }
                 }
                     break;
@@ -358,11 +333,11 @@ void ANTChannel::open(int device, int chan_type)
                     if (time) {
                         nullCount = 0;
                         float cadence = 1024*60*revs / time;
-                        emit cadenceMeasured(cadence);
+                        emit cadenceMeasured(cadence, CHANNEL_TYPE_SandC);
                     } else {
                         nullCount++;
                         if (nullCount >= 12) {
-                            emit cadenceMeasured(0.0f);
+                            emit cadenceMeasured(0.0f, CHANNEL_TYPE_SandC);
                         }
                     }
 
@@ -373,12 +348,12 @@ void ANTChannel::open(int device, int chan_type)
                         dualNullCount = 0;
 
                         float rpm = 1024*60*revs / time;
-                        emit speedMeasured(rpm);
+                        emit speedMeasured(rpm, CHANNEL_TYPE_SandC);
                     } else {
 
                         dualNullCount++;
                         if (dualNullCount >= 12) {
-                            emit speedMeasured(0);
+                            emit speedMeasured(0, CHANNEL_TYPE_SandC);
                         }
                     }
                 }
@@ -392,12 +367,12 @@ void ANTChannel::open(int device, int chan_type)
                     if (time) {
                         nullCount=0;
                         float rpm = 1024*60*revs / time;
-                        emit speedMeasured(rpm);
+                        emit speedMeasured(rpm, CHANNEL_TYPE_SPEED);
                     } else {
                         nullCount++;
 
                         if (nullCount >= 12) {
-                            emit speedMeasured(0);
+                            emit speedMeasured(0, CHANNEL_TYPE_SPEED);
                         }
                     }
                 }
@@ -573,17 +548,6 @@ void ANTChannel::open(int device, int chan_type)
         parent->sendMessage(ANTMessage::setSearchTimeout(number, seconds/2.5));
         return 0;
     }
-
-#if 0 // ARE NOW SIGNALS
-    // These should emit signals to notify the channel manager
-    // but for now we just ignore XXX fix this
-    void ANTChannel::searchComplete() {}
-    void ANTChannel::searchTimeout() {}
-    void ANTChannel::staleInfo() {}
-    void ANTChannel::lostInfo() {}
-    void ANTChannel::dropInfo() {}
-    void ANTChannel::channelInfo() {}
-#endif
 
     //
     // Calibrate... XXX not used at present

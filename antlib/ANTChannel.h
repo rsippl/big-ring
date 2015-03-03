@@ -62,18 +62,6 @@ private:
 
     void handlePowerMessage(ANTMessage antMessage);
 public:
-
-    enum channeltype {
-        CHANNEL_TYPE_UNUSED,
-        CHANNEL_TYPE_HR,
-        CHANNEL_TYPE_POWER,
-        CHANNEL_TYPE_SPEED,
-        CHANNEL_TYPE_CADENCE,
-        CHANNEL_TYPE_SandC,
-        CHANNEL_TYPE_GUARD
-    };
-    typedef enum channeltype ChannelType;
-
     // Channel Information - to save tedious set/getters made public
     int number; // Channel number within Ant chip
     int state;
@@ -82,13 +70,8 @@ public:
     int channel_type_flags;
     int device_id;
     int search_type;
-    int srm_offset;
 
     ANTChannel(int number, ANT *parent);
-
-    // What kind of channel
-    const char *getDescription();
-    int interpretDescription(char *description);
 
     // channel open/close
     void init();
@@ -125,8 +108,8 @@ signals:
     /** power in watts */
     void powerMeasured(float watts);
     /** cadence in revolutions per minute */
-    void cadenceMeasured(float rpm);
+    void cadenceMeasured(float rpm, AntChannelType channelType);
     /** wheel speed in revolutions per minute */
-    void speedMeasured(float rpm);
+    void speedMeasured(float rpm, AntChannelType channelType);
 };
 #endif

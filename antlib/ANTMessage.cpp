@@ -364,7 +364,7 @@ ANTMessage::ANTMessage(int channelType, const unsigned char *message) {
             // for the data page itself. (E.g. 1st Gen GARMIN)
             // since we do not care hugely about operating time
             // and serial numbers etc, we don't even try
-            case ANTChannel::CHANNEL_TYPE_HR:
+            case CHANNEL_TYPE_HR:
                 channel = message[3];
                 measurementTime = message[8] + (message[9]<<8);
                 heartrateBeats =  message[10];
@@ -380,7 +380,7 @@ ANTMessage::ANTMessage(int channelType, const unsigned char *message) {
  * power         torque_support      None,channel,0x01,0x12,uint8:sensor_configuration,sint16_le:raw_torque,
  *                                                     sint16_le:offset_torque,None
  */
-            case ANTChannel::CHANNEL_TYPE_POWER:
+            case CHANNEL_TYPE_POWER:
                 channel = message[3];
 
                 switch (data_page) {
@@ -421,19 +421,19 @@ ANTMessage::ANTMessage(int channelType, const unsigned char *message) {
                 } // data_page
                 break;
 
-            case ANTChannel::CHANNEL_TYPE_SPEED:
+            case CHANNEL_TYPE_SPEED:
                 channel = message[3];
                 wheelMeasurementTime = message[8] + (message[9]<<8);
                 wheelRevolutions =  message[10] + (message[11]<<8);
                 break;
 
-            case ANTChannel::CHANNEL_TYPE_CADENCE:
+            case CHANNEL_TYPE_CADENCE:
                 channel = message[3];
                 crankMeasurementTime = message[8] + (message[9]<<8);
                 crankRevolutions =  message[10] + (message[11]<<8);
                 break;
 
-            case ANTChannel::CHANNEL_TYPE_SandC:
+            case CHANNEL_TYPE_SandC:
                 channel = message[3];
                 crankMeasurementTime = message[4] + (message[5]<<8);
                 crankRevolutions =  message[6] + (message[7]<<8);
@@ -480,7 +480,7 @@ ANTMessage::ANTMessage(const unsigned char len,
                        const unsigned char b10,
                        const unsigned char b11)
 {
-	timestamp = QDateTime::currentMSecsSinceEpoch();
+    timestamp = QDateTime::currentMSecsSinceEpoch();
 
     // encode the message
     data[0] = ANT_SYNC_BYTE;
@@ -507,7 +507,7 @@ ANTMessage::ANTMessage(const unsigned char len,
 
 void ANTMessage::init()
 {
-	timestamp = QDateTime::currentMSecsSinceEpoch();
+    timestamp = QDateTime::currentMSecsSinceEpoch();
     data_page = frequency = deviceType = transmitPower = searchTimeout = 0;
     transmissionType = networkNumber = channelType = channel = 0;
     channelPeriod = deviceNumber = 0;
@@ -596,8 +596,8 @@ ANTMessage ANTMessage::requestCalibrate(const unsigned char channel)
 ANTMessage ANTMessage::ANTMessage::boostSignal(const unsigned char channel)
 {
     // [A4][02][6A][XX][57][9B]
-    return ANTMessage(2, 0x6A, channel, 0x57); 
-                                       
+    return ANTMessage(2, 0x6A, channel, 0x57);
+
 }
 
 ANTMessage ANTMessage::open(const unsigned char channel)

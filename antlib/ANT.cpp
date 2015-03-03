@@ -45,43 +45,20 @@ namespace {
 const unsigned char networkKey[8] = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
 }
 // supported sensor types
-const ant_sensor_type_t ANT::ant_sensor_types[] = {
-    { ANTChannel::CHANNEL_TYPE_UNUSED, 0, 0, 0, 0, "Unused", '?', "" },
-    { ANTChannel::CHANNEL_TYPE_HR, ANT_SPORT_HR_PERIOD, ANT_SPORT_HR_TYPE,
+const QVector<ant_sensor_type_t> ANT::ant_sensor_types = {
+    { CHANNEL_TYPE_UNUSED, 0, 0, 0, 0, "Unused", '?', "" },
+    { CHANNEL_TYPE_HR, ANT_SPORT_HR_PERIOD, ANT_SPORT_HR_TYPE,
       ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Heartrate", 'h', ":images/IconHR.png" },
-    { ANTChannel::CHANNEL_TYPE_POWER, ANT_SPORT_POWER_PERIOD, ANT_SPORT_POWER_TYPE,
+    { CHANNEL_TYPE_POWER, ANT_SPORT_POWER_PERIOD, ANT_SPORT_POWER_TYPE,
       ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Power", 'p', ":images/IconPower.png" },
-    { ANTChannel::CHANNEL_TYPE_SPEED, ANT_SPORT_SPEED_PERIOD, ANT_SPORT_SPEED_TYPE,
+    { CHANNEL_TYPE_SPEED, ANT_SPORT_SPEED_PERIOD, ANT_SPORT_SPEED_TYPE,
       ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Speed", 's', ":images/IconSpeed.png" },
-    { ANTChannel::CHANNEL_TYPE_CADENCE, ANT_SPORT_CADENCE_PERIOD, ANT_SPORT_CADENCE_TYPE,
+    { CHANNEL_TYPE_CADENCE, ANT_SPORT_CADENCE_PERIOD, ANT_SPORT_CADENCE_TYPE,
       ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Cadence", 'c', ":images/IconCadence.png" },
-    { ANTChannel::CHANNEL_TYPE_SandC, ANT_SPORT_SandC_PERIOD, ANT_SPORT_SandC_TYPE,
+    { CHANNEL_TYPE_SandC, ANT_SPORT_SandC_PERIOD, ANT_SPORT_SandC_TYPE,
       ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Speed + Cadence", 'd', ":images/IconCadence.png" },
-
-    // We comment out these Quarq specials -- they appear to be experimental
-    //                                        but kept in the code incase they re-appear :)
-    #if 0
-    { ANTChannel::CHANNEL_TYPE_QUARQ, ANT_QUARQ_PERIOD, ANT_QUARQ_TYPE,
-      ANT_QUARQ_FREQUENCY, DEFAULT_NETWORK_NUMBER, "Quarq Channel", 'Q', ":images/IconPower.png" },
-    { ANTChannel::CHANNEL_TYPE_FAST_QUARQ, ANT_FAST_QUARQ_PERIOD, ANT_FAST_QUARQ_TYPE,
-      ANT_FAST_QUARQ_FREQUENCY, DEFAULT_NETWORK_NUMBER, "Fast Quarq", 'q', ":images/IconPower.png" },
-    { ANTChannel::CHANNEL_TYPE_FAST_QUARQ_NEW, ANT_FAST_QUARQ_PERIOD, ANT_FAST_QUARQ_TYPE_WAS,
-      ANT_FAST_QUARQ_FREQUENCY, DEFAULT_NETWORK_NUMBER, "Fast Quarq New", 'n', ":images/IconPower.png" },
-    #endif
-
-    { ANTChannel::CHANNEL_TYPE_GUARD, 0, 0, 0, 0, "", '\0', "" }
 };
 
-//
-// The ANT class is a worker thread, reading/writing to a local
-// Garmin ANT+ serial device. It maintains local state and telemetry.
-// It is controlled by an ANTController, which starts/stops and will
-// request telemetry and send commands to assign channels etc
-//
-// ANTController sits between the RealtimeWindow and the ANT worker
-// thread and is part of the GC architecture NOT related to the
-// hardware controller.
-//
 ANT::ANT(QObject *parent): QObject(parent),
     _antDeviceFinder(new indoorcycling::AntDeviceFinder(this)),
     _antMessageGatherer(new AntMessageGatherer(this))
@@ -110,8 +87,9 @@ ANT::ANT(QObject *parent): QObject(parent),
         connect(antChannel[i], SIGNAL(searchComplete(int)), this, SLOT(slotSearchComplete(int)));
 
         connect(antChannel[i], &ANTChannel::heartRateMeasured, this, &ANT::heartRateMeasured);
-        connect(antChannel[i], SIGNAL(powerMeasured(float)), SIGNAL(powerMeasured(float)));
-        connect(antChannel[i], SIGNAL(cadenceMeasured(float)), SIGNAL(cadenceMeasured(float)));
+        connect(antChannel[i], &ANTChannel::powerMeasured, this, &ANT::powerMeasured);
+        connect(antChannel[i], &ANTChannel::cadenceMeasured, this, &ANT::cadenceMeasured);
+        connect(antChannel[i], &ANTChannel::speedMeasured, this, &ANT::speedMeasured);
     }
 
     channels = 0;
@@ -166,10 +144,10 @@ void ANT::sendNetworkKey()
 
 void ANT::configureDeviceChannels()
 {
-    addDevice(0, ANTChannel::CHANNEL_TYPE_SandC, 0);
-    addDevice(0, ANTChannel::CHANNEL_TYPE_POWER, 1);
-    addDevice(0, ANTChannel::CHANNEL_TYPE_CADENCE, 2);
-    addDevice(0, ANTChannel::CHANNEL_TYPE_HR, 3);
+    addDevice(0, CHANNEL_TYPE_SandC, 0);
+    addDevice(0, CHANNEL_TYPE_POWER, 1);
+    addDevice(0, CHANNEL_TYPE_CADENCE, 2);
+    addDevice(0, CHANNEL_TYPE_HR, 3);
 
     emit initializationSucceeded();
 }
@@ -188,13 +166,6 @@ void ANT::readCycle()
 
     if (!bytesRead)
         return;
-
-    // do we have a channel to search / stop
-    if (!channelQueue.isEmpty()) {
-        setChannelAtom x = channelQueue.dequeue();
-        if (x.device_number == -1) antChannel[x.channel]->close(); // unassign
-        else addDevice(x.device_number, x.channel_type, x.channel); // assign
-    }
 }
 
 /*======================================================================
@@ -203,7 +174,7 @@ void ANT::readCycle()
 
 // returns 1 for success, 0 for fail.
 int
-ANT::addDevice(int device_number, int device_type, int channel_number)
+ANT::addDevice(int device_number, AntChannelType device_type, int channel_number)
 {
     // if we're given a channel number, then use that one
     if (channel_number>-1) {
@@ -230,7 +201,7 @@ ANT::addDevice(int device_number, int device_type, int channel_number)
 
     // look for an unused channel and use on that one
     for (int i=0; i<channels; i++) {
-        if (antChannel[i]->channel_type == ANTChannel::CHANNEL_TYPE_UNUSED) {
+        if (antChannel[i]->channel_type == CHANNEL_TYPE_UNUSED) {
 
             //antChannel[i]->close();
             antChannel[i]->open(device_number, device_type);
@@ -378,48 +349,14 @@ QByteArray ANT::rawRead()
     return antDevice->readBytes();
 }
 
-// convert 'p' 'c' etc into ANT values for device type
-int ANT::interpretSuffix(char c)
-{
-    const ant_sensor_type_t *st=ant_sensor_types;
-
-    do {
-        if (st->suffix==c) return st->type;
-    } while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
-
-    return -1;
-}
-
-// convert ANT value to 'p' 'c' values // XXX this and below are named wrong, legacy from quarqd code.
-char ANT::deviceIdCode(int type)
-{
-    const ant_sensor_type_t *st=ant_sensor_types;
-
-    do {
-        if (st->type==type) return st->suffix;
-    } while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
-    return '-';
-}
-
-// convert ANT value to 'p' 'c' values
-char ANT::deviceTypeCode(int type)
-{
-    const ant_sensor_type_t *st=ant_sensor_types;
-
-    do {
-        if (st->device_id==type) return st->suffix;
-    } while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
-    return '-';
-}
-
 // convert ANT value to human string
-const char * ANT::deviceTypeDescription(int type)
+const QString ANT::deviceTypeDescription(int type)
 {
-    const ant_sensor_type_t *st=ant_sensor_types;
-
-    do {
-        if (st->device_id==type) return st->descriptive_name;
-    } while (++st, st->type != ANTChannel::CHANNEL_TYPE_GUARD);
+    for (auto& sensorType: ant_sensor_types) {
+        if (sensorType.device_id == type) {
+            return sensorType.descriptive_name;
+        }
+    }
     return "Unknown device type";
 }
 
