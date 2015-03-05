@@ -148,7 +148,7 @@ void VideoPlayer::createPipeline()
     _appSink = gst_element_factory_make("appsink", "appsink");
 
     gst_bin_add(GST_BIN(_pipeline), _playbin);
-    GstAppSinkCallbacks callbacks = { handleAppSinkEndOfStream, handleAppSinkNewSample, handleAppSinkNewSample, { nullptr }};
+    GstAppSinkCallbacks callbacks = { handleAppSinkEndOfStream, handleAppSinkNewPreRoll, handleAppSinkNewSample, { nullptr }};
     gst_app_sink_set_callbacks(GST_APP_SINK(_appSink), &callbacks, this, nullptr);
 
     if (_pipeline) {
