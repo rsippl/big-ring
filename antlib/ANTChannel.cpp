@@ -26,7 +26,7 @@ namespace {
 const quint32 timeout_blanking = 2000; // ms
 const quint32 timeout_drop = 2000; // ms
 const quint32 timeout_scan = 10000; // ms
-const quint32 timeout_lost = 30000; // ms
+const quint32 timeout_lost = 30; // s
 }
 
 ANTChannel::ANTChannel(int number, ANT *parent) : QObject(parent), parent(parent), number(number)

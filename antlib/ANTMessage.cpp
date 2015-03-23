@@ -180,6 +180,14 @@
  *                                                operating_time_msb,voltage_lsb,descriptive_bits
  */
 
+
+QMap<int,QString> ANT_MESSAGE_TYPES = QMap<int,QString>({{ANT_SYSTEM_RESET, "System Reset"},
+                                                         {ANT_SET_NETWORK, "Set Network"},
+                                                         {ANT_UNASSIGN_CHANNEL, "Unassign Channel"},
+                                                         {ANT_ASSIGN_CHANNEL, "Assign Channel"},
+                                                         {ANT_SEARCH_TIMEOUT, "Set Search Timeout"},
+                                                         {ANT_CHANNEL_ID, "Set Channel ID"}});
+
 // construct a null message
 ANTMessage::ANTMessage(void) {
     init();
@@ -217,6 +225,79 @@ ANTMessage::channelEventMessage(unsigned char c)
     default: return "UNKNOWN MESSAGE CODE";
     }
 }
+
+QString ANTMessage::toString() const
+{
+    QString extra;
+    switch(messageType()) {
+    case ANT_SET_NETWORK:
+        extra = QString("NETWORK NR %1").arg(payLoadByte(0));
+        break;
+    case ANT_UNASSIGN_CHANNEL:
+        extra = QString("CHANNEL NR %1").arg(payLoadByte(0));
+        break;
+    case ANT_ASSIGN_CHANNEL:
+        extra = QString("CHANNEL NR %1, TYPE %2, NETWORK %3").arg(payLoadByte(0)).arg(payLoadByte(1)).arg(payLoadByte(2));
+        break;
+    case ANT_CHANNEL_ID:
+        extra = QString("CHANNEL NR %1, DEVICE NR %2, DEVICE ID %3, TRANSMISSION TYPE %4").arg(payLoadByte(0)).arg(payLoadShort(1)).arg(payLoadByte(3)).arg(payLoadByte(4));
+        break;
+    case ANT_SEARCH_TIMEOUT:
+        extra = QString("CHANNEL NR %1, TIMEOUT %2 = (%3)").arg(payLoadByte(0)).arg(payLoadByte(1)).arg(timeOutToSeconds(payLoadByte(1)));
+        break;
+    }
+
+    const QString hexType = QString::number(static_cast<int>(messageType()), 16);
+    const QString& messageTypeString = ANT_MESSAGE_TYPES[messageType()];
+    return QString("ANT Message [0x%1 %2]: %3").arg(hexType).arg(messageTypeString).arg(extra);
+}
+
+
+
+int ANTMessage::messageType() const
+{
+    return static_cast<int>(data[2]);
+}
+
+QByteArray ANTMessage::bytes() const
+{
+    return QByteArray::fromRawData(reinterpret_cast<const char*>(data), length);
+    //    return QByteArray(static_cast<const char*>(&data[0]), length);
+}
+
+int ANTMessage::payloadLength() const
+{
+    return static_cast<int>(data[1]);
+}
+
+QByteArray ANTMessage::payLoad() const
+{
+    return bytes().mid(3, payloadLength());
+}
+
+uint8_t ANTMessage::payLoadByte(int byteNr) const
+{
+    Q_ASSERT_X(byteNr < length - 3, "ANTMessage::payLoad", qPrintable(QString("byteNr [%1] >= length of payload [%2]").arg(byteNr).arg(length - 3)));
+
+    return data[byteNr + 3];
+}
+
+uint16_t ANTMessage::payLoadShort(int index) const
+{
+    Q_ASSERT_X(index < length - 4, "ANTMessage::payLoadShort", qPrintable(QString("index [%1-%2] >= length of payload [%3]").arg(index).arg(index+1).arg(length - 3)));
+
+    uint16_t value = 0u;
+    value = data[index + 3] & 0xFF00;
+    value |= (data[index + 4] & 0x0FF);
+
+    return value;
+}
+
+float ANTMessage::timeOutToSeconds(const uint8_t timeoutValue)
+{
+    return timeoutValue * 2.5;
+}
+
 
 // construct an ant message based upon a message structure
 // the message structure must include the sync byte
@@ -465,6 +546,12 @@ ANTMessage::ANTMessage(int channelType, const unsigned char *message) {
         default:
             break; // shouldn't get here!
     }
+}
+
+ANTMessage::ANTMessage(const QByteArray &messageBytes)
+{
+    length = messageBytes[0];
+    type = messageBytes[1];
 }
 
 // construct a message with all data passed (except sync and checksum)

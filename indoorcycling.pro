@@ -6,6 +6,8 @@ SUBDIRS += \
     mainlib \
     indoorcycling2 \
     antlib \
+    anttestapp \
+    test
 
 
 #!isEmpty(GOOGLE_TEST_SOURCE_DIR) {
@@ -14,4 +16,5 @@ SUBDIRS += \
 #}
 
 indoorcycling2.depends = antlib mainlib
-
+anttestapp.depends = antlib
+test.depends = antlib mainlib

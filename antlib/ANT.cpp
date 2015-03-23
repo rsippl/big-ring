@@ -130,6 +130,7 @@ void ANT::initialize()
     antlog.setFileName("antlog.bin");
     antlog.open(QIODevice::WriteOnly | QIODevice::Truncate);
 
+    qDebug() << "resetting system";
     sendMessage(ANTMessage::resetSystem());
     // wait for 500ms before sending network key.
     _initializiationTimer.singleShot(500, this, SLOT(sendNetworkKey()));
@@ -274,7 +275,7 @@ ANT::slotSearchComplete(int number) // search completed successfully
  *--------------------------------------------------------------------*/
 void
 ANT::sendMessage(ANTMessage m) {
-
+    qDebug() << "Sending ANT Message" << m.toString();
     QByteArray bytes((const char*) m.data, m.length);
     rawWrite(bytes);
 
@@ -303,7 +304,8 @@ ANT::processMessage(QByteArray message) {
     for (int i=0; i<ANT_MAX_MESSAGE_SIZE; i++)
         out<< message;
 
-
+    ANTMessage antMessage(message);
+    qDebug() << "Received" << antMessage.toString();
     switch (message[ANT_OFFSET_ID]) {
     case ANT_ACK_DATA:
     case ANT_BROADCAST_DATA:

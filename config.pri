@@ -16,7 +16,4 @@ LIBS += -Wl,--no-as-needed -lasan -Wl,--as-needed
 #LIBS += -Wl,--no-as-needed -lprofiler -Wl,--as-needed
 #LIBS += -Wl,--no-as-needed -ltcmalloc -Wl,--as-needed
 
-HEADERS +=
-
-SOURCES +=
 

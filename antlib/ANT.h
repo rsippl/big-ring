@@ -244,10 +244,10 @@ public:
     void sendMessage(ANTMessage);
     void handleChannelEvent(QByteArray &message);
 
+private:
     QByteArray rawRead();
     int rawWrite(QByteArray& bytes);
 
-private:
     void configureDeviceChannels();
 
     static const QString deviceTypeDescription(int type); // utility to convert CHANNEL_TYPE_XXX to human string

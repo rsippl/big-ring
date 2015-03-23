@@ -28,12 +28,19 @@ extern "C" {
 #include <stdint.h>
 }
 
+enum AntDataType : quint8 {
+    AntSystemReset = ANT_SYSTEM_RESET,
+    AntSyncByte = ANT_SYNC_BYTE,
+    AntSetNetworkKey = ANT_SET_NETWORK
+};
+
 class ANTMessage {
 
     public:
 
         ANTMessage(); // null message
         ANTMessage(int channelType, const unsigned char *data); // decode from parameters
+        ANTMessage(const QByteArray& messageBytes);
         ANTMessage(unsigned char b1,
                    unsigned char b2 = '\0',
                    unsigned char b3 = '\0',
@@ -108,7 +115,19 @@ class ANTMessage {
         uint8_t instantCadence; // cadence
         uint8_t autoZeroStatus, autoZeroEnable;
 
-    private:
+        QString toString() const;
+        int messageType() const;
+        /** all bytes of the message */
+        QByteArray bytes() const;
+        /** payload length of the message */
+        int payloadLength() const;
+        /** the payload bytes of the message */
+        QByteArray payLoad() const;
+private:
+        uint8_t payLoadByte(int byteNr) const;
+        uint16_t payLoadShort(int index) const;
+
+        static float timeOutToSeconds(const uint8_t timeoutValue);
         void init();
 };
 #endif
