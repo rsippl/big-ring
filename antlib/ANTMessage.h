@@ -39,7 +39,6 @@ class ANTMessage {
     public:
 
         ANTMessage(); // null message
-        ANTMessage(int channelType, const unsigned char *data); // decode from parameters
         ANTMessage(const QByteArray& messageBytes);
         ANTMessage(unsigned char b1,
                    unsigned char b2 = '\0',
@@ -123,7 +122,9 @@ class ANTMessage {
         int payloadLength() const;
         /** the payload bytes of the message */
         QByteArray payLoad() const;
+        ANTMessage(int channelType, const unsigned char *data); // decode from parameters
 private:
+        QString channelEventToString() const;
         uint8_t payLoadByte(int byteNr) const;
         uint16_t payLoadShort(int index) const;
 
