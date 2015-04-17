@@ -47,7 +47,7 @@ public:
 
     virtual int numberOfChannels() const;
 
-    virtual int writeBytes(QByteArray& bytes);
+    virtual int writeBytes(const QByteArray& bytes);
     virtual QByteArray readBytes();
 signals:
 

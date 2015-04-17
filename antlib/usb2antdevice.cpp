@@ -129,7 +129,7 @@ int Usb2AntDevice::numberOfChannels() const
     return 8;
 }
 
-int Usb2AntDevice::writeBytes(QByteArray &bytes)
+int Usb2AntDevice::writeBytes(const QByteArray &bytes)
 {
     if (!_deviceConfiguration) {
         qWarning("Trying to read without a connection to a USB device");

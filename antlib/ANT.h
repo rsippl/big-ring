@@ -184,6 +184,7 @@ typedef struct ant_sensor_type {
 #define ANT_SPORT_AUTOZERO_OFF                        0x00
 #define ANT_SPORT_AUTOZERO_ON                         0x01
 
+class AntMessage2;
 class AntMessageGatherer;
 //======================================================================
 // Worker thread
@@ -241,12 +242,13 @@ public:
     int addDevice(int device_number, AntChannelType device_type, int channel_number);
 
     // transmission
+    void sendMessage(const AntMessage2&);
     void sendMessage(ANTMessage);
     void handleChannelEvent(QByteArray &message);
 
 private:
     QByteArray rawRead();
-    int rawWrite(QByteArray& bytes);
+    int rawWrite(const QByteArray &bytes);
 
     void configureDeviceChannels();
 

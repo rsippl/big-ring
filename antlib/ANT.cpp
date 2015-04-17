@@ -26,6 +26,7 @@
 
 #include "ANT.h"
 #include "ANTMessage.h"
+#include "antmessage2.h"
 #include "antmessagegatherer.h"
 
 #include "antdevicefinder.h"
@@ -42,7 +43,8 @@
 
 namespace {
 // network key
-const unsigned char networkKey[8] = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
+const std::array<quint8,8> networkKey = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
+//const unsigned char networkKey[8] = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
 }
 // supported sensor types
 const QVector<ant_sensor_type_t> ANT::ant_sensor_types = {
@@ -131,14 +133,15 @@ void ANT::initialize()
     antlog.open(QIODevice::WriteOnly | QIODevice::Truncate);
 
     qDebug() << "resetting system";
-    sendMessage(ANTMessage::resetSystem());
+    sendMessage(AntMessage2::systemReset());
+//    sendMessage(ANTMessage::resetSystem());
     // wait for 500ms before sending network key.
     _initializiationTimer.singleShot(500, this, SLOT(sendNetworkKey()));
 }
 
 void ANT::sendNetworkKey()
 {
-    sendMessage(ANTMessage::setNetworkKey(1, networkKey));
+    sendMessage(AntMessage2::setNetworkKey(1, networkKey));
 
     configureDeviceChannels();
 }
@@ -286,6 +289,18 @@ ANT::sendMessage(ANTMessage m) {
     rawWrite(paddingBytes);
 }
 
+void
+ANT::sendMessage(const AntMessage2& m) {
+    qDebug() << "Sending ANT Message" << m.toString();
+    rawWrite(m.toBytes());
+
+    // this padding is important, for some reason XXX find out why?
+
+    static const char padding[5] = { '\0', '\0', '\0', '\0', '\0' };
+    QByteArray paddingBytes(padding, 5);
+    rawWrite(paddingBytes);
+}
+
 //
 // Pass inbound message to channel for handling
 //
@@ -341,7 +356,7 @@ ANT::processMessage(QByteArray message) {
     }
 }
 
-int ANT::rawWrite(QByteArray &bytes) // unix!!
+int ANT::rawWrite(const QByteArray &bytes) // unix!!
 {
     return antDevice->writeBytes(bytes);
 }

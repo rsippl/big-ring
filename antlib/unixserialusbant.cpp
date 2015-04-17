@@ -75,7 +75,7 @@ int UnixSerialUsbAnt::numberOfChannels() const
     return 4;
 }
 
-int UnixSerialUsbAnt::writeBytes(QByteArray &bytes)
+int UnixSerialUsbAnt::writeBytes(const QByteArray &bytes)
 {
     int rc;
     int ibytes;

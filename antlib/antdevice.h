@@ -56,7 +56,7 @@ public:
      * @param bytes the bytes to write.
      * @return the number of bytes written.
      */
-    virtual int writeBytes(QByteArray& bytes) = 0;
+    virtual int writeBytes(const QByteArray& bytes) = 0;
     /**
      * @brief try to read a number of bytes from the ANT+ device.
      * @return the byte array that was read. Might be empty, in fact it *will* often be empty.

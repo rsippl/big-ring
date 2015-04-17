@@ -5,11 +5,17 @@ include(../mainlib/mainlib.pri)
 QT += testlib
 TARGET = tests
 
+
 SOURCES += \
-#    antmessagegatherertest.cpp \
-#    reallifevideotest.cpp \
-#    testmain.cpp \
-    antmessagetest.cpp
+    antmessagetest.cpp \
+    antmessage2test.cpp \
+    main.cpp
+
+
+HEADERS += \
+    antmessagetest.h \
+    antmessage2test.h \
+    common.h
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../antlib/release/ -lantlib
@@ -38,5 +44,3 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../mainlib/debug/mainlib.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../mainlib/libmainlib.a
 
-HEADERS += \
-    antmessagetest.h

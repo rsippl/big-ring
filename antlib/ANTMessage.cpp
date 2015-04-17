@@ -600,6 +600,7 @@ ANTMessage::ANTMessage(const unsigned char len,
     for (; i< (len+3); i++) crc ^= data[i];
     data[i] = crc;
 
+    qDebug() << "crc = " << crc;
     length = i+1;
 }
 

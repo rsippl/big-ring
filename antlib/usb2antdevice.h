@@ -46,7 +46,7 @@ public:
     virtual ~Usb2AntDevice();
     virtual bool isValid() const;
     virtual int numberOfChannels() const;
-    virtual int writeBytes(QByteArray& bytes);
+    virtual int writeBytes(const QByteArray& bytes);
     virtual QByteArray readBytes();
 private:
     const std::unique_ptr<Usb2DeviceConfiguration> _deviceConfiguration;
