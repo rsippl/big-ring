@@ -280,25 +280,21 @@ void
 ANT::sendMessage(ANTMessage m) {
     qDebug() << "Sending ANT Message" << m.toString();
     QByteArray bytes((const char*) m.data, m.length);
-    rawWrite(bytes);
-
-    // this padding is important, for some reason XXX find out why?
-
     static const char padding[5] = { '\0', '\0', '\0', '\0', '\0' };
     QByteArray paddingBytes(padding, 5);
-    rawWrite(paddingBytes);
+    rawWrite(bytes + paddingBytes);
 }
 
 void
 ANT::sendMessage(const AntMessage2& m) {
     qDebug() << "Sending ANT Message" << m.toString();
-    rawWrite(m.toBytes());
 
-    // this padding is important, for some reason XXX find out why?
+    QByteArray messageBytes = m.toBytes();
 
     static const char padding[5] = { '\0', '\0', '\0', '\0', '\0' };
     QByteArray paddingBytes(padding, 5);
-    rawWrite(paddingBytes);
+    QByteArray paddedMessageBytes = messageBytes + paddingBytes;
+    rawWrite(paddedMessageBytes);
 }
 
 //
