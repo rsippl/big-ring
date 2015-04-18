@@ -18,6 +18,7 @@
  * Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include "antmessage2.h"
 #include "ANTChannel.h"
 #include <QDebug>
 #include <QTime>
@@ -136,9 +137,7 @@ void ANTChannel::open(int device, int chan_type)
             attemptTransition(RESPONSE_NO_ERROR_MESSAGE_ID(message));
 
         } else if (MESSAGE_IS_EVENT_CHANNEL_CLOSED(message)) {
-
-            parent->sendMessage(ANTMessage::unassignChannel(number));
-
+            parent->sendMessage(AntMessage2::unassignChannel(number));
         } else if (MESSAGE_IS_EVENT_RX_SEARCH_TIMEOUT(message)) {
 
             // timeouts are normal for search channel
@@ -158,7 +157,7 @@ void ANTChannel::open(int device, int chan_type)
                 device_number=0;
                 setId();
 
-                parent->sendMessage(ANTMessage::unassignChannel(number));
+                parent->sendMessage(AntMessage2::unassignChannel(number));
             }
 
             //XXX channel_manager_start_waiting_search(self->parent);
@@ -492,7 +491,7 @@ void ANTChannel::open(int device, int chan_type)
 
             // lets make sure this channel is assigned to our network
             // regardless of its current state.
-            parent->sendMessage(ANTMessage::unassignChannel(number)); // unassign whatever we had before
+            parent->sendMessage(AntMessage2::unassignChannel(number)); // unassign whatever we had before
 
             // reassign to whatever we need!
             parent->sendMessage(ANTMessage::assignChannel(number, 0, st->network)); // recieve channel on network 1

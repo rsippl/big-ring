@@ -34,3 +34,12 @@ void AntMessage2Test::setNetworkKey()
     QByteArray comparison = QByteArray::fromRawData(reinterpret_cast<char*>(&theKey), 8);
     QCOMPARE(key, comparison);
 }
+
+void AntMessage2Test::unassignChannel()
+{
+    AntMessage2 msg = AntMessage2::unassignChannel(3u);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::UNASSIGN_CHANNEL);
+    QCOMPARE(msg.toBytes().size(), 5);
+    int channel = msg.toBytes()[3];
+    QCOMPARE(channel, 3);
+}

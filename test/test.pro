@@ -7,13 +7,11 @@ TARGET = tests
 
 
 SOURCES += \
-    antmessagetest.cpp \
     antmessage2test.cpp \
     main.cpp
 
 
 HEADERS += \
-    antmessagetest.h \
     antmessage2test.h \
     common.h
 

@@ -14,8 +14,9 @@ public:
     static const quint8 SYNC_BYTE = 0xA4;
 
     enum AntMessageId {
+        SET_NETWORK_KEY = 0x46,
         SYSTEM_RESET = 0x4A,
-        SET_NETWORK_KEY = 0x46
+        UNASSIGN_CHANNEL = 0x41
     };
 
     QByteArray toBytes() const;
@@ -27,7 +28,7 @@ public:
     // static factory methods for different messages
     static AntMessage2 systemReset();
     static AntMessage2 setNetworkKey(quint8 networkNumber, const std::array<quint8, 8> &networkKey);
-
+    static AntMessage2 unassignChannel(quint8 channelNumber);
 private:
     AntMessage2(const AntMessageId id, const QByteArray& content);
 

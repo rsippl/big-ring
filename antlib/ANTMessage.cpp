@@ -622,21 +622,11 @@ void ANTMessage::init()
     autoZeroStatus = autoZeroEnable = 0;
 }
 
-ANTMessage ANTMessage::resetSystem()
-{
-    return ANTMessage(1, ANT_SYSTEM_RESET);
-}
-
 ANTMessage ANTMessage::assignChannel(const unsigned char channel,
                                      const unsigned char type,
                                      const unsigned char network)
 {
     return ANTMessage(3, ANT_ASSIGN_CHANNEL, channel, type, network);
-}
-
-ANTMessage ANTMessage::unassignChannel(const unsigned char channel)
-{
-    return ANTMessage(1, ANT_UNASSIGN_CHANNEL, channel);
 }
 
 ANTMessage ANTMessage::setSearchTimeout(const unsigned char channel,
@@ -669,12 +659,6 @@ ANTMessage ANTMessage::setChannelFreq(const unsigned char channel,
                                       const unsigned char frequency)
 {
     return ANTMessage(2, ANT_CHANNEL_FREQUENCY, channel, frequency);
-}
-
-ANTMessage ANTMessage::setNetworkKey(const unsigned char net,
-                                     const unsigned char *key)
-{
-    return ANTMessage(9, ANT_SET_NETWORK, net, key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
 }
 
 ANTMessage ANTMessage::setAutoCalibrate(const unsigned char channel,

@@ -9,6 +9,7 @@ class AntMessage2Test : public QObject
 private slots:
     void systemReset();
     void setNetworkKey();
+    void unassignChannel();
 };
 
 #endif // ANTMESSAGE2TEST_H
