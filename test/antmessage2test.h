@@ -12,6 +12,8 @@ private slots:
     void unassignChannel();
     void assignChannel();
     void setChannelId();
+
+    void channelEventNoError();
 };
 
 #endif // ANTMESSAGE2TEST_H

@@ -7,6 +7,11 @@ AntMessage2::AntMessage2(const AntMessageId id, const QByteArray& content):
 {
 }
 
+const QByteArray &AntMessage2::content() const
+{
+    return _content;
+}
+
 quint8 AntMessage2::computeChecksum(const QByteArray &bytes) const
 {
     quint8 checksum = 0;
@@ -113,4 +118,41 @@ AntMessage2 AntMessage2::setChannelId(quint8 channelNumber, quint16 deviceId, qu
     array += zero;
 
     return AntMessage2(SET_CHANNEL_ID, array);
+}
+
+
+AntChannelEventMessage::AntChannelEventMessage(const QByteArray &bytes):
+    AntMessage2(CHANNEL_EVENT, bytes.mid(3))
+{
+    _channelNumber = content()[0];
+    _messageId = content()[1];
+    quint8 messageCode = content()[2];
+    _messageCode = static_cast<MessageCode>(messageCode);
+}
+
+quint8 AntChannelEventMessage::channelNumber() const
+{
+    return _channelNumber;
+}
+
+quint8 AntChannelEventMessage::messageId() const
+{
+    return _messageId;
+}
+
+AntChannelEventMessage::MessageCode AntChannelEventMessage::messageCode() const
+{
+    return _messageCode;
+}
+
+QString AntChannelEventMessage::toString() const
+{
+    switch (_messageCode) {
+    case EVENT_CHANNEL_IN_WRONG_STATE:
+        return QString("Channel Event CHANNEL_IN_WRONG_STATE, Channel #%1").arg(contentByte(0));
+    case EVENT_RESPONSE_NO_ERROR:
+        return QString("Channel Event RESPONSE_NO_ERROR, Channel #%1").arg(contentByte(0));
+    default:
+        return "Channel Event Unknown";
+    }
 }

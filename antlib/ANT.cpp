@@ -319,6 +319,7 @@ ANT::processMessage(QByteArray message) {
     for (int i=0; i<ANT_MAX_MESSAGE_SIZE; i++)
         out<< message;
 
+
     ANTMessage antMessage(message);
     qDebug() << "Received" << antMessage.toString() << message.toHex();
     switch (message[ANT_OFFSET_ID]) {
@@ -331,6 +332,9 @@ ANT::processMessage(QByteArray message) {
         break;
 
     case ANT_CHANNEL_EVENT:
+    {
+        AntChannelEventMessage eventMessage(message);
+        qDebug() << "received" << eventMessage.toString();
         switch (message[ANT_OFFSET_MESSAGE_CODE]) {
         case EVENT_TRANSFER_TX_FAILED:
             //XXX remember last message ... ANT_SendAckMessage();
@@ -340,6 +344,7 @@ ANT::processMessage(QByteArray message) {
         default:
             handleChannelEvent(message);
         }
+    }
         break;
 
     case ANT_VERSION:

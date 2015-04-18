@@ -78,3 +78,18 @@ void AntMessage2Test::setChannelId()
     int transmissionType = content[4];
     QCOMPARE(transmissionType, 0);
 }
+
+void AntMessage2Test::channelEventNoError()
+{
+    QByteArray bytes = QByteArray::fromHex(QByteArray::fromRawData("a40340014615a0", 14));
+    AntChannelEventMessage msg(bytes);
+
+    QCOMPARE(msg.id(), AntMessage2::CHANNEL_EVENT);
+    quint8 channelNumber = 1;
+    QCOMPARE(msg.channelNumber(), channelNumber);
+    int messageId = msg.messageId();
+    QCOMPARE(messageId, 0x46);
+    int actualMessageCode = msg.messageCode();
+    int expectedMessageCode = AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR;
+    QCOMPARE(actualMessageCode, expectedMessageCode);
+}

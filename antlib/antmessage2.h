@@ -16,6 +16,7 @@ public:
     /** message ids (in alphabetic order) */
     enum AntMessageId {
         ASSIGN_CHANNEL = 0x42,
+        CHANNEL_EVENT = 0x40,
         SET_CHANNEL_ID = 0x51,
         SET_NETWORK_KEY = 0x46,
         SYSTEM_RESET = 0x4A,
@@ -24,7 +25,7 @@ public:
 
     QByteArray toBytes() const;
     QByteArray toHex() const;
-    QString toString() const;
+    virtual QString toString() const;
 
     AntMessageId id() const;
 
@@ -34,12 +35,14 @@ public:
     static AntMessage2 unassignChannel(quint8 channelNumber);
     static AntMessage2 assignChannel(quint8 channelNumber, quint8 channelType, quint8 networkNumber);
     static AntMessage2 setChannelId(quint8 channelNumber, quint16 deviceId, quint8 deviceType);
-private:
+protected:
     AntMessage2(const AntMessageId id, const QByteArray& content);
-
-    quint8 computeChecksum(const QByteArray& bytes) const;
+    const QByteArray& content() const;
     quint8 contentByte(int nr) const;
     quint8 contentShort(int index) const;
+
+private:
+    quint8 computeChecksum(const QByteArray& bytes) const;
 
     AntMessageId _id;
 
@@ -52,20 +55,20 @@ public:
     AntChannelEventMessage(const QByteArray& bytes);
 
     enum MessageCode {
+        EVENT_CHANNEL_IN_WRONG_STATE = 0x15,
         EVENT_RESPONSE_NO_ERROR = 0x00
     };
 
-    quint8 channel() const;
+    quint8 channelNumber() const;
     quint8 messageId() const;
     MessageCode messageCode() const;
 
-
+    virtual QString toString() const override;
 private:
 
-    quint8 _channel;
+    quint8 _channelNumber;
     quint8 _messageId;
     MessageCode _messageCode;
 };
-
 
 #endif // ANTMESSAGE2_H
