@@ -622,13 +622,6 @@ void ANTMessage::init()
     autoZeroStatus = autoZeroEnable = 0;
 }
 
-ANTMessage ANTMessage::assignChannel(const unsigned char channel,
-                                     const unsigned char type,
-                                     const unsigned char network)
-{
-    return ANTMessage(3, ANT_ASSIGN_CHANNEL, channel, type, network);
-}
-
 ANTMessage ANTMessage::setSearchTimeout(const unsigned char channel,
                                         const unsigned char timeout)
 {

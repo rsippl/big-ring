@@ -53,9 +53,6 @@ class ANTMessage {
                    unsigned char b11 = '\0'); // encode with values (at least one value must be passed though)
 
         // convenience functions for encoding messages
-        static ANTMessage assignChannel(const unsigned char channel,
-                                        const unsigned char type,
-                                        const unsigned char network);
         static ANTMessage boostSignal(const unsigned char channel);
         static ANTMessage setSearchTimeout(const unsigned char channel,
                                            const unsigned char timeout);

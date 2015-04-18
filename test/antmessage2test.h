@@ -10,6 +10,7 @@ private slots:
     void systemReset();
     void setNetworkKey();
     void unassignChannel();
+    void assignChannel();
 };
 
 #endif // ANTMESSAGE2TEST_H

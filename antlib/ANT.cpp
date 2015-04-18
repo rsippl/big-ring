@@ -320,7 +320,7 @@ ANT::processMessage(QByteArray message) {
         out<< message;
 
     ANTMessage antMessage(message);
-    qDebug() << "Received" << antMessage.toString();
+    qDebug() << "Received" << antMessage.toString() << message.toHex();
     switch (message[ANT_OFFSET_ID]) {
     case ANT_ACK_DATA:
     case ANT_BROADCAST_DATA:

@@ -43,3 +43,17 @@ void AntMessage2Test::unassignChannel()
     int channel = msg.toBytes()[3];
     QCOMPARE(channel, 3);
 }
+
+void AntMessage2Test::assignChannel()
+{
+    AntMessage2 msg = AntMessage2::assignChannel(1, 0x10, 3);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::ASSIGN_CHANNEL);
+    QCOMPARE(msg.toBytes().size(), 7);
+    QByteArray content = msg.toBytes().mid(3, 3);
+    int channel = content[0];
+    QCOMPARE(channel, 1);
+    int channelType = content[1];
+    QCOMPARE(channelType, 0x10);
+    int networkNumber = content[2];
+    QCOMPARE(networkNumber, 3);
+}
