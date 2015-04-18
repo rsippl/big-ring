@@ -3,6 +3,7 @@
 #include "common.h"
 
 #include <QtCore/QtDebug>
+#include <QtCore/QtEndian>
 
 void AntMessage2Test::systemReset()
 {
@@ -56,4 +57,24 @@ void AntMessage2Test::assignChannel()
     QCOMPARE(channelType, 0x10);
     int networkNumber = content[2];
     QCOMPARE(networkNumber, 3);
+}
+
+void AntMessage2Test::setChannelId()
+{
+    quint16 theDeviceId = 10000;
+    int theDeviceType = 3;
+    AntMessage2 msg = AntMessage2::setChannelId(1, theDeviceId, theDeviceType);
+
+    QCOMPARE_BYTE(msg.id(), AntMessage2::SET_CHANNEL_ID);
+    QCOMPARE(msg.toBytes().size(), 9);
+    QByteArray content = msg.toBytes().mid(3, 5);
+    int channel = content[0];
+    QCOMPARE(channel, 1);
+    const uchar* deviceIdChars = reinterpret_cast<uchar*>(&content.data()[1]);
+    quint16 deviceId = qFromLittleEndian<quint16>(deviceIdChars);
+    QCOMPARE(deviceId, deviceId);
+    int deviceType = content[3];
+    QCOMPARE(deviceType, theDeviceType);
+    int transmissionType = content[4];
+    QCOMPARE(transmissionType, 0);
 }

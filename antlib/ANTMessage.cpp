@@ -634,14 +634,6 @@ ANTMessage ANTMessage::requestMessage(const unsigned char channel,
     return ANTMessage(2, ANT_REQ_MESSAGE, channel, request);
 }
 
-ANTMessage ANTMessage::setChannelID(const unsigned char channel,
-                                    const unsigned short device,
-                                    const unsigned char devicetype,
-                                    const unsigned char txtype)
-{
-    return ANTMessage(5, ANT_CHANNEL_ID, channel, device&0xff, (device>>8)&0xff, devicetype, txtype);
-}
-
 ANTMessage ANTMessage::setChannelPeriod(const unsigned char channel,
                                         const unsigned short period)
 {

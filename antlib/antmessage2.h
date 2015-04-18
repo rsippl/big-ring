@@ -16,6 +16,7 @@ public:
     /** message ids (in alphabetic order) */
     enum AntMessageId {
         ASSIGN_CHANNEL = 0x42,
+        SET_CHANNEL_ID = 0x51,
         SET_NETWORK_KEY = 0x46,
         SYSTEM_RESET = 0x4A,
         UNASSIGN_CHANNEL = 0x41
@@ -32,11 +33,13 @@ public:
     static AntMessage2 setNetworkKey(quint8 networkNumber, const std::array<quint8, 8> &networkKey);
     static AntMessage2 unassignChannel(quint8 channelNumber);
     static AntMessage2 assignChannel(quint8 channelNumber, quint8 channelType, quint8 networkNumber);
+    static AntMessage2 setChannelId(quint8 channelNumber, quint16 deviceId, quint8 deviceType);
 private:
     AntMessage2(const AntMessageId id, const QByteArray& content);
 
     quint8 computeChecksum(const QByteArray& bytes) const;
-    quint8 byte(int nr) const;
+    quint8 contentByte(int nr) const;
+    quint8 contentShort(int index) const;
 
     AntMessageId _id;
 

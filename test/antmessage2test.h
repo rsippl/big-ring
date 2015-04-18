@@ -11,6 +11,7 @@ private slots:
     void setNetworkKey();
     void unassignChannel();
     void assignChannel();
+    void setChannelId();
 };
 
 #endif // ANTMESSAGE2TEST_H

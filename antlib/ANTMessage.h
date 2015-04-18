@@ -58,10 +58,6 @@ class ANTMessage {
                                            const unsigned char timeout);
         static ANTMessage requestMessage(const unsigned char channel,
                                          const unsigned char request);
-        static ANTMessage setChannelID(const unsigned char channel,
-                                       const unsigned short device,
-                                       const unsigned char devicetype,
-                                       const unsigned char txtype);
         static ANTMessage setChannelPeriod(const unsigned char channel,
                                            const unsigned short period);
         static ANTMessage setChannelFreq(const unsigned char channel,

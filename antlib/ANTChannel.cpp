@@ -462,7 +462,7 @@ void ANTChannel::open(int device, int chan_type)
     // choose this one..
     void ANTChannel::setChannelID(int device_number, int device_id, int)
     {
-        parent->sendMessage(ANTMessage::setChannelID(number, device_number, device_id, 0)); // lets go back to allowing anything
+        parent->sendMessage(AntMessage2::setChannelId(number, device_number, device_id)); // lets go back to allowing anything
         parent->sendMessage(ANTMessage::open(number)); // lets go back to allowing anything
     }
 
@@ -496,13 +496,13 @@ void ANTChannel::open(int device, int chan_type)
             // reassign to whatever we need!
             parent->sendMessage(AntMessage2::assignChannel(number, 0, st->network)); // recieve channel on network 1
             device_id=st->device_id;
-            parent->sendMessage(ANTMessage::setChannelID(number, 0, device_id, 0)); // lets go back to allowing anything
+            parent->sendMessage(AntMessage2::setChannelId(number, 0, device_id)); // lets go back to allowing anything
             setId();
             break;
 
         case ANT_ASSIGN_CHANNEL:
             channel_assigned=1;
-            parent->sendMessage(ANTMessage::setChannelID(number, device_number, device_id, 0));
+            parent->sendMessage(AntMessage2::setChannelId(number, device_number, device_id));
             break;
 
         case ANT_CHANNEL_ID:
