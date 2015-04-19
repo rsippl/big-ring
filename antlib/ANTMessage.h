@@ -53,13 +53,9 @@ class ANTMessage {
                    unsigned char b11 = '\0'); // encode with values (at least one value must be passed though)
 
         // convenience functions for encoding messages
-        static ANTMessage boostSignal(const unsigned char channel);
         static ANTMessage requestMessage(const unsigned char channel,
                                          const unsigned char request);
-        static ANTMessage setAutoCalibrate(const unsigned char channel,
-                                           bool autozero);
         static ANTMessage requestCalibrate(const unsigned char channel);
-        static ANTMessage close(const unsigned char channel);
 
         // convert a channel event message id to human readable string
         static const char * channelEventMessage(unsigned char c);

@@ -76,7 +76,6 @@ public:
     // channel open/close
     void init();
     void open(int device_number, int channel_type);
-    void close();
 
     // handle inbound data
     void receiveMessage(unsigned char *message);

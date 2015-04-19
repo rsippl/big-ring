@@ -628,29 +628,8 @@ ANTMessage ANTMessage::requestMessage(const unsigned char channel,
     return ANTMessage(2, ANT_REQ_MESSAGE, channel, request);
 }
 
-ANTMessage ANTMessage::setAutoCalibrate(const unsigned char channel,
-                                        bool autozero)
-{
-    return ANTMessage(4, ANT_ACK_DATA, channel, ANT_SPORT_CALIBRATION_MESSAGE,
-                                       ANT_SPORT_CALIBRATION_REQUEST_AUTOZERO_CONFIG,
-                                       autozero ? ANT_SPORT_AUTOZERO_ON : ANT_SPORT_AUTOZERO_OFF);
-}
-
 ANTMessage ANTMessage::requestCalibrate(const unsigned char channel)
 {
     return ANTMessage(4, ANT_ACK_DATA, channel, ANT_SPORT_CALIBRATION_MESSAGE,
                                        ANT_SPORT_CALIBRATION_REQUEST_MANUALZERO);
-}
-
-// see http://www.thisisant.com/images/Resources/PDF/ap2_rf_transceiver_module_errata.pdf
-ANTMessage ANTMessage::ANTMessage::boostSignal(const unsigned char channel)
-{
-    // [A4][02][6A][XX][57][9B]
-    return ANTMessage(2, 0x6A, channel, 0x57);
-
-}
-
-ANTMessage ANTMessage::close(const unsigned char channel)
-{
-    return ANTMessage(1, ANT_CLOSE_CHANNEL, channel);
 }

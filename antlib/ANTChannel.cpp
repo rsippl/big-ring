@@ -80,15 +80,6 @@ void ANTChannel::open(int device, int chan_type)
     attemptTransition(ANT_UNASSIGN_CHANNEL);
 }
 
-    // close an ant channel assignment
-    void ANTChannel::close()
-    {
-        emit lostInfo(number);
-        lastMessage = ANTMessage();
-        parent->sendMessage(ANTMessage::close(number));
-        init();
-    }
-
     //
     // The main read loop is in ANT.cpp, it will pass us
     // the inbound message received for our channel.
