@@ -54,8 +54,6 @@ class ANTMessage {
 
         // convenience functions for encoding messages
         static ANTMessage boostSignal(const unsigned char channel);
-        static ANTMessage setSearchTimeout(const unsigned char channel,
-                                           const unsigned char timeout);
         static ANTMessage requestMessage(const unsigned char channel,
                                          const unsigned char request);
         static ANTMessage setChannelPeriod(const unsigned char channel,

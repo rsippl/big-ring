@@ -89,7 +89,6 @@ public:
     void setId();
     void requestCalibrate();
     void attemptTransition(int message_code);
-    int setTimeout(int seconds);
 
     // search
     int isSearching();

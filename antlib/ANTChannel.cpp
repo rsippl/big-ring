@@ -406,7 +406,7 @@ void ANTChannel::open(int device, int chan_type)
 
         // if we were searching,
         if (channel_type_flags & CHANNEL_TYPE_QUICK_SEARCH) {
-            parent->sendMessage(ANTMessage::setSearchTimeout(number, (unsigned char)(timeout_lost/2.5)));
+            parent->sendMessage(AntMessage2::setSearchTimeout(number, timeout_lost));
         }
         channel_type_flags &= ~CHANNEL_TYPE_QUICK_SEARCH;
 
@@ -476,6 +476,7 @@ void ANTChannel::open(int device, int chan_type)
         // update state
         state=message_id;
 
+        qDebug() << "channel" << number << "state" << QString::number(state, 16);
         // do transitions
         switch (state) {
 
@@ -491,61 +492,55 @@ void ANTChannel::open(int device, int chan_type)
 
             // lets make sure this channel is assigned to our network
             // regardless of its current state.
-            parent->sendMessage(AntMessage2::unassignChannel(number)); // unassign whatever we had before
+//            parent->sendMessage(AntMessage2::unassignChannel(number)); // unassign whatever we had before
 
             // reassign to whatever we need!
             parent->sendMessage(AntMessage2::assignChannel(number, 0, st->network)); // recieve channel on network 1
             device_id=st->device_id;
-            parent->sendMessage(AntMessage2::setChannelId(number, 0, device_id)); // lets go back to allowing anything
+//            parent->sendMessage(AntMessage2::setChannelId(number, 0, device_id)); // lets go back to allowing anything
             setId();
             break;
 
         case ANT_ASSIGN_CHANNEL:
             channel_assigned=1;
-            parent->sendMessage(AntMessage2::setChannelId(number, device_number, device_id));
+            parent->sendMessage(AntMessage2::setChannelId(number, 0, device_id));
             break;
 
         case ANT_CHANNEL_ID:
-            if (channel_type & CHANNEL_TYPE_QUICK_SEARCH) {
-                parent->sendMessage(ANTMessage::setSearchTimeout(number, (unsigned char)(timeout_scan/2.5)));
-            } else {
-                parent->sendMessage(ANTMessage::setSearchTimeout(number, (unsigned char)(timeout_lost/2.5)));
-            }
-            break;
-
-        case ANT_SEARCH_TIMEOUT:
-            if (previous_state==ANT_CHANNEL_ID) {
-                // continue down the intialization chain
-                parent->sendMessage(ANTMessage::setChannelPeriod(number, st->period));
-            } else {
-                // we are setting the ant_search timeout after connected
-                // we'll just pretend this never happened
-                state=previous_state;
-            }
-            break;
-
-        case ANT_CHANNEL_PERIOD:
             parent->sendMessage(ANTMessage::setChannelFreq(number, st->frequency));
             break;
+//            if (channel_type & CHANNEL_TYPE_QUICK_SEARCH) {
+//                parent->sendMessage(AntMessage2::setSearchTimeout(number, timeout_scan));
+//            } else {
+//                parent->sendMessage(AntMessage2::setSearchTimeout(number, timeout_lost));
+//            }
+//            break;
+        case ANT_SEARCH_TIMEOUT:
+//            if (previous_state==ANT_CHANNEL_ID) {
+//                // continue down the intialization chain
+//                parent->sendMessage(ANTMessage::setChannelPeriod(number, st->period));
+//            } else {
+//                // we are setting the ant_search timeout after connected
+//                // we'll just pretend this never happened
+//                state=previous_state;
+//            }
+//            break;
 
         case ANT_CHANNEL_FREQUENCY:
+            parent->sendMessage(ANTMessage::setChannelPeriod(number, st->period));
+            break;
+        case ANT_CHANNEL_PERIOD:
             parent->sendMessage(ANTMessage::open(number));
             break;
-
+//
         case ANT_OPEN_CHANNEL:
-            parent->sendMessage(ANTMessage::open(number));
+            qDebug() << "Channel" << number << "open";
+//            parent->sendMessage(ANTMessage::open(number));
             break;
 
         default:
             break;
         }
-    }
-
-    // set channel timeout
-    int ANTChannel::setTimeout(int seconds)
-    {
-        parent->sendMessage(ANTMessage::setSearchTimeout(number, seconds/2.5));
-        return 0;
     }
 
     //
