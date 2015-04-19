@@ -507,7 +507,7 @@ void ANTChannel::open(int device, int chan_type)
             break;
 
         case ANT_CHANNEL_ID:
-            parent->sendMessage(ANTMessage::setChannelFreq(number, st->frequency));
+            parent->sendMessage(AntMessage2::setChannelFrequency(number));
             break;
 //            if (channel_type & CHANNEL_TYPE_QUICK_SEARCH) {
 //                parent->sendMessage(AntMessage2::setSearchTimeout(number, timeout_scan));

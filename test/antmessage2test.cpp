@@ -93,6 +93,21 @@ void AntMessage2Test::setSearchTimeout()
     QCOMPARE(static_cast<int>(content[1]), 12);
 }
 
+void AntMessage2Test::setChannelFrequency()
+{
+    AntMessage2 msg = AntMessage2::setChannelFrequency(2, AntMessage2::ANT_PLUS_CHANNEL_FREQUENCY);
+
+    QCOMPARE_BYTE(msg.id(), AntMessage2::SET_CHANNEL_FREQUENCY);
+    QByteArray bytes = msg.toBytes();
+    QCOMPARE(bytes.size(), 6);
+    QByteArray content = bytes.mid(3, 2);
+    int channel = content[0];
+    QCOMPARE(channel, 2);
+    quint16 frequency = content[1] + AntMessage2::ANT_CHANNEL_FREQUENCY_BASE;
+    quint16 expected = AntMessage2::ANT_PLUS_CHANNEL_FREQUENCY;
+    QCOMPARE(frequency, expected);
+}
+
 void AntMessage2Test::channelEventNoError()
 {
     QByteArray bytes = QByteArray::fromHex(QByteArray::fromRawData("a40340014615a0", 14));

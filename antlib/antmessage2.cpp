@@ -54,6 +54,8 @@ QString AntMessage2::toString() const
     switch(_id) {
     case ASSIGN_CHANNEL:
         return QString("Assign Channel, Channel %1, Channel Type %2, Network Number %3").arg(contentByte(0)).arg(contentByte(1)).arg(contentByte(2));
+    case SET_CHANNEL_FREQUENCY:
+        return QString("Set Channel Frequency, Channel %1, Frequency %2Mhz").arg(contentByte(0)).arg(contentByte(1) + ANT_CHANNEL_FREQUENCY_BASE);
     case SET_CHANNEL_ID:
         return QString("Set Channel Id, Channel %1, Device Nr %2, "
                        "Device Type %3").arg(contentByte(0)).arg(contentShort(1)).arg(contentByte(3));
@@ -116,6 +118,15 @@ AntMessage2 AntMessage2::assignChannel(quint8 channelNumber, quint8 channelType,
     data += networkNumber;
 
     return AntMessage2(ASSIGN_CHANNEL, data);
+}
+
+AntMessage2 AntMessage2::setChannelFrequency(quint8 channelNumber, quint16 frequency)
+{
+    QByteArray data;
+    data += channelNumber;
+    quint8 frequencyOffset = static_cast<quint8>(frequency - ANT_CHANNEL_FREQUENCY_BASE);
+    data += frequencyOffset;
+    return AntMessage2(SET_CHANNEL_FREQUENCY, data);
 }
 
 AntMessage2 AntMessage2::setChannelId(quint8 channelNumber, quint16 deviceId, quint8 deviceType)
