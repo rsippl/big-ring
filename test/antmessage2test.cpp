@@ -79,6 +79,20 @@ void AntMessage2Test::setChannelId()
     QCOMPARE(transmissionType, 0);
 }
 
+void AntMessage2Test::setSearchTimeout()
+{
+    AntMessage2 msg = AntMessage2::setSearchTimeout(2, 30);
+
+    QCOMPARE_BYTE(msg.id(), AntMessage2::SET_SEARCH_TIMEOUT);
+    QByteArray bytes = msg.toBytes();
+    QCOMPARE(bytes.size(), 6);
+    QByteArray content = bytes.mid(3, 2);
+    int channel = content[0];
+    QCOMPARE(channel, 2);
+    // timeout in seconds = timeout * 2.5
+    QCOMPARE(static_cast<int>(content[1]), 12);
+}
+
 void AntMessage2Test::channelEventNoError()
 {
     QByteArray bytes = QByteArray::fromHex(QByteArray::fromRawData("a40340014615a0", 14));
@@ -90,6 +104,6 @@ void AntMessage2Test::channelEventNoError()
     int messageId = msg.messageId();
     QCOMPARE(messageId, 0x46);
     int actualMessageCode = msg.messageCode();
-    int expectedMessageCode = AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR;
+    int expectedMessageCode = AntChannelEventMessage::EVENT_CHANNEL_IN_WRONG_STATE;
     QCOMPARE(actualMessageCode, expectedMessageCode);
 }

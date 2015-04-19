@@ -12,7 +12,7 @@ private slots:
     void unassignChannel();
     void assignChannel();
     void setChannelId();
-
+    void setSearchTimeout();
     void channelEventNoError();
 };
 

@@ -19,6 +19,7 @@ public:
         CHANNEL_EVENT = 0x40,
         SET_CHANNEL_ID = 0x51,
         SET_NETWORK_KEY = 0x46,
+        SET_SEARCH_TIMEOUT = 0x44,
         SYSTEM_RESET = 0x4A,
         UNASSIGN_CHANNEL = 0x41
     };
@@ -30,11 +31,13 @@ public:
     AntMessageId id() const;
 
     // static factory methods for different messages
-    static AntMessage2 systemReset();
-    static AntMessage2 setNetworkKey(quint8 networkNumber, const std::array<quint8, 8> &networkKey);
-    static AntMessage2 unassignChannel(quint8 channelNumber);
     static AntMessage2 assignChannel(quint8 channelNumber, quint8 channelType, quint8 networkNumber);
     static AntMessage2 setChannelId(quint8 channelNumber, quint16 deviceId, quint8 deviceType);
+    static AntMessage2 setNetworkKey(quint8 networkNumber, const std::array<quint8, 8> &networkKey);
+    static AntMessage2 setSearchTimeout(quint8 channelNumber, int seconds);
+    static AntMessage2 systemReset();
+    static AntMessage2 unassignChannel(quint8 channelNumber);
+
 protected:
     AntMessage2(const AntMessageId id, const QByteArray& content);
     const QByteArray& content() const;

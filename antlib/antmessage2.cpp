@@ -59,6 +59,8 @@ QString AntMessage2::toString() const
                        "Device Type %3").arg(contentByte(0)).arg(contentShort(1)).arg(contentByte(3));
     case SET_NETWORK_KEY:
         return QString("Set Network Key, Network %1, Key: %2").arg(contentByte(0)).arg(QString(_content.mid(1).toHex()));
+    case SET_SEARCH_TIMEOUT:
+        return QString("Set Search Timeout, Channel %1, Timeout %2s").arg(contentByte(0)).arg(qRound(contentByte(1) * 2.5));
     case SYSTEM_RESET:
         return "Sytem Reset";
     case UNASSIGN_CHANNEL:
@@ -87,6 +89,15 @@ AntMessage2 AntMessage2::setNetworkKey(quint8 networkNumber, const std::array<qu
         content += byte;
     }
     return AntMessage2(SET_NETWORK_KEY, content);
+}
+
+AntMessage2 AntMessage2::setSearchTimeout(quint8 channelNumber, int seconds)
+{
+    QByteArray content;
+    content += channelNumber;
+    quint8 timeout = static_cast<quint8>(qRound(seconds / 2.5));
+    content += timeout;
+    return AntMessage2(SET_SEARCH_TIMEOUT, content);
 }
 
 AntMessage2 AntMessage2::unassignChannel(quint8 channelNumber)
@@ -149,9 +160,11 @@ QString AntChannelEventMessage::toString() const
 {
     switch (_messageCode) {
     case EVENT_CHANNEL_IN_WRONG_STATE:
-        return QString("Channel Event CHANNEL_IN_WRONG_STATE, Channel #%1").arg(contentByte(0));
+        return QString("Channel Event CHANNEL_IN_WRONG_STATE, Channel #%1, Message 0x%2").arg(contentByte(0))
+                .arg(QString::number(_messageId, 16));
     case EVENT_RESPONSE_NO_ERROR:
-        return QString("Channel Event RESPONSE_NO_ERROR, Channel #%1").arg(contentByte(0));
+        return QString("Channel Event RESPONSE_NO_ERROR, Channel #%1, Message 0x%2").arg(contentByte(0))
+                 .arg(QString::number(_messageId, 16));
     default:
         return "Channel Event Unknown";
     }
