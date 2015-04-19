@@ -226,7 +226,7 @@ void ANTChannel::open(int device, int chan_type)
             // by the write below failing (and any write really, but the one below being
             // pretty critical) -- because the USB stick needed a USB reset which we know
             // do every time we open the USB device
-            parent->sendMessage(ANTMessage::requestMessage(number, ANT_CHANNEL_ID));
+            parent->sendMessage(AntMessage2::requestMessage(number, AntMessage2::SET_CHANNEL_ID));
             blanking_timestamp=QDateTime::currentMSecsSinceEpoch();
             blanked=0;
             return; // because we can't associate a channel id with the message yet

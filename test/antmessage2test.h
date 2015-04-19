@@ -12,6 +12,7 @@ private slots:
     void unassignChannel();
     void assignChannel();
     void openChannel();
+    void requestMessage();
     void setChannelId();
     void setSearchTimeout();
     void setChannelFrequency();

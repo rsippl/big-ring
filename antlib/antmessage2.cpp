@@ -59,6 +59,10 @@ QString AntMessage2::toString() const
     switch(_id) {
     case ASSIGN_CHANNEL:
         return QString("Assign Channel, Channel %1, Channel Type %2, Network Number %3").arg(contentByte(0)).arg(contentByte(1)).arg(contentByte(2));
+    case OPEN_CHANNEL:
+        return QString("Open Channel (0x4b), Channel %1").arg(contentByte(0));
+    case REQUEST_MESSAGE:
+        return QString("Request Message, Channel %1, Message Id %2").arg(contentByte(0)).arg(QString::number(contentByte(1), 16));
     case SET_CHANNEL_FREQUENCY:
         return QString("Set Channel Frequency, Channel %1, Frequency %2Mhz").arg(contentByte(0)).arg(contentByte(1) + ANT_CHANNEL_FREQUENCY_BASE);
     case SET_CHANNEL_ID:
@@ -76,7 +80,7 @@ QString AntMessage2::toString() const
     case UNASSIGN_CHANNEL:
         return QString("Unassign Channel, Channel #%1").arg(contentByte(0));
     default:
-        return "Unknown message";
+        return QString("Unknown message %1").arg(QString::number(_id, 16));
     }
 }
 
@@ -134,6 +138,15 @@ AntMessage2 AntMessage2::openChannel(quint8 channelNumber)
     content += channelNumber;
 
     return AntMessage2(OPEN_CHANNEL, content);
+}
+
+AntMessage2 AntMessage2::requestMessage(quint8 channelNumber, AntMessage2::AntMessageId messageId)
+{
+    QByteArray content;
+    content += channelNumber;
+    content += static_cast<quint8>(messageId);
+
+    return AntMessage2(REQUEST_MESSAGE, content);
 }
 
 AntMessage2 AntMessage2::setChannelFrequency(quint8 channelNumber, quint16 frequency)

@@ -622,12 +622,6 @@ void ANTMessage::init()
     autoZeroStatus = autoZeroEnable = 0;
 }
 
-ANTMessage ANTMessage::requestMessage(const unsigned char channel,
-                                      const unsigned char request)
-{
-    return ANTMessage(2, ANT_REQ_MESSAGE, channel, request);
-}
-
 ANTMessage ANTMessage::requestCalibrate(const unsigned char channel)
 {
     return ANTMessage(4, ANT_ACK_DATA, channel, ANT_SPORT_CALIBRATION_MESSAGE,

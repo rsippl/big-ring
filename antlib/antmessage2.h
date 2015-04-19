@@ -21,6 +21,7 @@ public:
         ASSIGN_CHANNEL = 0x42,
         CHANNEL_EVENT = 0x40,
         OPEN_CHANNEL = 0x4b,
+        REQUEST_MESSAGE = 0x4d,
         SET_CHANNEL_FREQUENCY = 0x45,
         SET_CHANNEL_ID = 0x51,
         SET_CHANNEL_PERIOD = 0x43,
@@ -39,6 +40,7 @@ public:
     // static factory methods for different messages
     static AntMessage2 assignChannel(quint8 channelNumber, quint8 channelType = 0, quint8 networkNumber = ANT_PLUS_NETWORK_NUMBER);
     static AntMessage2 openChannel(quint8 channelNumber);
+    static AntMessage2 requestMessage(quint8 channelNumber, AntMessageId messageId);
     static AntMessage2 setChannelFrequency(quint8 channelNumber, quint16 frequency = ANT_PLUS_CHANNEL_FREQUENCY);
     static AntMessage2 setChannelId(quint8 channelNumber, quint16 deviceId, quint8 deviceType);
     /**
