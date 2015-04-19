@@ -85,7 +85,6 @@ public:
     void burstData(unsigned char *message);
     void broadcastEvent(unsigned char *message);
     void channelId(unsigned char *message);
-    void setChannelID(int device, int id, int txtype);
     void setId();
     void requestCalibrate();
     void attemptTransition(int message_code);

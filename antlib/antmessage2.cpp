@@ -128,6 +128,14 @@ AntMessage2 AntMessage2::assignChannel(quint8 channelNumber, quint8 channelType,
     return AntMessage2(ASSIGN_CHANNEL, data);
 }
 
+AntMessage2 AntMessage2::openChannel(quint8 channelNumber)
+{
+    QByteArray content;
+    content += channelNumber;
+
+    return AntMessage2(OPEN_CHANNEL, content);
+}
+
 AntMessage2 AntMessage2::setChannelFrequency(quint8 channelNumber, quint16 frequency)
 {
     QByteArray data;

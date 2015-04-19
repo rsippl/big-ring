@@ -59,7 +59,6 @@ class ANTMessage {
         static ANTMessage setAutoCalibrate(const unsigned char channel,
                                            bool autozero);
         static ANTMessage requestCalibrate(const unsigned char channel);
-        static ANTMessage open(const unsigned char channel);
         static ANTMessage close(const unsigned char channel);
 
         // convert a channel event message id to human readable string

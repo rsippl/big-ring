@@ -11,6 +11,7 @@ private slots:
     void setNetworkKey();
     void unassignChannel();
     void assignChannel();
+    void openChannel();
     void setChannelId();
     void setSearchTimeout();
     void setChannelFrequency();

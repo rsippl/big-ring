@@ -59,6 +59,17 @@ void AntMessage2Test::assignChannel()
     QCOMPARE(networkNumber, 3);
 }
 
+void AntMessage2Test::openChannel()
+{
+    AntMessage2 msg = AntMessage2::openChannel(1);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::OPEN_CHANNEL);
+    QCOMPARE(msg.toBytes().size(), 5);
+    QByteArray content = msg.toBytes().mid(3, 1);
+    int channel = content[0];
+    QCOMPARE(channel, 1);
+
+}
+
 void AntMessage2Test::setChannelId()
 {
     quint16 theDeviceId = 10000;

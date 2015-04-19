@@ -650,11 +650,6 @@ ANTMessage ANTMessage::ANTMessage::boostSignal(const unsigned char channel)
 
 }
 
-ANTMessage ANTMessage::open(const unsigned char channel)
-{
-    return ANTMessage(1, ANT_OPEN_CHANNEL, channel);
-}
-
 ANTMessage ANTMessage::close(const unsigned char channel)
 {
     return ANTMessage(1, ANT_CLOSE_CHANNEL, channel);

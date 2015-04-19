@@ -459,13 +459,6 @@ void ANTChannel::open(int device, int chan_type)
         }
     }
 
-    // choose this one..
-    void ANTChannel::setChannelID(int device_number, int device_id, int)
-    {
-        parent->sendMessage(AntMessage2::setChannelId(number, device_number, device_id)); // lets go back to allowing anything
-        parent->sendMessage(ANTMessage::open(number)); // lets go back to allowing anything
-    }
-
     void ANTChannel::attemptTransition(int message_id)
     {
 
@@ -530,7 +523,7 @@ void ANTChannel::open(int device, int chan_type)
             parent->sendMessage(AntMessage2::setChannelPeriod(number, st->period));
             break;
         case ANT_CHANNEL_PERIOD:
-            parent->sendMessage(ANTMessage::open(number));
+            parent->sendMessage(AntMessage2::openChannel(number));
             break;
 //
         case ANT_OPEN_CHANNEL:
