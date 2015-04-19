@@ -495,7 +495,7 @@ void ANTChannel::open(int device, int chan_type)
 //            parent->sendMessage(AntMessage2::unassignChannel(number)); // unassign whatever we had before
 
             // reassign to whatever we need!
-            parent->sendMessage(AntMessage2::assignChannel(number, 0, st->network)); // recieve channel on network 1
+            parent->sendMessage(AntMessage2::assignChannel(number));
             device_id=st->device_id;
 //            parent->sendMessage(AntMessage2::setChannelId(number, 0, device_id)); // lets go back to allowing anything
             setId();
@@ -527,7 +527,7 @@ void ANTChannel::open(int device, int chan_type)
 //            break;
 
         case ANT_CHANNEL_FREQUENCY:
-            parent->sendMessage(ANTMessage::setChannelPeriod(number, st->period));
+            parent->sendMessage(AntMessage2::setChannelPeriod(number, st->period));
             break;
         case ANT_CHANNEL_PERIOD:
             parent->sendMessage(ANTMessage::open(number));

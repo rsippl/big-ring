@@ -14,6 +14,7 @@ private slots:
     void setChannelId();
     void setSearchTimeout();
     void setChannelFrequency();
+    void setChannelPeriod();
     void channelEventNoError();
 };
 

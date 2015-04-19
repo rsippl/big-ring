@@ -56,8 +56,6 @@ class ANTMessage {
         static ANTMessage boostSignal(const unsigned char channel);
         static ANTMessage requestMessage(const unsigned char channel,
                                          const unsigned char request);
-        static ANTMessage setChannelPeriod(const unsigned char channel,
-                                           const unsigned short period);
         static ANTMessage setAutoCalibrate(const unsigned char channel,
                                            bool autozero);
         static ANTMessage requestCalibrate(const unsigned char channel);

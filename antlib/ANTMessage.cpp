@@ -628,12 +628,6 @@ ANTMessage ANTMessage::requestMessage(const unsigned char channel,
     return ANTMessage(2, ANT_REQ_MESSAGE, channel, request);
 }
 
-ANTMessage ANTMessage::setChannelPeriod(const unsigned char channel,
-                                        const unsigned short period)
-{
-    return ANTMessage(3, ANT_CHANNEL_PERIOD, channel, period&0xff, (period>>8)&0xff);
-}
-
 ANTMessage ANTMessage::setAutoCalibrate(const unsigned char channel,
                                         bool autozero)
 {

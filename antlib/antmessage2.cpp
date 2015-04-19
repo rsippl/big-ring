@@ -1,6 +1,9 @@
 #include "antmessage2.h"
 #include <QtCore/QtDebug>
-#include <QtCore/QtEndian>
+
+namespace {
+const double MESSAGING_PERIOD_BASE = 32768.0;
+}
 
 AntMessage2::AntMessage2(const AntMessageId id, const QByteArray& content):
     _id(id), _content(content)
@@ -26,10 +29,12 @@ quint8 AntMessage2::contentByte(int nr) const
     return static_cast<quint8>(_content[nr]);
 }
 
-quint8 AntMessage2::contentShort(int index) const
+quint16 AntMessage2::contentShort(int index) const
 {
-    const uchar* deviceIdChars = reinterpret_cast<const uchar*>(&_content.data()[index]);
-    return qFromLittleEndian<quint16>(deviceIdChars);
+    quint8 lowByte = _content[index];
+    quint8 highByte = _content[index + 1];
+
+    return ((highByte << 8) & 0xFF00) + lowByte;
 }
 
 QByteArray AntMessage2::toBytes() const
@@ -59,6 +64,9 @@ QString AntMessage2::toString() const
     case SET_CHANNEL_ID:
         return QString("Set Channel Id, Channel %1, Device Nr %2, "
                        "Device Type %3").arg(contentByte(0)).arg(contentShort(1)).arg(contentByte(3));
+    case SET_CHANNEL_PERIOD:
+        return QString("Set Channel Period, Channel %1, Period %2Hz (%3)").arg(contentByte(0))
+                .arg(QString::number(MESSAGING_PERIOD_BASE / contentShort(1), 'f', 2)).arg(contentShort(1));
     case SET_NETWORK_KEY:
         return QString("Set Network Key, Network %1, Key: %2").arg(contentByte(0)).arg(QString(_content.mid(1).toHex()));
     case SET_SEARCH_TIMEOUT:
@@ -140,6 +148,16 @@ AntMessage2 AntMessage2::setChannelId(quint8 channelNumber, quint16 deviceId, qu
     array += zero;
 
     return AntMessage2(SET_CHANNEL_ID, array);
+}
+
+AntMessage2 AntMessage2::setChannelPeriod(quint8 channelNumber, quint16 messageRate)
+{
+    QByteArray content;
+    content += channelNumber;
+    content += messageRate & 0xFF;
+    content += (messageRate >> 8) & 0xFF;
+
+    return AntMessage2(SET_CHANNEL_PERIOD, content);
 }
 
 

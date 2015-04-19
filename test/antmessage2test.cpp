@@ -108,6 +108,25 @@ void AntMessage2Test::setChannelFrequency()
     QCOMPARE(frequency, expected);
 }
 
+void AntMessage2Test::setChannelPeriod()
+{
+    quint16 thePeriod = 8070;
+    AntMessage2 msg = AntMessage2::setChannelPeriod(2, thePeriod);
+
+    QCOMPARE_BYTE(msg.id(), AntMessage2::SET_CHANNEL_PERIOD);
+    QByteArray bytes = msg.toBytes();
+    QCOMPARE(bytes.size(), 7);
+    QByteArray content = bytes.mid(3, 3);
+    int channel = content[0];
+    QCOMPARE(channel, 2);
+
+    quint8 lowByte = content[1];
+    quint8 highByte = content[2];
+
+    quint16 period = ((highByte << 8) & 0xFF00) + lowByte;
+    QCOMPARE(period, thePeriod);
+}
+
 void AntMessage2Test::channelEventNoError()
 {
     QByteArray bytes = QByteArray::fromHex(QByteArray::fromRawData("a40340014615a0", 14));
