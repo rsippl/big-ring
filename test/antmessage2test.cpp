@@ -165,3 +165,21 @@ void AntMessage2Test::channelEventNoError()
     int expectedMessageCode = AntChannelEventMessage::EVENT_CHANNEL_IN_WRONG_STATE;
     QCOMPARE(actualMessageCode, expectedMessageCode);
 }
+
+void AntMessage2Test::channelEventNoErrorUsingFactory()
+{
+    QByteArray bytes = QByteArray::fromHex(QByteArray::fromRawData("a40340014615a0", 14));
+    std::unique_ptr<AntMessage2> msg = AntMessage2::createMessageFromBytes(bytes);
+    QVERIFY2(msg, "messages should not be null");
+    QCOMPARE(msg->id(), AntMessage2::CHANNEL_EVENT);
+
+    const AntChannelEventMessage* antChannelEventMessage = msg->asChannelEventMessage();
+    quint8 channelNumber = 1;
+    QCOMPARE(antChannelEventMessage->channelNumber(), channelNumber);
+    int messageId = antChannelEventMessage->messageId();
+    QCOMPARE(messageId, 0x46);
+    int actualMessageCode = antChannelEventMessage->messageCode();
+    int expectedMessageCode = AntChannelEventMessage::EVENT_CHANNEL_IN_WRONG_STATE;
+    QCOMPARE(actualMessageCode, expectedMessageCode);
+
+}

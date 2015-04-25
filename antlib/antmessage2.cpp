@@ -3,6 +3,14 @@
 
 namespace {
 const double MESSAGING_PERIOD_BASE = 32768.0;
+
+const QMap<AntChannelEventMessage::MessageCode,QString> EVENT_CHANNEL_MESSAGES (
+{
+            {AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR, "NO_ERROR"},
+            {AntChannelEventMessage::EVENT_CHANNEL_IN_WRONG_STATE, "WRONG_STATE"},
+            {AntChannelEventMessage::EVENT_CHANNEL_RX_FAIL, "RX_FAIL"},
+            {AntChannelEventMessage::EVENT_CHANNEL_RX_SEARCH_TIMEOUT, "SEARCH_TIMEOUT"}
+});
 }
 
 AntMessage2::AntMessage2(const AntMessageId id, const QByteArray& content):
@@ -122,6 +130,13 @@ AntMessage2 AntMessage2::unassignChannel(quint8 channelNumber)
     return AntMessage2(UNASSIGN_CHANNEL, array);
 }
 
+const AntChannelEventMessage* AntMessage2::asChannelEventMessage() const
+{
+    const AntChannelEventMessage* antChannelEventMessage = dynamic_cast<const AntChannelEventMessage*>(this);
+    Q_ASSERT_X(antChannelEventMessage, "AntMessage2::asChannelEventMessage()", "bad cast to ChannelEventMessage");
+    return antChannelEventMessage;
+}
+
 AntMessage2 AntMessage2::assignChannel(quint8 channelNumber, quint8 channelType, quint8 networkNumber)
 {
     QByteArray data;
@@ -208,14 +223,18 @@ AntChannelEventMessage::MessageCode AntChannelEventMessage::messageCode() const
 
 QString AntChannelEventMessage::toString() const
 {
-    switch (_messageCode) {
-    case EVENT_CHANNEL_IN_WRONG_STATE:
-        return QString("Channel Event CHANNEL_IN_WRONG_STATE, Channel #%1, Message 0x%2").arg(contentByte(0))
-                .arg(QString::number(_messageId, 16));
-    case EVENT_RESPONSE_NO_ERROR:
-        return QString("Channel Event RESPONSE_NO_ERROR, Channel #%1, Message 0x%2").arg(contentByte(0))
-                 .arg(QString::number(_messageId, 16));
-    default:
-        return "Channel Event Unknown";
+    QString channelEventString = EVENT_CHANNEL_MESSAGES.value(_messageCode, "UNKNOWN");
+    return QString("Channel Event %1, Channel %2, Message 0x%3").arg(channelEventString)
+            .arg(contentByte(0)).arg(QString::number(_messageId, 16));
+}
+
+
+std::unique_ptr<AntMessage2> AntMessage2::createMessageFromBytes(const QByteArray &bytes)
+{
+    switch(bytes[2]) {
+    case AntMessage2::CHANNEL_EVENT:
+        return std::unique_ptr<AntMessage2>(new AntChannelEventMessage(bytes));
     }
+
+    return std::unique_ptr<AntMessage2>();
 }

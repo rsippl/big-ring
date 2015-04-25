@@ -1,8 +1,9 @@
 #ifndef ANTMESSAGE2TEST_H
 #define ANTMESSAGE2TEST_H
 
-#include <QObject>
+#include <QtCore/QObject>
 
+#include "antmessage2.h"
 class AntMessage2Test : public QObject
 {
     Q_OBJECT
@@ -18,6 +19,9 @@ private slots:
     void setChannelFrequency();
     void setChannelPeriod();
     void channelEventNoError();
+
+    // factory
+    void channelEventNoErrorUsingFactory();
 };
 
 #endif // ANTMESSAGE2TEST_H

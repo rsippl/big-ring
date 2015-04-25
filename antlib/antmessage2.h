@@ -2,7 +2,11 @@
 #define ANTMESSAGE2_H
 
 #include <array>
-#include <QObject>
+#include <memory>
+#include <QtCore/QObject>
+
+/* forward declarations */
+class AntChannelEventMessage;
 
 /**
  * Class representing AntMessages.
@@ -37,6 +41,11 @@ public:
 
     AntMessageId id() const;
 
+    /** Create an AntMessage2 from bytes. The bytes should contain the complete message.
+     * @return an invalid (null) unique_ptr if bytes did not contain a valid message
+     */
+    static std::unique_ptr<AntMessage2> createMessageFromBytes(const QByteArray& bytes);
+
     // static factory methods for different messages
     static AntMessage2 assignChannel(quint8 channelNumber, quint8 channelType = 0, quint8 networkNumber = ANT_PLUS_NETWORK_NUMBER);
     static AntMessage2 openChannel(quint8 channelNumber);
@@ -52,10 +61,23 @@ public:
      * @return a ANT+ message for setting a channel's messaging period.
      */
     static AntMessage2 setChannelPeriod(quint8 channelNumber, quint16 messageRate);
+    /**
+     * @brief Construct the ANT message to set the ant network key.
+     * @param networkNumber the network to set the key for.
+     * @param networkKey the network key, an 8 byte array.
+     * @return the message.
+     */
     static AntMessage2 setNetworkKey(quint8 networkNumber, const std::array<quint8, 8> &networkKey);
     static AntMessage2 setSearchTimeout(quint8 channelNumber, int seconds);
     static AntMessage2 systemReset();
     static AntMessage2 unassignChannel(quint8 channelNumber);
+
+    /**
+     * @brief return a pointer to this AntMessage as an AntChannelEventMessage. This fails (with an assert) if the
+     * message is not an AntChannelEventMessage.
+     * @return the message as an AntChannelEventMessage.
+     */
+    const AntChannelEventMessage* asChannelEventMessage() const;
 
 protected:
     AntMessage2(const AntMessageId id, const QByteArray& content);
@@ -78,7 +100,9 @@ public:
 
     enum MessageCode {
         EVENT_CHANNEL_IN_WRONG_STATE = 0x15,
-        EVENT_RESPONSE_NO_ERROR = 0x00
+        EVENT_RESPONSE_NO_ERROR = 0x00,
+        EVENT_CHANNEL_RX_FAIL = 0x02,
+        EVENT_CHANNEL_RX_SEARCH_TIMEOUT = 0x01
     };
 
     quint8 channelNumber() const;
