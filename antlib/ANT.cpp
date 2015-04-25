@@ -305,7 +305,7 @@ ANT::handleChannelEvent(QByteArray& message) {
     int channel = message[ANT_OFFSET_DATA] & 0x7;
     if(channel >= 0 && channel < channels) {
         // handle a channel event here!
-        antChannel[channel]->receiveMessage((unsigned char*) message.data());
+        antChannel[channel]->receiveMessage(message);
     }
 }
 
@@ -315,9 +315,6 @@ ANT::processMessage(QByteArray message) {
     for (int i=0; i<ANT_MAX_MESSAGE_SIZE; i++)
         out<< message;
 
-
-    ANTMessage antMessage(message);
-    qDebug() << "Received" << antMessage.toString() << message.toHex();
     switch (message[ANT_OFFSET_ID]) {
     case ANT_ACK_DATA:
     case ANT_BROADCAST_DATA:

@@ -38,6 +38,7 @@ ANTChannel::ANTChannel(int number, ANT *parent) : QObject(parent), parent(parent
 void
 ANTChannel::init()
 {
+    opened = false;
     channel_type=CHANNEL_TYPE_UNUSED;
     channel_type_flags=0;
     manufacturer_id=0;
@@ -86,11 +87,13 @@ void ANTChannel::open(int device, int chan_type)
     // XXX fix this up to re-use ANTMessage for decoding
     // all the inbound messages
     //
-    void ANTChannel::receiveMessage(unsigned char *ant_message)
+    void ANTChannel::receiveMessage(const QByteArray& bytes)
     {
-        switch (ant_message[2]) {
+        QByteArray copy(bytes);
+        unsigned char* ant_message = reinterpret_cast<unsigned char*>(copy.data());
+        switch (bytes[2]) {
         case ANT_CHANNEL_EVENT:
-            channelEvent(ant_message);
+            channelEvent(bytes);
             break;
         case ANT_BROADCAST_DATA:
             broadcastEvent(ant_message);
@@ -117,16 +120,15 @@ void ANTChannel::open(int device, int chan_type)
     // process a channel event message
     // XXX should re-use ANTMessage rather than
     // raw message data
-    void ANTChannel::channelEvent(unsigned char *ant_message) {
+    void ANTChannel::channelEvent(const QByteArray &bytes) {
+        AntChannelEventMessage channelEventMessage(bytes);
+        const QByteArray message = bytes.mid(2);
+//        unsigned char *message=ant_message+2;
 
-        unsigned char *message=ant_message+2;
 
         //qDebug()<<"channel event:"<< ANTMessage::channelEventMessage(*(message+1));
-
-        if (MESSAGE_IS_RESPONSE_NO_ERROR(message)) {
-
-            attemptTransition(RESPONSE_NO_ERROR_MESSAGE_ID(message));
-
+        if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR) {
+            attemptTransition(channelEventMessage.messageId());
         } else if (MESSAGE_IS_EVENT_CHANNEL_CLOSED(message)) {
             parent->sendMessage(AntMessage2::unassignChannel(number));
         } else if (MESSAGE_IS_EVENT_RX_SEARCH_TIMEOUT(message)) {
@@ -292,6 +294,7 @@ void ANTChannel::open(int device, int chan_type)
                     uint16_t time = antMessage.measurementTime - lastMessage.measurementTime;
                     if (time) {
                         nullCount = 0;
+                        qDebug() << "hr = " << antMessage.instantHeartrate;
                         emit heartRateMeasured(antMessage.instantHeartrate);
                     } else {
                         nullCount++;
@@ -452,9 +455,11 @@ void ANTChannel::open(int device, int chan_type)
 
     void ANTChannel::attemptTransition(int message_id)
     {
+        if (opened)
+            return;
 
         const ant_sensor_type_t *st;
-        int previous_state=state;
+
         st=&(parent->ant_sensor_types[channel_type]);
 
         // update state
@@ -518,6 +523,7 @@ void ANTChannel::open(int device, int chan_type)
             break;
 //
         case ANT_OPEN_CHANNEL:
+            opened = true;
             qDebug() << "Channel" << number << "open";
 //            parent->sendMessage(ANTMessage::open(number));
             break;

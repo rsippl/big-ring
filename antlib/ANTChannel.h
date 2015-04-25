@@ -45,6 +45,7 @@ private:
     int blanked;
     char id[10]; // short identifier
     bool channel_assigned;
+    bool opened;
 
     int messages_received; // for signal strength metric
     int messages_dropped;
@@ -78,8 +79,8 @@ public:
     void open(int device_number, int channel_type);
 
     // handle inbound data
-    void receiveMessage(unsigned char *message);
-    void channelEvent(unsigned char *message);
+    void receiveMessage(const QByteArray &message);
+    void channelEvent(const QByteArray& bytes);
     void burstInit();
     void burstData(unsigned char *message);
     void broadcastEvent(unsigned char *message);
