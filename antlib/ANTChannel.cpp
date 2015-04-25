@@ -526,11 +526,3 @@ void ANTChannel::open(int device, int chan_type)
             break;
         }
     }
-
-    //
-    // Calibrate... XXX not used at present
-    //
-    // request the device on this channel calibrates itselt
-    void ANTChannel::requestCalibrate() {
-        parent->sendMessage(ANTMessage::requestCalibrate(number));
-    }

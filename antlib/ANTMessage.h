@@ -52,12 +52,6 @@ class ANTMessage {
                    unsigned char b10 = '\0',
                    unsigned char b11 = '\0'); // encode with values (at least one value must be passed though)
 
-        // convenience functions for encoding messages
-        static ANTMessage requestCalibrate(const unsigned char channel);
-
-        // convert a channel event message id to human readable string
-        static const char * channelEventMessage(unsigned char c);
-
         // to avoid a myriad of tedious set/getters the data fields
         // are plain public members. This is unlikely to change in the
         // future since the whole purpose of this class is to encode

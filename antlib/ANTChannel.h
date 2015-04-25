@@ -85,7 +85,6 @@ public:
     void broadcastEvent(unsigned char *message);
     void channelId(unsigned char *message);
     void setId();
-    void requestCalibrate();
     void attemptTransition(int message_code);
 
     // search

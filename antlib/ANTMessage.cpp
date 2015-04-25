@@ -195,39 +195,6 @@ ANTMessage::ANTMessage(void) {
     init();
 }
 
-// convert message codes to an english string
-const char *
-ANTMessage::channelEventMessage(unsigned char c)
-{
-    switch (c) {
-    case 0 : return "No error";
-    case 1 : return "Search timeout";
-    case 2 : return "Message RX fail";
-    case 3 : return "Event TX";
-    case 4 : return "Receive TX fail";
-    case 5 : return "Ack or Burst completed";
-    case 6 : return "Event transfer TX failed";
-    case 7 : return "Channel closed success";
-    case 8 : return "dropped to search after missing too many messages.";
-    case 9 : return "Channel collision";
-    case 10 : return "Burst starts";
-    case 21 : return "Channel in wrong state";
-    case 22 : return "Channel not opened";
-    case 24 : return "Open without valid id";
-    case 25 : return "OpenRXScan when other channels open";
-    case 31 : return "Transmit whilst transfer in progress";
-    case 32 : return "Sequence number out of order";
-    case 33 : return "Burst message past sequence number not transmitted";
-    case 40 : return "INVALID PARAMETERS";
-    case 41 : return "INVALID NETWORK";
-    case 48 : return "ID out of bounds";
-    case 49 : return "Transmit during scan mode";
-    case 64 : return "NVM for SensRciore mode is full";
-    case 65 : return "NVM write failed";
-    default: return "UNKNOWN MESSAGE CODE";
-    }
-}
-
 QString ANTMessage::toString() const
 {
     QString extra;
@@ -312,11 +279,11 @@ float ANTMessage::timeOutToSeconds(const uint8_t timeoutValue)
 
 // construct an ant message based upon a message structure
 // the message structure must include the sync byte
-ANTMessage::ANTMessage(int, const unsigned char *message) {
+ANTMessage::ANTMessage(int channelType, const unsigned char *message) {
 
     // Initialise all fields to invalid
     init();
-
+    this->channelType = channelType;
     // standard fields
     sync = message[0];
     length = message[1];
@@ -622,8 +589,3 @@ void ANTMessage::init()
     autoZeroStatus = autoZeroEnable = 0;
 }
 
-ANTMessage ANTMessage::requestCalibrate(const unsigned char channel)
-{
-    return ANTMessage(4, ANT_ACK_DATA, channel, ANT_SPORT_CALIBRATION_MESSAGE,
-                                       ANT_SPORT_CALIBRATION_REQUEST_MANUALZERO);
-}
