@@ -92,6 +92,7 @@ ANT::ANT(QObject *parent): QObject(parent),
         connect(antChannel[i], &ANTChannel::powerMeasured, this, &ANT::powerMeasured);
         connect(antChannel[i], &ANTChannel::cadenceMeasured, this, &ANT::cadenceMeasured);
         connect(antChannel[i], &ANTChannel::speedMeasured, this, &ANT::speedMeasured);
+        connect(antChannel[i], &ANTChannel::antMessageGenerated, this, &ANT::antMessageGenerated);
     }
 
     channels = 0;
@@ -273,11 +274,16 @@ ANT::slotSearchComplete(int number) // search completed successfully
     //qDebug()<<"search completed on channel"<<number;
 }
 
+void ANT::antMessageGenerated(const AntMessage2 &antMessage)
+{
+    antDevice->writeAntMessage(antMessage);
+}
+
 /*----------------------------------------------------------------------
  * Message I/O
  *--------------------------------------------------------------------*/
 void
-ANT::sendMessage(ANTMessage m) {
+ANT::sendMessage(const ANTMessage &m) {
     qDebug() << "Sending ANT Message" << m.toString();
     QByteArray bytes((const char*) m.data, m.length);
     static const char padding[5] = { '\0', '\0', '\0', '\0', '\0' };
@@ -288,13 +294,7 @@ ANT::sendMessage(ANTMessage m) {
 void
 ANT::sendMessage(const AntMessage2& m) {
     qDebug() << "Sending ANT Message" << m.toString();
-
-    QByteArray messageBytes = m.toBytes();
-
-    static const char padding[5] = { '\0', '\0', '\0', '\0', '\0' };
-    QByteArray paddingBytes(padding, 5);
-    QByteArray paddedMessageBytes = messageBytes + paddingBytes;
-    rawWrite(paddedMessageBytes);
+    antDevice->writeAntMessage(m);
 }
 
 //

@@ -54,6 +54,12 @@ quint16 AntMessage2::contentShort(int index) const
     return ((highByte << 8) & 0xFF00) + lowByte;
 }
 
+AntMessage2::AntMessage2():
+    AntMessage2(static_cast<AntMessageId>(0), QByteArray())
+{
+
+}
+
 QByteArray AntMessage2::toBytes() const
 {
     QByteArray bytes;
@@ -249,3 +255,21 @@ std::unique_ptr<AntMessage2> AntMessage2::createMessageFromBytes(const QByteArra
 
     return std::unique_ptr<AntMessage2>();
 }
+
+
+HeartRateMessage::HeartRateMessage(const AntMessage2 &antMessage)
+{
+    _measurementTime = antMessage.contentShort(5);
+    _computedHeartRate = antMessage.contentByte(8);
+}
+
+quint16 HeartRateMessage::measurementTime() const
+{
+    return _measurementTime;
+}
+
+quint8 HeartRateMessage::computedHeartRate() const
+{
+    return _computedHeartRate;
+}
+

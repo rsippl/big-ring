@@ -234,6 +234,7 @@ private slots:
     void staleInfo(int number);   // info is now stale
     void slotSearchTimeout(int number); // search timed out
     void slotSearchComplete(int number); // search completed successfully
+    void antMessageGenerated(const AntMessage2& antMessage);
 public:
     static const QVector<ant_sensor_type_t> ant_sensor_types;
     ANTChannel *antChannel[ANT_MAX_CHANNELS];
@@ -243,7 +244,7 @@ public:
 
     // transmission
     void sendMessage(const AntMessage2&);
-    void sendMessage(ANTMessage);
+    void sendMessage(const ANTMessage&);
     void handleChannelEvent(QByteArray &message);
 
 private:

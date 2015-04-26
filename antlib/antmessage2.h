@@ -15,6 +15,8 @@ class AntChannelEventMessage;
 class AntMessage2
 {
 public:
+    /** creates an invalid AntMessage */
+    AntMessage2();
     static const quint8 SYNC_BYTE = 0xA4;
     static const quint8 ANT_PLUS_NETWORK_NUMBER = 1;
     static const quint16 ANT_CHANNEL_FREQUENCY_BASE = 2400; // Mhz
@@ -23,7 +25,7 @@ public:
     /** message ids (in alphabetic order) */
     enum AntMessageId {
         ASSIGN_CHANNEL = 0x42,
-        BROADCAST_MESSAGE = 0x4e,
+        BROADCAST_EVENT = 0x4e,
         CHANNEL_EVENT = 0x40,
         OPEN_CHANNEL = 0x4b,
         REQUEST_MESSAGE = 0x4d,
@@ -80,12 +82,13 @@ public:
      */
     const AntChannelEventMessage* asChannelEventMessage() const;
 
+    quint8 contentByte(int nr) const;
+    quint16 contentShort(int index) const;
+
 protected:
     AntMessage2(const QByteArray& completeMessageBytes);
     AntMessage2(const AntMessageId id, const QByteArray& content);
     const QByteArray& content() const;
-    quint8 contentByte(int nr) const;
-    quint16 contentShort(int index) const;
 
 private:
     quint8 computeChecksum(const QByteArray& bytes) const;
@@ -116,6 +119,20 @@ private:
     quint8 _channelNumber;
     quint8 _messageId;
     MessageCode _messageCode;
+};
+
+class HeartRateMessage
+{
+public:
+    HeartRateMessage(const AntMessage2& antMessage);
+
+    quint16 measurementTime() const;
+    quint8 heartBeatCount() const;
+    quint8 computedHeartRate() const;
+private:
+    quint16 _measurementTime;
+    quint8 _heartBeatCount;
+    quint8 _computedHeartRate;
 };
 
 #endif // ANTMESSAGE2_H

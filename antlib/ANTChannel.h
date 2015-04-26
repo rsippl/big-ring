@@ -23,6 +23,7 @@
 
 #include "ANT.h"
 #include "ANTMessage.h"
+#include "antmessage2.h"
 #include <QObject>
 #include <QDateTime>
 
@@ -36,11 +37,10 @@
 class ANTChannel : public QObject {
     Q_OBJECT
 private:
-    ANT *parent;
-
+    AntMessage2 lastAntMessage;
     ANTMessage lastMessage, lastStdPwrMessage;
     int dualNullCount, nullCount, stdNullCount;
-    qint64 last_message_timestamp;
+    QDateTime _lastMessageTime;
     char id[10]; // short identifier
     bool channel_assigned;
     bool opened;
@@ -48,18 +48,8 @@ private:
     int messages_received; // for signal strength metric
     int messages_dropped;
 
-    unsigned char rx_burst_data[RX_BURST_DATA_LEN];
-    int           rx_burst_data_index;
-    unsigned char rx_burst_next_sequence;
-    void (*rx_burst_disposition)(struct ant_channel *);
-    void (*tx_ack_disposition)(struct ant_channel *);
-
-    // what we got
-    int manufacturer_id;
-    int product_id;
-    int product_version;
-
     void handlePowerMessage(ANTMessage antMessage);
+    void handleHeartRateMessage(const AntMessage2& antMessage);
 public:
     // Channel Information - to save tedious set/getters made public
     int number; // Channel number within Ant chip
@@ -70,7 +60,7 @@ public:
     int device_id;
     int search_type;
 
-    ANTChannel(int number, ANT *parent);
+    ANTChannel(int number, QObject *parent);
 
     // channel open/close
     void init();
@@ -79,9 +69,7 @@ public:
     // handle inbound data
     void receiveMessage(const QByteArray &message);
     void channelEvent(const QByteArray& bytes);
-    void burstInit();
-    void burstData(unsigned char *message);
-    void broadcastEvent(unsigned char *message);
+    void broadcastEvent(const AntMessage2& broadcastMessage);
     void channelId(unsigned char *message);
     void setId();
     void attemptTransition(int message_code);
@@ -97,7 +85,7 @@ signals:
     void staleInfo(int number);   // the connection is stale
     void searchTimeout(int number); // search timed out
     void searchComplete(int number); // search completed successfully
-
+    void antMessageGenerated(const AntMessage2& antMessage);
     /** heart rate in beats per minute */
     void heartRateMeasured(int bpm);
     /** power in watts */
