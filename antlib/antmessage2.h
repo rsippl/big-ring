@@ -23,6 +23,7 @@ public:
     /** message ids (in alphabetic order) */
     enum AntMessageId {
         ASSIGN_CHANNEL = 0x42,
+        BROADCAST_MESSAGE = 0x4e,
         CHANNEL_EVENT = 0x40,
         OPEN_CHANNEL = 0x4b,
         REQUEST_MESSAGE = 0x4d,
@@ -80,6 +81,7 @@ public:
     const AntChannelEventMessage* asChannelEventMessage() const;
 
 protected:
+    AntMessage2(const QByteArray& completeMessageBytes);
     AntMessage2(const AntMessageId id, const QByteArray& content);
     const QByteArray& content() const;
     quint8 contentByte(int nr) const;
@@ -111,7 +113,6 @@ public:
 
     virtual QString toString() const override;
 private:
-
     quint8 _channelNumber;
     quint8 _messageId;
     MessageCode _messageCode;

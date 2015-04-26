@@ -13,9 +13,18 @@ const QMap<AntChannelEventMessage::MessageCode,QString> EVENT_CHANNEL_MESSAGES (
 });
 }
 
+
+AntMessage2::AntMessage2(const QByteArray &completeMessageBytes):
+    AntMessage2(static_cast<AntMessageId>(completeMessageBytes[2]),
+    completeMessageBytes.mid(3, completeMessageBytes[1]))
+{
+    // empty
+}
+
 AntMessage2::AntMessage2(const AntMessageId id, const QByteArray& content):
     _id(id), _content(content)
 {
+    // empty
 }
 
 const QByteArray &AntMessage2::content() const
@@ -234,6 +243,8 @@ std::unique_ptr<AntMessage2> AntMessage2::createMessageFromBytes(const QByteArra
     switch(bytes[2]) {
     case AntMessage2::CHANNEL_EVENT:
         return std::unique_ptr<AntMessage2>(new AntChannelEventMessage(bytes));
+    default:
+        return std::unique_ptr<AntMessage2>(new AntMessage2(bytes));
     }
 
     return std::unique_ptr<AntMessage2>();
