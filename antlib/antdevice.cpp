@@ -19,9 +19,24 @@
  */
 
 #include "antdevice.h"
-
+#include "antmessage2.h"
+namespace {
+const QByteArray PADDING(5, '\0');
+}
 namespace indoorcycling
 {
+
+bool AntDevice::writeAntMessage(const AntMessage2 &message)
+{
+    QByteArray paddedMessageBytes = message.toBytes() + PADDING;
+    int nrOfBytesWritten = writeBytes(paddedMessageBytes);
+    if (nrOfBytesWritten == paddedMessageBytes.length()) {
+        return true;
+    } else {
+        qWarning("Tried to write a message of %d bytes, but only %d bytes written", paddedMessageBytes.length(), nrOfBytesWritten);
+        return false;
+    }
+}
 
 AntDevice::AntDevice(QObject *parent) :
     QObject(parent)

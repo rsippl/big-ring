@@ -24,6 +24,8 @@
 #include <QByteArray>
 #include <QObject>
 
+class AntMessage2;
+
 namespace indoorcycling
 {
 
@@ -57,6 +59,12 @@ public:
      * @return the number of bytes written.
      */
     virtual int writeBytes(const QByteArray& bytes) = 0;
+    /**
+     * @brief write an AntMessage to the device.
+     * @param message the message to write.
+     * @return true if the message was written completely.
+     */
+    bool writeAntMessage(const AntMessage2& message);
     /**
      * @brief try to read a number of bytes from the ANT+ device.
      * @return the byte array that was read. Might be empty, in fact it *will* often be empty.
