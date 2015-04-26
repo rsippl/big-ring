@@ -41,8 +41,6 @@ private:
     ANTMessage lastMessage, lastStdPwrMessage;
     int dualNullCount, nullCount, stdNullCount;
     qint64 last_message_timestamp;
-    qint64 blanking_timestamp;
-    int blanked;
     char id[10]; // short identifier
     bool channel_assigned;
     bool opened;

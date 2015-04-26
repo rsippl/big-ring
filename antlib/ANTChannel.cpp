@@ -48,7 +48,6 @@ ANTChannel::init()
     device_id=0;
     channel_assigned=0;
     state=ANT_UNASSIGN_CHANNEL;
-    blanked=1;
     messages_received=0;
     messages_dropped=0;
     setId();
@@ -90,30 +89,20 @@ void ANTChannel::open(int device, int chan_type)
     void ANTChannel::receiveMessage(const QByteArray& bytes)
     {
         QByteArray copy(bytes);
+        std::unique_ptr<AntMessage2> antMessage = AntMessage2::createMessageFromBytes(bytes);
         unsigned char* ant_message = reinterpret_cast<unsigned char*>(copy.data());
-        switch (bytes[2]) {
-        case ANT_CHANNEL_EVENT:
+        switch(antMessage->id()) {
+        case AntMessage2::BROADCAST_MESSAGE:
+                broadcastEvent(ant_message);
+                break;
+        case AntMessage2::CHANNEL_EVENT:
             channelEvent(bytes);
             break;
-        case ANT_BROADCAST_DATA:
-            broadcastEvent(ant_message);
-            break;
-        case ANT_CHANNEL_ID:
+        case AntMessage2::SET_CHANNEL_ID:
             channelId(ant_message);
-            break;
-        case ANT_BURST_DATA:
-            burstData(ant_message);
-            break;
         default:
-            break; //XXX should trap error here, but silently ignored for now
+            qDebug() << "Unhandled message" << antMessage->toString();
         }
-
-        if (QDateTime::currentDateTime().toMSecsSinceEpoch() > blanking_timestamp + timeout_blanking) {
-            if (!blanked) {
-                blanked=1;
-                emit staleInfo(number);
-            }
-        } else blanked=0;
     }
 
 
@@ -229,8 +218,6 @@ void ANTChannel::open(int device, int chan_type)
             // pretty critical) -- because the USB stick needed a USB reset which we know
             // do every time we open the USB device
             parent->sendMessage(AntMessage2::requestMessage(number, AntMessage2::SET_CHANNEL_ID));
-            blanking_timestamp=QDateTime::currentMSecsSinceEpoch();
-            blanked=0;
             return; // because we can't associate a channel id with the message yet
         }
 
