@@ -492,7 +492,7 @@ ANTMessage::ANTMessage(int channelType, const unsigned char *message) {
                 crankRevolutions =  message[10] + (message[11]<<8);
                 break;
 
-            case CHANNEL_TYPE_SandC:
+            case CHANNEL_TYPE_SPEED_AND_CADENCE:
                 channel = message[3];
                 crankMeasurementTime = message[4] + (message[5]<<8);
                 crankRevolutions =  message[6] + (message[7]<<8);

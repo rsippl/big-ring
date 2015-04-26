@@ -74,7 +74,8 @@ void ANTController::initialize()
 
     connect(antTimer, SIGNAL(timeout()), ant, SLOT(readCycle()));
     connect(ant, SIGNAL(initializationSucceeded()), antTimer, SLOT(start()));
-    connect(ant, SIGNAL(foundDevice(int,int,int,QString,QString)), SLOT(foundDevice(int,int,int,QString,QString)));
+    connect(ant, SIGNAL(foundDevice(int,int,int,QString,QString)),
+            SLOT(foundDevice(int,int,int,QString,QString)));
     connect(ant, &ANT::heartRateMeasured, this, &ANTController::heartRateReceived);
     connect(ant, &ANT::powerMeasured, this, &ANTController::powerReceived);
     connect(ant, &ANT::cadenceMeasured, this, &ANTController::cadenceReceived);

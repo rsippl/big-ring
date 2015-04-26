@@ -36,12 +36,26 @@
 
 class ANTChannel : public QObject {
     Q_OBJECT
+public:
+    enum ChannelState {
+        CHANNEL_CLOSED,
+        CHANNEL_ASSIGNED,
+        CHANNEL_ID_SET,
+        CHANNEL_FREQUENCY_SET,
+        CHANNEL_PERIOD_SET,
+        CHANNEL_OPENED,
+        CHANNEL_SEARCHING,
+        CHANNEL_RECEIVING
+    };
 private:
+    int _number;
+    ChannelState _state;
+
     AntMessage2 lastAntMessage;
     ANTMessage lastMessage, lastStdPwrMessage;
     int dualNullCount, nullCount, stdNullCount;
     QDateTime _lastMessageTime;
-    char id[10]; // short identifier
+
     bool channel_assigned;
     bool opened;
 
@@ -51,27 +65,25 @@ private:
     void handlePowerMessage(ANTMessage antMessage);
     void handleHeartRateMessage(const AntMessage2& antMessage);
 public:
+
     // Channel Information - to save tedious set/getters made public
-    int number; // Channel number within Ant chip
+     // Channel number within Ant chip
     int state;
-    int channel_type;
+    AntChannelType channel_type;
     int device_number;
     int channel_type_flags;
     int device_id;
     int search_type;
 
-    ANTChannel(int number, QObject *parent);
+    ANTChannel(int _number, QObject *parent);
 
-    // channel open/close
-    void init();
-    void open(int device_number, int channel_type);
+    void open(int device_number, AntChannelType channel_type);
 
     // handle inbound data
     void receiveMessage(const QByteArray &message);
     void channelEvent(const QByteArray& bytes);
     void broadcastEvent(const AntMessage2& broadcastMessage);
     void channelId(unsigned char *message);
-    void setId();
     void attemptTransition(int message_code);
 
     // search
@@ -79,12 +91,12 @@ public:
 
 signals:
 
-    void channelInfo(int number, int device_number, int device_id); // we got a channel info message
-    void dropInfo(int number, int dropped, int received);    // we dropped a packet
-    void lostInfo(int number);    // we lost a connection
-    void staleInfo(int number);   // the connection is stale
-    void searchTimeout(int number); // search timed out
-    void searchComplete(int number); // search completed successfully
+    void channelInfo(int _number, int device_number, int device_id); // we got a channel info message
+    void dropInfo(int _number, int dropped, int received);    // we dropped a packet
+    void lostInfo(int _number);    // we lost a connection
+    void staleInfo(int _number);   // the connection is stale
+    void searchTimeout(int _number); // search timed out
+    void searchComplete(int _number); // search completed successfully
     void antMessageGenerated(const AntMessage2& antMessage);
     /** heart rate in beats per minute */
     void heartRateMeasured(int bpm);

@@ -33,12 +33,12 @@
 #include <QDebug>
 
 enum AntChannelType {
-    CHANNEL_TYPE_UNUSED,
-    CHANNEL_TYPE_HR,
-    CHANNEL_TYPE_POWER,
-    CHANNEL_TYPE_SPEED,
-    CHANNEL_TYPE_CADENCE,
-    CHANNEL_TYPE_SandC
+    CHANNEL_TYPE_UNUSED = 0x00,
+    CHANNEL_TYPE_HR = 0x78,
+    CHANNEL_TYPE_POWER = 0x08,
+    CHANNEL_TYPE_SPEED = 0x7B,
+    CHANNEL_TYPE_CADENCE = 0x7A,
+    CHANNEL_TYPE_SPEED_AND_CADENCE = 0x79
 };
 
 namespace indoorcycling {
@@ -51,7 +51,6 @@ class ANTChannel;
 class AntDevice;
 
 typedef struct ant_sensor_type {
-    int type;
     int period;
     int device_id;
     int frequency;
@@ -236,7 +235,7 @@ private slots:
     void slotSearchComplete(int number); // search completed successfully
     void antMessageGenerated(const AntMessage2& antMessage);
 public:
-    static const QVector<ant_sensor_type_t> ant_sensor_types;
+    static const QMap<AntChannelType,ant_sensor_type_t> ant_sensor_types;
     ANTChannel *antChannel[ANT_MAX_CHANNELS];
 
     // ANT Devices and Channels
@@ -259,12 +258,6 @@ private:
 
     indoorcycling::AntDeviceFinder* _antDeviceFinder;
     QSharedPointer<indoorcycling::AntDevice> antDevice;
-    // state machine whilst receiving bytes
-    enum States {ST_WAIT_FOR_SYNC, ST_GET_LENGTH, ST_GET_MESSAGE_ID, ST_GET_DATA, ST_VALIDATE_PACKET} state;
-    //enum States state;
-    int length;
-    int bytes;
-    int checksum;
     int powerchannels; // how many power channels do we have?
 
     // antlog.bin ant message stream

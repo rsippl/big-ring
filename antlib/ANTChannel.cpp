@@ -27,15 +27,22 @@ namespace {
 const quint32 timeout_drop = 2000; // ms
 const quint32 timeout_scan = 10000; // ms
 const quint32 timeout_lost = 30; // s
-}
 
-ANTChannel::ANTChannel(int number, QObject *parent) : QObject(parent), number(number)
+const QMap<ANTChannel::ChannelState,QString> CHANNEL_STATE_STRINGS(
 {
-    init();
+            {ANTChannel::CHANNEL_CLOSED, "CHANNEL_CLOSED"},
+            {ANTChannel::CHANNEL_ASSIGNED, "CHANNEL_ASSIGNED"},
+            {ANTChannel::CHANNEL_ID_SET, "CHANNEL_ID_SET"},
+            {ANTChannel::CHANNEL_FREQUENCY_SET, "CHANNEL_FREQUENCY_SET"},
+            {ANTChannel::CHANNEL_PERIOD_SET, "CHANNEL_PERIOD_SET"},
+            {ANTChannel::CHANNEL_OPENED, "CHANNEL_OPENED"},
+            {ANTChannel::CHANNEL_SEARCHING, "CHANNEL_SEARCHING"},
+            {ANTChannel::CHANNEL_RECEIVING, "CHANNEL_RECEIVING"}
+});
 }
 
-void
-ANTChannel::init()
+ANTChannel::ANTChannel(int number, QObject *parent) : QObject(parent), _number(number),
+    _state(CHANNEL_CLOSED)
 {
     opened = false;
     channel_type=CHANNEL_TYPE_UNUSED;
@@ -46,31 +53,14 @@ ANTChannel::init()
     state=ANT_UNASSIGN_CHANNEL;
     messages_received=0;
     messages_dropped=0;
-    setId();
-}
-
-//
-// channel id is in the form nnnnx where nnnn is the device number
-// and x is the channel type (p)ower, (c) adence etc the full list
-// can be found in ANT.cpp when initialising ant_sensor_types
-//
-void ANTChannel::setId()
-{
-    if (channel_type==CHANNEL_TYPE_UNUSED) {
-        strcpy(id, "none");
-    } else {
-        snprintf(id, 10, "%d%c", device_number, ANT::ant_sensor_types[channel_type].suffix);
-    }
 }
 
 // Open an ant channel assignment.
-void ANTChannel::open(int device, int chan_type)
+void ANTChannel::open(int device, AntChannelType chan_type)
 {
     channel_type=chan_type;
     channel_type_flags = CHANNEL_TYPE_QUICK_SEARCH ;
     device_number=device;
-
-    setId();
 
     attemptTransition(ANT_UNASSIGN_CHANNEL);
 }
@@ -107,40 +97,37 @@ void ANTChannel::receiveMessage(const QByteArray& bytes)
 void ANTChannel::channelEvent(const QByteArray &bytes) {
     AntChannelEventMessage channelEventMessage(bytes);
     const QByteArray message = bytes.mid(2);
-    //        unsigned char *message=ant_message+2;
-
 
     //qDebug()<<"channel event:"<< ANTMessage::channelEventMessage(*(message+1));
     if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR) {
+        qDebug() << channelEventMessage.toString();
         attemptTransition(channelEventMessage.messageId());
     } else if (MESSAGE_IS_EVENT_CHANNEL_CLOSED(message)) {
-        emit antMessageGenerated(AntMessage2::unassignChannel(number));
+        emit antMessageGenerated(AntMessage2::unassignChannel(_number));
     } else if (MESSAGE_IS_EVENT_RX_SEARCH_TIMEOUT(message)) {
-
         // timeouts are normal for search channel
         if (channel_type_flags & CHANNEL_TYPE_QUICK_SEARCH) {
 
             channel_type_flags &= ~CHANNEL_TYPE_QUICK_SEARCH;
             channel_type_flags |= CHANNEL_TYPE_WAITING;
 
-            emit searchTimeout(number);
+            emit searchTimeout(_number);
 
         } else {
 
-            emit lostInfo(number);
+            emit lostInfo(_number);
 
             channel_type=CHANNEL_TYPE_UNUSED;
             channel_type_flags=0;
             device_number=0;
-            setId();
 
-            emit antMessageGenerated(AntMessage2::unassignChannel(number));
+            emit antMessageGenerated(AntMessage2::unassignChannel(_number));
         }
     } else if (MESSAGE_IS_EVENT_RX_FAIL(message)) {
         messages_dropped++;
 
         if (QDateTime::currentDateTime() > (_lastMessageTime.addMSecs(timeout_drop))) {
-            if (channel_type != CHANNEL_TYPE_UNUSED) emit dropInfo(number, messages_dropped, messages_received);
+            if (channel_type != CHANNEL_TYPE_UNUSED) emit dropInfo(_number, messages_dropped, messages_received);
             // this is a hacky way to prevent the drop message from sending multiple times
             _lastMessageTime.addMSecs(2 * timeout_drop);
         }
@@ -175,7 +162,7 @@ void ANTChannel::handleHeartRateMessage(const AntMessage2 &antMessage)
     quint16 time = newHeartRateMessage.measurementTime() - lastHeartRateMessage.measurementTime();
     if (time) {
         nullCount = 0;
-        qDebug() << "hr = " << newHeartRateMessage.computedHeartRate();
+        qDebug() << QTime::currentTime() << "hr = " << newHeartRateMessage.computedHeartRate();
         emit heartRateMeasured(newHeartRateMessage.computedHeartRate());
     } else {
         nullCount++;
@@ -216,7 +203,7 @@ void ANTChannel::broadcastEvent(const AntMessage2 &broadcastMessage)
         // by the write below failing (and any write really, but the one below being
         // pretty critical) -- because the USB stick needed a USB reset which we know
         // do every time we open the USB device
-        emit antMessageGenerated(AntMessage2::requestMessage(number, AntMessage2::SET_CHANNEL_ID));
+        emit antMessageGenerated(AntMessage2::requestMessage(_number, AntMessage2::SET_CHANNEL_ID));
         return; // because we can't associate a channel id with the message yet
     }
     //
@@ -258,7 +245,7 @@ void ANTChannel::broadcastEvent(const AntMessage2 &broadcastMessage)
             break;
 
             // Speed and Cadence
-        case CHANNEL_TYPE_SandC:
+        case CHANNEL_TYPE_SPEED_AND_CADENCE:
         {
             // cadence first...
             uint16_t time = antMessage.crankMeasurementTime - lastMessage.crankMeasurementTime;
@@ -266,11 +253,11 @@ void ANTChannel::broadcastEvent(const AntMessage2 &broadcastMessage)
             if (time) {
                 nullCount = 0;
                 float cadence = 1024*60*revs / time;
-                emit cadenceMeasured(cadence, CHANNEL_TYPE_SandC);
+                emit cadenceMeasured(cadence, CHANNEL_TYPE_SPEED_AND_CADENCE);
             } else {
                 nullCount++;
                 if (nullCount >= 12) {
-                    emit cadenceMeasured(0.0f, CHANNEL_TYPE_SandC);
+                    emit cadenceMeasured(0.0f, CHANNEL_TYPE_SPEED_AND_CADENCE);
                 }
             }
 
@@ -281,12 +268,12 @@ void ANTChannel::broadcastEvent(const AntMessage2 &broadcastMessage)
                 dualNullCount = 0;
 
                 float rpm = 1024*60*revs / time;
-                emit speedMeasured(rpm, CHANNEL_TYPE_SandC);
+                emit speedMeasured(rpm, CHANNEL_TYPE_SPEED_AND_CADENCE);
             } else {
 
                 dualNullCount++;
                 if (dualNullCount >= 12) {
-                    emit speedMeasured(0, CHANNEL_TYPE_SandC);
+                    emit speedMeasured(0, CHANNEL_TYPE_SPEED_AND_CADENCE);
                 }
             }
         }
@@ -337,18 +324,13 @@ void ANTChannel::channelId(unsigned char *ant_message) {
     device_number=CHANNEL_ID_DEVICE_NUMBER(message);
     device_id=CHANNEL_ID_DEVICE_TYPE_ID(message);
     state=MESSAGE_RECEIVED;
-    emit channelInfo(number, device_number, device_id);
-    setId();
+    emit channelInfo(_number, device_number, device_id);
 
     // if we were searching,
     if (channel_type_flags & CHANNEL_TYPE_QUICK_SEARCH) {
-        emit antMessageGenerated(AntMessage2::setSearchTimeout(number, timeout_lost));
+        emit antMessageGenerated(AntMessage2::setSearchTimeout(_number, timeout_lost));
     }
     channel_type_flags &= ~CHANNEL_TYPE_QUICK_SEARCH;
-
-    //XXX channel_manager_start_waiting_search(self->parent);
-    // if we are quarq channel, hook up with the ant+ channel we are connected to
-    //XXX channel_manager_associate_control_channels(self->parent);
 }
 
 // are we in the middle of a search?
@@ -359,80 +341,40 @@ int ANTChannel::isSearching() {
 
 void ANTChannel::attemptTransition(int message_id)
 {
+    qDebug() << "channel" << _number << "current state" << CHANNEL_STATE_STRINGS[_state];
     if (opened)
         return;
 
-    const ant_sensor_type_t *st;
-
-    st=&(ANT::ant_sensor_types[channel_type]);
+    const ant_sensor_type_t& st = ANT::ant_sensor_types[channel_type];
 
     // update state
     state=message_id;
 
-    qDebug() << "channel" << number << "state" << QString::number(state, 16);
+    qDebug() << "channel" << _number << "state" << QString::number(state, 16);
     // do transitions
-    switch (state) {
-
-    case ANT_CLOSE_CHANNEL:
-        // next step is unassign and start over
-        // but we must wait until event_channel_closed
-        // which is its own channel event
-        state=MESSAGE_RECEIVED;
+    switch (_state) {
+    case CHANNEL_CLOSED:
+        emit antMessageGenerated(AntMessage2::assignChannel(_number));
+        _state = CHANNEL_ASSIGNED;
         break;
-
-    case ANT_UNASSIGN_CHANNEL:
-        channel_assigned=0;
-
-        // lets make sure this channel is assigned to our network
-        // regardless of its current state.
-        //            parent->sendMessage(AntMessage2::unassignChannel(number)); // unassign whatever we had before
-
-        // reassign to whatever we need!
-        emit antMessageGenerated(AntMessage2::assignChannel(number));
-        device_id=st->device_id;
-        //            parent->sendMessage(AntMessage2::setChannelId(number, 0, device_id)); // lets go back to allowing anything
-        setId();
+    case CHANNEL_ASSIGNED:
+        emit antMessageGenerated(AntMessage2::setChannelId(_number, 0, channel_type));
+        _state = CHANNEL_ID_SET;
         break;
-
-    case ANT_ASSIGN_CHANNEL:
-        channel_assigned=1;
-        emit antMessageGenerated(AntMessage2::setChannelId(number, 0, device_id));
+    case CHANNEL_ID_SET:
+        emit antMessageGenerated(AntMessage2::setChannelFrequency(_number));
+        _state = CHANNEL_FREQUENCY_SET;
         break;
-
-    case ANT_CHANNEL_ID:
-        emit antMessageGenerated(AntMessage2::setChannelFrequency(number));
+    case CHANNEL_FREQUENCY_SET:
+        emit antMessageGenerated(AntMessage2::setChannelPeriod(_number, st.period));
+        _state = CHANNEL_PERIOD_SET;
         break;
-        //            if (channel_type & CHANNEL_TYPE_QUICK_SEARCH) {
-        //                parent->sendMessage(AntMessage2::setSearchTimeout(number, timeout_scan));
-        //            } else {
-        //                parent->sendMessage(AntMessage2::setSearchTimeout(number, timeout_lost));
-        //            }
-        //            break;
-    case ANT_SEARCH_TIMEOUT:
-        //            if (previous_state==ANT_CHANNEL_ID) {
-        //                // continue down the intialization chain
-        //                parent->sendMessage(ANTMessage::setChannelPeriod(number, st->period));
-        //            } else {
-        //                // we are setting the ant_search timeout after connected
-        //                // we'll just pretend this never happened
-        //                state=previous_state;
-        //            }
-        //            break;
-
-    case ANT_CHANNEL_FREQUENCY:
-        emit antMessageGenerated(AntMessage2::setChannelPeriod(number, st->period));
+    case CHANNEL_PERIOD_SET:
+        emit antMessageGenerated(AntMessage2::openChannel(_number));
+        _state = CHANNEL_OPENED;
         break;
-    case ANT_CHANNEL_PERIOD:
-        emit antMessageGenerated(AntMessage2::openChannel(number));
-        break;
-        //
-    case ANT_OPEN_CHANNEL:
-        opened = true;
-        qDebug() << "Channel" << number << "open";
-        //            parent->sendMessage(ANTMessage::open(number));
-        break;
-
-    default:
+    case CHANNEL_OPENED:
+        _state = CHANNEL_SEARCHING;
         break;
     }
 }
