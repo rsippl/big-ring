@@ -123,6 +123,7 @@ private:
 
 class HeartRateMessage;
 class PowerMessage;
+class SpeedAndCadenceMessage;
 class BroadCastMessage
 {
 public:
@@ -132,8 +133,10 @@ public:
     quint8 dataPage() const;
     const AntMessage2 &antMessage() const;
 
+
     HeartRateMessage toHeartRateMessage() const;
     PowerMessage toPowerMessage() const;
+    SpeedAndCadenceMessage toSpeedAndCadenceMessage() const;
 protected:
     AntMessage2 _antMessage;
 private:
@@ -204,6 +207,26 @@ public:
     quint8 instantaneousCadence() const;
     quint16 accumulatedPower() const;
     quint16 instantaneousPower() const;
+};
+
+/** Speed And Cadence message
+ * Byte 0 contains the channel
+ *
+ * Byte 1-2 cadence event time
+ * Byte 3-4 cumulative cadence revolution count
+ * Byte 5-6 bike speed event time
+ * Byte 7-8 cumulative speed revolution count
+*/
+class SpeedAndCadenceMessage: public BroadCastMessage
+{
+public:
+    SpeedAndCadenceMessage(const AntMessage2& antMessage);
+
+    quint16 cadenceEventTime() const;
+    quint16 pedalRevolutions() const;
+    quint16 speedEventTime() const;
+    quint16 wheelRevolutions() const;
+
 };
 
 #endif // ANTMESSAGE2_H

@@ -64,6 +64,7 @@ private:
     int messages_received; // for signal strength metric
     int messages_dropped;
 
+    void handleSpeedAndCadenceMessage(const SpeedAndCadenceMessage &speedAndCadenceMessage);
     void handlePowerMessage(const PowerMessage &powerMessage);
     void handleHeartRateMessage(const HeartRateMessage &newMessage);
 public:

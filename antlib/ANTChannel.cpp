@@ -139,6 +139,40 @@ void ANTChannel::channelEvent(const QByteArray &bytes) {
 }
 
 
+void ANTChannel::handleSpeedAndCadenceMessage(const SpeedAndCadenceMessage &speedAndCadenceMessage)
+{
+    SpeedAndCadenceMessage lastSpeedAndCadenceMessage(lastAntMessage);
+    quint16 time = speedAndCadenceMessage.cadenceEventTime()- lastSpeedAndCadenceMessage.cadenceEventTime();
+    quint16 revolutions = speedAndCadenceMessage.pedalRevolutions() -
+            lastSpeedAndCadenceMessage.pedalRevolutions();
+    if (time) {
+        nullCount = 0;
+        float cadence = 1024 * 60 * revolutions / static_cast<float>(time);
+        qDebug() << QTime::currentTime().toString() << "cadence" << cadence;
+        emit cadenceMeasured(cadence, CHANNEL_TYPE_SPEED_AND_CADENCE);
+    } else {
+        nullCount++;
+        if (nullCount >= 12) {
+            emit cadenceMeasured(0.0f, CHANNEL_TYPE_SPEED_AND_CADENCE);
+        }
+    }
+
+    time = speedAndCadenceMessage.speedEventTime()- lastSpeedAndCadenceMessage.speedEventTime();
+    revolutions = speedAndCadenceMessage.wheelRevolutions() - lastSpeedAndCadenceMessage.wheelRevolutions();
+    if (time) {
+        dualNullCount = 0;
+        float rpm = 1024*60*revolutions / static_cast<float>(time);
+        qDebug() << QTime::currentTime().toString() << "wheel speed" << rpm << ((rpm / 60) * 2.070) * 3.6;
+        emit speedMeasured(rpm, CHANNEL_TYPE_SPEED_AND_CADENCE);
+    } else {
+
+        dualNullCount++;
+        if (dualNullCount >= 12) {
+            emit speedMeasured(0, CHANNEL_TYPE_SPEED_AND_CADENCE);
+        }
+    }
+}
+
 void ANTChannel::handlePowerMessage(const PowerMessage& powerMessage)
 {
     if (powerMessage.isPowerOnlyPage()) {
@@ -245,23 +279,11 @@ void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
             // Speed and Cadence
         case CHANNEL_TYPE_SPEED_AND_CADENCE:
         {
-            // cadence first...
-            uint16_t time = antMessage.crankMeasurementTime - lastMessage.crankMeasurementTime;
-            uint16_t revs = antMessage.crankRevolutions - lastMessage.crankRevolutions;
-            if (time) {
-                nullCount = 0;
-                float cadence = 1024*60*revs / time;
-                emit cadenceMeasured(cadence, CHANNEL_TYPE_SPEED_AND_CADENCE);
-            } else {
-                nullCount++;
-                if (nullCount >= 12) {
-                    emit cadenceMeasured(0.0f, CHANNEL_TYPE_SPEED_AND_CADENCE);
-                }
-            }
+            handleSpeedAndCadenceMessage(broadcastMessage.toSpeedAndCadenceMessage());
 
             // now speed ...
-            time = antMessage.wheelMeasurementTime - lastMessage.wheelMeasurementTime;
-            revs = antMessage.wheelRevolutions - lastMessage.wheelRevolutions;
+            quint16 time = antMessage.wheelMeasurementTime - lastMessage.wheelMeasurementTime;
+            quint16 revs = antMessage.wheelRevolutions - lastMessage.wheelRevolutions;
             if (time) {
                 dualNullCount = 0;
 
