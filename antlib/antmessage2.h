@@ -121,9 +121,48 @@ private:
     MessageCode _messageCode;
 };
 
-class HeartRateMessage
+class HeartRateMessage;
+class PowerMessage;
+class BroadCastMessage
 {
 public:
+    BroadCastMessage(const AntMessage2& antMessage);
+
+    quint8 channelNumber() const;
+    quint8 dataPage() const;
+    const AntMessage2 &antMessage() const;
+
+    HeartRateMessage toHeartRateMessage() const;
+    PowerMessage toPowerMessage() const;
+protected:
+    AntMessage2 _antMessage;
+private:
+    quint8 _channelNumber;
+    quint8 _dataPage;
+};
+
+/**
+ * HeartRateMessage is an ANT+ Broadcast message.
+ *
+ * There are several data pages in the ANT+ Heart Rate profile.
+ * All Data Pages hold 8 bytes of content.
+ *
+ * Byte 0 contains the channel
+ * Byte 1 contains the data page.
+ * Byte 2-4 are different for different pages. We will not use them here.
+ * Bytes 5 & 6 contain the measurement time in 1/1024s as an unsigned short (16 bits). (this wraps every 64 seconds)
+ * Byte 7 contains the a count of heart beat events. This wraps every 255 counts. It can be used to check for missed
+ * events.
+ * Byte 8 contains the heart rate as computed by the sensor.
+ */
+class HeartRateMessage: public BroadCastMessage
+{
+public:
+    /**
+     * Create a HeartRateMessage
+     * @param antMessage the ANT+ broadcast message.
+     * @return An HeartRateMessage.
+     */
     HeartRateMessage(const AntMessage2& antMessage);
 
     quint16 measurementTime() const;
@@ -133,6 +172,38 @@ private:
     quint16 _measurementTime;
     quint8 _heartBeatCount;
     quint8 _computedHeartRate;
+};
+
+/** Power message
+ * Byte 0 contains the channel
+ * Byte 1 contains the data page.
+ *
+ * For the Power-only page (0x10):
+ * Byte 2 is the event count
+ * Byte 3 pedal power (power balance)
+ * Byte 4 instantaneous cadence
+ * Byte 5-6 Accumulated Power
+ * Byte 7-8 Instantaneous Power
+*/
+class PowerMessage: public BroadCastMessage
+{
+public:
+    enum DataPages {
+        POWER_ONLY_PAGE = 0x10
+    };
+
+    /** Create a PowerMessage.
+     * @param antMessage the ANT+ broadcast message.
+     * @return a PowerMessage
+     */
+    PowerMessage(const AntMessage2& antMessage);
+
+    bool isPowerOnlyPage() const;
+
+    quint8 eventCount() const;
+    quint8 instantaneousCadence() const;
+    quint16 accumulatedPower() const;
+    quint16 instantaneousPower() const;
 };
 
 #endif // ANTMESSAGE2_H

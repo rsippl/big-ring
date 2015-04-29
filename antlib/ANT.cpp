@@ -64,6 +64,7 @@ ANT::ANT(QObject *parent): QObject(parent),
     _antDeviceFinder(new indoorcycling::AntDeviceFinder(this)),
     _antMessageGatherer(new AntMessageGatherer(this))
 {
+    qRegisterMetaType<AntChannelType>("AntChannelType");
     connect(_antMessageGatherer, &AntMessageGatherer::antMessageReceived,
             this, &ANT::processMessage);
     powerchannels=0;

@@ -256,10 +256,10 @@ std::unique_ptr<AntMessage2> AntMessage2::createMessageFromBytes(const QByteArra
     return std::unique_ptr<AntMessage2>();
 }
 
-
-HeartRateMessage::HeartRateMessage(const AntMessage2 &antMessage)
+HeartRateMessage::HeartRateMessage(const AntMessage2 &antMessage): BroadCastMessage(antMessage)
 {
     _measurementTime = antMessage.contentShort(5);
+    _heartBeatCount = antMessage.contentByte(7);
     _computedHeartRate = antMessage.contentByte(8);
 }
 
@@ -268,8 +268,82 @@ quint16 HeartRateMessage::measurementTime() const
     return _measurementTime;
 }
 
+quint8 HeartRateMessage::heartBeatCount() const
+{
+    return _heartBeatCount;
+}
+
 quint8 HeartRateMessage::computedHeartRate() const
 {
     return _computedHeartRate;
 }
+
+
+
+BroadCastMessage::BroadCastMessage(const AntMessage2 &antMessage):
+    _antMessage(antMessage),
+    _channelNumber(antMessage.contentByte(0)),
+    _dataPage(antMessage.contentByte(1))
+{
+    // empty
+}
+
+quint8 BroadCastMessage::channelNumber() const
+{
+    return _channelNumber;
+}
+
+quint8 BroadCastMessage::dataPage() const
+{
+    return _dataPage;
+}
+
+const AntMessage2 &BroadCastMessage::antMessage() const
+{
+    return _antMessage;
+}
+
+HeartRateMessage BroadCastMessage::toHeartRateMessage() const
+{
+    return HeartRateMessage(_antMessage);
+}
+
+PowerMessage BroadCastMessage::toPowerMessage() const
+{
+    return PowerMessage(_antMessage);
+}
+
+
+PowerMessage::PowerMessage(const AntMessage2 &antMessage):
+    BroadCastMessage(antMessage)
+{
+
+}
+
+bool PowerMessage::isPowerOnlyPage() const
+{
+    return dataPage() == POWER_ONLY_PAGE;
+}
+
+quint8 PowerMessage::eventCount() const
+{
+    return antMessage().contentByte(2);
+}
+
+quint8 PowerMessage::instantaneousCadence() const
+{
+    return antMessage().contentByte(4);
+}
+
+quint16 PowerMessage::accumulatedPower() const
+{
+    return antMessage().contentShort(5);
+}
+
+quint16 PowerMessage::instantaneousPower() const
+{
+    return antMessage().contentShort(7);
+}
+
+
 

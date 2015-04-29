@@ -78,13 +78,14 @@ void ANTChannel::receiveMessage(const QByteArray& bytes)
     unsigned char* ant_message = reinterpret_cast<unsigned char*>(copy.data());
     switch(antMessage->id()) {
     case AntMessage2::BROADCAST_EVENT:
-        broadcastEvent(*antMessage);
+        broadcastEvent(BroadCastMessage(*antMessage));
         break;
     case AntMessage2::CHANNEL_EVENT:
         channelEvent(bytes);
         break;
     case AntMessage2::SET_CHANNEL_ID:
         channelId(ant_message);
+        break;
     default:
         qDebug() << "Unhandled message" << antMessage->toString();
     }
@@ -138,27 +139,31 @@ void ANTChannel::channelEvent(const QByteArray &bytes) {
 }
 
 
-void ANTChannel::handlePowerMessage(ANTMessage antMessage)
+void ANTChannel::handlePowerMessage(const PowerMessage& powerMessage)
 {
-    uint8_t events = antMessage.eventCount - lastStdPwrMessage.eventCount;
-    if (lastStdPwrMessage.type && events) {
-        stdNullCount = 0;
-        emit powerMeasured(antMessage.instantPower);
-        emit cadenceMeasured(antMessage.instantCadence, CHANNEL_TYPE_POWER);
-    } else {
-        stdNullCount++;
-        if (stdNullCount >= 6) { //XXX 6 for standard power?
-            emit cadenceMeasured(0.0f, CHANNEL_TYPE_POWER);
-            emit powerMeasured(0.0f);
+    if (powerMessage.isPowerOnlyPage()) {
+        if (lastStdPwrMessage) {
+            if (lastStdPwrMessage->eventCount() != powerMessage.eventCount()) {
+                stdNullCount = 0;
+                emit powerMeasured(powerMessage.instantaneousPower());
+                emit cadenceMeasured(powerMessage.instantaneousCadence(), CHANNEL_TYPE_POWER);
+                qDebug() << QDateTime::currentDateTime().toString() << "power" << powerMessage.instantaneousPower() << "cadence" << powerMessage.instantaneousCadence();
+            } else {
+                stdNullCount += 1;
+                if (stdNullCount >= 6) {
+                    emit cadenceMeasured(0, CHANNEL_TYPE_POWER);
+                    emit powerMeasured(0);
+                }
+            }
         }
+
+        lastStdPwrMessage.reset(new PowerMessage(powerMessage.antMessage()));
     }
-    lastStdPwrMessage = antMessage;
 }
 
-void ANTChannel::handleHeartRateMessage(const AntMessage2 &antMessage)
+void ANTChannel::handleHeartRateMessage(const HeartRateMessage& newHeartRateMessage)
 {
     HeartRateMessage lastHeartRateMessage(lastAntMessage);
-    HeartRateMessage newHeartRateMessage(antMessage);
     quint16 time = newHeartRateMessage.measurementTime() - lastHeartRateMessage.measurementTime();
     if (time) {
         nullCount = 0;
@@ -178,10 +183,10 @@ void ANTChannel::handleHeartRateMessage(const AntMessage2 &antMessage)
      we need to remember previous messages to look at the
      deltas during the period XXX this needs fixing!
     */
-void ANTChannel::broadcastEvent(const AntMessage2 &broadcastMessage)
+void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
 {
     ANTMessage antMessage(channel_type,
-                          reinterpret_cast<const unsigned char*>(broadcastMessage.toBytes().data()));
+                          reinterpret_cast<const unsigned char*>(broadcastMessage.antMessage().toBytes().data()));
     bool savemessage = true; // flag to stop lastmessage being
     // overwritten for standard power
     // messages
@@ -204,6 +209,8 @@ void ANTChannel::broadcastEvent(const AntMessage2 &broadcastMessage)
         // pretty critical) -- because the USB stick needed a USB reset which we know
         // do every time we open the USB device
         emit antMessageGenerated(AntMessage2::requestMessage(_number, AntMessage2::SET_CHANNEL_ID));
+
+        lastAntMessage = broadcastMessage.antMessage();
         return; // because we can't associate a channel id with the message yet
     }
     //
@@ -215,22 +222,13 @@ void ANTChannel::broadcastEvent(const AntMessage2 &broadcastMessage)
 
         // Power
         case CHANNEL_TYPE_POWER:
-            // what kind of power device is this?
-            switch(antMessage.data_page) {
-            case ANT_STANDARD_POWER: // 0x10 - standard power
-            {
-                handlePowerMessage(antMessage);
-                savemessage = false;
-            }
-                break;
-            default: // other data page. We'll just ignore it.
-                break;
-            }
+            savemessage = false;
+            handlePowerMessage(broadcastMessage.toPowerMessage());
             break;
 
             // HR
         case CHANNEL_TYPE_HR:
-            handleHeartRateMessage(broadcastMessage);
+            handleHeartRateMessage(broadcastMessage.toHeartRateMessage());
             break;
             // Cadence
         case CHANNEL_TYPE_CADENCE:
@@ -311,7 +309,7 @@ void ANTChannel::broadcastEvent(const AntMessage2 &broadcastMessage)
     // these are maintained separately in lastStdPwrMessage
     if (savemessage) {
         lastMessage = antMessage;
-        lastAntMessage = broadcastMessage;
+        lastAntMessage = broadcastMessage.antMessage();
     }
 }
 

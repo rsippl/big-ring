@@ -26,6 +26,7 @@
 #include "antmessage2.h"
 #include <QObject>
 #include <QDateTime>
+#include <QtCore/QScopedPointer>
 
 #define CHANNEL_TYPE_QUICK_SEARCH 0x10 // or'ed with current channel type
 /* after fast search, wait for slow search.  Otherwise, starting slow
@@ -52,7 +53,8 @@ private:
     ChannelState _state;
 
     AntMessage2 lastAntMessage;
-    ANTMessage lastMessage, lastStdPwrMessage;
+    QScopedPointer<PowerMessage> lastStdPwrMessage;
+    ANTMessage lastMessage;
     int dualNullCount, nullCount, stdNullCount;
     QDateTime _lastMessageTime;
 
@@ -62,8 +64,8 @@ private:
     int messages_received; // for signal strength metric
     int messages_dropped;
 
-    void handlePowerMessage(ANTMessage antMessage);
-    void handleHeartRateMessage(const AntMessage2& antMessage);
+    void handlePowerMessage(const PowerMessage &powerMessage);
+    void handleHeartRateMessage(const HeartRateMessage &newMessage);
 public:
 
     // Channel Information - to save tedious set/getters made public
@@ -82,7 +84,7 @@ public:
     // handle inbound data
     void receiveMessage(const QByteArray &message);
     void channelEvent(const QByteArray& bytes);
-    void broadcastEvent(const AntMessage2& broadcastMessage);
+    void broadcastEvent(const BroadCastMessage& broadcastMessage);
     void channelId(unsigned char *message);
     void attemptTransition(int message_code);
 
