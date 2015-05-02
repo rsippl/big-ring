@@ -88,11 +88,10 @@ public:
 
     void open(int device_number, AntChannelType channel_type);
 
-    // handle inbound data
-    void receiveMessage(const QByteArray &message);
-    void channelEvent(const QByteArray& bytes);
+    void channelEvent(const AntChannelEventMessage& bytes);
     void broadcastEvent(const BroadCastMessage& broadcastMessage);
-    void channelId(unsigned char *message);
+    void channelIdEvent(const SetChannelIdMessage& channelIdMessage);
+
     void attemptTransition(int message_code);
 
     // search

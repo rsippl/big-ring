@@ -65,41 +65,12 @@ void ANTChannel::open(int device, AntChannelType chan_type)
     attemptTransition(ANT_UNASSIGN_CHANNEL);
 }
 
-//
-// The main read loop is in ANT.cpp, it will pass us
-// the inbound message received for our channel.
-// XXX fix this up to re-use ANTMessage for decoding
-// all the inbound messages
-//
-void ANTChannel::receiveMessage(const QByteArray& bytes)
-{
-    QByteArray copy(bytes);
-    std::unique_ptr<AntMessage2> antMessage = AntMessage2::createMessageFromBytes(bytes);
-    unsigned char* ant_message = reinterpret_cast<unsigned char*>(copy.data());
-    switch(antMessage->id()) {
-    case AntMessage2::BROADCAST_EVENT:
-        broadcastEvent(BroadCastMessage(*antMessage));
-        break;
-    case AntMessage2::CHANNEL_EVENT:
-        channelEvent(bytes);
-        break;
-    case AntMessage2::SET_CHANNEL_ID:
-        channelId(ant_message);
-        break;
-    default:
-        qDebug() << "Unhandled message" << antMessage->toString();
-    }
-}
-
-
 // process a channel event message
 // XXX should re-use ANTMessage rather than
 // raw message data
-void ANTChannel::channelEvent(const QByteArray &bytes) {
-    AntChannelEventMessage channelEventMessage(bytes);
-    const QByteArray message = bytes.mid(2);
+void ANTChannel::channelEvent(const AntChannelEventMessage &channelEventMessage) {
+    const QByteArray message = channelEventMessage.toBytes().mid(2);
 
-    //qDebug()<<"channel event:"<< ANTMessage::channelEventMessage(*(message+1));
     if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR) {
         qDebug() << channelEventMessage.toString();
         attemptTransition(channelEventMessage.messageId());
@@ -307,12 +278,9 @@ void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
 
 
 // we got a channel ID notification
-void ANTChannel::channelId(unsigned char *ant_message) {
-
-    unsigned char *message=ant_message+2;
-
-    device_number=CHANNEL_ID_DEVICE_NUMBER(message);
-    device_id=CHANNEL_ID_DEVICE_TYPE_ID(message);
+void ANTChannel::channelIdEvent(const SetChannelIdMessage& message) {
+    device_number = message.deviceNumber();
+    device_id = message.deviceTypeId();
     state=MESSAGE_RECEIVED;
     emit channelInfo(_number, device_number, device_id);
 

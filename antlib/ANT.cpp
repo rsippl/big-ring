@@ -119,8 +119,6 @@ void ANT::initialize()
         emit initializationFailed();
         return;
     }
-    antlog.setFileName("antlog.bin");
-    antlog.open(QIODevice::WriteOnly | QIODevice::Truncate);
 
     qDebug() << "resetting system";
     sendMessage(AntMessage2::systemReset());
@@ -136,10 +134,11 @@ void ANT::sendNetworkKey()
 
 void ANT::configureDeviceChannels()
 {
-    addDevice(0, CHANNEL_TYPE_SPEED, 0);
+    qDebug() << __FUNCTION__;
+//    addDevice(0, CHANNEL_TYPE_SPEED, 0);
     addDevice(0, CHANNEL_TYPE_POWER, 1);
-    addDevice(0, CHANNEL_TYPE_CADENCE, 2);
-    addDevice(0, CHANNEL_TYPE_HR, 3);
+//    addDevice(0, CHANNEL_TYPE_CADENCE, 2);
+//    addDevice(0, CHANNEL_TYPE_HR, 3);
 }
 
 void ANT::readCycle()
@@ -265,18 +264,6 @@ void ANT::antMessageGenerated(const AntMessage2 &antMessage)
     antDevice->writeAntMessage(antMessage);
 }
 
-/*----------------------------------------------------------------------
- * Message I/O
- *--------------------------------------------------------------------*/
-void
-ANT::sendMessage(const ANTMessage &m) {
-    qDebug() << "Sending ANT Message" << m.toString();
-    QByteArray bytes((const char*) m.data, m.length);
-    static const char padding[5] = { '\0', '\0', '\0', '\0', '\0' };
-    QByteArray paddingBytes(padding, 5);
-    rawWrite(bytes + paddingBytes);
-}
-
 void
 ANT::sendMessage(const AntMessage2& m) {
     qDebug() << "Sending ANT Message" << m.toString();
@@ -287,47 +274,41 @@ ANT::sendMessage(const AntMessage2& m) {
 // Pass inbound message to channel for handling
 //
 void
-ANT::handleChannelEvent(QByteArray& message) {
-    int channel = message[ANT_OFFSET_DATA] & 0x7;
-    if(channel >= 0 && channel < channels) {
-        // handle a channel event here!
-        antChannel[channel]->receiveMessage(message);
+ANT::handleChannelEvent(const AntChannelEventMessage& channelEventMessage) {
+    if (channelEventMessage.messageId() == AntMessage2::SET_NETWORK_KEY &&
+            channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR) {
+        qDebug() << "succesfully set network key";
+        configureDeviceChannels();
+    } else {
+        quint8 channel = channelEventMessage.channelNumber();
+        antChannel[channel]->channelEvent(channelEventMessage);
     }
 }
 
-void
-ANT::processMessage(QByteArray message) {
-    QDataStream out(&antlog);
-    for (int i=0; i<ANT_MAX_MESSAGE_SIZE; i++)
-        out<< message;
+void ANT::handleBroadCastEvent(const BroadCastMessage &broadCastEventMessage)
+{
+    antChannel[broadCastEventMessage.channelNumber()]->broadcastEvent(broadCastEventMessage);
+}
 
-    switch (message[ANT_OFFSET_ID]) {
-    case ANT_ACK_DATA:
-    case ANT_BROADCAST_DATA:
-    case ANT_CHANNEL_STATUS:
-    case ANT_CHANNEL_ID:
-    case ANT_BURST_DATA:
-        handleChannelEvent(message);
+void ANT::handleChannelIdMessage(const SetChannelIdMessage &message)
+{
+    antChannel[message.channelNumber()]->channelIdEvent(message);
+}
+
+void ANT::processMessage(QByteArray message) {
+    std::unique_ptr<AntMessage2> antMessage = AntMessage2::createMessageFromBytes(message);
+    switch(antMessage->id()) {
+    case AntMessage2::CHANNEL_EVENT:
+        handleChannelEvent(*antMessage->asChannelEventMessage());
         break;
-
-    case ANT_CHANNEL_EVENT:
-    {
-        AntChannelEventMessage eventMessage(message);
-        qDebug() << "received" << eventMessage.toString();
-        switch (eventMessage.messageId()) {
-        case AntMessage2::SET_NETWORK_KEY:
-            if (eventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR) {
-                qDebug() << "succesfully set network key";
-                configureDeviceChannels();
-            }
-            break;
-        default:
-            handleChannelEvent(message);
-        }
-    }
+    case AntMessage2::BROADCAST_EVENT:
+        handleBroadCastEvent(BroadCastMessage(*antMessage));
+        break;
+    case AntMessage2::SET_CHANNEL_ID:
+        handleChannelIdMessage(SetChannelIdMessage(*antMessage));
         break;
     default:
-        break;
+        qDebug() << "Unhandled Message" << antMessage->toString();
     }
 }
 

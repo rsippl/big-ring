@@ -21,6 +21,8 @@
 #ifndef gc_ANT_h
 #define gc_ANT_h
 
+#include "antmessage2.h"
+
 //
 // QT stuff
 //
@@ -241,12 +243,12 @@ public:
     // ANT Devices and Channels
     int addDevice(int device_number, AntChannelType device_type, int channel_number);
 
-    // transmission
     void sendMessage(const AntMessage2&);
-    void sendMessage(const ANTMessage&);
-    void handleChannelEvent(QByteArray &message);
-
 private:
+    void handleChannelEvent(const AntChannelEventMessage& channelEventMessage);
+    void handleBroadCastEvent(const BroadCastMessage& broadCastEventMessage);
+    void handleChannelIdMessage(const SetChannelIdMessage& message);
+
     QByteArray rawRead();
     int rawWrite(const QByteArray &bytes);
 
@@ -259,9 +261,6 @@ private:
     indoorcycling::AntDeviceFinder* _antDeviceFinder;
     QSharedPointer<indoorcycling::AntDevice> antDevice;
     int powerchannels; // how many power channels do we have?
-
-    // antlog.bin ant message stream
-    QFile antlog;
     QTimer _initializiationTimer;
     AntMessageGatherer* _antMessageGatherer;
 };

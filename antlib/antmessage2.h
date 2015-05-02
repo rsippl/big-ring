@@ -123,6 +123,21 @@ private:
     MessageCode _messageCode;
 };
 
+class SetChannelIdMessage
+{
+public:
+    SetChannelIdMessage(const AntMessage2& bytes);
+
+    quint8 channelNumber() const;
+    quint16 deviceNumber() const;
+    quint8 deviceTypeId() const;
+    quint8 transmissionType() const;
+
+    const QByteArray& toBytes() const;
+private:
+    AntMessage2 _antMessage;
+};
+
 class BroadCastMessage
 {
 public:

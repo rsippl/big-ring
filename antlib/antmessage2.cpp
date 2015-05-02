@@ -398,3 +398,31 @@ quint16 CadenceMessage::pedalRevolutions() const
 {
     return antMessage().contentShort(7);
 }
+
+
+SetChannelIdMessage::SetChannelIdMessage(const AntMessage2& antMessage):
+    _antMessage(antMessage)
+{
+    // empty
+}
+
+quint8 SetChannelIdMessage::channelNumber() const
+{
+    return _antMessage.contentByte(0);
+}
+
+quint16 SetChannelIdMessage::deviceNumber() const
+{
+    return _antMessage.contentShort(1);
+}
+
+quint8 SetChannelIdMessage::deviceTypeId() const
+{
+    return _antMessage.contentByte(3);
+}
+
+quint8 SetChannelIdMessage::transmissionType() const
+{
+    return _antMessage.contentByte(4);
+}
+
