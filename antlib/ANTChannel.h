@@ -22,7 +22,6 @@
 #define gc_ANTChannel_h
 
 #include "ANT.h"
-#include "ANTMessage.h"
 #include "antmessage2.h"
 #include <QObject>
 #include <QDateTime>
@@ -54,7 +53,6 @@ private:
 
     AntMessage2 lastAntMessage;
     QScopedPointer<PowerMessage> lastStdPwrMessage;
-    ANTMessage lastMessage;
     int dualNullCount, nullCount, stdNullCount;
     QDateTime _lastMessageTime;
 
@@ -64,11 +62,19 @@ private:
     int messages_received; // for signal strength metric
     int messages_dropped;
 
+    void handleCadenceMessage(const CadenceMessage& cadenceMessage);
     void handleSpeedAndCadenceMessage(const SpeedAndCadenceMessage &speedAndCadenceMessage);
     void handlePowerMessage(const PowerMessage &powerMessage);
     void handleHeartRateMessage(const HeartRateMessage &newMessage);
-public:
+    void handleSpeedMessage(const SpeedMessage& speedMessage);
 
+    void calculateSpeed(const quint16 previousTime, const quint16 previousWheelRevolutions,
+                        const quint16 currentTime, const quint16 currentWheelRevolutions,
+                        const AntChannelType channelType);
+    void calculateCadence(const quint16 previousTime, const quint16 previousPedalRevolutions,
+                        const quint16 currentTime, const quint16 currentPedalRevolutions,
+                        const AntChannelType channelType);
+public:
     // Channel Information - to save tedious set/getters made public
      // Channel number within Ant chip
     int state;

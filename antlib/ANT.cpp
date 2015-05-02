@@ -136,7 +136,7 @@ void ANT::sendNetworkKey()
 
 void ANT::configureDeviceChannels()
 {
-    addDevice(0, CHANNEL_TYPE_SPEED_AND_CADENCE, 0);
+    addDevice(0, CHANNEL_TYPE_SPEED, 0);
     addDevice(0, CHANNEL_TYPE_POWER, 1);
     addDevice(0, CHANNEL_TYPE_CADENCE, 2);
     addDevice(0, CHANNEL_TYPE_HR, 3);

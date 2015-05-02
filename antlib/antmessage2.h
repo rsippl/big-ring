@@ -24,6 +24,7 @@ public:
 
     /** message ids (in alphabetic order) */
     enum AntMessageId {
+        INVALID = 0x0,
         ASSIGN_CHANNEL = 0x42,
         BROADCAST_EVENT = 0x4e,
         CHANNEL_EVENT = 0x40,
@@ -38,6 +39,7 @@ public:
         UNASSIGN_CHANNEL = 0x41
     };
 
+    bool isNull() const;
     QByteArray toBytes() const;
     QByteArray toHex() const;
     virtual QString toString() const;
@@ -121,9 +123,6 @@ private:
     MessageCode _messageCode;
 };
 
-class HeartRateMessage;
-class PowerMessage;
-class SpeedAndCadenceMessage;
 class BroadCastMessage
 {
 public:
@@ -133,10 +132,8 @@ public:
     quint8 dataPage() const;
     const AntMessage2 &antMessage() const;
 
-
-    HeartRateMessage toHeartRateMessage() const;
-    PowerMessage toPowerMessage() const;
-    SpeedAndCadenceMessage toSpeedAndCadenceMessage() const;
+    template<class T>
+    T toSpecificBroadCastMessage() const;
 protected:
     AntMessage2 _antMessage;
 private:
@@ -215,7 +212,7 @@ public:
  * Byte 1-2 cadence event time
  * Byte 3-4 cumulative cadence revolution count
  * Byte 5-6 bike speed event time
- * Byte 7-8 cumulative speed revolution count
+ * Byte 7-8 cumulative wheel revolution count
 */
 class SpeedAndCadenceMessage: public BroadCastMessage
 {
@@ -229,4 +226,45 @@ public:
 
 };
 
+/**
+ * Bike Speed Message (Device Type 0x7B).
+ * Bytes:
+ * 0: channel
+ * 1: data page
+ * 2-4: depends on data page.
+ * 5-6: bike speed event time
+ * 7-8: cumulative wheel revolution count
+ */
+class SpeedMessage: public BroadCastMessage
+{
+public:
+    SpeedMessage(const AntMessage2& antMessage);
+
+    quint16 speedEventTime() const;
+    quint16 wheelRevolutions() const;
+};
+
+/**
+ * Bike Cadence Message (Device Type 0x7A).
+ * Bytes:
+ * 0: channel
+ * 1: data page
+ * 2-4: depends on data page.
+ * 5-6: bike cadence event time
+ * 7-8: cumulative pedal revolution count
+ */
+class CadenceMessage: public BroadCastMessage
+{
+public:
+    CadenceMessage(const AntMessage2& antMessage);
+
+    quint16 cadenceEventTime() const;
+    quint16 pedalRevolutions() const;
+};
+
+template<class T>
+T BroadCastMessage::toSpecificBroadCastMessage() const
+{
+    return T(_antMessage);
+}
 #endif // ANTMESSAGE2_H

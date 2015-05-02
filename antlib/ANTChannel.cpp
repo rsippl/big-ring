@@ -139,38 +139,21 @@ void ANTChannel::channelEvent(const QByteArray &bytes) {
 }
 
 
+void ANTChannel::handleCadenceMessage(const CadenceMessage &cadenceMessage)
+{
+    const CadenceMessage previousCadenceMessage(lastAntMessage);
+    calculateCadence(previousCadenceMessage.cadenceEventTime(), previousCadenceMessage.pedalRevolutions(),
+                     cadenceMessage.cadenceEventTime(), cadenceMessage.pedalRevolutions(), channel_type);
+}
+
 void ANTChannel::handleSpeedAndCadenceMessage(const SpeedAndCadenceMessage &speedAndCadenceMessage)
 {
     SpeedAndCadenceMessage lastSpeedAndCadenceMessage(lastAntMessage);
-    quint16 time = speedAndCadenceMessage.cadenceEventTime()- lastSpeedAndCadenceMessage.cadenceEventTime();
-    quint16 revolutions = speedAndCadenceMessage.pedalRevolutions() -
-            lastSpeedAndCadenceMessage.pedalRevolutions();
-    if (time) {
-        nullCount = 0;
-        float cadence = 1024 * 60 * revolutions / static_cast<float>(time);
-        qDebug() << QTime::currentTime().toString() << "cadence" << cadence;
-        emit cadenceMeasured(cadence, CHANNEL_TYPE_SPEED_AND_CADENCE);
-    } else {
-        nullCount++;
-        if (nullCount >= 12) {
-            emit cadenceMeasured(0.0f, CHANNEL_TYPE_SPEED_AND_CADENCE);
-        }
-    }
-
-    time = speedAndCadenceMessage.speedEventTime()- lastSpeedAndCadenceMessage.speedEventTime();
-    revolutions = speedAndCadenceMessage.wheelRevolutions() - lastSpeedAndCadenceMessage.wheelRevolutions();
-    if (time) {
-        dualNullCount = 0;
-        float rpm = 1024*60*revolutions / static_cast<float>(time);
-        qDebug() << QTime::currentTime().toString() << "wheel speed" << rpm << ((rpm / 60) * 2.070) * 3.6;
-        emit speedMeasured(rpm, CHANNEL_TYPE_SPEED_AND_CADENCE);
-    } else {
-
-        dualNullCount++;
-        if (dualNullCount >= 12) {
-            emit speedMeasured(0, CHANNEL_TYPE_SPEED_AND_CADENCE);
-        }
-    }
+    calculateCadence(lastSpeedAndCadenceMessage.cadenceEventTime(), lastSpeedAndCadenceMessage.pedalRevolutions(),
+                     speedAndCadenceMessage.cadenceEventTime(), speedAndCadenceMessage.pedalRevolutions(),
+                     channel_type);
+    calculateSpeed(lastSpeedAndCadenceMessage.speedEventTime(), lastSpeedAndCadenceMessage.wheelRevolutions(),
+                   speedAndCadenceMessage.speedEventTime(), speedAndCadenceMessage.wheelRevolutions(), channel_type);
 }
 
 void ANTChannel::handlePowerMessage(const PowerMessage& powerMessage)
@@ -211,6 +194,52 @@ void ANTChannel::handleHeartRateMessage(const HeartRateMessage& newHeartRateMess
     }
 }
 
+void ANTChannel::handleSpeedMessage(const SpeedMessage &speedMessage)
+{
+    const SpeedMessage previousSpeedMessage(lastAntMessage);
+    calculateSpeed(previousSpeedMessage.speedEventTime(), previousSpeedMessage.wheelRevolutions(),
+                   speedMessage.speedEventTime(), speedMessage.wheelRevolutions(), channel_type);
+}
+
+void ANTChannel::calculateSpeed(const quint16 previousTime, const quint16 previousWheelRevolutions,
+                                const quint16 currentTime, const quint16 currentWheelRevolutions,
+                                const AntChannelType channelType)
+{
+    quint16 time = currentTime - previousTime;
+    quint16 revolutions = currentWheelRevolutions - previousWheelRevolutions;
+    if (time) {
+        dualNullCount = 0;
+        float rpm = 1024*60*revolutions / static_cast<float>(time);
+        qDebug() << QTime::currentTime().toString() << "wheel speed" << rpm << "=" << ((rpm / 60) * 2.070) * 3.6 << "km/h";
+        emit speedMeasured(rpm, channelType);
+    } else {
+
+        dualNullCount++;
+        if (dualNullCount >= 12) {
+            emit speedMeasured(0, channelType);
+        }
+    }
+}
+
+void ANTChannel::calculateCadence(const quint16 previousTime, const quint16 previousPedalRevolutions, const quint16 currentTime, const quint16 currentPedalRevolutions, const AntChannelType channelType)
+{
+    quint16 time = currentTime - previousTime;
+    quint16 revolutions = currentPedalRevolutions - previousPedalRevolutions;
+    if (time) {
+        nullCount = 0;
+        float cadence = 1024 * 60 * revolutions / static_cast<float>(time);
+        qDebug() << QTime::currentTime().toString() << "cadence" << cadence;
+        emit cadenceMeasured(cadence, channelType);
+    } else {
+        nullCount++;
+        if (nullCount >= 12) {
+            emit cadenceMeasured(0.0f, channelType);
+        }
+    }
+}
+
+
+
 /*!
      We got a broadcast event -- this is where inbound
      telemetry gets processed, and for many message types
@@ -219,15 +248,6 @@ void ANTChannel::handleHeartRateMessage(const HeartRateMessage& newHeartRateMess
     */
 void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
 {
-    ANTMessage antMessage(channel_type,
-                          reinterpret_cast<const unsigned char*>(broadcastMessage.antMessage().toBytes().data()));
-    bool savemessage = true; // flag to stop lastmessage being
-    // overwritten for standard power
-    // messages
-
-
-//    double timestamp= QDateTime::currentMSecsSinceEpoch();
-
     messages_received++;
     _lastMessageTime = QDateTime::currentDateTime();
 
@@ -250,76 +270,31 @@ void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
     //
     // We got some telemetry on this channel
     //
-    if (lastMessage.type != 0) {
-
+    if (!lastAntMessage.isNull()) {
         switch (channel_type) {
-
         // Power
         case CHANNEL_TYPE_POWER:
-            savemessage = false;
-            handlePowerMessage(broadcastMessage.toPowerMessage());
+            handlePowerMessage(broadcastMessage.toSpecificBroadCastMessage<PowerMessage>());
             break;
 
             // HR
         case CHANNEL_TYPE_HR:
-            handleHeartRateMessage(broadcastMessage.toHeartRateMessage());
+            handleHeartRateMessage(broadcastMessage.toSpecificBroadCastMessage<HeartRateMessage>());
             break;
             // Cadence
         case CHANNEL_TYPE_CADENCE:
-        {
-            uint16_t time = antMessage.crankMeasurementTime - lastMessage.crankMeasurementTime;
-            uint16_t revs = antMessage.crankRevolutions - lastMessage.crankRevolutions;
-            if (time) {
-                float cadence = 1024*60*revs / time;
-                emit cadenceMeasured(cadence, CHANNEL_TYPE_CADENCE);
-            }
-        }
+            handleCadenceMessage(broadcastMessage.toSpecificBroadCastMessage<CadenceMessage>());
             break;
-
             // Speed and Cadence
         case CHANNEL_TYPE_SPEED_AND_CADENCE:
-        {
-            handleSpeedAndCadenceMessage(broadcastMessage.toSpeedAndCadenceMessage());
-
-            // now speed ...
-            quint16 time = antMessage.wheelMeasurementTime - lastMessage.wheelMeasurementTime;
-            quint16 revs = antMessage.wheelRevolutions - lastMessage.wheelRevolutions;
-            if (time) {
-                dualNullCount = 0;
-
-                float rpm = 1024*60*revs / time;
-                emit speedMeasured(rpm, CHANNEL_TYPE_SPEED_AND_CADENCE);
-            } else {
-
-                dualNullCount++;
-                if (dualNullCount >= 12) {
-                    emit speedMeasured(0, CHANNEL_TYPE_SPEED_AND_CADENCE);
-                }
-            }
-        }
+            handleSpeedAndCadenceMessage(broadcastMessage.toSpecificBroadCastMessage<SpeedAndCadenceMessage>());
             break;
-
             // Speed
         case CHANNEL_TYPE_SPEED:
-        {
-            uint16_t time = antMessage.wheelMeasurementTime - lastMessage.wheelMeasurementTime;
-            uint16_t revs = antMessage.wheelRevolutions - lastMessage.wheelRevolutions;
-            if (time) {
-                nullCount=0;
-                float rpm = 1024*60*revs / time;
-                emit speedMeasured(rpm, CHANNEL_TYPE_SPEED);
-            } else {
-                nullCount++;
-
-                if (nullCount >= 12) {
-                    emit speedMeasured(0, CHANNEL_TYPE_SPEED);
-                }
-            }
-        }
+            handleSpeedMessage(broadcastMessage.toSpecificBroadCastMessage<SpeedMessage>());
             break;
-
-        default:
-            break; // unknown?
+        case CHANNEL_TYPE_UNUSED:
+            qFatal("We should not be receiving broad cast messages for an unused channel");
         }
 
     } else {
@@ -327,12 +302,7 @@ void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
         stdNullCount = dualNullCount = nullCount = 0;
     }
 
-    // we don't overwrite for Standard Power messages
-    // these are maintained separately in lastStdPwrMessage
-    if (savemessage) {
-        lastMessage = antMessage;
-        lastAntMessage = broadcastMessage.antMessage();
-    }
+    lastAntMessage = broadcastMessage.antMessage();
 }
 
 
