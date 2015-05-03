@@ -189,11 +189,5 @@ void MainWindow::closeEvent(QCloseEvent *event)
         return;
     }
     qDebug() << "closing main window";
-    if (_antController->isRunning()) {
-        connect(_antController, &ANTController::finished, this, &QWidget::close);
-        _antController->quit();
-        event->ignore();
-    } else {
-        event->accept();
-    }
+    event->accept();
 }

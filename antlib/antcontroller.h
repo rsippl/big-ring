@@ -38,7 +38,6 @@ public:
     explicit ANTController(QObject *parent = 0);
     virtual ~ANTController();
 
-    bool isRunning() const;
     quint8 heartRate() const;
     quint16 power() const;
     quint8 cadence() const;
@@ -51,12 +50,10 @@ signals:
     void cadenceMeasured(int cadence);
 
     void deviceFound(QString description);
-    void finished();
 public slots:
     void heartRateReceived(int bpm);
     void powerReceived(float power);
     void cadenceReceived(float cadence);
-    void quit();
 private slots:
     void foundDevice(int channel, int device, int device_type, QString description, QString typeCode);
 private:

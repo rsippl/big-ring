@@ -32,11 +32,6 @@ ANTController::~ANTController() {
     // empty
 }
 
-bool ANTController::isRunning() const
-{
-    return true;
-}
-
 quint8 ANTController::heartRate() const
 {
     return _heartRate;
@@ -80,11 +75,6 @@ void ANTController::cadenceReceived(float cadence)
 {
     _cadence = static_cast<int>(cadence);
     emit cadenceMeasured(_cadence);
-}
-
-void ANTController::quit()
-{
-    // empty
 }
 
 void ANTController::powerReceived(float power)
