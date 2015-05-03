@@ -21,11 +21,19 @@
 #ifndef ANTDEVICE_H
 #define ANTDEVICE_H
 
-#include <QByteArray>
-#include <QObject>
+#include <QtCore/QByteArray>
+#include <QtCore/QObject>
+#include <QtCore/QVector>
+class AntMessage2;
 
 namespace indoorcycling
 {
+
+const int GARMIN_USB_VENDOR_ID = 0x0fcf;
+
+const int GARMIN_USB1_PRODUCT_ID = 0x1004;
+const int GARMIN_USB2_PRODUCT_ID = 0x1008;
+const int OEM_USB2_PRODUCT_ID = 0x1009;
 
 enum AntDeviceType {
     ANT_DEVICE_NONE,
@@ -56,12 +64,18 @@ public:
      * @param bytes the bytes to write.
      * @return the number of bytes written.
      */
-    virtual int writeBytes(QByteArray& bytes) = 0;
+    virtual int writeBytes(const QByteArray& bytes) = 0;
     /**
-     * @brief try to read a number of bytes from the ANT+ device.
-     * @return the byte array that was read. Might be empty, in fact it *will* often be empty.
+     * @brief write an AntMessage to the device.
+     * @param message the message to write.
+     * @return true if the message was written completely.
      */
-    virtual QByteArray readBytes() = 0;
+    bool writeAntMessage(const AntMessage2& message);
+
+    virtual bool isReady() const = 0;
+signals:
+    void deviceReady();
+    void bytesRead(const QByteArray& bytes);
 protected:
     AntDevice(QObject* parent = 0);
 };

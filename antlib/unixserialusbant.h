@@ -22,10 +22,9 @@
 #define UNIXSERIALUSBANT_H
 
 #include <QByteArray>
-#include <QFileInfo>
-#include <QFileInfoList>
 #include <QObject>
-#include <QStringList>
+
+#include <QtSerialPort/QSerialPort>
 
 #include "antdevice.h"
 
@@ -34,7 +33,7 @@ namespace indoorcycling
 
 /**
  * @brief ANT+ device that supports ANT+ USB1 Sticks. USB1 sticks use the CP210x USB to UART Bridge. These USB
- * sticks can be accessed using serial over USB communication. This is the Linux implementation.
+ * sticks can be accessed using serial over USB communication.
  */
 class UnixSerialUsbAnt : public AntDevice
 {
@@ -47,19 +46,20 @@ public:
 
     virtual int numberOfChannels() const;
 
-    virtual int writeBytes(QByteArray& bytes);
-    virtual QByteArray readBytes();
+    virtual int writeBytes(const QByteArray& bytes);
+
+    virtual bool isReady() const override;
 signals:
 
-public slots:
+private slots:
+    void readyRead();
 private:
-    static QFileInfoList findUsbSerialDevices();
-    static bool isGarminUsb1Stick(const QFileInfo& fileInfo);
+    QSerialPortInfo findGarminUsb1Stick();
+    void openSerialConnection(const QSerialPortInfo& serialPortInfo);
 
     int openConnection();
 
-    QFileInfo _deviceFileInfo;
-    int _nativeDeviceHandle;
+    QSerialPort* _serialPortConnection;
 };
 }
 #endif // UNIXSERIALUSBANT_H

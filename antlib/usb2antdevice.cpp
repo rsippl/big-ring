@@ -28,15 +28,9 @@ extern "C" {
 
 namespace
 {
-
-const int GARMIN_USB_VENDOR_ID = 0x0fcf;
-
-const int GARMIN_USB1_PRODUCT_ID = 0x1004;
-const int GARMIN_USB2_PRODUCT_ID = 0x1008;
-const int OEM_USB2_PRODUCT_ID = 0x1009;
-
-QVector<int> VALID_PRODUCT_IDS({ GARMIN_USB1_PRODUCT_ID, GARMIN_USB2_PRODUCT_ID, OEM_USB2_PRODUCT_ID });
-
+const QVector<int> VALID_PRODUCT_IDS({ indoorcycling::GARMIN_USB1_PRODUCT_ID,
+                                       indoorcycling::GARMIN_USB2_PRODUCT_ID,
+                                       indoorcycling::OEM_USB2_PRODUCT_ID });
 bool usbInitialized = false;
 
 /**
@@ -100,19 +94,26 @@ struct Usb2DeviceConfiguration
 };
 
 Usb2AntDevice::Usb2AntDevice(QObject *parent) :
-    AntDevice(parent), _deviceConfiguration(openAntStick())
+    AntDevice(parent), _deviceConfiguration(openAntStick()), _workerThread(new QThread(this)),
+    _workerReady(false)
 {
     if (!_deviceConfiguration) {
         qWarning("Unable to open ANT+ stick correctly");
     }
-    qDebug() << "trying to empty the ANT stick's buffer";
-    QByteArray buffer = readBytes();
-    if (!buffer.isEmpty()) {
-        qDebug() << "buffer was not empty";
-    }
+    _worker = new Usb2AntDeviceWorker(_deviceConfiguration.get());
+    _worker->moveToThread(_workerThread);
+
+    connect(_worker, &Usb2AntDeviceWorker::bytesRead, this, &Usb2AntDevice::bytesRead);
+    connect(_worker, &Usb2AntDeviceWorker::workerReady, this, &Usb2AntDevice::workerReady);
+    connect(this, &Usb2AntDevice::doWrite, _worker, &Usb2AntDeviceWorker::write);
+    connect(_workerThread, &QThread::started, _worker, &Usb2AntDeviceWorker::initialize);
+
+    _workerThread->start();
 }
 
 Usb2AntDevice::~Usb2AntDevice() {
+    _workerThread->quit();
+    _workerThread->wait(1000);
     if (_deviceConfiguration) {
         usb_release_interface(_deviceConfiguration->deviceHandle, _deviceConfiguration->interface);
         usb_close(_deviceConfiguration->deviceHandle);
@@ -129,34 +130,51 @@ int Usb2AntDevice::numberOfChannels() const
     return 8;
 }
 
-int Usb2AntDevice::writeBytes(QByteArray &bytes)
+int Usb2AntDevice::writeBytes(const QByteArray &bytes)
 {
-    if (!_deviceConfiguration) {
-        qWarning("Trying to read without a connection to a USB device");
-        return 0;
-    }
-#ifdef Q_OS_WIN
-    return usb_interrupt_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 10);
-#else
-    int rc = usb_bulk_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 10);
-    if (rc < 0) {
-        qWarning("usb error: %s", usb_strerror());
-    }
-    return rc;
-#endif
+    emit doWrite(bytes);
+    return bytes.size();
 }
 
-/**
- * @brief read all available bytes from the ANT+ stick.
- * @return a byte array with all the bytes that were read. Can be empty.
- */
-QByteArray Usb2AntDevice::readBytes()
+bool Usb2AntDevice::isReady() const
+{
+    return _workerReady;
+}
+
+void Usb2AntDevice::workerReady()
+{
+    _workerReady = true;
+    emit deviceReady();
+}
+
+Usb2AntDeviceWorker::Usb2AntDeviceWorker(Usb2DeviceConfiguration *deviceConfiguration, QObject* parent):
+    QObject(parent), _deviceConfiguration(deviceConfiguration)
+{
+    // empty
+}
+
+void Usb2AntDeviceWorker::initialize()
+{
+    qDebug() << "initiaizing worker";
+    // try to empty the buffer of the device, if needed. We do not want any bytes that are read now to be
+    // emitted, so we'll block signals when doing this initial read.
+    blockSignals(true);
+    read();
+    blockSignals(false);
+    _readTimer = new QTimer(this);
+    _readTimer->setInterval(50);
+    connect(_readTimer, &QTimer::timeout, this, &Usb2AntDeviceWorker::read);
+    _readTimer->start();
+    emit workerReady();
+}
+
+void Usb2AntDeviceWorker::read()
 {
     if (!_deviceConfiguration) {
         qWarning("Trying to write without a connection to a USB device");
-        return 0;
+        return;
     }
-    QByteArray bytesRead;
+    QByteArray bytes;
     bool bytesAvailable = true;
     int loopNr = 0;
     while(bytesAvailable) {
@@ -172,13 +190,31 @@ QByteArray Usb2AntDevice::readBytes()
             }
             bytesAvailable = false;
         } else {
-            bytesRead.append(buffer.left(nrOfBytesRead));
+            bytes.append(buffer.left(nrOfBytesRead));
             bytesAvailable = (nrOfBytesRead == buffer.size());
             buffer.clear();
         }
         loopNr += 1;
     }
-    return bytesRead;
+    emit bytesRead(bytes);
+}
+
+void Usb2AntDeviceWorker::write(const QByteArray &bytes)
+{
+    if (!_deviceConfiguration) {
+        qWarning("Trying to read without a connection to a USB device");
+    }
+    int written;
+#ifdef Q_OS_WIN
+    written = usb_interrupt_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 10);
+#else
+    written = usb_bulk_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 10);
+    if (written < 0) {
+        qWarning("usb error: %s", usb_strerror());
+    }
+    qDebug() << "wrote" << written << "bytes";
+#endif
+    emit bytesWritten(written);
 }
 
 } // end namespace indoorcycling
@@ -206,7 +242,7 @@ struct usb_device *findAntStick()
 
     for (bus = usb_get_busses(); bus; bus = bus->next) {
         for (device = bus->devices; device; device = device->next) {
-            if (device->descriptor.idVendor == GARMIN_USB_VENDOR_ID &&
+            if (device->descriptor.idVendor == indoorcycling::GARMIN_USB_VENDOR_ID &&
                     VALID_PRODUCT_IDS.contains(device->descriptor.idProduct)) {
                 return device;
             }

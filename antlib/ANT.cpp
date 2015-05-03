@@ -25,7 +25,8 @@
 //------------------------------------------------------------------------
 
 #include "ANT.h"
-#include "ANTMessage.h"
+#include "ANTChannel.h"
+#include "antmessage2.h"
 #include "antmessagegatherer.h"
 
 #include "antdevicefinder.h"
@@ -42,38 +43,34 @@
 
 namespace {
 // network key
-const unsigned char networkKey[8] = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
+const std::array<quint8,8> networkKey = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
 }
+
 // supported sensor types
-const QVector<ant_sensor_type_t> ANT::ant_sensor_types = {
-    { CHANNEL_TYPE_UNUSED, 0, 0, 0, 0, "Unused", '?', "" },
-    { CHANNEL_TYPE_HR, ANT_SPORT_HR_PERIOD, ANT_SPORT_HR_TYPE,
-      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Heartrate", 'h', ":images/IconHR.png" },
-    { CHANNEL_TYPE_POWER, ANT_SPORT_POWER_PERIOD, ANT_SPORT_POWER_TYPE,
-      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Power", 'p', ":images/IconPower.png" },
-    { CHANNEL_TYPE_SPEED, ANT_SPORT_SPEED_PERIOD, ANT_SPORT_SPEED_TYPE,
-      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Speed", 's', ":images/IconSpeed.png" },
-    { CHANNEL_TYPE_CADENCE, ANT_SPORT_CADENCE_PERIOD, ANT_SPORT_CADENCE_TYPE,
-      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Cadence", 'c', ":images/IconCadence.png" },
-    { CHANNEL_TYPE_SandC, ANT_SPORT_SandC_PERIOD, ANT_SPORT_SandC_TYPE,
-      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Speed + Cadence", 'd', ":images/IconCadence.png" },
-};
+const QMap<AntChannelType,ant_sensor_type_t> ANT::ant_sensor_types({
+    { CHANNEL_TYPE_UNUSED, {ANT_SPORT_UNUSED_PERIOD, CHANNEL_TYPE_UNUSED, "Unused", '?', "" }},
+    { CHANNEL_TYPE_HR, {ANT_SPORT_HR_PERIOD, CHANNEL_TYPE_HR,
+      "Heartrate", 'h', ":images/IconHR.png" }},
+    { CHANNEL_TYPE_POWER, {ANT_SPORT_POWER_PERIOD, CHANNEL_TYPE_POWER,
+      "Power", 'p', ":images/IconPower.png" }},
+    { CHANNEL_TYPE_SPEED, {ANT_SPORT_SPEED_PERIOD, CHANNEL_TYPE_SPEED,
+      "Speed", 's', ":images/IconSpeed.png" }},
+    { CHANNEL_TYPE_CADENCE, {ANT_SPORT_CADENCE_PERIOD, CHANNEL_TYPE_CADENCE,
+      "Cadence", 'c', ":images/IconCadence.png" }},
+    { CHANNEL_TYPE_SPEED_AND_CADENCE, {ANT_SPORT_SPEED_AND_CADENCE_PERIOD, CHANNEL_TYPE_SPEED_AND_CADENCE,
+      "Speed + Cadence", 'd', ":images/IconCadence.png" }}
+});
 
 ANT::ANT(QObject *parent): QObject(parent),
     _antDeviceFinder(new indoorcycling::AntDeviceFinder(this)),
     _antMessageGatherer(new AntMessageGatherer(this))
 {
+    qRegisterMetaType<AntChannelType>("AntChannelType");
     connect(_antMessageGatherer, &AntMessageGatherer::antMessageReceived,
             this, &ANT::processMessage);
-    powerchannels=0;
-
-    // state machine
-    state = ST_WAIT_FOR_SYNC;
-    length = bytes = 0;
-    checksum = ANT_SYNC_BYTE;
 
     // setup the channels
-    for (int i=0; i<ANT_MAX_CHANNELS; i++) {
+    for (uint i=0; i<antChannel.size(); i++) {
 
         // create the channel
         antChannel[i] = new ANTChannel(i, this);
@@ -90,6 +87,7 @@ ANT::ANT(QObject *parent): QObject(parent),
         connect(antChannel[i], &ANTChannel::powerMeasured, this, &ANT::powerMeasured);
         connect(antChannel[i], &ANTChannel::cadenceMeasured, this, &ANT::cadenceMeasured);
         connect(antChannel[i], &ANTChannel::speedMeasured, this, &ANT::speedMeasured);
+        connect(antChannel[i], &ANTChannel::antMessageGenerated, this, &ANT::sendMessage);
     }
 
     channels = 0;
@@ -106,8 +104,6 @@ ANT::~ANT()
 
 void ANT::initialize()
 {
-    powerchannels = 0;
-
     antDevice = _antDeviceFinder->openAntDevice();
     if (antDevice.isNull()) {
         emit initializationFailed();
@@ -115,57 +111,41 @@ void ANT::initialize()
     }
     channels = 0;
 
-    for (int i=0; i<ANT_MAX_CHANNELS; i++) antChannel[i]->init();
-
-    state = ST_WAIT_FOR_SYNC;
-    length = bytes = 0;
-    checksum = ANT_SYNC_BYTE;
-
     if (antDevice->isValid()) {
         channels = 4;
+        connect(antDevice.data(), &indoorcycling::AntDevice::bytesRead, this, &ANT::bytesReady);
+        if (antDevice->isReady()) {
+            startCommunication();
+        } else {
+            connect(antDevice.data(), &indoorcycling::AntDevice::deviceReady, this, &ANT::startCommunication);
+        }
     } else {
         emit initializationFailed();
         return;
     }
-    antlog.setFileName("antlog.bin");
-    antlog.open(QIODevice::WriteOnly | QIODevice::Truncate);
+}
 
-    sendMessage(ANTMessage::resetSystem());
+void ANT::startCommunication()
+{
+    qDebug() << "resetting system";
+    sendMessage(AntMessage2::systemReset());
     // wait for 500ms before sending network key.
-    _initializiationTimer.singleShot(500, this, SLOT(sendNetworkKey()));
+    QTimer::singleShot(800, this, SLOT(sendNetworkKey()));
+    connect(antDevice.data(), &indoorcycling::AntDevice::bytesRead, this, &ANT::bytesReady);
 }
 
 void ANT::sendNetworkKey()
 {
-    sendMessage(ANTMessage::setNetworkKey(1, networkKey));
-
-    configureDeviceChannels();
+    sendMessage(AntMessage2::setNetworkKey(1, networkKey));
+    emit initializationSucceeded();
 }
 
 void ANT::configureDeviceChannels()
 {
-    addDevice(0, CHANNEL_TYPE_SandC, 0);
+    addDevice(0, CHANNEL_TYPE_SPEED, 0);
     addDevice(0, CHANNEL_TYPE_POWER, 1);
     addDevice(0, CHANNEL_TYPE_CADENCE, 2);
     addDevice(0, CHANNEL_TYPE_HR, 3);
-
-    emit initializationSucceeded();
-}
-
-void ANT::readCycle()
-{
-    bool bytesRead = false;
-
-    while (true) {
-        QByteArray bytes = rawRead();
-        if (bytes.isEmpty())
-            break;
-        _antMessageGatherer->submitBytes(bytes);
-        bytesRead = true;
-    }
-
-    if (!bytesRead)
-        return;
 }
 
 /*======================================================================
@@ -260,8 +240,7 @@ ANT::slotSearchTimeout(int number) // search timed out
     //qDebug()<<"search timeout on channel"<<number;
 }
 
-void
-ANT::slotSearchComplete(int number) // search completed successfully
+void ANT::slotSearchComplete(int number) // search completed successfully
 {
     if (number < 0 || number >= channels) return; // ignore out of bound
 
@@ -269,84 +248,58 @@ ANT::slotSearchComplete(int number) // search completed successfully
     //qDebug()<<"search completed on channel"<<number;
 }
 
-/*----------------------------------------------------------------------
- * Message I/O
- *--------------------------------------------------------------------*/
-void
-ANT::sendMessage(ANTMessage m) {
+void ANT::sendMessage(const AntMessage2& m) {
+    qDebug() << "Sending ANT Message" << m.toString();
+    antDevice->writeAntMessage(m);
+}
 
-    QByteArray bytes((const char*) m.data, m.length);
-    rawWrite(bytes);
-
-    // this padding is important, for some reason XXX find out why?
-
-    static const char padding[5] = { '\0', '\0', '\0', '\0', '\0' };
-    QByteArray paddingBytes(padding, 5);
-    rawWrite(paddingBytes);
+void ANT::bytesReady(const QByteArray &bytes)
+{
+    if (!bytes.isEmpty()) {
+        _antMessageGatherer->submitBytes(bytes);
+    }
 }
 
 //
 // Pass inbound message to channel for handling
 //
 void
-ANT::handleChannelEvent(QByteArray& message) {
-    int channel = message[ANT_OFFSET_DATA] & 0x7;
-    if(channel >= 0 && channel < channels) {
-        // handle a channel event here!
-        antChannel[channel]->receiveMessage((unsigned char*) message.data());
+ANT::handleChannelEvent(const AntChannelEventMessage& channelEventMessage) {
+    if (channelEventMessage.messageId() == AntMessage2::SET_NETWORK_KEY &&
+            channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR) {
+        qDebug() << "succesfully set network key";
+        configureDeviceChannels();
+    } else {
+        quint8 channel = channelEventMessage.channelNumber();
+        antChannel[channel]->channelEvent(channelEventMessage);
     }
 }
 
-void
-ANT::processMessage(QByteArray message) {
-    QDataStream out(&antlog);
-    for (int i=0; i<ANT_MAX_MESSAGE_SIZE; i++)
-        out<< message;
+void ANT::handleBroadCastEvent(const BroadCastMessage &broadCastEventMessage)
+{
+    antChannel[broadCastEventMessage.channelNumber()]->broadcastEvent(broadCastEventMessage);
+}
 
+void ANT::handleChannelIdMessage(const SetChannelIdMessage &message)
+{
+    antChannel[message.channelNumber()]->channelIdEvent(message);
+}
 
-    switch (message[ANT_OFFSET_ID]) {
-    case ANT_ACK_DATA:
-    case ANT_BROADCAST_DATA:
-    case ANT_CHANNEL_STATUS:
-    case ANT_CHANNEL_ID:
-    case ANT_BURST_DATA:
-        handleChannelEvent(message);
+void ANT::processMessage(QByteArray message) {
+    std::unique_ptr<AntMessage2> antMessage = AntMessage2::createMessageFromBytes(message);
+    switch(antMessage->id()) {
+    case AntMessage2::CHANNEL_EVENT:
+        handleChannelEvent(*antMessage->asChannelEventMessage());
         break;
-
-    case ANT_CHANNEL_EVENT:
-        switch (message[ANT_OFFSET_MESSAGE_CODE]) {
-        case EVENT_TRANSFER_TX_FAILED:
-            //XXX remember last message ... ANT_SendAckMessage();
-            break;
-        case EVENT_TRANSFER_TX_COMPLETED:
-            // fall through
-        default:
-            handleChannelEvent(message);
-        }
+    case AntMessage2::BROADCAST_EVENT:
+        handleBroadCastEvent(BroadCastMessage(*antMessage));
         break;
-
-    case ANT_VERSION:
+    case AntMessage2::SET_CHANNEL_ID:
+        handleChannelIdMessage(SetChannelIdMessage(*antMessage));
         break;
-
-    case ANT_CAPABILITIES:
-        break;
-
-    case ANT_SERIAL_NUMBER:
-        break;
-
     default:
-        break;
+        qDebug() << "Unhandled Message" << antMessage->toString();
     }
-}
-
-int ANT::rawWrite(QByteArray &bytes) // unix!!
-{
-    return antDevice->writeBytes(bytes);
-}
-
-QByteArray ANT::rawRead()
-{
-    return antDevice->readBytes();
 }
 
 // convert ANT value to human string

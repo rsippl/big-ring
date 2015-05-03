@@ -24,6 +24,9 @@
 
 #include <memory>
 
+#include <QtCore/QThread>
+#include <QtCore/QTimer>
+
 namespace indoorcycling
 {
 
@@ -34,6 +37,24 @@ struct Usb2DeviceConfiguration;
  * @return the type of USB ANT+ Stick, or ANT_DEVICE_NONE if none found.
  */
 AntDeviceType findAntDeviceType();
+
+class Usb2AntDeviceWorker: public QObject
+{
+    Q_OBJECT
+public:
+    Usb2AntDeviceWorker(Usb2DeviceConfiguration* deviceConfiguration, QObject *parent = 0);
+public slots:
+    void initialize();
+    void read();
+    void write(const QByteArray& bytes);
+signals:
+    void workerReady();
+    void bytesWritten(int written);
+    void bytesRead(const QByteArray& bytes);
+private:
+    QTimer* _readTimer;
+    Usb2DeviceConfiguration* _deviceConfiguration;
+};
 
 /**
  * @brief class used for connecting to USB2 ANT+ devices. This implementation uses libusb-0.1
@@ -46,10 +67,17 @@ public:
     virtual ~Usb2AntDevice();
     virtual bool isValid() const;
     virtual int numberOfChannels() const;
-    virtual int writeBytes(QByteArray& bytes);
-    virtual QByteArray readBytes();
+    virtual int writeBytes(const QByteArray& bytes);
+    virtual bool isReady() const override;
+signals:
+    void doWrite(const QByteArray& bytes);
+private slots:
+    void workerReady();
 private:
     const std::unique_ptr<Usb2DeviceConfiguration> _deviceConfiguration;
+    Usb2AntDeviceWorker* _worker;
+    QThread* _workerThread;
+    bool _workerReady;
 };
 }
 #endif // USB2ANTDEVICE_H
