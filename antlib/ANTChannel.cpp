@@ -216,6 +216,11 @@ void ANTChannel::calculateCadence(const quint16 previousTime, const quint16 prev
     */
 void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
 {
+    if (channel_type == CHANNEL_TYPE_UNUSED) {
+        qDebug() << "Getting a broad cast event for an unused channel. Ignoring..";
+        return;
+    }
+
     messages_received++;
     _lastMessageTime = QDateTime::currentDateTime();
 
@@ -262,7 +267,7 @@ void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
             handleSpeedMessage(broadcastMessage.toSpecificBroadCastMessage<SpeedMessage>());
             break;
         case CHANNEL_TYPE_UNUSED:
-            qFatal("We should not be receiving broad cast messages for an unused channel");
+            qWarning("We should not be receiving broad cast messages for an unused channel");
         }
 
     } else {
