@@ -111,9 +111,6 @@ public slots:
     /** Initialize ANT+ device */
     void initialize();
 
-    /** Perform a read cycle, should be called every 25 ms or so. */
-    void readCycle();
-
 private slots:
     void sendNetworkKey();
     void processMessage(QByteArray message);
@@ -125,6 +122,8 @@ private slots:
     void slotSearchComplete(int number); // search completed successfully
 
     void sendMessage(const AntMessage2&);
+
+    void bytesReady(const QByteArray&  bytes);
 public:
     static const QMap<AntChannelType,ant_sensor_type_t> ant_sensor_types;
     std::array<ANTChannel*, 8> antChannel;

@@ -65,9 +65,6 @@ private:
     int _heartRate;
     int _power;
     int _cadence;
-
-    QThread* antThread;
-    QTimer* const antTimer;
 };
 
 #endif // ANTCONTROLLER_H

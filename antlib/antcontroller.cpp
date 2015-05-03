@@ -22,27 +22,19 @@
 #include "ANT.h"
 #include <QCoreApplication>
 
-namespace {
-const int TIMER_INTERVAL = 100; // ms
-}
 ANTController::ANTController(QObject *parent) :
-    QObject(parent), _heartRate(0), _power(0), _cadence(0), antThread(new QThread(this)),
-    antTimer(new QTimer(this))
+    QObject(parent), _heartRate(0), _power(0), _cadence(0)
 {
-    antTimer->setInterval(TIMER_INTERVAL);
-    connect(antThread, &QThread::finished, this, &ANTController::finished);
     initialize();
 }
 
 ANTController::~ANTController() {
-    if (antThread->isRunning()) {
-        qWarning("Call quit() before destroying ANTController");
-    }
+    // empty
 }
 
 bool ANTController::isRunning() const
 {
-    return antThread->isRunning();
+    return true;
 }
 
 quint8 ANTController::heartRate() const
@@ -67,20 +59,14 @@ void ANTController::foundDevice(int, int , int , QString description, QString)
 
 void ANTController::initialize()
 {
-    ANT* ant = new ANT;
-    ant->moveToThread(antThread);
-
-    connect(antThread, SIGNAL(started()), ant, SLOT(initialize()));
-
-    connect(antTimer, SIGNAL(timeout()), ant, SLOT(readCycle()));
-    connect(ant, SIGNAL(initializationSucceeded()), antTimer, SLOT(start()));
+    ANT* ant = new ANT(this);
     connect(ant, SIGNAL(foundDevice(int,int,int,QString,QString)),
             SLOT(foundDevice(int,int,int,QString,QString)));
     connect(ant, &ANT::heartRateMeasured, this, &ANTController::heartRateReceived);
     connect(ant, &ANT::powerMeasured, this, &ANTController::powerReceived);
     connect(ant, &ANT::cadenceMeasured, this, &ANTController::cadenceReceived);
 
-    antThread->start();
+    ant->initialize();
 }
 
 
@@ -98,7 +84,7 @@ void ANTController::cadenceReceived(float cadence)
 
 void ANTController::quit()
 {
-    antThread->quit();
+    // empty
 }
 
 void ANTController::powerReceived(float power)

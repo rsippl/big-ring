@@ -47,10 +47,10 @@ public:
     virtual int numberOfChannels() const;
 
     virtual int writeBytes(const QByteArray& bytes);
-    virtual QByteArray readBytes();
 signals:
 
-public slots:
+private slots:
+    void readyRead();
 private:
     QSerialPortInfo findGarminUsb1Stick();
     void openSerialConnection(const QSerialPortInfo& serialPortInfo);

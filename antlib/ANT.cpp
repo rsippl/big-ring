@@ -113,6 +113,7 @@ void ANT::initialize()
 
     if (antDevice->isValid()) {
         channels = 4;
+        connect(antDevice.data(), &indoorcycling::AntDevice::bytesRead, this, &ANT::bytesReady);
     } else {
         emit initializationFailed();
         return;
@@ -136,22 +137,6 @@ void ANT::configureDeviceChannels()
     addDevice(0, CHANNEL_TYPE_POWER, 1);
     addDevice(0, CHANNEL_TYPE_CADENCE, 2);
     addDevice(0, CHANNEL_TYPE_HR, 3);
-}
-
-void ANT::readCycle()
-{
-    bool bytesRead = false;
-
-    while (true) {
-        QByteArray bytes = rawRead();
-        if (bytes.isEmpty())
-            break;
-        _antMessageGatherer->submitBytes(bytes);
-        bytesRead = true;
-    }
-
-    if (!bytesRead)
-        return;
 }
 
 /*======================================================================
@@ -246,8 +231,7 @@ ANT::slotSearchTimeout(int number) // search timed out
     //qDebug()<<"search timeout on channel"<<number;
 }
 
-void
-ANT::slotSearchComplete(int number) // search completed successfully
+void ANT::slotSearchComplete(int number) // search completed successfully
 {
     if (number < 0 || number >= channels) return; // ignore out of bound
 
@@ -255,10 +239,16 @@ ANT::slotSearchComplete(int number) // search completed successfully
     //qDebug()<<"search completed on channel"<<number;
 }
 
-void
-ANT::sendMessage(const AntMessage2& m) {
+void ANT::sendMessage(const AntMessage2& m) {
     qDebug() << "Sending ANT Message" << m.toString();
     antDevice->writeAntMessage(m);
+}
+
+void ANT::bytesReady(const QByteArray &bytes)
+{
+    if (!bytes.isEmpty()) {
+        _antMessageGatherer->submitBytes(bytes);
+    }
 }
 
 //
@@ -301,16 +291,6 @@ void ANT::processMessage(QByteArray message) {
     default:
         qDebug() << "Unhandled Message" << antMessage->toString();
     }
-}
-
-int ANT::rawWrite(const QByteArray &bytes) // unix!!
-{
-    return antDevice->writeBytes(bytes);
-}
-
-QByteArray ANT::rawRead()
-{
-    return antDevice->readBytes();
 }
 
 // convert ANT value to human string

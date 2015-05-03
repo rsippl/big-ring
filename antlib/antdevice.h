@@ -71,11 +71,8 @@ public:
      * @return true if the message was written completely.
      */
     bool writeAntMessage(const AntMessage2& message);
-    /**
-     * @brief try to read a number of bytes from the ANT+ device.
-     * @return the byte array that was read. Might be empty, in fact it *will* often be empty.
-     */
-    virtual QByteArray readBytes() = 0;
+signals:
+    void bytesRead(const QByteArray& bytes);
 protected:
     AntDevice(QObject* parent = 0);
 };

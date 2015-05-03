@@ -22,6 +22,7 @@
 
 #include "unixserialusbant.h"
 #include <QtDebug>
+#include <QtCore/QTime>
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 
@@ -74,9 +75,9 @@ int UnixSerialUsbAnt::writeBytes(const QByteArray &bytes)
     return totalWritten;
 }
 
-QByteArray UnixSerialUsbAnt::readBytes()
+void UnixSerialUsbAnt::readyRead()
 {
-    return _serialPortConnection->readAll();
+    emit bytesRead(_serialPortConnection->readAll());
 }
 
 QSerialPortInfo UnixSerialUsbAnt::findGarminUsb1Stick()
@@ -99,7 +100,9 @@ void UnixSerialUsbAnt::openSerialConnection(const QSerialPortInfo &serialPortInf
     _serialPortConnection->setParity(QSerialPort::NoParity);
 
     bool opened = _serialPortConnection->open(QIODevice::ReadWrite);
-    if (!opened) {
+    if (opened) {
+        connect(_serialPortConnection, &QSerialPort::readyRead, this, &UnixSerialUsbAnt::readyRead);
+    } else {
         qDebug() << "unable to open serial port device" << serialPortInfo.description();
     }
 }
