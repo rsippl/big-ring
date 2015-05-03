@@ -25,7 +25,7 @@
 //------------------------------------------------------------------------
 
 #include "ANT.h"
-#include "ANTMessage.h"
+#include "ANTChannel.h"
 #include "antmessage2.h"
 #include "antmessagegatherer.h"
 
@@ -45,19 +45,20 @@ namespace {
 // network key
 const std::array<quint8,8> networkKey = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
 }
+
 // supported sensor types
 const QMap<AntChannelType,ant_sensor_type_t> ANT::ant_sensor_types({
-    { CHANNEL_TYPE_UNUSED, {0, 0, 0, 0, "Unused", '?', "" }},
-    { CHANNEL_TYPE_HR, {ANT_SPORT_HR_PERIOD, ANT_SPORT_HR_TYPE,
-      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Heartrate", 'h', ":images/IconHR.png" }},
-    { CHANNEL_TYPE_POWER, {ANT_SPORT_POWER_PERIOD, ANT_SPORT_POWER_TYPE,
-      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Power", 'p', ":images/IconPower.png" }},
-    { CHANNEL_TYPE_SPEED, {ANT_SPORT_SPEED_PERIOD, ANT_SPORT_SPEED_TYPE,
-      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Speed", 's', ":images/IconSpeed.png" }},
-    { CHANNEL_TYPE_CADENCE, {ANT_SPORT_CADENCE_PERIOD, ANT_SPORT_CADENCE_TYPE,
-      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Cadence", 'c', ":images/IconCadence.png" }},
-    { CHANNEL_TYPE_SPEED_AND_CADENCE, {ANT_SPORT_SandC_PERIOD, ANT_SPORT_SandC_TYPE,
-      ANT_SPORT_FREQUENCY, ANT_SPORT_NETWORK_NUMBER, "Speed + Cadence", 'd', ":images/IconCadence.png" }},
+    { CHANNEL_TYPE_UNUSED, {ANT_SPORT_UNUSED_PERIOD, CHANNEL_TYPE_UNUSED, "Unused", '?', "" }},
+    { CHANNEL_TYPE_HR, {ANT_SPORT_HR_PERIOD, CHANNEL_TYPE_HR,
+      "Heartrate", 'h', ":images/IconHR.png" }},
+    { CHANNEL_TYPE_POWER, {ANT_SPORT_POWER_PERIOD, CHANNEL_TYPE_POWER,
+      "Power", 'p', ":images/IconPower.png" }},
+    { CHANNEL_TYPE_SPEED, {ANT_SPORT_SPEED_PERIOD, CHANNEL_TYPE_SPEED,
+      "Speed", 's', ":images/IconSpeed.png" }},
+    { CHANNEL_TYPE_CADENCE, {ANT_SPORT_CADENCE_PERIOD, CHANNEL_TYPE_CADENCE,
+      "Cadence", 'c', ":images/IconCadence.png" }},
+    { CHANNEL_TYPE_SPEED_AND_CADENCE, {ANT_SPORT_SPEED_AND_CADENCE_PERIOD, CHANNEL_TYPE_SPEED_AND_CADENCE,
+      "Speed + Cadence", 'd', ":images/IconCadence.png" }}
 });
 
 ANT::ANT(QObject *parent): QObject(parent),
@@ -67,10 +68,9 @@ ANT::ANT(QObject *parent): QObject(parent),
     qRegisterMetaType<AntChannelType>("AntChannelType");
     connect(_antMessageGatherer, &AntMessageGatherer::antMessageReceived,
             this, &ANT::processMessage);
-    powerchannels=0;
 
     // setup the channels
-    for (int i=0; i<ANT_MAX_CHANNELS; i++) {
+    for (uint i=0; i<antChannel.size(); i++) {
 
         // create the channel
         antChannel[i] = new ANTChannel(i, this);
@@ -87,7 +87,7 @@ ANT::ANT(QObject *parent): QObject(parent),
         connect(antChannel[i], &ANTChannel::powerMeasured, this, &ANT::powerMeasured);
         connect(antChannel[i], &ANTChannel::cadenceMeasured, this, &ANT::cadenceMeasured);
         connect(antChannel[i], &ANTChannel::speedMeasured, this, &ANT::speedMeasured);
-        connect(antChannel[i], &ANTChannel::antMessageGenerated, this, &ANT::antMessageGenerated);
+        connect(antChannel[i], &ANTChannel::antMessageGenerated, this, &ANT::sendMessage);
     }
 
     channels = 0;
@@ -104,8 +104,6 @@ ANT::~ANT()
 
 void ANT::initialize()
 {
-    powerchannels = 0;
-
     antDevice = _antDeviceFinder->openAntDevice();
     if (antDevice.isNull()) {
         emit initializationFailed();
@@ -134,11 +132,10 @@ void ANT::sendNetworkKey()
 
 void ANT::configureDeviceChannels()
 {
-    qDebug() << __FUNCTION__;
-//    addDevice(0, CHANNEL_TYPE_SPEED, 0);
+    addDevice(0, CHANNEL_TYPE_SPEED, 0);
     addDevice(0, CHANNEL_TYPE_POWER, 1);
-//    addDevice(0, CHANNEL_TYPE_CADENCE, 2);
-//    addDevice(0, CHANNEL_TYPE_HR, 3);
+    addDevice(0, CHANNEL_TYPE_CADENCE, 2);
+    addDevice(0, CHANNEL_TYPE_HR, 3);
 }
 
 void ANT::readCycle()
@@ -256,12 +253,6 @@ ANT::slotSearchComplete(int number) // search completed successfully
 
     emit searchComplete(number);
     //qDebug()<<"search completed on channel"<<number;
-}
-
-void ANT::antMessageGenerated(const AntMessage2 &antMessage)
-{
-    qDebug() << "sending" << antMessage.toString();
-    antDevice->writeAntMessage(antMessage);
 }
 
 void

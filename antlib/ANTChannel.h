@@ -75,9 +75,6 @@ private:
                         const quint16 currentTime, const quint16 currentPedalRevolutions,
                         const AntChannelType channelType);
 public:
-    // Channel Information - to save tedious set/getters made public
-     // Channel number within Ant chip
-    int state;
     AntChannelType channel_type;
     int device_number;
     int channel_type_flags;
@@ -92,10 +89,7 @@ public:
     void broadcastEvent(const BroadCastMessage& broadcastMessage);
     void channelIdEvent(const SetChannelIdMessage& channelIdMessage);
 
-    void attemptTransition(int message_code);
-
-    // search
-    int isSearching();
+    void attemptTransition();
 
 signals:
 

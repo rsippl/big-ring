@@ -9,7 +9,6 @@ CONFIG += staticlib
 SOURCES += \
     ANT.cpp \
     ANTChannel.cpp \
-    ANTMessage.cpp \
     antcontroller.cpp \
     antdevice.cpp \
     antdevicefinder.cpp \
@@ -25,7 +24,6 @@ linux {
 HEADERS += \
     ANT.h \
     ANTChannel.h \
-    ANTMessage.h \
     antcontroller.h \
     antdevice.h \
     antdevicefinder.h \

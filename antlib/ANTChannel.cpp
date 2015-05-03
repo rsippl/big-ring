@@ -50,7 +50,6 @@ ANTChannel::ANTChannel(int number, QObject *parent) : QObject(parent), _number(n
     device_number=0;
     device_id=0;
     channel_assigned=0;
-    state=ANT_UNASSIGN_CHANNEL;
     messages_received=0;
     messages_dropped=0;
 }
@@ -62,7 +61,7 @@ void ANTChannel::open(int device, AntChannelType chan_type)
     channel_type_flags = CHANNEL_TYPE_QUICK_SEARCH ;
     device_number=device;
 
-    attemptTransition(ANT_UNASSIGN_CHANNEL);
+    attemptTransition();
 }
 
 // process a channel event message
@@ -72,11 +71,10 @@ void ANTChannel::channelEvent(const AntChannelEventMessage &channelEventMessage)
     const QByteArray message = channelEventMessage.toBytes().mid(2);
 
     if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR) {
-        qDebug() << channelEventMessage.toString();
-        attemptTransition(channelEventMessage.messageId());
-    } else if (MESSAGE_IS_EVENT_CHANNEL_CLOSED(message)) {
+        attemptTransition();
+    } else if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_CLOSED) {
         emit antMessageGenerated(AntMessage2::unassignChannel(_number));
-    } else if (MESSAGE_IS_EVENT_RX_SEARCH_TIMEOUT(message)) {
+    } else if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_RX_SEARCH_TIMEOUT) {
         // timeouts are normal for search channel
         if (channel_type_flags & CHANNEL_TYPE_QUICK_SEARCH) {
 
@@ -95,7 +93,7 @@ void ANTChannel::channelEvent(const AntChannelEventMessage &channelEventMessage)
 
             emit antMessageGenerated(AntMessage2::unassignChannel(_number));
         }
-    } else if (MESSAGE_IS_EVENT_RX_FAIL(message)) {
+    } else if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_CLOSED) {
         messages_dropped++;
 
         if (QDateTime::currentDateTime() > (_lastMessageTime.addMSecs(timeout_drop))) {
@@ -104,8 +102,7 @@ void ANTChannel::channelEvent(const AntChannelEventMessage &channelEventMessage)
             _lastMessageTime.addMSecs(2 * timeout_drop);
         }
     } else {
-
-        // XXX not handled!
+        qDebug() << "Unhandled Channel Event" << channelEventMessage.toString();
     }
 }
 
@@ -281,7 +278,6 @@ void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
 void ANTChannel::channelIdEvent(const SetChannelIdMessage& message) {
     device_number = message.deviceNumber();
     device_id = message.deviceTypeId();
-    state=MESSAGE_RECEIVED;
     emit channelInfo(_number, device_number, device_id);
 
     // if we were searching,
@@ -291,13 +287,7 @@ void ANTChannel::channelIdEvent(const SetChannelIdMessage& message) {
     channel_type_flags &= ~CHANNEL_TYPE_QUICK_SEARCH;
 }
 
-// are we in the middle of a search?
-int ANTChannel::isSearching() {
-    return ((channel_type_flags & (CHANNEL_TYPE_WAITING | CHANNEL_TYPE_QUICK_SEARCH)) || (state != MESSAGE_RECEIVED));
-}
-
-
-void ANTChannel::attemptTransition(int message_id)
+void ANTChannel::attemptTransition()
 {
     qDebug() << "channel" << _number << "current state" << CHANNEL_STATE_STRINGS[_state];
     if (opened)
@@ -305,10 +295,6 @@ void ANTChannel::attemptTransition(int message_id)
 
     const ant_sensor_type_t& st = ANT::ant_sensor_types[channel_type];
 
-    // update state
-    state=message_id;
-
-    qDebug() << "channel" << _number << "state" << QString::number(state, 16);
     // do transitions
     switch (_state) {
     case CHANNEL_CLOSED:

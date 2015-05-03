@@ -18,6 +18,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#include "antmessage2.h"
 #include "antmessagegatherer.h"
 #include "ANT.h"
 
@@ -32,10 +33,10 @@ void AntMessageGatherer::submitBytes(QByteArray bytes)
     int length;
     QByteArray messageBytes;
     while(!_bytesReceived.isEmpty()) {
-        char currentByte = _bytesReceived[0];
+        quint8 currentByte = _bytesReceived[0];
         _bytesReceived.remove(0, 1);
         if (messageBytes.isEmpty()) {
-            if (currentByte == (char) ANT_SYNC_BYTE) {
+            if (currentByte == AntMessage2::SYNC_BYTE) {
                 messageBytes.append(currentByte);
             }
         } else {
