@@ -7,6 +7,7 @@ const double MESSAGING_PERIOD_BASE = 32768.0;
 const QMap<AntChannelEventMessage::MessageCode,QString> EVENT_CHANNEL_MESSAGES (
 {
             {AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR, "NO_ERROR"},
+            {AntChannelEventMessage::EVENT_CHANNEL_COLLISION, "CHANNEL COLLISION"},
             {AntChannelEventMessage::EVENT_CHANNEL_IN_WRONG_STATE, "WRONG_STATE"},
             {AntChannelEventMessage::EVENT_CHANNEL_RX_FAIL, "RX_FAIL"},
             {AntChannelEventMessage::EVENT_CHANNEL_RX_SEARCH_TIMEOUT, "SEARCH_TIMEOUT"}
@@ -244,7 +245,8 @@ AntChannelEventMessage::MessageCode AntChannelEventMessage::messageCode() const
 QString AntChannelEventMessage::toString() const
 {
     QString channelEventString = EVENT_CHANNEL_MESSAGES.value(_messageCode, "UNKNOWN");
-    return QString("Channel Event %1, Channel %2, Message 0x%3").arg(channelEventString)
+    return QString("Channel Event %1 (0x%2), Channel %3, Message 0x%4").arg(channelEventString)
+            .arg(QString::number(_messageCode, 16))
             .arg(contentByte(0)).arg(QString::number(_messageId, 16));
 }
 
