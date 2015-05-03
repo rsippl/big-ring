@@ -28,15 +28,9 @@ extern "C" {
 
 namespace
 {
-
-const int GARMIN_USB_VENDOR_ID = 0x0fcf;
-
-const int GARMIN_USB1_PRODUCT_ID = 0x1004;
-const int GARMIN_USB2_PRODUCT_ID = 0x1008;
-const int OEM_USB2_PRODUCT_ID = 0x1009;
-
-QVector<int> VALID_PRODUCT_IDS({ GARMIN_USB1_PRODUCT_ID, GARMIN_USB2_PRODUCT_ID, OEM_USB2_PRODUCT_ID });
-
+const QVector<int> VALID_PRODUCT_IDS({ indoorcycling::GARMIN_USB1_PRODUCT_ID,
+                                       indoorcycling::GARMIN_USB2_PRODUCT_ID,
+                                       indoorcycling::OEM_USB2_PRODUCT_ID });
 bool usbInitialized = false;
 
 /**
@@ -206,7 +200,7 @@ struct usb_device *findAntStick()
 
     for (bus = usb_get_busses(); bus; bus = bus->next) {
         for (device = bus->devices; device; device = device->next) {
-            if (device->descriptor.idVendor == GARMIN_USB_VENDOR_ID &&
+            if (device->descriptor.idVendor == indoorcycling::GARMIN_USB_VENDOR_ID &&
                     VALID_PRODUCT_IDS.contains(device->descriptor.idProduct)) {
                 return device;
             }

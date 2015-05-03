@@ -21,53 +21,32 @@
  */
 
 #include "unixserialusbant.h"
-#include <QDirIterator>
-#include <QStringList>
 #include <QtDebug>
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
 
-extern "C" {
-#include <errno.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-}
-
-namespace {
-const quint8 READ_SIZE = 64;
-}
 namespace indoorcycling
 {
 
 UnixSerialUsbAnt::UnixSerialUsbAnt(QObject *parent) :
     AntDevice(parent)
 {
-    QFileInfoList entries = findUsbSerialDevices();
-
-    foreach (const QFileInfo& entry, entries) {
-        if (isGarminUsb1Stick(entry)) {
-            qDebug() << "Garmin USB1 stick found";
-            _deviceFileInfo = entry;
-        }
-    }
-    if (isValid()) {
-        openConnection();
+    QSerialPortInfo garminSerialPortInfo = findGarminUsb1Stick();
+    if (garminSerialPortInfo.isValid()) {
+        openSerialConnection(garminSerialPortInfo);
     }
 }
 
 UnixSerialUsbAnt::~UnixSerialUsbAnt()
 {
-    if (isValid()) {
-        tcflush(_nativeDeviceHandle, TCIOFLUSH); // clear out the garbage
-        close(_nativeDeviceHandle);
+    if (_serialPortConnection->isOpen()) {
+        _serialPortConnection->close();
     }
 }
 
 bool UnixSerialUsbAnt::isValid() const
 {
-    return !_deviceFileInfo.fileName().isEmpty();
+    return _serialPortConnection->isOpen();
 }
 
 int UnixSerialUsbAnt::numberOfChannels() const
@@ -77,98 +56,51 @@ int UnixSerialUsbAnt::numberOfChannels() const
 
 int UnixSerialUsbAnt::writeBytes(const QByteArray &bytes)
 {
-    int rc;
-    int ibytes;
-
-    ioctl(_nativeDeviceHandle, FIONREAD, &ibytes);
-
-    // timeouts are less critical for writing, since vols are low
-    rc= write(_nativeDeviceHandle, bytes.data(), bytes.size());
-
-    if (rc != -1) tcdrain(_nativeDeviceHandle); // wait till its gone.
-
-    ioctl(_nativeDeviceHandle, FIONREAD, &ibytes);
-    return rc;
+    int totalWritten = 0;
+    QByteArray bytesLeft(bytes);
+    while (!bytesLeft.isEmpty()) {
+        qint64 bytesWritten = _serialPortConnection->write(bytesLeft);
+        if (bytesWritten < 0) {
+            return bytesWritten;
+        } else {
+            totalWritten += bytesWritten;
+            if (bytesWritten == bytesLeft.size()) {
+                break;
+            } else {
+                bytesLeft = bytesLeft.mid(bytesWritten);
+            }
+        }
+    }
+    return totalWritten;
 }
 
 QByteArray UnixSerialUsbAnt::readBytes()
 {
-    QByteArray allBytes;
-    while(true) {
-        QByteArray readBytes(READ_SIZE, '\0');
-        int result = read(_nativeDeviceHandle, readBytes.data(), READ_SIZE);
-        if (result == -1 || result == 0)
-            break;
-        allBytes.append(readBytes.left(result));
+    return _serialPortConnection->readAll();
+}
+
+QSerialPortInfo UnixSerialUsbAnt::findGarminUsb1Stick()
+{
+    for(const QSerialPortInfo& serialPort: QSerialPortInfo::availablePorts()) {
+        if (serialPort.vendorIdentifier() == indoorcycling::GARMIN_USB_VENDOR_ID &&
+                serialPort.productIdentifier() == indoorcycling::GARMIN_USB1_PRODUCT_ID) {
+            qDebug() << "found garmin usb 1 stick at" << serialPort.systemLocation();
+            return serialPort;
+        }
     }
-
-    return allBytes;
+    return QSerialPortInfo();
 }
 
-QFileInfoList UnixSerialUsbAnt::findUsbSerialDevices()
+void UnixSerialUsbAnt::openSerialConnection(const QSerialPortInfo &serialPortInfo)
 {
-    QStringList filters;
-    filters << "ttyUSB[0-9]";
-    QDir dir("/dev");
-    return dir.entryInfoList(filters, QDir::System);
-}
+    _serialPortConnection = new QSerialPort(serialPortInfo);
+    _serialPortConnection->setBaudRate(QSerialPort::Baud115200);
+    _serialPortConnection->setDataBits(QSerialPort::Data8);
+    _serialPortConnection->setParity(QSerialPort::NoParity);
 
-bool UnixSerialUsbAnt::isGarminUsb1Stick(const QFileInfo& fileInfo)
-{
-    // All we can do for USB1 sticks is see if the cp210x driver module
-    // is loaded for this device, and if it is, we will use the device
-    // XXX need a better way of probing this device, but USB1 sticks
-    //     are getting rarer, so maybe we can just make do with this
-    //     until we deprecate them altogether
-    struct stat s;
-    if (stat(fileInfo.absoluteFilePath().toLatin1(), &s) == -1) return false;
-    int maj = major(s.st_rdev);
-    int min = minor(s.st_rdev);
-    QString sysFile = QString("/sys/dev/char/%1:%2/device/driver/module/drivers/usb:cp210x").arg(maj).arg(min);
-    if (QFileInfo(sysFile).exists()) return true;
-    sysFile = QString("/sys/dev/char/%1:%2/device/driver/module/drivers/usb-serial:cp210x").arg(maj).arg(min);
-    if (QFileInfo(sysFile).exists()) return true;
-
-    return false;
-}
-
-int UnixSerialUsbAnt::openConnection()
-{
-    int ldisc=N_TTY; // LINUX
-    if ((_nativeDeviceHandle=open(qPrintable(_deviceFileInfo.absoluteFilePath()),O_RDWR | O_NOCTTY | O_NONBLOCK)) == -1)
-        return errno;
-
-    tcflush(_nativeDeviceHandle, TCIOFLUSH); // clear out the garbage
-
-    if (ioctl(_nativeDeviceHandle, TIOCSETD, &ldisc) == -1) return errno;
-
-    // get current settings for the port
-    struct termios deviceSettings;
-    tcgetattr(_nativeDeviceHandle, &deviceSettings);
-
-    // set raw mode i.e. ignbrk, brkint, parmrk, istrip, inlcr, igncr, icrnl, ixon
-    //                   noopost, cs8, noecho, noechonl, noicanon, noisig, noiexn
-    cfmakeraw(&deviceSettings);
-    cfsetspeed(&deviceSettings, B115200);
-
-    // further attributes
-    deviceSettings.c_iflag= IGNPAR;
-    deviceSettings.c_oflag=0;
-    deviceSettings.c_cflag &= (~CSIZE & ~CSTOPB);
-#if defined(Q_OS_MACX)
-    deviceSettings.c_cflag |= (CS8 | CREAD | HUPCL | CCTS_OFLOW | CRTS_IFLOW);
-#else
-    deviceSettings.c_cflag |= (CS8 | CREAD | HUPCL | CRTSCTS);
-#endif
-    deviceSettings.c_lflag=0;
-    deviceSettings.c_cc[VMIN]=0;
-    deviceSettings.c_cc[VTIME]=0;
-
-    // set those attributes
-    if(tcsetattr(_nativeDeviceHandle, TCSANOW, &deviceSettings) == -1) return errno;
-    tcgetattr(_nativeDeviceHandle, &deviceSettings);
-
-    // success
-    return 0;
+    bool opened = _serialPortConnection->open(QIODevice::ReadWrite);
+    if (!opened) {
+        qDebug() << "unable to open serial port device" << serialPortInfo.description();
+    }
 }
 }

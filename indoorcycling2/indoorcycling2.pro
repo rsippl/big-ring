@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 QT_VERSION = 5
-QT       += core gui
+QT       += core gui serialport
 
 
 TARGET = ../bin/indoorcycling2

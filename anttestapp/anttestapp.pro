@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 QT_VERSION = 5
-QT       += core
+QT       += core serialport
 CONFIG += link_pkgconfig
 
 
