@@ -112,6 +112,7 @@ public slots:
     void initialize();
 
 private slots:
+    void startCommunication();
     void sendNetworkKey();
     void processMessage(QByteArray message);
     void channelInfo(int number, int device_number, int device_id);  // found a device
@@ -147,7 +148,6 @@ private:
 
     indoorcycling::AntDeviceFinder* _antDeviceFinder;
     QSharedPointer<indoorcycling::AntDevice> antDevice;
-    QTimer _initializiationTimer;
     AntMessageGatherer* _antMessageGatherer;
 };
 

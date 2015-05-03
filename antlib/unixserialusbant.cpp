@@ -35,6 +35,7 @@ UnixSerialUsbAnt::UnixSerialUsbAnt(QObject *parent) :
     QSerialPortInfo garminSerialPortInfo = findGarminUsb1Stick();
     if (garminSerialPortInfo.isValid()) {
         openSerialConnection(garminSerialPortInfo);
+        emit deviceReady();
     }
 }
 
@@ -75,6 +76,11 @@ int UnixSerialUsbAnt::writeBytes(const QByteArray &bytes)
     return totalWritten;
 }
 
+bool UnixSerialUsbAnt::isReady() const
+{
+    return _serialPortConnection->isOpen();
+}
+
 void UnixSerialUsbAnt::readyRead()
 {
     emit bytesRead(_serialPortConnection->readAll());
@@ -101,6 +107,8 @@ void UnixSerialUsbAnt::openSerialConnection(const QSerialPortInfo &serialPortInf
 
     bool opened = _serialPortConnection->open(QIODevice::ReadWrite);
     if (opened) {
+        _serialPortConnection->readAll();
+        _serialPortConnection->flush();
         connect(_serialPortConnection, &QSerialPort::readyRead, this, &UnixSerialUsbAnt::readyRead);
     } else {
         qDebug() << "unable to open serial port device" << serialPortInfo.description();

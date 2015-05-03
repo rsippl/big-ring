@@ -71,7 +71,10 @@ public:
      * @return true if the message was written completely.
      */
     bool writeAntMessage(const AntMessage2& message);
+
+    virtual bool isReady() const = 0;
 signals:
+    void deviceReady();
     void bytesRead(const QByteArray& bytes);
 protected:
     AntDevice(QObject* parent = 0);

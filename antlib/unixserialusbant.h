@@ -47,6 +47,8 @@ public:
     virtual int numberOfChannels() const;
 
     virtual int writeBytes(const QByteArray& bytes);
+
+    virtual bool isReady() const override;
 signals:
 
 private slots:

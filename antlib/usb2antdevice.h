@@ -48,6 +48,7 @@ public slots:
     void read();
     void write(const QByteArray& bytes);
 signals:
+    void workerReady();
     void bytesWritten(int written);
     void bytesRead(const QByteArray& bytes);
 private:
@@ -67,12 +68,16 @@ public:
     virtual bool isValid() const;
     virtual int numberOfChannels() const;
     virtual int writeBytes(const QByteArray& bytes);
+    virtual bool isReady() const override;
 signals:
     void doWrite(const QByteArray& bytes);
+private slots:
+    void workerReady();
 private:
     const std::unique_ptr<Usb2DeviceConfiguration> _deviceConfiguration;
     Usb2AntDeviceWorker* _worker;
     QThread* _workerThread;
+    bool _workerReady;
 };
 }
 #endif // USB2ANTDEVICE_H

@@ -94,7 +94,8 @@ struct Usb2DeviceConfiguration
 };
 
 Usb2AntDevice::Usb2AntDevice(QObject *parent) :
-    AntDevice(parent), _deviceConfiguration(openAntStick()), _workerThread(new QThread(this))
+    AntDevice(parent), _deviceConfiguration(openAntStick()), _workerThread(new QThread(this)),
+    _workerReady(false)
 {
     if (!_deviceConfiguration) {
         qWarning("Unable to open ANT+ stick correctly");
@@ -103,6 +104,7 @@ Usb2AntDevice::Usb2AntDevice(QObject *parent) :
     _worker->moveToThread(_workerThread);
 
     connect(_worker, &Usb2AntDeviceWorker::bytesRead, this, &Usb2AntDevice::bytesRead);
+    connect(_worker, &Usb2AntDeviceWorker::workerReady, this, &Usb2AntDevice::workerReady);
     connect(this, &Usb2AntDevice::doWrite, _worker, &Usb2AntDeviceWorker::write);
     connect(_workerThread, &QThread::started, _worker, &Usb2AntDeviceWorker::initialize);
 
@@ -134,6 +136,17 @@ int Usb2AntDevice::writeBytes(const QByteArray &bytes)
     return bytes.size();
 }
 
+bool Usb2AntDevice::isReady() const
+{
+    return _workerReady;
+}
+
+void Usb2AntDevice::workerReady()
+{
+    _workerReady = true;
+    emit deviceReady();
+}
+
 Usb2AntDeviceWorker::Usb2AntDeviceWorker(Usb2DeviceConfiguration *deviceConfiguration, QObject* parent):
     QObject(parent), _deviceConfiguration(deviceConfiguration)
 {
@@ -152,6 +165,7 @@ void Usb2AntDeviceWorker::initialize()
     _readTimer->setInterval(50);
     connect(_readTimer, &QTimer::timeout, this, &Usb2AntDeviceWorker::read);
     _readTimer->start();
+    emit workerReady();
 }
 
 void Usb2AntDeviceWorker::read()

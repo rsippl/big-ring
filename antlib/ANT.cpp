@@ -114,15 +114,24 @@ void ANT::initialize()
     if (antDevice->isValid()) {
         channels = 4;
         connect(antDevice.data(), &indoorcycling::AntDevice::bytesRead, this, &ANT::bytesReady);
+        if (antDevice->isReady()) {
+            startCommunication();
+        } else {
+            connect(antDevice.data(), &indoorcycling::AntDevice::deviceReady, this, &ANT::startCommunication);
+        }
     } else {
         emit initializationFailed();
         return;
     }
+}
 
+void ANT::startCommunication()
+{
     qDebug() << "resetting system";
     sendMessage(AntMessage2::systemReset());
     // wait for 500ms before sending network key.
-    _initializiationTimer.singleShot(500, this, SLOT(sendNetworkKey()));
+    QTimer::singleShot(800, this, &ANT::sendNetworkKey);
+    connect(antDevice.data(), &indoorcycling::AntDevice::bytesRead, this, &ANT::bytesReady);
 }
 
 void ANT::sendNetworkKey()
