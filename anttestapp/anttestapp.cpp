@@ -7,6 +7,7 @@ int main(int argc, char** argv)
 
     qDebug() << "Starting";
 
-    ANTController controller;
+    ANTController* controller = new ANTController;
+//    QObject::connect(controller, &ANTController::destroyed, &a, &QCoreApplication::quit);
     a.exec();
 }
