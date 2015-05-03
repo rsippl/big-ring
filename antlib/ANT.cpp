@@ -130,7 +130,7 @@ void ANT::startCommunication()
     qDebug() << "resetting system";
     sendMessage(AntMessage2::systemReset());
     // wait for 500ms before sending network key.
-    QTimer::singleShot(800, this, &ANT::sendNetworkKey);
+    QTimer::singleShot(800, this, SLOT(sendNetworkKey()));
     connect(antDevice.data(), &indoorcycling::AntDevice::bytesRead, this, &ANT::bytesReady);
 }
 
