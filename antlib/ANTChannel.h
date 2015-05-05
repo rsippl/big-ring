@@ -22,6 +22,7 @@
 #define gc_ANTChannel_h
 
 #include "ANT.h"
+#include "antchanneltype.h"
 #include "antmessage2.h"
 #include <QObject>
 #include <QDateTime>
@@ -60,23 +61,23 @@ private:
 
     void calculateSpeed(const quint16 previousTime, const quint16 previousWheelRevolutions,
                         const quint16 currentTime, const quint16 currentWheelRevolutions,
-                        const AntChannelType channelType);
+                        const indoorcycling::AntChannelType channelType);
     void calculateCadence(const quint16 previousTime, const quint16 previousPedalRevolutions,
                         const quint16 currentTime, const quint16 currentPedalRevolutions,
-                        const AntChannelType channelType);
+                        const indoorcycling::AntChannelType channelType);
     void attemptTransition();
     // convert ANT value to human string
-    const QString deviceTypeDescription(AntChannelType type);
+    const QString deviceTypeDescription(indoorcycling::AntChannelType type);
 
 
 public:
-    AntChannelType channel_type;
+    indoorcycling::AntChannelType channel_type;
     int deviceNumber;
-    AntChannelType deviceTypeId;
+    indoorcycling::AntChannelType deviceTypeId;
 
-    ANTChannel(int channelNumber, QObject *parent);
+    ANTChannel(int channelNumber, QObject *parent = 0);
 
-    void open(int deviceNumber, AntChannelType channel_type);
+    void open(int deviceNumber, indoorcycling::AntChannelType channel_type);
 
     void channelEvent(const AntChannelEventMessage& bytes);
     void broadcastEvent(const BroadCastMessage& broadcastMessage);
@@ -84,20 +85,17 @@ public:
 
 signals:
 
-    void channelInfo(int channelNumber, int deviceNumber, AntChannelType device_id, const QString& description); // we got a channel info message
-    void dropInfo(int channelNumber, int dropped, int received);    // we dropped a packet
+    void channelInfo(int channelNumber, int deviceNumber, indoorcycling::AntChannelType deviceTypeId, const QString& description); // we got a channel info message
     void lostInfo(int channelNumber);    // we lost a connection
-    void staleInfo(int channelNumber);   // the connection is stale
     void searchTimeout(int channelNumber); // search timed out
-    void searchComplete(int channelNumber); // search completed successfully
     void antMessageGenerated(const AntMessage2& antMessage);
     /** heart rate in beats per minute */
     void heartRateMeasured(int bpm);
     /** power in watts */
     void powerMeasured(float watts);
     /** cadence in revolutions per minute */
-    void cadenceMeasured(float rpm, AntChannelType channelType);
+    void cadenceMeasured(float rpm, indoorcycling::AntChannelType channelType);
     /** wheel speed in revolutions per minute */
-    void speedMeasured(float rpm, AntChannelType channelType);
+    void speedMeasured(float rpm, indoorcycling::AntChannelType channelType);
 };
 #endif

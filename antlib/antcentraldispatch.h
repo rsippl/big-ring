@@ -1,18 +1,23 @@
 #ifndef ANTCENTRALDISPATCH_H
 #define ANTCENTRALDISPATCH_H
 
+#include <functional>
 #include <memory>
 
 #include <QtCore/QObject>
+#include <QtCore/QSharedPointer>
 #include <QtCore/QTimer>
 
 #include "antdevice.h"
 
-
-
+class ANTChannel;
 class AntChannelEventMessage;
 class AntMessageGatherer;
 class AntMessage2;
+class BroadCastMessage;
+class SetChannelIdMessage;
+
+#include "antchanneltype.h"
 
 namespace indoorcycling {
 /**
@@ -27,6 +32,12 @@ public:
 
     bool antUsbStickPresent() const;
     bool initialized() const;
+
+    bool searchForSensorType(AntChannelType channelType);
+    bool searchForSensor(AntChannelType channelType, int deviceNumber);
+
+    int currentHeartRate() const;
+
 signals:
     /** signal emitted when scanning for an usb stick is finished. @param found indicates whether or not an ANT+ usb
      * stick was found.
@@ -38,6 +49,20 @@ signals:
      * ANT+ connection.
      */
     void initializationFinished(bool success);
+    /**
+     * emitted when an ANT+ sensor is found. @param channelType denotes the type of sensor, @param deviceNumber the
+     * number of the device itself.
+     */
+    void sensorFound(AntChannelType channelType, int deviceNumber);
+    /**
+     *  emitted when a search for sensor has timed out.
+     */
+    void sensorNotFound(AntChannelType channelType);
+    /**
+     * heart rate measured
+     */
+    void heartRateMeasured(int heartRate);
+
 public slots:
     /**
      * Initialize the connection to the ANT+ stick. After calling this, listen for the signal initializationFinished(bool)
@@ -54,6 +79,19 @@ private slots:
      * Set ANT+ Network Key
      */
     void sendNetworkKey();
+    /**
+     * This slot is called when an Ant Channel is set to a certain device number.
+     */
+    void setChannelInfo(int channelNumber, int deviceNumber, AntChannelType antChannelType, const QString& description);
+    /**
+     * slot called when a search is timed out.
+     */
+    void searchTimedOut(int channelType);
+    /**
+      Heart rate measured
+     */
+    void setHeartRate(int heartRate);
+
 private:
     /**
      * Start scanning for an ANT+ usb stick. When scanning is finished, antUsbStickScanningFinished(AntDeviceType) is emitted.
@@ -69,13 +107,42 @@ private:
      * handle a channel event message.
      */
     void handleChannelEvent(const AntChannelEventMessage& channelEventMessage);
+    /**
+     * handle a broad cast message
+     */
+    void handleBroadCastMessage(const BroadCastMessage& broadCastMessage);
+
+    /**
+     * handle channel id mesage.
+     */
+    void handleChannelIdMessage(const SetChannelIdMessage& channelIdMessage);
+
+    template <class T>
+    bool sendToChannel(const T& message, std::function<void(ANTChannel*, const T&)> sendFunction);
 
     std::unique_ptr<AntDevice> _antUsbStick;
     bool _initialized;
     AntMessageGatherer* _antMessageGatherer;
 
+    int _currentHeartRate;
+
+    QVector<QSharedPointer<ANTChannel>> _channels;
     QTimer* _initializationTimer;
 };
+
+template <class T>
+bool AntCentralDispatch::sendToChannel(const T& message, std::function<void(ANTChannel*,const T&)> sendFunction)
+{
+    quint8 channelNumber = message.channelNumber();
+    QSharedPointer<ANTChannel> channel = _channels[channelNumber];
+    if (channel.isNull()) {
+        return false;
+    } else {
+        sendFunction(channel.data(), message);
+        return true;
+    }
+}
+
 }
 
 #endif // ANTCENTRALDISPATCH_H

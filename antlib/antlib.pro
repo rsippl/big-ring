@@ -31,7 +31,8 @@ HEADERS += \
     antmessagegatherer.h \
     usb2antdevice.h \
     antmessage2.h \
-    antcentraldispatch.h
+    antcentraldispatch.h \
+    antchanneltype.h
 
 win32 {
     HEADERS += usbexpressantdevice.h

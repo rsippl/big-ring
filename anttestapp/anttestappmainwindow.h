@@ -3,10 +3,12 @@
 
 #include <QtWidgets/QMainWindow>
 
+#include "antchanneltype.h"
 namespace Ui {
 class AntTestAppMainWindow;
 }
 
+namespace indoorcycling {
 class AntTestAppMainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -17,8 +19,12 @@ public:
 public slots:
     void antUsbStickFound(bool found);
     void initializationFinished(bool success);
+    void searchTimedOut(AntChannelType channelType);
+    void setSensor(AntChannelType channelType, int deviceNumber);
+
+    void setHeartRate(int bpm);
 private:
     Ui::AntTestAppMainWindow *ui;
 };
-
+}
 #endif // ANTTESTAPPMAINWINDOW_H

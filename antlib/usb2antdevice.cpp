@@ -112,12 +112,14 @@ Usb2AntDevice::Usb2AntDevice(QObject *parent) :
 }
 
 Usb2AntDevice::~Usb2AntDevice() {
+    qDebug() << "Usb2AntDevice stopping worker";
     _workerThread->quit();
     _workerThread->wait(1000);
     if (_deviceConfiguration) {
         usb_release_interface(_deviceConfiguration->deviceHandle, _deviceConfiguration->interface);
         usb_close(_deviceConfiguration->deviceHandle);
     }
+    qDebug() << "Usb2AntDevice stopped worker";
 }
 
 bool Usb2AntDevice::isValid() const

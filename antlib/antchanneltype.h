@@ -1,0 +1,15 @@
+#ifndef ANTCHANNELTYPE_H
+#define ANTCHANNELTYPE_H
+
+namespace indoorcycling
+{
+enum AntChannelType {
+    CHANNEL_TYPE_UNUSED = 0x00,
+    CHANNEL_TYPE_HR = 0x78,
+    CHANNEL_TYPE_POWER = 0x0B,
+    CHANNEL_TYPE_SPEED = 0x7B,
+    CHANNEL_TYPE_CADENCE = 0x7A,
+    CHANNEL_TYPE_SPEED_AND_CADENCE = 0x79
+};
+}
+#endif // ANTCHANNELTYPE_H

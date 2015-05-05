@@ -41,6 +41,7 @@
 #include <QtDebug>
 #include <QThread>
 
+using indoorcycling::AntChannelType;
 namespace {
 // network key
 const std::array<quint8,8> networkKey = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
@@ -50,7 +51,7 @@ ANT::ANT(QObject *parent): QObject(parent),
     _antDeviceFinder(new indoorcycling::AntDeviceFinder(this)),
     _antMessageGatherer(new AntMessageGatherer(this))
 {
-    qRegisterMetaType<AntChannelType>("AntChannelType");
+    qRegisterMetaType<indoorcycling::AntChannelType>("indoorcycling::AntChannelType");
     connect(_antMessageGatherer, &AntMessageGatherer::antMessageReceived,
             this, &ANT::processMessage);
 
@@ -62,11 +63,9 @@ ANT::ANT(QObject *parent): QObject(parent),
 
         // connect up its signals
         connect(antChannel[i], &ANTChannel::channelInfo, this, &ANT::channelInfo);
-        connect(antChannel[i], SIGNAL(dropInfo(int,int,int)), this, SLOT(dropInfo(int,int,int)));
         connect(antChannel[i], SIGNAL(lostInfo(int)), this, SLOT(lostInfo(int)));
         connect(antChannel[i], SIGNAL(staleInfo(int)), this, SLOT(staleInfo(int)));
         connect(antChannel[i], SIGNAL(searchTimeout(int)), this, SLOT(slotSearchTimeout(int)));
-        connect(antChannel[i], SIGNAL(searchComplete(int)), this, SLOT(slotSearchComplete(int)));
 
         connect(antChannel[i], &ANTChannel::heartRateMeasured, this, &ANT::heartRateMeasured);
         connect(antChannel[i], &ANTChannel::powerMeasured, this, &ANT::powerMeasured);
@@ -127,10 +126,10 @@ void ANT::sendNetworkKey()
 
 void ANT::configureDeviceChannels()
 {
-    addDevice(0, CHANNEL_TYPE_SPEED, 0);
-    addDevice(0, CHANNEL_TYPE_POWER, 1);
-    addDevice(0, CHANNEL_TYPE_CADENCE, 2);
-    addDevice(0, CHANNEL_TYPE_HR, 3);
+    addDevice(0, indoorcycling::CHANNEL_TYPE_SPEED, 0);
+    addDevice(0, indoorcycling::CHANNEL_TYPE_POWER, 1);
+    addDevice(0, indoorcycling::CHANNEL_TYPE_CADENCE, 2);
+    addDevice(0, indoorcycling::CHANNEL_TYPE_HR, 3);
 }
 
 /*======================================================================
@@ -166,7 +165,7 @@ ANT::addDevice(int device_number, AntChannelType device_type, int channel_number
 
     // look for an unused channel and use on that one
     for (int i=0; i<channels; i++) {
-        if (antChannel[i]->channel_type == CHANNEL_TYPE_UNUSED) {
+        if (antChannel[i]->channel_type == indoorcycling::CHANNEL_TYPE_UNUSED) {
 
             //antChannel[i]->close();
             antChannel[i]->open(device_number, device_type);
