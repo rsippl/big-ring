@@ -21,6 +21,8 @@
 #ifndef ANTDEVICEFINDER_H
 #define ANTDEVICEFINDER_H
 
+#include <memory>
+
 #include <QObject>
 #include <QSharedPointer>
 #include "antdevice.h"
@@ -35,7 +37,7 @@ public:
     virtual ~AntDeviceFinder();
 
     /** Open an AntDevice. Returns an invalid pointer if no device can be found. */
-    QSharedPointer<AntDevice> openAntDevice();
+    std::unique_ptr<AntDevice> openAntDevice();
 };
 }
 #endif // ANTDEVICEFINDER_H

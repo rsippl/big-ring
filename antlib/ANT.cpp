@@ -46,21 +46,6 @@ namespace {
 const std::array<quint8,8> networkKey = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
 }
 
-// supported sensor types
-const QMap<AntChannelType,ant_sensor_type_t> ANT::ant_sensor_types({
-    { CHANNEL_TYPE_UNUSED, {ANT_SPORT_UNUSED_PERIOD, CHANNEL_TYPE_UNUSED, "Unused", '?', "" }},
-    { CHANNEL_TYPE_HR, {ANT_SPORT_HR_PERIOD, CHANNEL_TYPE_HR,
-      "Heartrate", 'h', ":images/IconHR.png" }},
-    { CHANNEL_TYPE_POWER, {ANT_SPORT_POWER_PERIOD, CHANNEL_TYPE_POWER,
-      "Power", 'p', ":images/IconPower.png" }},
-    { CHANNEL_TYPE_SPEED, {ANT_SPORT_SPEED_PERIOD, CHANNEL_TYPE_SPEED,
-      "Speed", 's', ":images/IconSpeed.png" }},
-    { CHANNEL_TYPE_CADENCE, {ANT_SPORT_CADENCE_PERIOD, CHANNEL_TYPE_CADENCE,
-      "Cadence", 'c', ":images/IconCadence.png" }},
-    { CHANNEL_TYPE_SPEED_AND_CADENCE, {ANT_SPORT_SPEED_AND_CADENCE_PERIOD, CHANNEL_TYPE_SPEED_AND_CADENCE,
-      "Speed + Cadence", 'd', ":images/IconCadence.png" }}
-});
-
 ANT::ANT(QObject *parent): QObject(parent),
     _antDeviceFinder(new indoorcycling::AntDeviceFinder(this)),
     _antMessageGatherer(new AntMessageGatherer(this))
@@ -76,7 +61,7 @@ ANT::ANT(QObject *parent): QObject(parent),
         antChannel[i] = new ANTChannel(i, this);
 
         // connect up its signals
-        connect(antChannel[i], SIGNAL(channelInfo(int,int,int)), this, SLOT(channelInfo(int,int,int)));
+        connect(antChannel[i], &ANTChannel::channelInfo, this, &ANT::channelInfo);
         connect(antChannel[i], SIGNAL(dropInfo(int,int,int)), this, SLOT(dropInfo(int,int,int)));
         connect(antChannel[i], SIGNAL(lostInfo(int)), this, SLOT(lostInfo(int)));
         connect(antChannel[i], SIGNAL(staleInfo(int)), this, SLOT(staleInfo(int)));
@@ -105,7 +90,7 @@ ANT::~ANT()
 void ANT::initialize()
 {
     antDevice = _antDeviceFinder->openAntDevice();
-    if (antDevice.isNull()) {
+    if (!antDevice) {
         emit initializationFailed();
         return;
     }
@@ -113,11 +98,11 @@ void ANT::initialize()
 
     if (antDevice->isValid()) {
         channels = 4;
-        connect(antDevice.data(), &indoorcycling::AntDevice::bytesRead, this, &ANT::bytesReady);
+        connect(antDevice.get(), &indoorcycling::AntDevice::bytesRead, this, &ANT::bytesReady);
         if (antDevice->isReady()) {
             startCommunication();
         } else {
-            connect(antDevice.data(), &indoorcycling::AntDevice::deviceReady, this, &ANT::startCommunication);
+            connect(antDevice.get(), &indoorcycling::AntDevice::deviceReady, this, &ANT::startCommunication);
         }
     } else {
         emit initializationFailed();
@@ -131,7 +116,7 @@ void ANT::startCommunication()
     sendMessage(AntMessage2::systemReset());
     // wait for 500ms before sending network key.
     QTimer::singleShot(800, this, SLOT(sendNetworkKey()));
-    connect(antDevice.data(), &indoorcycling::AntDevice::bytesRead, this, &ANT::bytesReady);
+    connect(antDevice.get(), &indoorcycling::AntDevice::bytesRead, this, &ANT::bytesReady);
 }
 
 void ANT::sendNetworkKey()
@@ -171,7 +156,7 @@ ANT::addDevice(int device_number, AntChannelType device_type, int channel_number
     if (device_number != 0) {
         for (int i=0; i<channels; i++) {
             if (((antChannel[i]->channel_type & 0xf ) == device_type) &&
-                    (antChannel[i]->device_number == device_number)) {
+                    (antChannel[i]->deviceNumber == device_number)) {
                 // send the channel found...
                 //XXX antChannel[i]->channelInfo();
                 return 1;
@@ -193,16 +178,14 @@ ANT::addDevice(int device_number, AntChannelType device_type, int channel_number
     return 0;
 }
 
-void
-ANT::channelInfo(int channel, int device_number, int device_id)
+void ANT::channelInfo(int channelNumber, int deviceNumber, int deviceTypeId, const QString& description)
 {
-    QString description(deviceTypeDescription(device_id));
-    QString typeCode(device_id);
+    QString typeCode(deviceTypeId);
 
-    qDebug()<<"found device number"<<device_number<<"type"<<device_id<<"on channel"<<channel
+    qDebug()<<"found device number"<<deviceNumber<<"type"<<deviceTypeId<<"on channel"<<channelNumber
            << "is a "<< description << "with code"<< typeCode;
 
-    emit foundDevice(channel, device_number, device_id, description, typeCode);
+    emit foundDevice(channelNumber, deviceNumber, deviceTypeId, description, typeCode);
 }
 
 void
@@ -301,15 +284,3 @@ void ANT::processMessage(QByteArray message) {
         qDebug() << "Unhandled Message" << antMessage->toString();
     }
 }
-
-// convert ANT value to human string
-const QString ANT::deviceTypeDescription(int type)
-{
-    for (auto& sensorType: ant_sensor_types) {
-        if (sensorType.device_id == type) {
-            return sensorType.descriptive_name;
-        }
-    }
-    return "Unknown device type";
-}
-

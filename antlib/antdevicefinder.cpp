@@ -40,20 +40,20 @@ AntDeviceFinder::~AntDeviceFinder()
     // empty
 }
 
-QSharedPointer<AntDevice> AntDeviceFinder::openAntDevice()
+std::unique_ptr<AntDevice> AntDeviceFinder::openAntDevice()
 {
     AntDeviceType type = findAntDeviceType();
     switch(type) {
     case ANT_DEVICE_USB_1:
 #ifdef Q_OS_LINUX
-        return QSharedPointer<AntDevice>(new UnixSerialUsbAnt);
+        return std::unique_ptr<AntDevice>(new UnixSerialUsbAnt);
 #else
-        return QSharedPointer<AntDevice>(new UsbExpressAntDevice);
+        return std::unique_ptr<AntDevice>(new UsbExpressAntDevice);
 #endif
     case ANT_DEVICE_USB_2:
-        return QSharedPointer<AntDevice>(new Usb2AntDevice);
+        return std::unique_ptr<AntDevice>(new Usb2AntDevice);
     default:
-        return QSharedPointer<AntDevice>();
+        return std::unique_ptr<AntDevice>();
   }
 }
 }

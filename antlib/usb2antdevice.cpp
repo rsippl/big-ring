@@ -212,7 +212,6 @@ void Usb2AntDeviceWorker::write(const QByteArray &bytes)
     if (written < 0) {
         qWarning("usb error: %s", usb_strerror());
     }
-    qDebug() << "wrote" << written << "bytes";
 #endif
     emit bytesWritten(written);
 }

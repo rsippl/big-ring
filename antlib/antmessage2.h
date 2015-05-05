@@ -125,6 +125,16 @@ private:
     MessageCode _messageCode;
 };
 
+/**
+ * Set Channel ID message
+ *
+ * Bytes:
+ * 0 channel number
+ * 1-2 device numbers
+ * 3 first bit (MSB) pairing bit.
+ * 3 7 LSB bits device type id
+ * 4 transmission type.
+ */
 class SetChannelIdMessage
 {
 public:
@@ -132,6 +142,7 @@ public:
 
     quint8 channelNumber() const;
     quint16 deviceNumber() const;
+    bool pairing() const;
     quint8 deviceTypeId() const;
     quint8 transmissionType() const;
 

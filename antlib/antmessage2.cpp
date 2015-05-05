@@ -418,9 +418,14 @@ quint16 SetChannelIdMessage::deviceNumber() const
     return _antMessage.contentShort(1);
 }
 
+bool SetChannelIdMessage::pairing() const
+{
+    return _antMessage.contentByte(3) & 0x80;
+}
+
 quint8 SetChannelIdMessage::deviceTypeId() const
 {
-    return _antMessage.contentByte(3);
+    return _antMessage.contentByte(3) & 0x7F;
 }
 
 quint8 SetChannelIdMessage::transmissionType() const

@@ -4,8 +4,9 @@
 #
 #-------------------------------------------------
 QT_VERSION = 5
-QT       += core serialport
+QT       += core serialport widgets
 CONFIG += link_pkgconfig
+CONFIG += debug
 
 
 TARGET = ../bin/anttestapp
@@ -14,7 +15,8 @@ TEMPLATE = app
 include(../antlib/antlib.pri)
 
 
-SOURCES += anttestapp.cpp
+SOURCES += anttestapp.cpp \
+    anttestappmainwindow.cpp
 
 # added by QtCreator to add antlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../antlib/release/ -lantlib
@@ -32,4 +34,10 @@ else:unix: PRE_TARGETDEPS += $$OUT_PWD/../antlib/libantlib.a
 
 LIBS += $${ANTLIB_LIBRARY_DEPENDENCIES}
 message("Master pro file path : ["$${ANTLIB_LIBRARY_DEPENCIES}"]")
+
+FORMS += \
+    anttestappmainwindow.ui
+
+HEADERS += \
+    anttestappmainwindow.h
 

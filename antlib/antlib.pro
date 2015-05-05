@@ -14,7 +14,8 @@ SOURCES += \
     antdevicefinder.cpp \
     antmessagegatherer.cpp \
     usb2antdevice.cpp \
-    antmessage2.cpp
+    antmessage2.cpp \
+    antcentraldispatch.cpp
 
 linux {
     SOURCES += core.c
@@ -29,7 +30,8 @@ HEADERS += \
     antdevicefinder.h \
     antmessagegatherer.h \
     usb2antdevice.h \
-    antmessage2.h
+    antmessage2.h \
+    antcentraldispatch.h
 
 win32 {
     HEADERS += usbexpressantdevice.h

@@ -27,13 +27,6 @@
 #include <QDateTime>
 #include <QtCore/QScopedPointer>
 
-#define CHANNEL_TYPE_QUICK_SEARCH 0x10 // or'ed with current channel type
-/* after fast search, wait for slow search.  Otherwise, starting slow
-   search might postpone the fast search on another channel. */
-#define CHANNEL_TYPE_WAITING 0x20
-#define CHANNEL_TYPE_PAIR   0x40 // to do an Ant pair
-#define MESSAGE_RECEIVED -1
-
 class ANTChannel : public QObject {
     Q_OBJECT
 public:
@@ -45,19 +38,16 @@ public:
         CHANNEL_PERIOD_SET,
         CHANNEL_OPENED,
         CHANNEL_SEARCHING,
-        CHANNEL_RECEIVING
+        CHANNEL_TRACKING
     };
 private:
-    int _number;
+    int _channelNumber;
     ChannelState _state;
 
     AntMessage2 lastAntMessage;
     QScopedPointer<PowerMessage> lastStdPwrMessage;
     int dualNullCount, nullCount, stdNullCount;
     QDateTime _lastMessageTime;
-
-    bool channel_assigned;
-    bool opened;
 
     int messages_received; // for signal strength metric
     int messages_dropped;
@@ -74,31 +64,32 @@ private:
     void calculateCadence(const quint16 previousTime, const quint16 previousPedalRevolutions,
                         const quint16 currentTime, const quint16 currentPedalRevolutions,
                         const AntChannelType channelType);
+    void attemptTransition();
+    // convert ANT value to human string
+    const QString deviceTypeDescription(AntChannelType type);
+
+
 public:
     AntChannelType channel_type;
-    int device_number;
-    int channel_type_flags;
-    int device_id;
-    int search_type;
+    int deviceNumber;
+    AntChannelType deviceTypeId;
 
-    ANTChannel(int _number, QObject *parent);
+    ANTChannel(int channelNumber, QObject *parent);
 
-    void open(int device_number, AntChannelType channel_type);
+    void open(int deviceNumber, AntChannelType channel_type);
 
     void channelEvent(const AntChannelEventMessage& bytes);
     void broadcastEvent(const BroadCastMessage& broadcastMessage);
     void channelIdEvent(const SetChannelIdMessage& channelIdMessage);
 
-    void attemptTransition();
-
 signals:
 
-    void channelInfo(int _number, int device_number, int device_id); // we got a channel info message
-    void dropInfo(int _number, int dropped, int received);    // we dropped a packet
-    void lostInfo(int _number);    // we lost a connection
-    void staleInfo(int _number);   // the connection is stale
-    void searchTimeout(int _number); // search timed out
-    void searchComplete(int _number); // search completed successfully
+    void channelInfo(int channelNumber, int deviceNumber, AntChannelType device_id, const QString& description); // we got a channel info message
+    void dropInfo(int channelNumber, int dropped, int received);    // we dropped a packet
+    void lostInfo(int channelNumber);    // we lost a connection
+    void staleInfo(int channelNumber);   // the connection is stale
+    void searchTimeout(int channelNumber); // search timed out
+    void searchComplete(int channelNumber); // search completed successfully
     void antMessageGenerated(const AntMessage2& antMessage);
     /** heart rate in beats per minute */
     void heartRateMeasured(int bpm);

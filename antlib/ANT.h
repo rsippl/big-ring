@@ -24,6 +24,8 @@
 #include "antmessage2.h"
 
 #include <array>
+#include <memory>
+
 //
 // QT stuff
 //
@@ -63,14 +65,6 @@ enum AntSportPeriod {
     ANT_SPORT_SPEED_PERIOD = 8118,
     ANT_SPORT_CADENCE_PERIOD = 8102,
     ANT_SPORT_SPEED_AND_CADENCE_PERIOD = 8086
-};
-
-struct ant_sensor_type_t {
-    AntSportPeriod period;
-    AntChannelType device_id;
-    QString descriptive_name;
-    char suffix;
-    const char *iconname;
 };
 
 class AntMessage2;
@@ -115,7 +109,7 @@ private slots:
     void startCommunication();
     void sendNetworkKey();
     void processMessage(QByteArray message);
-    void channelInfo(int number, int device_number, int device_id);  // found a device
+    void channelInfo(int channelNumber, int deviceNumber, int deviceTypeId, const QString &description);  // found a device
     void dropInfo(int number, int drops, int received);    // we dropped a connection
     void lostInfo(int number);    // we lost informa
     void staleInfo(int number);   // info is now stale
@@ -126,7 +120,6 @@ private slots:
 
     void bytesReady(const QByteArray&  bytes);
 public:
-    static const QMap<AntChannelType,ant_sensor_type_t> ant_sensor_types;
     std::array<ANTChannel*, 8> antChannel;
 
     // ANT Devices and Channels
@@ -142,12 +135,10 @@ private:
 
     void configureDeviceChannels();
 
-    static const QString deviceTypeDescription(int type); // utility to convert CHANNEL_TYPE_XXX to human string
-
     int channels;  // how many 4 or 8 ? depends upon the USB stick...
 
     indoorcycling::AntDeviceFinder* _antDeviceFinder;
-    QSharedPointer<indoorcycling::AntDevice> antDevice;
+    std::unique_ptr<indoorcycling::AntDevice> antDevice;
     AntMessageGatherer* _antMessageGatherer;
 };
 
