@@ -41,6 +41,7 @@ void AntTestAppMainWindow::searchTimedOut(AntChannelType channelType)
 {
     if (channelType == AntChannelType::CHANNEL_TYPE_HR) {
         ui->hrSearchLabel->setText("Search Timed Out");
+        ui->pushButton->setEnabled(true);
     }
 }
 
@@ -49,6 +50,13 @@ void AntTestAppMainWindow::setSensor(AntChannelType channelType, int deviceNumbe
     if (channelType == AntChannelType::CHANNEL_TYPE_HR) {
         ui->hrSearchLabel->setText("Sensor Found");
         ui->hrSensorId->setText(QString::number(deviceNumber));
+    }
+}
+
+void AntTestAppMainWindow::searchStarted(AntChannelType channelType, int deviceNumber)
+{
+    if (channelType == AntChannelType::CHANNEL_TYPE_HR) {
+        ui->pushButton->setEnabled(false);
     }
 }
 

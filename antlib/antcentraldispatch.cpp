@@ -76,8 +76,9 @@ bool AntCentralDispatch::searchForSensor(AntChannelType channelType, int deviceN
 
     _channels[channelNumber] = channel;
 
-    channel->open(deviceNumber, channelType);
 
+    channel->open(deviceNumber, channelType);
+    emit searchStarted(channelType, channelNumber);
     return true;
 }
 

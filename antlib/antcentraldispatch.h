@@ -50,6 +50,10 @@ signals:
      */
     void initializationFinished(bool success);
     /**
+     * emitted when the search for a certain sensor type is started.
+     */
+    void searchStarted(AntChannelType channelType, int channelNumber);
+    /**
      * emitted when an ANT+ sensor is found. @param channelType denotes the type of sensor, @param deviceNumber the
      * number of the device itself.
      */

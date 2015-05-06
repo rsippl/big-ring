@@ -25,6 +25,7 @@ int main(int argc, char** argv)
 //        }
 //    });
     QObject::connect(&mainWindow, &AntTestAppMainWindow::startSearch, &acd, &AntCentralDispatch::searchForSensorType);
+    QObject::connect(&acd, &AntCentralDispatch::searchStarted, &mainWindow, &AntTestAppMainWindow::searchStarted);
     QObject::connect(&acd, &AntCentralDispatch::sensorNotFound, &mainWindow,
                      &AntTestAppMainWindow::searchTimedOut);
     QObject::connect(&acd, &AntCentralDispatch::sensorFound, &mainWindow,
