@@ -23,6 +23,11 @@ public slots:
     void setSensor(AntChannelType channelType, int deviceNumber);
 
     void setHeartRate(int bpm);
+signals:
+    void startSearch(AntChannelType channelType);
+private slots:
+    void on_pushButton_clicked();
+
 private:
     Ui::AntTestAppMainWindow *ui;
 };

@@ -28,8 +28,10 @@ void AntTestAppMainWindow::antUsbStickFound(bool found)
 
 void AntTestAppMainWindow::initializationFinished(bool success)
 {
+    ui->pushButton->setEnabled(success);
     if (success) {
         ui->InitializingLabel->setText("Successfully initialized ANT+ USB Stick");
+        ui->pushButton->setEnabled(true);
     } else {
         ui->InitializingLabel->setText("Could not Successfully initialize ANT+ USB Stick");
     }
@@ -54,4 +56,9 @@ void AntTestAppMainWindow::setHeartRate(int bpm)
 {
     ui->currentHrLabel->setText(QString("%1 BPM").arg(QString::number(bpm)));
 }
+}
+
+void indoorcycling::AntTestAppMainWindow::on_pushButton_clicked()
+{
+    emit startSearch(AntChannelType::CHANNEL_TYPE_HR);
 }
