@@ -37,9 +37,12 @@ public:
         CHANNEL_ID_SET,
         CHANNEL_FREQUENCY_SET,
         CHANNEL_PERIOD_SET,
+        CHANNEL_TIMEOUT_SET,
         CHANNEL_OPENED,
         CHANNEL_SEARCHING,
-        CHANNEL_TRACKING
+        CHANNEL_SEARCH_TIMEOUT,
+        CHANNEL_TRACKING,
+        CHANNEL_LOST_CONNECTION
     };
 private:
     int _channelNumber;
@@ -50,7 +53,7 @@ private:
     int dualNullCount, nullCount, stdNullCount;
     QDateTime _lastMessageTime;
 
-    int messages_received; // for signal strength metric
+    int messages_received; // for signal strength metr
     int messages_dropped;
 
     void handleCadenceMessage(const CadenceMessage& cadenceMessage);

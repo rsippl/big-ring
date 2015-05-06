@@ -57,6 +57,7 @@ const QMap<ANTChannel::ChannelState,QString> CHANNEL_STATE_STRINGS(
             {ANTChannel::CHANNEL_ID_SET, "CHANNEL_ID_SET"},
             {ANTChannel::CHANNEL_FREQUENCY_SET, "CHANNEL_FREQUENCY_SET"},
             {ANTChannel::CHANNEL_PERIOD_SET, "CHANNEL_PERIOD_SET"},
+            {ANTChannel::CHANNEL_TIMEOUT_SET, "CHANNEL_SEARCH_TIMEOUT_SET"},
             {ANTChannel::CHANNEL_OPENED, "CHANNEL_OPENED"},
             {ANTChannel::CHANNEL_SEARCHING, "CHANNEL_SEARCHING"},
             {ANTChannel::CHANNEL_TRACKING, "CHANNEL_RECEIVING"}
@@ -83,7 +84,7 @@ void ANTChannel::open(int device, indoorcycling::AntChannelType chan_type)
 }
 
 void ANTChannel::channelEvent(const AntChannelEventMessage &channelEventMessage) {
-    qDebug() << "ANTChannel::channelEvent" << channelEventMessage.toString();
+    qDebug() << "ANTChannel::channelEvent" << channelEventMessage.toString() << "current state = " << CHANNEL_STATE_STRINGS[_state];
     if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR) {
         attemptTransition();
     } else if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_CLOSED) {
@@ -91,15 +92,15 @@ void ANTChannel::channelEvent(const AntChannelEventMessage &channelEventMessage)
     } else if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_RX_SEARCH_TIMEOUT) {
         // nothing found, go back to closed state.
         if (_state == CHANNEL_SEARCHING) {
+            _state = CHANNEL_SEARCH_TIMEOUT;
             emit searchTimeout(_channelNumber);
         } else {
             emit lostInfo(_channelNumber);
             channel_type=indoorcycling::CHANNEL_TYPE_UNUSED;
             deviceNumber=0;
-
+            _state = CHANNEL_LOST_CONNECTION;
             emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
         }
-        _state = CHANNEL_CLOSED;
     } else if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_CLOSED) {
         messages_dropped++;
 
@@ -322,6 +323,10 @@ void ANTChannel::attemptTransition()
         _state = CHANNEL_PERIOD_SET;
         break;
     case CHANNEL_PERIOD_SET:
+        emit antMessageGenerated(AntMessage2::setSearchTimeout(_channelNumber, 10));
+        _state = CHANNEL_TIMEOUT_SET;
+        break;
+    case CHANNEL_TIMEOUT_SET:
         emit antMessageGenerated(AntMessage2::openChannel(_channelNumber));
         _state = CHANNEL_OPENED;
         break;
@@ -329,6 +334,7 @@ void ANTChannel::attemptTransition()
         _state = CHANNEL_SEARCHING;
         break;
     }
+    qDebug() << "channel" << _channelNumber << "new state" << CHANNEL_STATE_STRINGS[_state];
 }
 
 const QString ANTChannel::deviceTypeDescription(indoorcycling::AntChannelType type)
