@@ -1,0 +1,10 @@
+# Site settings
+title: Big Ring Indoor Video Cycling
+email: ibooij@gmail.com
+description: "Big Ring Indoor Video Cycling can be used in combination with a bicycle, indoor trainer and ANT+ power, cadence or heart rate sensors."
+baseurl: ""
+url: "http://ibooij.github.io/big-ring"
+
+# Build settings
+markdown: kramdown
+permalink: pretty
