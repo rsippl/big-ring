@@ -1,4 +1,2 @@
-CMakeLists.txt.user*
-*.user
-.qmake.cache
-bin/
+_site
+.sass-cache
