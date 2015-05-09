@@ -111,7 +111,7 @@ private slots:
     /**
      * slot called when a search is timed out.
      */
-    void searchTimedOut(int channelType);
+    void searchTimedOut(int channelType, AntSensorType sensorType);
     /**
      * handle a new sensor value from one of the sensors.
      */

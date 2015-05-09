@@ -23,6 +23,7 @@
 #include <QtCore/QtDebug>
 
 namespace {
+const int SEARCH_TIMEOUT = 10; //seconds.
 using indoorcycling::AntChannelHandler;
 const QMap<AntChannelHandler::ChannelState,QString> CHANNEL_STATE_STRINGS(
 {
@@ -34,7 +35,8 @@ const QMap<AntChannelHandler::ChannelState,QString> CHANNEL_STATE_STRINGS(
             {AntChannelHandler::CHANNEL_TIMEOUT_SET, "CHANNEL_SEARCH_TIMEOUT_SET"},
             {AntChannelHandler::CHANNEL_OPENED, "CHANNEL_OPENED"},
             {AntChannelHandler::CHANNEL_SEARCHING, "CHANNEL_SEARCHING"},
-            {AntChannelHandler::CHANNEL_TRACKING, "CHANNEL_RECEIVING"}
+            {AntChannelHandler::CHANNEL_TRACKING, "CHANNEL_RECEIVING"},
+            {AntChannelHandler::CHANNEL_UNASSIGNED, "CHANNEL_UNASSIGNED"}
 });
 }
 namespace indoorcycling {
@@ -76,6 +78,10 @@ void AntChannelHandler::handleChannelEvent(const AntChannelEventMessage &message
         emit searchTimeout(_channelNumber, _sensorType);
     } else if (message.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_RX_FAIL) {
         qDebug() << "RX Failure on channel" << _channelNumber;
+    } else if (message.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_CLOSED) {
+        qDebug() << "Channel closed";
+        emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
+        setState(CHANNEL_UNASSIGNED);
     } else {
         qDebug() << "unhandled message" << message.toString();
     }
@@ -97,6 +103,7 @@ void AntChannelHandler::handleChannelIdEvent(const SetChannelIdMessage &channelI
     _deviceNumber = channelIdMessage.deviceNumber();
     setState(CHANNEL_TRACKING);
     emit sensorFound(_channelNumber, _sensorType, _deviceNumber);
+    emit antMessageGenerated(AntMessage2::setInfiniteSearchTimeout(_channelNumber));
 }
 
 void AntChannelHandler::setState(AntChannelHandler::ChannelState state)
@@ -119,7 +126,7 @@ void AntChannelHandler::advanceState(const quint8 messageId)
     case CHANNEL_ASSIGNED:
         assertMessageId(AntMessage2::ASSIGN_CHANNEL, messageId);
         emit antMessageGenerated(AntMessage2::setChannelId(_channelNumber,
-                                                           0, _sensorType));
+                                                           _deviceNumber, _sensorType));
         setState(CHANNEL_ID_SET);
         break;
     case CHANNEL_ID_SET:
@@ -134,7 +141,7 @@ void AntChannelHandler::advanceState(const quint8 messageId)
         break;
     case CHANNEL_PERIOD_SET:
         assertMessageId(AntMessage2::SET_CHANNEL_PERIOD, messageId);
-        emit antMessageGenerated(AntMessage2::setSearchTimeout(_channelNumber, 10));
+        emit antMessageGenerated(AntMessage2::setSearchTimeout(_channelNumber, SEARCH_TIMEOUT));
         setState(CHANNEL_TIMEOUT_SET);
         break;
     case CHANNEL_TIMEOUT_SET:
@@ -145,6 +152,10 @@ void AntChannelHandler::advanceState(const quint8 messageId)
     case CHANNEL_OPENED:
         assertMessageId(AntMessage2::OPEN_CHANNEL, messageId);
         setState(CHANNEL_SEARCHING);
+        break;
+    case CHANNEL_UNASSIGNED:
+        assertMessageId(AntMessage2::UNASSIGN_CHANNEL, messageId);
+        qDebug() << "Channel unassigned. Can be deleted";
         break;
     default:
         qDebug() << "Unhandled state" << CHANNEL_STATE_STRINGS[_state];

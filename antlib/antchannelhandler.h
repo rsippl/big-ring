@@ -50,7 +50,8 @@ public:
         CHANNEL_SEARCHING,
         CHANNEL_SEARCH_TIMEOUT,
         CHANNEL_TRACKING,
-        CHANNEL_LOST_CONNECTION
+        CHANNEL_LOST_CONNECTION,
+        CHANNEL_UNASSIGNED
     };
 
     ChannelState state() const;

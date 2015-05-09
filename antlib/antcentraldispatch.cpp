@@ -85,6 +85,8 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
     connect(channel.data(), &AntChannelHandler::sensorFound, this, &AntCentralDispatch::setChannelInfo);
     connect(channel.data(), &AntChannelHandler::sensorValue, this, &AntCentralDispatch::handleSensorValue);
     connect(channel.data(), &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
+    connect(channel.data(), &AntChannelHandler::searchTimeout, this, &AntCentralDispatch::searchTimedOut);
+
 //    connect(channel.data(), &ANTChannel::channelInfo, this, &AntCentralDispatch::setChannelInfo);
 //    connect(channel.data(), &ANTChannel::searchTimeout, this, &AntCentralDispatch::searchTimedOut);
 
@@ -97,7 +99,7 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
 //    connect(channel, &ANTChannel::speedMeasured, this, &ANT::speedMeasured);
 
     _channels[channelNumber] = channel;
-
+    channel->setSensorDeviceNumber(27718);
 
     channel->initialize();
     emit searchStarted(channelType, channelNumber);
@@ -170,7 +172,7 @@ void AntCentralDispatch::setChannelInfo(int, AntSensorType sensorType, int senso
     emit sensorFound(sensorType, sensorDeviceNumber);
 }
 
-void AntCentralDispatch::searchTimedOut(int channelNumber)
+void AntCentralDispatch::searchTimedOut(int channelNumber, AntSensorType)
 {
     qDebug() << "Search timed out for channel" << channelNumber;
     emit sensorNotFound(_channels[channelNumber]->sensorType());

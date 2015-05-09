@@ -93,6 +93,7 @@ public:
      */
     static AntMessage2 setNetworkKey(quint8 networkNumber, const std::array<quint8, 8> &networkKey);
     static AntMessage2 setSearchTimeout(quint8 channelNumber, int seconds);
+    static AntMessage2 setInfiniteSearchTimeout(quint8 channelNumber);
     static AntMessage2 systemReset();
     static AntMessage2 unassignChannel(quint8 channelNumber);
 

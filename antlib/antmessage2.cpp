@@ -125,7 +125,11 @@ QString AntMessage2::toString() const
     case SET_NETWORK_KEY:
         return QString("Set Network Key, Network %1, Key: %2").arg(contentByte(0)).arg(QString(_content.mid(1).toHex()));
     case SET_SEARCH_TIMEOUT:
-        return QString("Set Search Timeout, Channel %1, Timeout %2s").arg(contentByte(0)).arg(qRound(contentByte(1) * 2.5));
+    {
+        QString timeoutString = (contentByte(1) == 0xFF) ? "INFINITE":
+                                                           QString("%1s").arg(QString::number(qRound(contentByte(1) * 2.5)));
+        return QString("Set Search Timeout, Channel %1, Timeout %2").arg(contentByte(0)).arg(timeoutString);
+    }
     case SYSTEM_RESET:
         return "Sytem Reset";
     case UNASSIGN_CHANNEL:
@@ -161,6 +165,15 @@ AntMessage2 AntMessage2::setSearchTimeout(quint8 channelNumber, int seconds)
     QByteArray content;
     content += channelNumber;
     quint8 timeout = static_cast<quint8>(qRound(seconds / 2.5));
+    content += timeout;
+    return AntMessage2(SET_SEARCH_TIMEOUT, content);
+}
+
+AntMessage2 AntMessage2::setInfiniteSearchTimeout(quint8 channelNumber)
+{
+    QByteArray content;
+    content += channelNumber;
+    quint8 timeout = 0xFF;
     content += timeout;
     return AntMessage2(SET_SEARCH_TIMEOUT, content);
 }
