@@ -156,6 +156,7 @@ class BroadCastMessage
 public:
     BroadCastMessage(const AntMessage2& antMessage);
 
+    bool isNull() const;
     quint8 channelNumber() const;
     quint8 dataPage() const;
     const AntMessage2 &antMessage() const;
@@ -191,7 +192,7 @@ public:
      * @param antMessage the ANT+ broadcast message.
      * @return An HeartRateMessage.
      */
-    HeartRateMessage(const AntMessage2& antMessage);
+    HeartRateMessage(const AntMessage2& antMessage = AntMessage2());
 
     quint16 measurementTime() const;
     quint8 heartBeatCount() const;

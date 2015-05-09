@@ -1,7 +1,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QStyleFactory>
 #include <QtCore/QtDebug>
-#include "antchanneltype.h"
+#include "antsensortype.h"
 #include "antcentraldispatch.h"
 #include "anttestappmainwindow.h"
 

@@ -36,17 +36,17 @@ struct ant_sensor_type_t {
     const char *iconname;
 };
 // supported sensor types
-const QMap<indoorcycling::AntChannelType,ant_sensor_type_t> ANT_SENSOR_TYPES({
-    { indoorcycling::CHANNEL_TYPE_UNUSED, {ANT_SPORT_UNUSED_PERIOD, "Unused", '?', "" }},
-    { indoorcycling::CHANNEL_TYPE_HR, {ANT_SPORT_HR_PERIOD,
+const QMap<indoorcycling::AntSensorType,ant_sensor_type_t> ANT_SENSOR_TYPES({
+    { indoorcycling::SENSOR_TYPE_UNUSED, {ANT_SPORT_UNUSED_PERIOD, "Unused", '?', "" }},
+    { indoorcycling::SENSOR_TYPE_HR, {ANT_SPORT_HR_PERIOD,
       "Heartrate", 'h', ":images/IconHR.png" }},
-    { indoorcycling::CHANNEL_TYPE_POWER, {ANT_SPORT_POWER_PERIOD,
+    { indoorcycling::SENSOR_TYPE_POWER, {ANT_SPORT_POWER_PERIOD,
       "Power", 'p', ":images/IconPower.png" }},
-    { indoorcycling::CHANNEL_TYPE_SPEED, {ANT_SPORT_SPEED_PERIOD,
+    { indoorcycling::SENSOR_TYPE_SPEED, {ANT_SPORT_SPEED_PERIOD,
       "Speed", 's', ":images/IconSpeed.png" }},
-    { indoorcycling::CHANNEL_TYPE_CADENCE, {ANT_SPORT_CADENCE_PERIOD,
+    { indoorcycling::SENSOR_TYPE_CADENCE, {ANT_SPORT_CADENCE_PERIOD,
       "Cadence", 'c', ":images/IconCadence.png" }},
-    { indoorcycling::CHANNEL_TYPE_SPEED_AND_CADENCE, {ANT_SPORT_SPEED_AND_CADENCE_PERIOD,
+    { indoorcycling::SENSOR_TYPE_SPEED_AND_CADENCE, {ANT_SPORT_SPEED_AND_CADENCE_PERIOD,
       "Speed + Cadence", 'd', ":images/IconCadence.png" }}
 });
 
@@ -67,15 +67,15 @@ const QMap<ANTChannel::ChannelState,QString> CHANNEL_STATE_STRINGS(
 ANTChannel::ANTChannel(int number, QObject *parent) : QObject(parent), _channelNumber(number),
     _state(CHANNEL_CLOSED)
 {
-    channel_type=indoorcycling::CHANNEL_TYPE_UNUSED;
+    channel_type=indoorcycling::SENSOR_TYPE_UNUSED;
     deviceNumber=0;
-    deviceTypeId=indoorcycling::CHANNEL_TYPE_UNUSED;
+    deviceTypeId=indoorcycling::SENSOR_TYPE_UNUSED;
     messages_received=0;
     messages_dropped=0;
 }
 
 // Open an ant channel assignment.
-void ANTChannel::open(int device, indoorcycling::AntChannelType chan_type)
+void ANTChannel::open(int device, indoorcycling::AntSensorType chan_type)
 {
     channel_type=chan_type;
     deviceNumber=device;
@@ -96,7 +96,7 @@ void ANTChannel::channelEvent(const AntChannelEventMessage &channelEventMessage)
             emit searchTimeout(_channelNumber);
         } else {
             emit lostInfo(_channelNumber);
-            channel_type=indoorcycling::CHANNEL_TYPE_UNUSED;
+            channel_type=indoorcycling::SENSOR_TYPE_UNUSED;
             deviceNumber=0;
             _state = CHANNEL_LOST_CONNECTION;
             emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
@@ -138,12 +138,12 @@ void ANTChannel::handlePowerMessage(const PowerMessage& powerMessage)
             if (lastStdPwrMessage->eventCount() != powerMessage.eventCount()) {
                 stdNullCount = 0;
                 emit powerMeasured(powerMessage.instantaneousPower());
-                emit cadenceMeasured(powerMessage.instantaneousCadence(), indoorcycling::CHANNEL_TYPE_POWER);
+                emit cadenceMeasured(powerMessage.instantaneousCadence(), indoorcycling::SENSOR_TYPE_POWER);
                 qDebug() << QDateTime::currentDateTime().toString() << "power" << powerMessage.instantaneousPower() << "cadence" << powerMessage.instantaneousCadence();
             } else {
                 stdNullCount += 1;
                 if (stdNullCount >= 6) {
-                    emit cadenceMeasured(0, indoorcycling::CHANNEL_TYPE_POWER);
+                    emit cadenceMeasured(0, indoorcycling::SENSOR_TYPE_POWER);
                     emit powerMeasured(0);
                 }
             }
@@ -178,7 +178,7 @@ void ANTChannel::handleSpeedMessage(const SpeedMessage &speedMessage)
 
 void ANTChannel::calculateSpeed(const quint16 previousTime, const quint16 previousWheelRevolutions,
                                 const quint16 currentTime, const quint16 currentWheelRevolutions,
-                                const indoorcycling::AntChannelType channelType)
+                                const indoorcycling::AntSensorType channelType)
 {
     quint16 time = currentTime - previousTime;
     quint16 revolutions = currentWheelRevolutions - previousWheelRevolutions;
@@ -198,7 +198,7 @@ void ANTChannel::calculateSpeed(const quint16 previousTime, const quint16 previo
 
 void ANTChannel::calculateCadence(const quint16 previousTime, const quint16 previousPedalRevolutions,
                                   const quint16 currentTime, const quint16 currentPedalRevolutions,
-                                  const indoorcycling::AntChannelType channelType)
+                                  const indoorcycling::AntSensorType channelType)
 {
     quint16 time = currentTime - previousTime;
     quint16 revolutions = currentPedalRevolutions - previousPedalRevolutions;
@@ -225,7 +225,7 @@ void ANTChannel::calculateCadence(const quint16 previousTime, const quint16 prev
     */
 void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
 {
-    if (channel_type == indoorcycling::CHANNEL_TYPE_UNUSED) {
+    if (channel_type == indoorcycling::SENSOR_TYPE_UNUSED) {
         qDebug() << "Getting a broad cast event for an unused channel. Ignoring..";
         return;
     }
@@ -254,27 +254,27 @@ void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
     if (!lastAntMessage.isNull()) {
         switch (channel_type) {
         // Power
-        case indoorcycling::CHANNEL_TYPE_POWER:
+        case indoorcycling::SENSOR_TYPE_POWER:
             handlePowerMessage(broadcastMessage.toSpecificBroadCastMessage<PowerMessage>());
             break;
 
             // HR
-        case indoorcycling::CHANNEL_TYPE_HR:
+        case indoorcycling::SENSOR_TYPE_HR:
             handleHeartRateMessage(broadcastMessage.toSpecificBroadCastMessage<HeartRateMessage>());
             break;
             // Cadence
-        case indoorcycling::CHANNEL_TYPE_CADENCE:
+        case indoorcycling::SENSOR_TYPE_CADENCE:
             handleCadenceMessage(broadcastMessage.toSpecificBroadCastMessage<CadenceMessage>());
             break;
             // Speed and Cadence
-        case indoorcycling::CHANNEL_TYPE_SPEED_AND_CADENCE:
+        case indoorcycling::SENSOR_TYPE_SPEED_AND_CADENCE:
             handleSpeedAndCadenceMessage(broadcastMessage.toSpecificBroadCastMessage<SpeedAndCadenceMessage>());
             break;
             // Speed
-        case indoorcycling::CHANNEL_TYPE_SPEED:
+        case indoorcycling::SENSOR_TYPE_SPEED:
             handleSpeedMessage(broadcastMessage.toSpecificBroadCastMessage<SpeedMessage>());
             break;
-        case indoorcycling::CHANNEL_TYPE_UNUSED:
+        case indoorcycling::SENSOR_TYPE_UNUSED:
             qWarning("We should not be receiving broad cast messages for an unused channel");
         }
 
@@ -290,7 +290,7 @@ void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
 // we got a channel ID notification
 void ANTChannel::channelIdEvent(const SetChannelIdMessage& message) {
     deviceNumber = message.deviceNumber();
-    deviceTypeId = static_cast<indoorcycling::AntChannelType>(message.deviceTypeId());
+    deviceTypeId = static_cast<indoorcycling::AntSensorType>(message.deviceTypeId());
     emit channelInfo(_channelNumber, deviceNumber, deviceTypeId, deviceTypeDescription(deviceTypeId));
 
     if (_state == CHANNEL_SEARCHING) {
@@ -337,7 +337,7 @@ void ANTChannel::attemptTransition()
     qDebug() << "channel" << _channelNumber << "new state" << CHANNEL_STATE_STRINGS[_state];
 }
 
-const QString ANTChannel::deviceTypeDescription(indoorcycling::AntChannelType type)
+const QString ANTChannel::deviceTypeDescription(indoorcycling::AntSensorType type)
 {
     if (ANT_SENSOR_TYPES.contains(type)) {
         return ANT_SENSOR_TYPES[type].descriptive_name;

@@ -45,11 +45,13 @@ quint8 AntMessage2::computeChecksum(const QByteArray &bytes) const
 
 quint8 AntMessage2::contentByte(int nr) const
 {
+    Q_ASSERT_X(!isNull(), "AntMessage2::contentByte", "requesting content for a NULL message.");
     return static_cast<quint8>(_content[nr]);
 }
 
 quint16 AntMessage2::contentShort(int index) const
 {
+    Q_ASSERT_X(!isNull(), "AntMessage2::contentShort", "requesting content for a NULL message.");
     quint8 lowByte = _content[index];
     quint8 highByte = _content[index + 1];
 
@@ -266,9 +268,11 @@ std::unique_ptr<AntMessage2> AntMessage2::createMessageFromBytes(const QByteArra
 
 HeartRateMessage::HeartRateMessage(const AntMessage2 &antMessage): BroadCastMessage(antMessage)
 {
-    _measurementTime = antMessage.contentShort(5);
-    _heartBeatCount = antMessage.contentByte(7);
-    _computedHeartRate = antMessage.contentByte(8);
+    if (!isNull()) {
+        _measurementTime = antMessage.contentShort(5);
+        _heartBeatCount = antMessage.contentByte(7);
+        _computedHeartRate = antMessage.contentByte(8);
+    }
 }
 
 quint16 HeartRateMessage::measurementTime() const
@@ -289,11 +293,17 @@ quint8 HeartRateMessage::computedHeartRate() const
 
 
 BroadCastMessage::BroadCastMessage(const AntMessage2 &antMessage):
-    _antMessage(antMessage),
-    _channelNumber(antMessage.contentByte(0)),
-    _dataPage(antMessage.contentByte(1))
+    _antMessage(antMessage)
 {
-    // empty
+    if (!antMessage.isNull()) {
+        _channelNumber = antMessage.contentByte(0);
+        _dataPage = antMessage.contentByte(1);
+    }
+}
+
+bool BroadCastMessage::isNull() const
+{
+    return _antMessage.isNull();
 }
 
 quint8 BroadCastMessage::channelNumber() const

@@ -3,7 +3,7 @@
 
 #include <QtWidgets/QMainWindow>
 
-#include "antchanneltype.h"
+#include "antsensortype.h"
 namespace Ui {
 class AntTestAppMainWindow;
 }
@@ -19,12 +19,12 @@ public:
 public slots:
     void antUsbStickFound(bool found);
     void initializationFinished(bool success);
-    void searchTimedOut(AntChannelType channelType);
-    void setSensor(AntChannelType channelType, int deviceNumber);
-    void searchStarted(AntChannelType channelType, int deviceNumber);
+    void searchTimedOut(AntSensorType channelType);
+    void setSensor(AntSensorType channelType, int deviceNumber);
+    void searchStarted(AntSensorType channelType, int deviceNumber);
     void setHeartRate(int bpm);
 signals:
-    void startSearch(AntChannelType channelType);
+    void startSearch(AntSensorType channelType);
 private slots:
     void on_pushButton_clicked();
 private:

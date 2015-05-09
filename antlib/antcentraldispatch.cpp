@@ -1,7 +1,8 @@
 #include "antcentraldispatch.h"
 
-#include "ANTChannel.h"
+#include "antchannelhandler.h"
 #include "antdevicefinder.h"
+#include "antheartratechannelhandler.h"
 #include "antmessage2.h"
 #include "antmessagegatherer.h"
 
@@ -43,12 +44,12 @@ bool AntCentralDispatch::initialized() const
     return _initialized;
 }
 
-bool AntCentralDispatch::searchForSensorType(AntChannelType channelType)
+bool AntCentralDispatch::searchForSensorType(AntSensorType channelType)
 {
     return searchForSensor(channelType, 0);
 }
 
-bool AntCentralDispatch::searchForSensor(AntChannelType channelType, int deviceNumber)
+bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNumber)
 {
     int channelNumber;
     // search for first non-occupied channel.
@@ -61,15 +62,17 @@ bool AntCentralDispatch::searchForSensor(AntChannelType channelType, int deviceN
         return false;
     }
     // create and insert new channel
-    QSharedPointer<ANTChannel> channel(new ANTChannel(channelNumber));
-    connect(channel.data(), &ANTChannel::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
-    connect(channel.data(), &ANTChannel::channelInfo, this, &AntCentralDispatch::setChannelInfo);
-    connect(channel.data(), &ANTChannel::searchTimeout, this, &AntCentralDispatch::searchTimedOut);
+    QSharedPointer<AntChannelHandler> channel(new AntHeartRateChannelHandler(channelNumber));
+    connect(channel.data(), &AntChannelHandler::sensorFound, this, &AntCentralDispatch::setChannelInfo);
+    connect(channel.data(), &AntChannelHandler::sensorValue, this, &AntCentralDispatch::handleSensorValue);
+    connect(channel.data(), &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
+//    connect(channel.data(), &ANTChannel::channelInfo, this, &AntCentralDispatch::setChannelInfo);
+//    connect(channel.data(), &ANTChannel::searchTimeout, this, &AntCentralDispatch::searchTimedOut);
 
     //    connect(channel.data(), &ANTChannel::lostInfo, this, SLOT(lostInfo(int)));
     //    connect(channel, SIGNAL(staleInfo(int)), this, SLOT(staleInfo(int)));
 
-    connect(channel.data(), &ANTChannel::heartRateMeasured, this, &AntCentralDispatch::setHeartRate);
+//    connect(channel.data(), &ANTChannel::heartRateMeasured, this, &AntCentralDispatch::setHeartRate);
 //    connect(channel, &ANTChannel::powerMeasured, this, &ANT::powerMeasured);
 //    connect(channel, &ANTChannel::cadenceMeasured, this, &ANT::cadenceMeasured);
 //    connect(channel, &ANTChannel::speedMeasured, this, &ANT::speedMeasured);
@@ -77,7 +80,7 @@ bool AntCentralDispatch::searchForSensor(AntChannelType channelType, int deviceN
     _channels[channelNumber] = channel;
 
 
-    channel->open(deviceNumber, channelType);
+    channel->initialize();
     emit searchStarted(channelType, channelNumber);
     return true;
 }
@@ -143,22 +146,24 @@ void AntCentralDispatch::sendNetworkKey()
     sendAntMessage(AntMessage2::setNetworkKey(ANT_PLUS_NETWORK_NUMBER, ANT_PLUS_NETWORK_KEY));
 }
 
-void AntCentralDispatch::setChannelInfo(int /* channelNumber */, int deviceNumber, AntChannelType antChannelType,
-                                        const QString & /* description*/)
+void AntCentralDispatch::setChannelInfo(int, AntSensorType sensorType, int sensorDeviceNumber)
 {
-    emit sensorFound(antChannelType, deviceNumber);
+    emit sensorFound(sensorType, sensorDeviceNumber);
 }
 
 void AntCentralDispatch::searchTimedOut(int channelNumber)
 {
     qDebug() << "Search timed out for channel" << channelNumber;
-    emit sensorNotFound(_channels[channelNumber]->channel_type);
+    emit sensorNotFound(_channels[channelNumber]->sensorType());
 }
 
-void AntCentralDispatch::setHeartRate(int heartRate)
+void AntCentralDispatch::handleSensorValue(const SensorValueType sensorValueType,
+                                           const AntSensorType sensorType, const QVariant &sensorValue)
 {
-    _currentHeartRate = heartRate;
-    emit heartRateMeasured(heartRate);
+    if (sensorValueType == SENSOR_HEARTRATE_BPM) {
+        _currentHeartRate = sensorValue.toInt();
+        emit heartRateMeasured(_currentHeartRate);
+    }
 }
 
 void AntCentralDispatch::sendAntMessage(const AntMessage2 &message)
@@ -177,8 +182,10 @@ void AntCentralDispatch::handleChannelEvent(const AntChannelEventMessage &channe
         _initialized = (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR);
         emit initializationFinished(_initialized);
     } else {
-        bool sent = sendToChannel<AntChannelEventMessage>(channelEventMessage, [](ANTChannel* channel, const AntChannelEventMessage& msg) {
-            channel->channelEvent(msg);
+        bool sent = sendToChannel<AntChannelEventMessage>(channelEventMessage,
+                                                          [](indoorcycling::AntChannelHandler* channel,
+                                                          const AntChannelEventMessage& msg) {
+            channel->handleChannelEvent(msg);
         });
         if (!sent) {
             qDebug() << "Unhandled channel event" << channelEventMessage.toString();
@@ -188,8 +195,9 @@ void AntCentralDispatch::handleChannelEvent(const AntChannelEventMessage &channe
 
 void AntCentralDispatch::handleBroadCastMessage(const BroadCastMessage &broadCastMessage)
 {
-    bool sent = sendToChannel<BroadCastMessage>(broadCastMessage, [](ANTChannel* channel, const BroadCastMessage& msg) {
-        channel->broadcastEvent(msg);
+    bool sent = sendToChannel<BroadCastMessage>(broadCastMessage, [](indoorcycling::AntChannelHandler* channel,
+                                                const BroadCastMessage& msg) {
+        channel->handleBroadcastEvent(msg);
     });
     if (!sent) {
         qDebug() << "Unhandled broad cast event for channel" << broadCastMessage.channelNumber();
@@ -198,8 +206,10 @@ void AntCentralDispatch::handleBroadCastMessage(const BroadCastMessage &broadCas
 
 void AntCentralDispatch::handleChannelIdMessage(const SetChannelIdMessage &channelIdMessage)
 {
-    bool sent = sendToChannel<SetChannelIdMessage>(channelIdMessage, [](ANTChannel* channel, const SetChannelIdMessage& msg) {
-        channel->channelIdEvent(msg);
+    bool sent = sendToChannel<SetChannelIdMessage>(channelIdMessage,
+                                                   [](indoorcycling::AntChannelHandler* channel,
+                                                   const SetChannelIdMessage& msg) {
+        channel->handleChannelIdEvent(msg);
     });
     if (!sent) {
         qDebug() << "Unhandled set channel id event for channel" << channelIdMessage.channelNumber();

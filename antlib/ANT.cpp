@@ -41,7 +41,7 @@
 #include <QtDebug>
 #include <QThread>
 
-using indoorcycling::AntChannelType;
+using indoorcycling::AntSensorType;
 namespace {
 // network key
 const std::array<quint8,8> networkKey = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
@@ -51,7 +51,7 @@ ANT::ANT(QObject *parent): QObject(parent),
     _antDeviceFinder(new indoorcycling::AntDeviceFinder(this)),
     _antMessageGatherer(new AntMessageGatherer(this))
 {
-    qRegisterMetaType<indoorcycling::AntChannelType>("indoorcycling::AntChannelType");
+    qRegisterMetaType<indoorcycling::AntSensorType>("indoorcycling::AntChannelType");
     connect(_antMessageGatherer, &AntMessageGatherer::antMessageReceived,
             this, &ANT::processMessage);
 
@@ -126,10 +126,10 @@ void ANT::sendNetworkKey()
 
 void ANT::configureDeviceChannels()
 {
-    addDevice(0, indoorcycling::CHANNEL_TYPE_SPEED, 0);
-    addDevice(0, indoorcycling::CHANNEL_TYPE_POWER, 1);
-    addDevice(0, indoorcycling::CHANNEL_TYPE_CADENCE, 2);
-    addDevice(0, indoorcycling::CHANNEL_TYPE_HR, 3);
+    addDevice(0, indoorcycling::SENSOR_TYPE_SPEED, 0);
+    addDevice(0, indoorcycling::SENSOR_TYPE_POWER, 1);
+    addDevice(0, indoorcycling::SENSOR_TYPE_HR, 2);
+    addDevice(0, indoorcycling::SENSOR_TYPE_SPEED_AND_CADENCE, 3);
 }
 
 /*======================================================================
@@ -138,7 +138,7 @@ void ANT::configureDeviceChannels()
 
 // returns 1 for success, 0 for fail.
 int
-ANT::addDevice(int device_number, AntChannelType device_type, int channel_number)
+ANT::addDevice(int device_number, AntSensorType device_type, int channel_number)
 {
     // if we're given a channel number, then use that one
     if (channel_number>-1) {
@@ -165,7 +165,7 @@ ANT::addDevice(int device_number, AntChannelType device_type, int channel_number
 
     // look for an unused channel and use on that one
     for (int i=0; i<channels; i++) {
-        if (antChannel[i]->channel_type == indoorcycling::CHANNEL_TYPE_UNUSED) {
+        if (antChannel[i]->channel_type == indoorcycling::SENSOR_TYPE_UNUSED) {
 
             //antChannel[i]->close();
             antChannel[i]->open(device_number, device_type);

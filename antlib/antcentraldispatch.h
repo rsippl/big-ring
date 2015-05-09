@@ -8,16 +8,18 @@
 #include <QtCore/QSharedPointer>
 #include <QtCore/QTimer>
 
-#include "antdevice.h"
-
-class ANTChannel;
+namespace indoorcycling {
+class AntChannelHandler;
+}
 class AntChannelEventMessage;
 class AntMessageGatherer;
 class AntMessage2;
 class BroadCastMessage;
 class SetChannelIdMessage;
 
-#include "antchanneltype.h"
+
+#include "antdevice.h"
+#include "antsensortype.h"
 
 namespace indoorcycling {
 /**
@@ -33,8 +35,8 @@ public:
     bool antUsbStickPresent() const;
     bool initialized() const;
 
-    bool searchForSensorType(AntChannelType channelType);
-    bool searchForSensor(AntChannelType channelType, int deviceNumber);
+    bool searchForSensorType(AntSensorType channelType);
+    bool searchForSensor(AntSensorType channelType, int deviceNumber);
 
     int currentHeartRate() const;
 
@@ -52,16 +54,16 @@ signals:
     /**
      * emitted when the search for a certain sensor type is started.
      */
-    void searchStarted(AntChannelType channelType, int channelNumber);
+    void searchStarted(AntSensorType channelType, int channelNumber);
     /**
      * emitted when an ANT+ sensor is found. @param channelType denotes the type of sensor, @param deviceNumber the
      * number of the device itself.
      */
-    void sensorFound(AntChannelType channelType, int deviceNumber);
+    void sensorFound(AntSensorType channelType, int deviceNumber);
     /**
      *  emitted when a search for sensor has timed out.
      */
-    void sensorNotFound(AntChannelType channelType);
+    void sensorNotFound(AntSensorType channelType);
     /**
      * heart rate measured
      */
@@ -86,16 +88,16 @@ private slots:
     /**
      * This slot is called when an Ant Channel is set to a certain device number.
      */
-    void setChannelInfo(int channelNumber, int deviceNumber, AntChannelType antChannelType, const QString& description);
+    void setChannelInfo(int channelNumber, AntSensorType sensorType, int sensorDeviceNumber);
     /**
      * slot called when a search is timed out.
      */
     void searchTimedOut(int channelType);
     /**
-      Heart rate measured
+     * handle a new sensor value from one of the sensors.
      */
-    void setHeartRate(int heartRate);
-
+    void handleSensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType,
+                     const QVariant& sensorValue);
 private:
     /**
      * Start scanning for an ANT+ usb stick. When scanning is finished, antUsbStickScanningFinished(AntDeviceType) is emitted.
@@ -122,7 +124,7 @@ private:
     void handleChannelIdMessage(const SetChannelIdMessage& channelIdMessage);
 
     template <class T>
-    bool sendToChannel(const T& message, std::function<void(ANTChannel*, const T&)> sendFunction);
+    bool sendToChannel(const T& message, std::function<void(AntChannelHandler*, const T&)> sendFunction);
 
     std::unique_ptr<AntDevice> _antUsbStick;
     bool _initialized;
@@ -130,15 +132,15 @@ private:
 
     int _currentHeartRate;
 
-    QVector<QSharedPointer<ANTChannel>> _channels;
+    QVector<QSharedPointer<indoorcycling::AntChannelHandler>> _channels;
     QTimer* _initializationTimer;
 };
 
 template <class T>
-bool AntCentralDispatch::sendToChannel(const T& message, std::function<void(ANTChannel*,const T&)> sendFunction)
+bool AntCentralDispatch::sendToChannel(const T& message, std::function<void(indoorcycling::AntChannelHandler*,const T&)> sendFunction)
 {
     quint8 channelNumber = message.channelNumber();
-    QSharedPointer<ANTChannel> channel = _channels[channelNumber];
+    QSharedPointer<indoorcycling::AntChannelHandler> channel = _channels[channelNumber];
     if (channel.isNull()) {
         return false;
     } else {

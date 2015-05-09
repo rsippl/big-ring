@@ -37,25 +37,25 @@ void AntTestAppMainWindow::initializationFinished(bool success)
     }
 }
 
-void AntTestAppMainWindow::searchTimedOut(AntChannelType channelType)
+void AntTestAppMainWindow::searchTimedOut(AntSensorType channelType)
 {
-    if (channelType == AntChannelType::CHANNEL_TYPE_HR) {
+    if (channelType == AntSensorType::SENSOR_TYPE_HR) {
         ui->hrSearchLabel->setText("Search Timed Out");
         ui->pushButton->setEnabled(true);
     }
 }
 
-void AntTestAppMainWindow::setSensor(AntChannelType channelType, int deviceNumber)
+void AntTestAppMainWindow::setSensor(AntSensorType channelType, int deviceNumber)
 {
-    if (channelType == AntChannelType::CHANNEL_TYPE_HR) {
+    if (channelType == AntSensorType::SENSOR_TYPE_HR) {
         ui->hrSearchLabel->setText("Sensor Found");
         ui->hrSensorId->setText(QString::number(deviceNumber));
     }
 }
 
-void AntTestAppMainWindow::searchStarted(AntChannelType channelType, int deviceNumber)
+void AntTestAppMainWindow::searchStarted(AntSensorType channelType, int deviceNumber)
 {
-    if (channelType == AntChannelType::CHANNEL_TYPE_HR) {
+    if (channelType == AntSensorType::SENSOR_TYPE_HR) {
         ui->pushButton->setEnabled(false);
     }
 }
@@ -68,5 +68,5 @@ void AntTestAppMainWindow::setHeartRate(int bpm)
 
 void indoorcycling::AntTestAppMainWindow::on_pushButton_clicked()
 {
-    emit startSearch(AntChannelType::CHANNEL_TYPE_HR);
+    emit startSearch(AntSensorType::SENSOR_TYPE_HR);
 }

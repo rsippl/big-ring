@@ -1,0 +1,19 @@
+#ifndef ANTCHANNELTYPE_H
+#define ANTCHANNELTYPE_H
+
+namespace indoorcycling
+{
+enum AntSensorType {
+    SENSOR_TYPE_UNUSED = 0x00,
+    SENSOR_TYPE_HR = 0x78,
+    SENSOR_TYPE_POWER = 0x0B,
+    SENSOR_TYPE_SPEED = 0x7B,
+    SENSOR_TYPE_CADENCE = 0x7A,
+    SENSOR_TYPE_SPEED_AND_CADENCE = 0x79
+};
+
+enum SensorValueType {
+    SENSOR_HEARTRATE_BPM
+};
+}
+#endif // ANTCHANNELTYPE_H

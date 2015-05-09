@@ -21,7 +21,7 @@
 #ifndef gc_ANT_h
 #define gc_ANT_h
 
-#include "antchanneltype.h"
+#include "antsensortype.h"
 #include "antmessage2.h"
 
 #include <array>
@@ -89,7 +89,7 @@ signals:
     /** power in watts */
     void powerMeasured(float watts);
     /** cadence in revolutions per minute. Also sets the channel type, as this can come from both cadence and power sensors */
-    void cadenceMeasured(float rpm, indoorcycling::AntChannelType channelType);
+    void cadenceMeasured(float rpm, indoorcycling::AntSensorType channelType);
     /** speed in wheel revolutions per minute */
     void speedMeasured(float rpm);
 public slots:
@@ -115,7 +115,7 @@ public:
     std::array<ANTChannel*, 8> antChannel;
 
     // ANT Devices and Channels
-    int addDevice(int device_number, indoorcycling::AntChannelType device_type, int channel_number);
+    int addDevice(int device_number, indoorcycling::AntSensorType device_type, int channel_number);
 
 private:
     void handleChannelEvent(const AntChannelEventMessage& channelEventMessage);
