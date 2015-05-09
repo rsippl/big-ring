@@ -2,9 +2,10 @@
 title: Big Ring Indoor Video Cycling
 email: ibooij@gmail.com
 description: > # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  Big Ring Indoor Video Cycling can be used in combination with 
+  a bicycle, indoor trainer and [ANT+](http://www.thisisant.com) power, 
+  cadence or heart rate sensors. It will show a video of the road
+  you are riding, playing in the speed at which you are riding.
 baseurl: "/big-ring" # the subpath of your site, e.g. /blog/
 url: "http://ibooij.github.io/big-ring" # the base hostname & protocol for your site
 github_username:  ibooij
