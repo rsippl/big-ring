@@ -27,6 +27,8 @@
 #include <QtCore/QSharedPointer>
 #include <QtCore/QTimer>
 
+#include "antsensortype.h"
+
 namespace indoorcycling {
 class AntChannelHandler;
 }
@@ -151,7 +153,7 @@ private:
 
     int _currentHeartRate;
 
-    QVector<QSharedPointer<indoorcycling::AntChannelHandler>> _channels;
+    QVector<indoorcycling::AntChannelHandler*> _channels;
     QTimer* _initializationTimer;
 };
 
@@ -159,11 +161,11 @@ template <class T>
 bool AntCentralDispatch::sendToChannel(const T& message, std::function<void(indoorcycling::AntChannelHandler*,const T&)> sendFunction)
 {
     quint8 channelNumber = message.channelNumber();
-    QSharedPointer<indoorcycling::AntChannelHandler> channel = _channels[channelNumber];
-    if (channel.isNull()) {
+    AntChannelHandler* channel = _channels[channelNumber];
+    if (!channel) {
         return false;
     } else {
-        sendFunction(channel.data(), message);
+        sendFunction(channel, message);
         return true;
     }
 }

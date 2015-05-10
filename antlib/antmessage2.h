@@ -245,7 +245,7 @@ public:
      * @param antMessage the ANT+ broadcast message.
      * @return a PowerMessage
      */
-    PowerMessage(const AntMessage2& antMessage);
+    PowerMessage(const AntMessage2& antMessage = AntMessage2());
 
     bool isPowerOnlyPage() const;
 

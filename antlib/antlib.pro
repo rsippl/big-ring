@@ -17,7 +17,8 @@ SOURCES += \
     antmessage2.cpp \
     antcentraldispatch.cpp \
     antchannelhandler.cpp \
-    antheartratechannelhandler.cpp
+    antheartratechannelhandler.cpp \
+    antpowerchannelhandler.cpp
 
 linux {
     SOURCES += core.c
@@ -36,7 +37,8 @@ HEADERS += \
     antcentraldispatch.h \
     antchannelhandler.h \
     antsensortype.h \
-    antheartratechannelhandler.h
+    antheartratechannelhandler.h \
+    antpowerchannelhandler.h
 
 win32 {
     HEADERS += usbexpressantdevice.h

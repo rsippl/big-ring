@@ -24,6 +24,7 @@
 #include "antheartratechannelhandler.h"
 #include "antmessage2.h"
 #include "antmessagegatherer.h"
+#include "antpowerchannelhandler.h"
 
 #include <QtCore/QtDebug>
 
@@ -73,7 +74,7 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
     int channelNumber;
     // search for first non-occupied channel.
     for (channelNumber = 0; channelNumber < _antUsbStick->numberOfChannels(); ++channelNumber) {
-        if (_channels[channelNumber].isNull()) {
+        if (!_channels[channelNumber]) {
             break;
         }
     }
@@ -81,11 +82,19 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
         return false;
     }
     // create and insert new channel
-    QSharedPointer<AntChannelHandler> channel(new AntHeartRateChannelHandler(channelNumber));
-    connect(channel.data(), &AntChannelHandler::sensorFound, this, &AntCentralDispatch::setChannelInfo);
-    connect(channel.data(), &AntChannelHandler::sensorValue, this, &AntCentralDispatch::handleSensorValue);
-    connect(channel.data(), &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
-    connect(channel.data(), &AntChannelHandler::searchTimeout, this, &AntCentralDispatch::searchTimedOut);
+    AntChannelHandler* channel;
+    if (channelType == SENSOR_TYPE_HR) {
+        channel = new AntHeartRateChannelHandler(channelNumber);
+    } else if (channelType == SENSOR_TYPE_POWER) {
+        channel = new AntPowerChannelHandler(channelNumber);
+    } else {
+        return false;
+    }
+
+    connect(channel, &AntChannelHandler::sensorFound, this, &AntCentralDispatch::setChannelInfo);
+    connect(channel, &AntChannelHandler::sensorValue, this, &AntCentralDispatch::handleSensorValue);
+    connect(channel, &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
+    connect(channel, &AntChannelHandler::searchTimeout, this, &AntCentralDispatch::searchTimedOut);
 
 //    connect(channel.data(), &ANTChannel::channelInfo, this, &AntCentralDispatch::setChannelInfo);
 //    connect(channel.data(), &ANTChannel::searchTimeout, this, &AntCentralDispatch::searchTimedOut);
@@ -99,7 +108,6 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
 //    connect(channel, &ANTChannel::speedMeasured, this, &ANT::speedMeasured);
 
     _channels[channelNumber] = channel;
-    channel->setSensorDeviceNumber(27718);
 
     channel->initialize();
     emit searchStarted(channelType, channelNumber);
@@ -181,7 +189,7 @@ void AntCentralDispatch::searchTimedOut(int channelNumber, AntSensorType)
 void AntCentralDispatch::handleSensorValue(const SensorValueType sensorValueType,
                                            const AntSensorType sensorType, const QVariant &sensorValue)
 {
-    if (sensorValueType == SENSOR_HEARTRATE_BPM) {
+    if (sensorValueType == SENSOR_VALUE_HEARTRATE_BPM) {
         _currentHeartRate = sensorValue.toInt();
         emit heartRateMeasured(_currentHeartRate);
     }

@@ -70,3 +70,8 @@ void indoorcycling::AntTestAppMainWindow::on_pushButton_clicked()
 {
     emit startSearch(AntSensorType::SENSOR_TYPE_HR);
 }
+
+void indoorcycling::AntTestAppMainWindow::on_pushButton_2_clicked()
+{
+    emit startSearch(AntSensorType::SENSOR_TYPE_POWER);
+}
