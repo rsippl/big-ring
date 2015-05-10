@@ -203,6 +203,13 @@ AntMessage2 AntMessage2::assignChannel(quint8 channelNumber, quint8 channelType,
     return AntMessage2(ASSIGN_CHANNEL, data);
 }
 
+AntMessage2 AntMessage2::closeChannel(quint8 channelNumber)
+{
+    QByteArray content;
+    content += channelNumber;
+    return AntMessage2(CLOSE_CHANNEL, content);
+}
+
 AntMessage2 AntMessage2::openChannel(quint8 channelNumber)
 {
     QByteArray content;

@@ -83,27 +83,20 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
         return false;
     }
     // create and insert new channel
-    std::unique_ptr<AntChannelHandler> channel = createChannel(channelNumber, channelType);
+    AntChannelHandler* channel = createChannel(channelNumber, channelType);
     if (deviceNumber != 0) {
         channel->setSensorDeviceNumber(deviceNumber);
     }
 
-    connect(channel.get(), &AntChannelHandler::sensorFound, this, &AntCentralDispatch::setChannelInfo);
-    connect(channel.get(), &AntChannelHandler::sensorValue, this, &AntCentralDispatch::handleSensorValue);
-    connect(channel.get(), &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
-    connect(channel.get(), &AntChannelHandler::searchTimeout, this, &AntCentralDispatch::searchTimedOut);
-
-    //    connect(channel.data(), &ANTChannel::lostInfo, this, SLOT(lostInfo(int)));
-    //    connect(channel, SIGNAL(staleInfo(int)), this, SLOT(staleInfo(int)));
-
-//    connect(channel.data(), &ANTChannel::heartRateMeasured, this, &AntCentralDispatch::setHeartRate);
-//    connect(channel, &ANTChannel::powerMeasured, this, &ANT::powerMeasured);
-//    connect(channel, &ANTChannel::cadenceMeasured, this, &ANT::cadenceMeasured);
-//    connect(channel, &ANTChannel::speedMeasured, this, &ANT::speedMeasured);
-
-    _channels[channelNumber] = std::move(channel);
+    connect(channel, &AntChannelHandler::sensorFound, this, &AntCentralDispatch::setChannelInfo);
+    connect(channel, &AntChannelHandler::sensorValue, this, &AntCentralDispatch::handleSensorValue);
+    connect(channel, &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
+    connect(channel, &AntChannelHandler::searchTimeout, this, &AntCentralDispatch::searchTimedOut);
+    connect(channel, &AntChannelHandler::finished, this, &AntCentralDispatch::handleChannelFinished);
 
     channel->initialize();
+    _channels[channelNumber] = channel;
+
     emit searchStarted(channelType, channelNumber);
     return true;
 }
@@ -142,6 +135,7 @@ void AntCentralDispatch::messageFromAntUsbStick(const QByteArray &bytes)
         break;
     case AntMessage2::SET_CHANNEL_ID:
         handleChannelIdMessage(SetChannelIdMessage(*antMessage));
+        break;
     default:
         qDebug() << "unhandled ANT+ message" << antMessage->toString();
     }
@@ -158,22 +152,22 @@ void AntCentralDispatch::scanForAntUsbStick()
     emit antUsbStickScanningFinished(_antUsbStick.get());
 }
 
-std::unique_ptr<AntChannelHandler> AntCentralDispatch::createChannel(int channelNumber, AntSensorType &sensorType)
+AntChannelHandler* AntCentralDispatch::createChannel(int channelNumber, AntSensorType &sensorType)
 {
     switch (sensorType) {
     case SENSOR_TYPE_CADENCE:
-        return AntSpeedAndCadenceChannelHandler::createCadenceChannelHandler(channelNumber);
+        return AntSpeedAndCadenceChannelHandler::createCadenceChannelHandler(channelNumber, this);
     case SENSOR_TYPE_HR:
-        return std::unique_ptr<AntChannelHandler>(new AntHeartRateChannelHandler(channelNumber));
+        return new AntHeartRateChannelHandler(channelNumber, this);
     case SENSOR_TYPE_POWER:
-        return std::unique_ptr<AntChannelHandler>(new AntPowerChannelHandler(channelNumber));
+        return new AntPowerChannelHandler(channelNumber, this);
     case SENSOR_TYPE_SPEED:
-        return AntSpeedAndCadenceChannelHandler::createSpeedChannelHandler(channelNumber);
+        return AntSpeedAndCadenceChannelHandler::createSpeedChannelHandler(channelNumber, this);
     case SENSOR_TYPE_SPEED_AND_CADENCE:
-        return AntSpeedAndCadenceChannelHandler::createCombinedSpeedAndCadenceChannelHandler(channelNumber);
+        return AntSpeedAndCadenceChannelHandler::createCombinedSpeedAndCadenceChannelHandler(channelNumber, this);
     default:
         qFatal("Unknown sensor type %d", sensorType);
-        return std::unique_ptr<AntChannelHandler>();
+        return nullptr;
     }
 }
 
@@ -206,6 +200,15 @@ void AntCentralDispatch::handleSensorValue(const SensorValueType sensorValueType
         _currentHeartRate = sensorValue.toInt();
         emit heartRateMeasured(_currentHeartRate);
     }
+}
+
+void AntCentralDispatch::handleChannelFinished(int channelNumber)
+{
+    Q_ASSERT_X(_channels[channelNumber] != nullptr, "AntCentralDispatch::handleChannelFinished",
+               "getting channel finished for empty channel number.");
+    AntChannelHandler* handler = _channels[channelNumber];
+    _channels[channelNumber] = nullptr;
+    handler->deleteLater();
 }
 
 void AntCentralDispatch::sendAntMessage(const AntMessage2 &message)

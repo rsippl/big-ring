@@ -23,7 +23,7 @@
 #include <QtCore/QtDebug>
 
 namespace {
-const int SEARCH_TIMEOUT = 20; //seconds.
+const int SEARCH_TIMEOUT = 5; //seconds.
 using indoorcycling::AntChannelHandler;
 const QMap<AntChannelHandler::ChannelState,QString> CHANNEL_STATE_STRINGS(
 {
@@ -35,17 +35,22 @@ const QMap<AntChannelHandler::ChannelState,QString> CHANNEL_STATE_STRINGS(
             {AntChannelHandler::CHANNEL_TIMEOUT_SET, "CHANNEL_SEARCH_TIMEOUT_SET"},
             {AntChannelHandler::CHANNEL_OPENED, "CHANNEL_OPENED"},
             {AntChannelHandler::CHANNEL_SEARCHING, "CHANNEL_SEARCHING"},
-            {AntChannelHandler::CHANNEL_TRACKING, "CHANNEL_RECEIVING"},
+            {AntChannelHandler::CHANNEL_TRACKING, "CHANNEL_TRACKING"},
             {AntChannelHandler::CHANNEL_UNASSIGNED, "CHANNEL_UNASSIGNED"}
 });
 }
 namespace indoorcycling {
 AntChannelHandler::AntChannelHandler(const int channelNumber, const AntSensorType sensorType,
-                                     AntSportPeriod channelPeriod) :
-    QObject(nullptr), _channelNumber(channelNumber), _deviceNumber(0), _sensorType(sensorType),
+                                     AntSportPeriod channelPeriod, QObject *parent) :
+    QObject(parent), _channelNumber(channelNumber), _deviceNumber(0), _sensorType(sensorType),
     _channelPeriod(channelPeriod),_state(CHANNEL_CLOSED)
 {
     // empty
+}
+
+AntChannelHandler::~AntChannelHandler()
+{
+    qDebug() << "Deleting AntChannelHandler for channel type" << _sensorType;
 }
 
 AntSensorType AntChannelHandler::sensorType() const
@@ -76,6 +81,8 @@ void AntChannelHandler::handleChannelEvent(const AntChannelEventMessage &message
     } else if (message.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_RX_SEARCH_TIMEOUT) {
         setState(CHANNEL_SEARCH_TIMEOUT);
         emit searchTimeout(_channelNumber, _sensorType);
+        emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
+        setState(CHANNEL_UNASSIGNED);
     } else if (message.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_RX_FAIL) {
         qDebug() << "RX Failure on channel" << _channelNumber;
     } else if (message.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_CLOSED) {
@@ -161,7 +168,12 @@ void AntChannelHandler::advanceState(const quint8 messageId)
         break;
     case CHANNEL_UNASSIGNED:
         assertMessageId(AntMessage2::UNASSIGN_CHANNEL, messageId);
+        emit finished(_channelNumber);
         qDebug() << "Channel unassigned. Can be deleted";
+        break;
+    case CHANNEL_TRACKING:
+        assertMessageId(AntMessage2::SET_SEARCH_TIMEOUT, messageId);
+        qDebug() << "search timeout set after acquiring sensor.";
         break;
     default:
         qDebug() << "Unhandled state" << CHANNEL_STATE_STRINGS[_state];

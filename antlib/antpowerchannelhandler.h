@@ -8,7 +8,7 @@ class AntPowerChannelHandler : public AntChannelHandler
 {
     Q_OBJECT
 public:
-    explicit AntPowerChannelHandler(int channelNumber);
+    explicit AntPowerChannelHandler(int channelNumber, QObject* parent);
     virtual ~AntPowerChannelHandler() {}
 protected:
     virtual void handleBroadCastMessage(const BroadCastMessage& message) override;

@@ -16,13 +16,14 @@ public:
      * Create a new combined ANT+ speed and cadence handling channel.
      * @return
      */
-    static std::unique_ptr<AntSpeedAndCadenceChannelHandler> createCombinedSpeedAndCadenceChannelHandler (int channelNumber);
-    static std::unique_ptr<AntSpeedAndCadenceChannelHandler> createCadenceChannelHandler (int channelNumber);
-    static std::unique_ptr<AntSpeedAndCadenceChannelHandler> createSpeedChannelHandler (int channelNumber);
+    static AntChannelHandler* createCombinedSpeedAndCadenceChannelHandler (int channelNumber, QObject* parent);
+    static AntChannelHandler* createCadenceChannelHandler (int channelNumber, QObject* parent);
+    static AntChannelHandler* createSpeedChannelHandler (int channelNumber, QObject* parent);
 protected:
     virtual void handleBroadCastMessage(const BroadCastMessage &message) override;
 private:
-    AntSpeedAndCadenceChannelHandler(int channelNumber, AntSensorType sensorType, AntSportPeriod period);
+    AntSpeedAndCadenceChannelHandler(int channelNumber, AntSensorType sensorType, AntSportPeriod period,
+                                     QObject* parent);
 
     void handleSpeedAndCadenceMessage(const SpeedAndCadenceMessage& message);
     void handleCadenceMessage(const CadenceMessage& message);

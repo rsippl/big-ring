@@ -20,6 +20,7 @@
 #ifndef ANTCHANNELHANDLER_H
 #define ANTCHANNELHANDLER_H
 
+#include <memory>
 #include <QtCore/QObject>
 
 #include "antmessage2.h"
@@ -30,7 +31,7 @@ class AntChannelHandler : public QObject
 {
     Q_OBJECT
 public:
-    virtual ~AntChannelHandler() {}
+    virtual ~AntChannelHandler();
 
     /** TODO: move this to a "better location".*/
     enum AntSportPeriod {
@@ -66,6 +67,8 @@ signals:
     void stateChanged(ChannelState state);
     void sensorFound(int channelNumber, AntSensorType sensorType, int sensorDeviceNumber);
     void searchTimeout(int channelNumber, AntSensorType sensorType);
+    /** emitted when communication on the channel is finished and it can be deleted */
+    void finished(int channelNumber);
 public slots:
     /** Set the device number of the sensor. Call this method before initializing
      * the channel, because it will be used to set the channel's parameters. */
@@ -77,7 +80,7 @@ public slots:
     void handleChannelIdEvent(const SetChannelIdMessage& channelIdMessage);
 protected:
     explicit AntChannelHandler(const int channelNumber, const AntSensorType sensorType,
-                               AntSportPeriod channelPeriod);
+                               AntSportPeriod channelPeriod, QObject* parent);
     /** This method should be implemented by subclasses for their
      * specific way of handling broadcast messages.
      */
@@ -94,6 +97,5 @@ private:
     const AntSportPeriod _channelPeriod;
     ChannelState _state;
 };
-
 }
 #endif // ANTCHANNELHANDLER_H

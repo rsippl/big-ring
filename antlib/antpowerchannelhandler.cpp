@@ -4,8 +4,8 @@
 #include <QtCore/QVariant>
 namespace indoorcycling
 {
-AntPowerChannelHandler::AntPowerChannelHandler(int channelNumber) :
-    AntChannelHandler(channelNumber, SENSOR_TYPE_POWER, ANT_SPORT_POWER_PERIOD)
+AntPowerChannelHandler::AntPowerChannelHandler(int channelNumber, QObject *parent) :
+    AntChannelHandler(channelNumber, SENSOR_TYPE_POWER, ANT_SPORT_POWER_PERIOD, parent)
 {
 }
 

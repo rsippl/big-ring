@@ -5,28 +5,25 @@
 
 namespace indoorcycling
 {
-std::unique_ptr<AntSpeedAndCadenceChannelHandler>
-AntSpeedAndCadenceChannelHandler::createCombinedSpeedAndCadenceChannelHandler(int channelNumber)
+AntChannelHandler* AntSpeedAndCadenceChannelHandler::createCombinedSpeedAndCadenceChannelHandler(
+        int channelNumber, QObject* parent)
 {
-    return std::unique_ptr<AntSpeedAndCadenceChannelHandler>(
-                new AntSpeedAndCadenceChannelHandler(channelNumber, SENSOR_TYPE_SPEED_AND_CADENCE,
-                                                     ANT_SPORT_SPEED_AND_CADENCE_PERIOD));
+    return  new AntSpeedAndCadenceChannelHandler(channelNumber, SENSOR_TYPE_SPEED_AND_CADENCE,
+                                                     ANT_SPORT_SPEED_AND_CADENCE_PERIOD, parent);
 }
 
-std::unique_ptr<AntSpeedAndCadenceChannelHandler> AntSpeedAndCadenceChannelHandler::createCadenceChannelHandler(int channelNumber)
+AntChannelHandler* AntSpeedAndCadenceChannelHandler::createCadenceChannelHandler(int channelNumber, QObject* parent)
 {
-    return std::unique_ptr<AntSpeedAndCadenceChannelHandler>(
-                new AntSpeedAndCadenceChannelHandler(channelNumber, SENSOR_TYPE_CADENCE, ANT_SPORT_CADENCE_PERIOD));
+    return new AntSpeedAndCadenceChannelHandler(channelNumber, SENSOR_TYPE_CADENCE, ANT_SPORT_CADENCE_PERIOD, parent);
 }
 
-std::unique_ptr<AntSpeedAndCadenceChannelHandler> AntSpeedAndCadenceChannelHandler::createSpeedChannelHandler(int channelNumber)
+AntChannelHandler* AntSpeedAndCadenceChannelHandler::createSpeedChannelHandler(int channelNumber, QObject* parent)
 {
-    return std::unique_ptr<AntSpeedAndCadenceChannelHandler>(
-                new AntSpeedAndCadenceChannelHandler(channelNumber, SENSOR_TYPE_SPEED, ANT_SPORT_SPEED_PERIOD));
+    return new AntSpeedAndCadenceChannelHandler(channelNumber, SENSOR_TYPE_SPEED, ANT_SPORT_SPEED_PERIOD, parent);
 }
 
-AntSpeedAndCadenceChannelHandler::AntSpeedAndCadenceChannelHandler(int channelNumber, AntSensorType sensorType, AntSportPeriod period):
-    AntChannelHandler(channelNumber, sensorType, period)
+AntSpeedAndCadenceChannelHandler::AntSpeedAndCadenceChannelHandler(int channelNumber, AntSensorType sensorType, AntSportPeriod period, QObject *parent):
+    AntChannelHandler(channelNumber, sensorType, period, parent)
 {
     // empty
 }

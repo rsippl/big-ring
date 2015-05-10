@@ -119,6 +119,10 @@ private slots:
      */
     void handleSensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType,
                      const QVariant& sensorValue);
+    /**
+      * handle that communication on a channel is finished.
+      */
+    void handleChannelFinished(int channelNumber);
 private:
     /**
      * Start scanning for an ANT+ usb stick. When scanning is finished, antUsbStickScanningFinished(AntDeviceType) is emitted.
@@ -128,7 +132,7 @@ private:
     /**
       Create a new channel
      */
-    std::unique_ptr<AntChannelHandler> createChannel(int channelNumber, AntSensorType& sensorType);
+    AntChannelHandler* createChannel(int channelNumber, AntSensorType& sensorType);
 
     /**
      * Send a message to the USB ANT+ Stick.
@@ -161,7 +165,7 @@ private:
     /**
      * using an std::vector here, because we use std::unique_ptr, which is not compatible with QVector.
      */
-    std::vector<std::unique_ptr<indoorcycling::AntChannelHandler>> _channels;
+    std::vector<AntChannelHandler*> _channels;
     QTimer* _initializationTimer;
 };
 
@@ -169,12 +173,12 @@ template <class T>
 bool AntCentralDispatch::sendToChannel(const T& message, std::function<void(indoorcycling::AntChannelHandler&,const T&)> sendFunction)
 {
     quint8 channelNumber = message.channelNumber();
-    std::unique_ptr<AntChannelHandler>& channelHandlerPtr = _channels[channelNumber];
+    AntChannelHandler* channelHandlerPtr = _channels[channelNumber];
     if (channelHandlerPtr) {
-        return false;
-    } else {
         sendFunction(*channelHandlerPtr, message);
         return true;
+    } else {
+        return false;
     }
 }
 

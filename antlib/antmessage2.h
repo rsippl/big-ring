@@ -47,6 +47,7 @@ public:
         ASSIGN_CHANNEL = 0x42,
         BROADCAST_EVENT = 0x4e,
         CHANNEL_EVENT = 0x40,
+        CLOSE_CHANNEL = 0x4c,
         OPEN_CHANNEL = 0x4b,
         REQUEST_MESSAGE = 0x4d,
         SET_CHANNEL_FREQUENCY = 0x45,
@@ -72,6 +73,7 @@ public:
 
     // static factory methods for different messages
     static AntMessage2 assignChannel(quint8 channelNumber, quint8 channelType = 0, quint8 networkNumber = ANT_PLUS_NETWORK_NUMBER);
+    static AntMessage2 closeChannel(quint8 channelNumber);
     static AntMessage2 openChannel(quint8 channelNumber);
     static AntMessage2 requestMessage(quint8 channelNumber, AntMessageId messageId);
     static AntMessage2 setChannelFrequency(quint8 channelNumber, quint16 frequency = ANT_PLUS_CHANNEL_FREQUENCY);
