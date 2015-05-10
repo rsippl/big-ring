@@ -30,6 +30,8 @@ class AntChannelHandler : public QObject
 {
     Q_OBJECT
 public:
+    virtual ~AntChannelHandler() {}
+
     /** TODO: move this to a "better location".*/
     enum AntSportPeriod {
         ANT_SPORT_UNUSED_PERIOD = 0,
@@ -75,7 +77,7 @@ public slots:
     void handleChannelIdEvent(const SetChannelIdMessage& channelIdMessage);
 protected:
     explicit AntChannelHandler(const int channelNumber, const AntSensorType sensorType,
-                               AntSportPeriod channelPeriod, QObject *parent = 0);
+                               AntSportPeriod channelPeriod);
     /** This method should be implemented by subclasses for their
      * specific way of handling broadcast messages.
      */
@@ -83,7 +85,7 @@ protected:
 private:
     void setState(ChannelState state);
     void advanceState(const quint8 messageId);
-    void handleFirstBroadCastMessage(const BroadCastMessage& message);
+    void handleFirstBroadCastMessage(const BroadCastMessage&);
     void assertMessageId(const AntMessage2::AntMessageId expected, const quint8 actual);
 
     const int _channelNumber;

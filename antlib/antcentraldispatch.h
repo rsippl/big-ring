@@ -22,6 +22,7 @@
 
 #include <functional>
 #include <memory>
+#include <vector>
 
 #include <QtCore/QObject>
 #include <QtCore/QSharedPointer>
@@ -29,9 +30,8 @@
 
 #include "antsensortype.h"
 
-namespace indoorcycling {
-class AntChannelHandler;
-}
+#include "antchannelhandler.h"
+
 class AntChannelEventMessage;
 class AntMessageGatherer;
 class AntMessage2;
@@ -126,6 +126,11 @@ private:
     void scanForAntUsbStick();
 
     /**
+      Create a new channel
+     */
+    std::unique_ptr<AntChannelHandler> createChannel(int channelNumber, AntSensorType& sensorType);
+
+    /**
      * Send a message to the USB ANT+ Stick.
      */
     void sendAntMessage(const AntMessage2& message);
@@ -145,7 +150,7 @@ private:
     void handleChannelIdMessage(const SetChannelIdMessage& channelIdMessage);
 
     template <class T>
-    bool sendToChannel(const T& message, std::function<void(AntChannelHandler*, const T&)> sendFunction);
+    bool sendToChannel(const T& message, std::function<void(AntChannelHandler&, const T&)> sendFunction);
 
     std::unique_ptr<AntDevice> _antUsbStick;
     bool _initialized;
@@ -153,19 +158,22 @@ private:
 
     int _currentHeartRate;
 
-    QVector<indoorcycling::AntChannelHandler*> _channels;
+    /**
+     * using an std::vector here, because we use std::unique_ptr, which is not compatible with QVector.
+     */
+    std::vector<std::unique_ptr<indoorcycling::AntChannelHandler>> _channels;
     QTimer* _initializationTimer;
 };
 
 template <class T>
-bool AntCentralDispatch::sendToChannel(const T& message, std::function<void(indoorcycling::AntChannelHandler*,const T&)> sendFunction)
+bool AntCentralDispatch::sendToChannel(const T& message, std::function<void(indoorcycling::AntChannelHandler&,const T&)> sendFunction)
 {
     quint8 channelNumber = message.channelNumber();
-    AntChannelHandler* channel = _channels[channelNumber];
-    if (!channel) {
+    std::unique_ptr<AntChannelHandler>& channelHandlerPtr = _channels[channelNumber];
+    if (channelHandlerPtr) {
         return false;
     } else {
-        sendFunction(channel, message);
+        sendFunction(*channelHandlerPtr, message);
         return true;
     }
 }

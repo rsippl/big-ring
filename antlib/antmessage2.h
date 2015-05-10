@@ -174,7 +174,7 @@ private:
 class BroadCastMessage
 {
 public:
-    BroadCastMessage(const AntMessage2& antMessage);
+    BroadCastMessage(const AntMessage2& antMessage = AntMessage2());
 
     bool isNull() const;
     quint8 channelNumber() const;

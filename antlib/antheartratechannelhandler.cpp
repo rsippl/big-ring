@@ -22,8 +22,8 @@
 #include <QtCore/QTime>
 #include <QtCore/QVariant>
 
-indoorcycling::AntHeartRateChannelHandler::AntHeartRateChannelHandler(int channelNumber, QObject *parent):
-    AntChannelHandler(channelNumber, SENSOR_TYPE_HR, ANT_SPORT_HR_PERIOD, parent)
+indoorcycling::AntHeartRateChannelHandler::AntHeartRateChannelHandler(int channelNumber):
+    AntChannelHandler(channelNumber, SENSOR_TYPE_HR, ANT_SPORT_HR_PERIOD)
 {
     // empty
 }

@@ -28,7 +28,8 @@ class AntHeartRateChannelHandler : public AntChannelHandler
 {
     Q_OBJECT
 public:
-    explicit AntHeartRateChannelHandler(int channelNumber, QObject *parent = 0);
+    explicit AntHeartRateChannelHandler(int channelNumber);
+    virtual ~AntHeartRateChannelHandler() {}
 signals:
 
 public slots:

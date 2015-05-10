@@ -41,8 +41,8 @@ const QMap<AntChannelHandler::ChannelState,QString> CHANNEL_STATE_STRINGS(
 }
 namespace indoorcycling {
 AntChannelHandler::AntChannelHandler(const int channelNumber, const AntSensorType sensorType,
-                                     AntSportPeriod channelPeriod, QObject *parent) :
-    QObject(parent), _channelNumber(channelNumber), _deviceNumber(0), _sensorType(sensorType),
+                                     AntSportPeriod channelPeriod) :
+    QObject(nullptr), _channelNumber(channelNumber), _deviceNumber(0), _sensorType(sensorType),
     _channelPeriod(channelPeriod),_state(CHANNEL_CLOSED)
 {
     // empty
@@ -118,6 +118,12 @@ void AntChannelHandler::assertMessageId(const AntMessage2::AntMessageId expected
                qPrintable(QString("expected message = %1, but was %2")
                           .arg(QString::number(expected, 16))
                           .arg(QString::number(actual, 16))));
+    if (expected != actual) {
+        QString message = QString("Expected messageid in state %1 was 0x%2, but it was 0x%3.")
+                .arg(CHANNEL_STATE_STRINGS[_state]).arg(QString::number(expected, 16))
+                .arg(QString::number(actual, 16));
+        qWarning("%s", qPrintable(message));
+    }
 }
 
 void AntChannelHandler::advanceState(const quint8 messageId)
@@ -166,7 +172,7 @@ void AntChannelHandler::advanceState(const quint8 messageId)
  * When the first broad cast message from a sensor is received, we'll ask
  * the sensor for it's id.
  */
-void AntChannelHandler::handleFirstBroadCastMessage(const BroadCastMessage &message)
+void AntChannelHandler::handleFirstBroadCastMessage(const BroadCastMessage&)
 {
     qDebug() << QString("channel %1: First broadcast message received, requesting sensor id")
                 .arg(_channelNumber);
