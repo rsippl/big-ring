@@ -86,9 +86,11 @@ void AntChannelHandler::handleChannelEvent(const AntChannelEventMessage &message
     } else if (message.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_RX_FAIL) {
         qDebug() << "RX Failure on channel" << _channelNumber;
     } else if (message.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_CLOSED) {
-        qDebug() << "Channel closed";
-        emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
-        setState(CHANNEL_UNASSIGNED);
+        qDebug() << "Channel closed by ANT+ stick.";
+        if (_state != CHANNEL_UNASSIGNED) {
+            emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
+            setState(CHANNEL_UNASSIGNED);
+        }
     } else {
         qDebug() << "unhandled message" << message.toString();
     }
