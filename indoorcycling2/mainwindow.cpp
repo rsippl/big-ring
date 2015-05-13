@@ -38,11 +38,12 @@
 MainWindow::MainWindow(QString dir, QWidget *parent) :
     QWidget(parent, Qt::Window),
     _importer(new RealLifeVideoImporter(this)),
-    _antController(new ANTController(this)),
+    _antCentralDispatch(new indoorcycling::AntCentralDispatch(this)),
     _menuBar(new QMenuBar),
     _stackedWidget(new QStackedWidget),
-    _listView(new VideoListView)
+    _listView(new VideoListView(_antCentralDispatch))
 {
+    _antCentralDispatch->initialize();
     setupMenuBar();
     QVBoxLayout* layout = new QVBoxLayout;
     layout->setContentsMargins(0, 0, 0, 0);
@@ -127,7 +128,7 @@ void MainWindow::setupMenuBar()
 void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
 {
     Course course = rlv.courses()[courseNr];
-    _run.reset(new Run(*_antController, rlv, course));
+    _run.reset(new Run(_antCentralDispatch, rlv, course));
     _videoWidget.reset(new NewVideoWidget);
     _videoWidget->setRealLifeVideo(rlv);
     _videoWidget->setCourseIndex(courseNr);

@@ -26,8 +26,9 @@
 #include <QtCore/QTimer>
 #include <QtCore/QtDebug>
 
-Run::Run(const ANTController& antController, RealLifeVideo& rlv, Course& course, QObject* parent) :
-    QObject(parent), _antController(antController), _rlv(rlv), _course(course)
+using indoorcycling::AntCentralDispatch;
+Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& rlv, Course& course, QObject* parent) :
+    QObject(parent), _antCentralDispatch(antCentralDispatch), _rlv(rlv), _course(course)
 {
     QSettings settings;
     const int weight = settings.value("cyclist.weight", QVariant::fromValue(82)).toInt();
@@ -39,9 +40,13 @@ Run::Run(const ANTController& antController, RealLifeVideo& rlv, Course& course,
     _simulation->rlvSelected(rlv);
     _simulation->courseSelected(course);
 
-    connect(&antController, &ANTController::heartRateMeasured, &_simulation->cyclist(), &Cyclist::setHeartRate);
-    connect(&antController, &ANTController::cadenceMeasured, &_simulation->cyclist(), &Cyclist::setCadence);
-    connect(&antController, &ANTController::powerMeasured, &_simulation->cyclist(), &Cyclist::setPower);
+    connect(_antCentralDispatch, &AntCentralDispatch::heartRateMeasured, &_simulation->cyclist(), &Cyclist::setHeartRate);
+    connect(_antCentralDispatch, &AntCentralDispatch::cadenceMeasured, &_simulation->cyclist(), &Cyclist::setCadence);
+    connect(_antCentralDispatch, &AntCentralDispatch::powerMeasured, &_simulation->cyclist(), &Cyclist::setPower);
+
+    _antCentralDispatch->searchForSensorType(indoorcycling::SENSOR_TYPE_HR);
+    _antCentralDispatch->searchForSensorType(indoorcycling::SENSOR_TYPE_CADENCE);
+    _antCentralDispatch->searchForSensorType(indoorcycling::SENSOR_TYPE_POWER);
 }
 
 Run::~Run()

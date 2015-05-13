@@ -28,6 +28,9 @@
 class VideoListModel;
 class VideoDetails;
 
+namespace indoorcycling {
+class AntCentralDispatch;
+}
 #include "reallifevideo.h"
 
 class VideoListView : public QWidget
@@ -35,7 +38,7 @@ class VideoListView : public QWidget
     Q_OBJECT
 
 public:
-    explicit VideoListView(QWidget *parent = 0);
+    explicit VideoListView(indoorcycling::AntCentralDispatch *antCentralDispatch, QWidget *parent = 0);
 
 signals:
     void videoSelected(RealLifeVideo& rlv, int courseNr);

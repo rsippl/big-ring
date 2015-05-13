@@ -3,6 +3,7 @@
 
 #include <QWidget>
 
+#include "antcentraldispatch.h"
 #include "reallifevideo.h"
 
 class QuantityPrinter;
@@ -16,7 +17,7 @@ class VideoDetails : public QWidget
     Q_OBJECT
 
 public:
-    explicit VideoDetails(QWidget *parent = 0);
+    explicit VideoDetails(indoorcycling::AntCentralDispatch* antCentralDispatch, QWidget *parent = 0);
     ~VideoDetails();
 
 public slots:
@@ -24,7 +25,7 @@ public slots:
 signals:
     void playClicked(RealLifeVideo& rlv, int courseNr);
 private slots:
-    void on_pushButton_clicked();
+    void on_startButton_clicked();
 
     void on_courseListWidget_currentRowChanged(int currentRow);
 
@@ -33,8 +34,9 @@ private slots:
 private:
     RealLifeVideo _currentRlv;
     int _courseIndex;
-    QuantityPrinter* _quantityPrinter;
+    QuantityPrinter* const _quantityPrinter;
     Ui::VideoDetails *ui;
+    indoorcycling::AntCentralDispatch* const _antCentralDispatch;
 };
 
 #endif // VIDEODETAILS_H

@@ -4,12 +4,16 @@
 #include "createnewcoursedialog.h"
 #include "quantityprinter.h"
 
-VideoDetails::VideoDetails(QWidget *parent) :
+VideoDetails::VideoDetails(indoorcycling::AntCentralDispatch *antCentralDispatch, QWidget *parent) :
     QWidget(parent),
     _quantityPrinter(new QuantityPrinter(this)),
-    ui(new Ui::VideoDetails)
+    ui(new Ui::VideoDetails),
+    _antCentralDispatch(antCentralDispatch)
 {
     ui->setupUi(this);
+    ui->startButton->setEnabled(_antCentralDispatch->antUsbStickPresent());
+    connect(_antCentralDispatch, &indoorcycling::AntCentralDispatch::initializationFinished, ui->startButton,
+            &QPushButton::setEnabled);
 }
 
 VideoDetails::~VideoDetails()
@@ -33,7 +37,7 @@ void VideoDetails::setVideo(RealLifeVideo &rlv)
     ui->courseListWidget->setCurrentRow(0);
 }
 
-void VideoDetails::on_pushButton_clicked()
+void VideoDetails::on_startButton_clicked()
 {
     emit playClicked(_currentRlv, ui->courseListWidget->currentRow());
 }
