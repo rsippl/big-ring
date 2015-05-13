@@ -89,7 +89,14 @@ signals:
      * heart rate measured
      */
     void heartRateMeasured(int heartRate);
-
+    /**
+      power measured
+     */
+    void powerMeasured(int power);
+    /**
+      cadence measured
+     */
+    void cadenceMeasured(int cadance);
 public slots:
     /**
      * Initialize the connection to the ANT+ stick. After calling this, listen for the signal initializationFinished(bool)

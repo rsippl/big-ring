@@ -247,8 +247,8 @@ void ANT::bytesReady(const QByteArray &bytes)
 //
 void
 ANT::handleChannelEvent(const AntChannelEventMessage& channelEventMessage) {
-    if (channelEventMessage.messageId() == AntMessage2::SET_NETWORK_KEY &&
-            channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR) {
+    if (channelEventMessage.messageId() == AntMessage2::AntMessageId::SET_NETWORK_KEY &&
+            channelEventMessage.messageCode() == AntChannelEventMessage::MessageCode::EVENT_RESPONSE_NO_ERROR) {
         qDebug() << "succesfully set network key";
         configureDeviceChannels();
     } else {
@@ -270,13 +270,13 @@ void ANT::handleChannelIdMessage(const SetChannelIdMessage &message)
 void ANT::processMessage(QByteArray message) {
     std::unique_ptr<AntMessage2> antMessage = AntMessage2::createMessageFromBytes(message);
     switch(antMessage->id()) {
-    case AntMessage2::CHANNEL_EVENT:
+    case AntMessage2::AntMessageId::CHANNEL_EVENT:
         handleChannelEvent(*antMessage->asChannelEventMessage());
         break;
-    case AntMessage2::BROADCAST_EVENT:
+    case AntMessage2::AntMessageId::BROADCAST_EVENT:
         handleBroadCastEvent(BroadCastMessage(*antMessage));
         break;
-    case AntMessage2::SET_CHANNEL_ID:
+    case AntMessage2::AntMessageId::SET_CHANNEL_ID:
         handleChannelIdMessage(SetChannelIdMessage(*antMessage));
         break;
     default:

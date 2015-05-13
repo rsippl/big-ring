@@ -42,7 +42,7 @@ public:
     static const quint16 ANT_PLUS_CHANNEL_FREQUENCY = 2457; // Mhz
 
     /** message ids (in alphabetic order) */
-    enum AntMessageId {
+    enum class AntMessageId: quint8 {
         INVALID = 0x0,
         ASSIGN_CHANNEL = 0x42,
         BROADCAST_EVENT = 0x4e,
@@ -122,12 +122,17 @@ private:
     QByteArray _content;
 };
 
+/**
+ * output an AntMessage2::AntMessageId as a string. This outputs the id as a hex string.
+ */
+const QString antMessageIdToString(const AntMessage2::AntMessageId messageId);
+
 class AntChannelEventMessage: public AntMessage2
 {
 public:
     AntChannelEventMessage(const QByteArray& bytes);
 
-    enum MessageCode {
+    enum class MessageCode: quint8 {
         EVENT_CHANNEL_IN_WRONG_STATE = 0x15,
         EVENT_CHANNEL_CLOSED = 0x07,
         EVENT_CHANNEL_COLLISION = 0x09,
@@ -135,17 +140,19 @@ public:
         EVENT_CHANNEL_RX_FAIL = 0x02,
         EVENT_CHANNEL_RX_SEARCH_TIMEOUT = 0x01
     };
-
+    static const QString antMessageCodeToString(const MessageCode messageCode);
     quint8 channelNumber() const;
-    quint8 messageId() const;
+    AntMessageId messageId() const;
     MessageCode messageCode() const;
 
     virtual QString toString() const override;
 private:
     quint8 _channelNumber;
-    quint8 _messageId;
+    AntMessageId _messageId;
     MessageCode _messageCode;
 };
+
+
 
 /**
  * Set Channel ID message
@@ -182,9 +189,6 @@ public:
     quint8 channelNumber() const;
     quint8 dataPage() const;
     const AntMessage2 &antMessage() const;
-
-    template<class T>
-    T toSpecificBroadCastMessage() const;
 protected:
     AntMessage2 _antMessage;
 private:
@@ -313,9 +317,4 @@ public:
     quint16 pedalRevolutions() const;
 };
 
-template<class T>
-T BroadCastMessage::toSpecificBroadCastMessage() const
-{
-    return T(_antMessage);
-}
 #endif // ANTMESSAGE2_H

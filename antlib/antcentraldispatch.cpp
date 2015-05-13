@@ -72,6 +72,7 @@ bool AntCentralDispatch::searchForSensorType(AntSensorType channelType)
 
 bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNumber)
 {
+    Q_ASSERT_X((_antUsbStick), "AntCentralDispatch::searchForSensor", "usb stick not initialized");
     int channelNumber;
     // search for first non-occupied channel.
     for (channelNumber = 0; channelNumber < _antUsbStick->numberOfChannels(); ++channelNumber) {
@@ -127,13 +128,13 @@ void AntCentralDispatch::messageFromAntUsbStick(const QByteArray &bytes)
 {
     std::unique_ptr<AntMessage2> antMessage = AntMessage2::createMessageFromBytes(bytes);
     switch(antMessage->id()) {
-    case AntMessage2::CHANNEL_EVENT:
+    case AntMessage2::AntMessageId::CHANNEL_EVENT:
         handleChannelEvent(*antMessage->asChannelEventMessage());
         break;
-    case AntMessage2::BROADCAST_EVENT:
+    case AntMessage2::AntMessageId::BROADCAST_EVENT:
         handleBroadCastMessage(BroadCastMessage(*antMessage));
         break;
-    case AntMessage2::SET_CHANNEL_ID:
+    case AntMessage2::AntMessageId::SET_CHANNEL_ID:
         handleChannelIdMessage(SetChannelIdMessage(*antMessage));
         break;
     default:
@@ -199,6 +200,10 @@ void AntCentralDispatch::handleSensorValue(const SensorValueType sensorValueType
     if (sensorValueType == SENSOR_VALUE_HEARTRATE_BPM) {
         _currentHeartRate = sensorValue.toInt();
         emit heartRateMeasured(_currentHeartRate);
+    } else if (sensorValueType == SENSOR_VALUE_CADENCE_RPM) {
+        emit cadenceMeasured(sensorValue.toInt());
+    } else if (sensorValueType == SENSOR_VALUE_POWER_WATT) {
+        emit powerMeasured(sensorValue.toInt());
     }
 }
 
@@ -222,9 +227,9 @@ void AntCentralDispatch::sendAntMessage(const AntMessage2 &message)
 
 void AntCentralDispatch::handleChannelEvent(const AntChannelEventMessage &channelEventMessage)
 {
-    if (channelEventMessage.messageId() == AntMessage2::SET_NETWORK_KEY) {
+    if (channelEventMessage.messageId() == AntMessage2::AntMessageId::SET_NETWORK_KEY) {
         _initializationTimer->stop();
-        _initialized = (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR);
+        _initialized = (channelEventMessage.messageCode() == AntChannelEventMessage::MessageCode::EVENT_RESPONSE_NO_ERROR);
         emit initializationFinished(_initialized);
     } else {
         bool sent = sendToChannel<AntChannelEventMessage>(channelEventMessage,

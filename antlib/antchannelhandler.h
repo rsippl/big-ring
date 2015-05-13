@@ -87,9 +87,9 @@ protected:
     virtual void handleBroadCastMessage(const BroadCastMessage& message) = 0;
 private:
     void setState(ChannelState state);
-    void advanceState(const quint8 messageId);
+    void advanceState(const AntMessage2::AntMessageId messageId);
     void handleFirstBroadCastMessage(const BroadCastMessage&);
-    void assertMessageId(const AntMessage2::AntMessageId expected, const quint8 actual);
+    void assertMessageId(const AntMessage2::AntMessageId expected, const AntMessage2::AntMessageId actual);
 
     const int _channelNumber;
     int _deviceNumber;

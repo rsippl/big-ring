@@ -9,7 +9,7 @@ void AntMessage2Test::systemReset()
 {
     AntMessage2 resetMessage = AntMessage2::systemReset();
 
-    QCOMPARE_BYTE(resetMessage.id(), AntMessage2::SYSTEM_RESET);
+    QCOMPARE_BYTE(resetMessage.id(), AntMessage2::AntMessageId::SYSTEM_RESET);
     QByteArray bytes = resetMessage.toBytes();
 
     qDebug() << bytes.size();
@@ -25,7 +25,7 @@ void AntMessage2Test::setNetworkKey()
     std::array<quint8,8> theKey = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8 };
     AntMessage2 msg = AntMessage2::setNetworkKey(4, theKey);
 
-    QCOMPARE_BYTE(msg.id(), AntMessage2::SET_NETWORK_KEY);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::AntMessageId::SET_NETWORK_KEY);
     QByteArray bytes = msg.toBytes();
 
     QCOMPARE(bytes.size(), 13);
@@ -39,7 +39,7 @@ void AntMessage2Test::setNetworkKey()
 void AntMessage2Test::unassignChannel()
 {
     AntMessage2 msg = AntMessage2::unassignChannel(3u);
-    QCOMPARE_BYTE(msg.id(), AntMessage2::UNASSIGN_CHANNEL);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::AntMessageId::UNASSIGN_CHANNEL);
     QCOMPARE(msg.toBytes().size(), 5);
     int channel = msg.toBytes()[3];
     QCOMPARE(channel, 3);
@@ -48,7 +48,7 @@ void AntMessage2Test::unassignChannel()
 void AntMessage2Test::assignChannel()
 {
     AntMessage2 msg = AntMessage2::assignChannel(1, 0x10, 3);
-    QCOMPARE_BYTE(msg.id(), AntMessage2::ASSIGN_CHANNEL);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::AntMessageId::ASSIGN_CHANNEL);
     QCOMPARE(msg.toBytes().size(), 7);
     QByteArray content = msg.toBytes().mid(3, 3);
     int channel = content[0];
@@ -62,7 +62,7 @@ void AntMessage2Test::assignChannel()
 void AntMessage2Test::openChannel()
 {
     AntMessage2 msg = AntMessage2::openChannel(1);
-    QCOMPARE_BYTE(msg.id(), AntMessage2::OPEN_CHANNEL);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::AntMessageId::OPEN_CHANNEL);
     QCOMPARE(msg.toBytes().size(), 5);
     QByteArray content = msg.toBytes().mid(3, 1);
     int channel = content[0];
@@ -72,15 +72,15 @@ void AntMessage2Test::openChannel()
 
 void AntMessage2Test::requestMessage()
 {
-    AntMessage2 msg = AntMessage2::requestMessage(1, AntMessage2::SET_CHANNEL_ID);
+    AntMessage2 msg = AntMessage2::requestMessage(1, AntMessage2::AntMessageId::SET_CHANNEL_ID);
 
-    QCOMPARE_BYTE(msg.id(), AntMessage2::REQUEST_MESSAGE);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::AntMessageId::REQUEST_MESSAGE);
     QCOMPARE(msg.toBytes().size(), 6);
     QByteArray content = msg.toBytes().mid(3, 2);
     int channel = content[0];
     QCOMPARE(channel, 1);
     int messageId = content[1];
-    QCOMPARE(messageId, static_cast<int>(AntMessage2::SET_CHANNEL_ID));
+    QCOMPARE(messageId, static_cast<int>(AntMessage2::AntMessageId::SET_CHANNEL_ID));
 }
 
 void AntMessage2Test::setChannelId()
@@ -89,7 +89,7 @@ void AntMessage2Test::setChannelId()
     int theDeviceType = 3;
     AntMessage2 msg = AntMessage2::setChannelId(1, theDeviceId, theDeviceType);
 
-    QCOMPARE_BYTE(msg.id(), AntMessage2::SET_CHANNEL_ID);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::AntMessageId::SET_CHANNEL_ID);
     QCOMPARE(msg.toBytes().size(), 9);
     QByteArray content = msg.toBytes().mid(3, 5);
     int channel = content[0];
@@ -107,7 +107,7 @@ void AntMessage2Test::setSearchTimeout()
 {
     AntMessage2 msg = AntMessage2::setSearchTimeout(2, 30);
 
-    QCOMPARE_BYTE(msg.id(), AntMessage2::SET_SEARCH_TIMEOUT);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::AntMessageId::SET_SEARCH_TIMEOUT);
     QByteArray bytes = msg.toBytes();
     QCOMPARE(bytes.size(), 6);
     QByteArray content = bytes.mid(3, 2);
@@ -121,7 +121,7 @@ void AntMessage2Test::setChannelFrequency()
 {
     AntMessage2 msg = AntMessage2::setChannelFrequency(2, AntMessage2::ANT_PLUS_CHANNEL_FREQUENCY);
 
-    QCOMPARE_BYTE(msg.id(), AntMessage2::SET_CHANNEL_FREQUENCY);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::AntMessageId::SET_CHANNEL_FREQUENCY);
     QByteArray bytes = msg.toBytes();
     QCOMPARE(bytes.size(), 6);
     QByteArray content = bytes.mid(3, 2);
@@ -137,7 +137,7 @@ void AntMessage2Test::setChannelPeriod()
     quint16 thePeriod = 8070;
     AntMessage2 msg = AntMessage2::setChannelPeriod(2, thePeriod);
 
-    QCOMPARE_BYTE(msg.id(), AntMessage2::SET_CHANNEL_PERIOD);
+    QCOMPARE_BYTE(msg.id(), AntMessage2::AntMessageId::SET_CHANNEL_PERIOD);
     QByteArray bytes = msg.toBytes();
     QCOMPARE(bytes.size(), 7);
     QByteArray content = bytes.mid(3, 3);
@@ -156,13 +156,13 @@ void AntMessage2Test::channelEventNoError()
     QByteArray bytes = QByteArray::fromHex(QByteArray::fromRawData("a40340014615a0", 14));
     AntChannelEventMessage msg(bytes);
 
-    QCOMPARE(msg.id(), AntMessage2::CHANNEL_EVENT);
+    QCOMPARE(msg.id(), AntMessage2::AntMessageId::CHANNEL_EVENT);
     quint8 channelNumber = 1;
     QCOMPARE(msg.channelNumber(), channelNumber);
-    int messageId = msg.messageId();
+    int messageId = static_cast<int>(msg.messageId());
     QCOMPARE(messageId, 0x46);
-    int actualMessageCode = msg.messageCode();
-    int expectedMessageCode = AntChannelEventMessage::EVENT_CHANNEL_IN_WRONG_STATE;
+    int actualMessageCode = static_cast<int>(msg.messageCode());
+    int expectedMessageCode = static_cast<int>(AntChannelEventMessage::MessageCode::EVENT_CHANNEL_IN_WRONG_STATE);
     QCOMPARE(actualMessageCode, expectedMessageCode);
 }
 
@@ -171,15 +171,15 @@ void AntMessage2Test::channelEventNoErrorUsingFactory()
     QByteArray bytes = QByteArray::fromHex(QByteArray::fromRawData("a40340014615a0", 14));
     std::unique_ptr<AntMessage2> msg = AntMessage2::createMessageFromBytes(bytes);
     QVERIFY2(msg, "messages should not be null");
-    QCOMPARE(msg->id(), AntMessage2::CHANNEL_EVENT);
+    QCOMPARE(msg->id(), AntMessage2::AntMessageId::CHANNEL_EVENT);
 
     const AntChannelEventMessage* antChannelEventMessage = msg->asChannelEventMessage();
     quint8 channelNumber = 1;
     QCOMPARE(antChannelEventMessage->channelNumber(), channelNumber);
-    int messageId = antChannelEventMessage->messageId();
+    int messageId = static_cast<int>(antChannelEventMessage->messageId());
     QCOMPARE(messageId, 0x46);
-    int actualMessageCode = antChannelEventMessage->messageCode();
-    int expectedMessageCode = AntChannelEventMessage::EVENT_CHANNEL_IN_WRONG_STATE;
+    int actualMessageCode = static_cast<int>(antChannelEventMessage->messageCode());
+    int expectedMessageCode = static_cast<int>(AntChannelEventMessage::MessageCode::EVENT_CHANNEL_IN_WRONG_STATE);
     QCOMPARE(actualMessageCode, expectedMessageCode);
 
 }

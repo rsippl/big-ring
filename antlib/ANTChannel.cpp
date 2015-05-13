@@ -85,11 +85,11 @@ void ANTChannel::open(int device, indoorcycling::AntSensorType chan_type)
 
 void ANTChannel::channelEvent(const AntChannelEventMessage &channelEventMessage) {
     qDebug() << "ANTChannel::channelEvent" << channelEventMessage.toString() << "current state = " << CHANNEL_STATE_STRINGS[_state];
-    if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_RESPONSE_NO_ERROR) {
+    if (channelEventMessage.messageCode() == AntChannelEventMessage::MessageCode::EVENT_RESPONSE_NO_ERROR) {
         attemptTransition();
-    } else if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_CLOSED) {
+    } else if (channelEventMessage.messageCode() == AntChannelEventMessage::MessageCode::EVENT_CHANNEL_CLOSED) {
         emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
-    } else if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_RX_SEARCH_TIMEOUT) {
+    } else if (channelEventMessage.messageCode() == AntChannelEventMessage::MessageCode::EVENT_CHANNEL_RX_SEARCH_TIMEOUT) {
         // nothing found, go back to closed state.
         if (_state == CHANNEL_SEARCHING) {
             _state = CHANNEL_SEARCH_TIMEOUT;
@@ -101,7 +101,7 @@ void ANTChannel::channelEvent(const AntChannelEventMessage &channelEventMessage)
             _state = CHANNEL_LOST_CONNECTION;
             emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
         }
-    } else if (channelEventMessage.messageCode() == AntChannelEventMessage::EVENT_CHANNEL_CLOSED) {
+    } else if (channelEventMessage.messageCode() == AntChannelEventMessage::MessageCode::EVENT_CHANNEL_CLOSED) {
         messages_dropped++;
 
         if (QDateTime::currentDateTime() > (_lastMessageTime.addMSecs(timeout_drop))) {
@@ -243,7 +243,7 @@ void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
         // by the write below failing (and any write really, but the one below being
         // pretty critical) -- because the USB stick needed a USB reset which we know
         // do every time we open the USB device
-        emit antMessageGenerated(AntMessage2::requestMessage(_channelNumber, AntMessage2::SET_CHANNEL_ID));
+        emit antMessageGenerated(AntMessage2::requestMessage(_channelNumber, AntMessage2::AntMessageId::SET_CHANNEL_ID));
 
         lastAntMessage = broadcastMessage.antMessage();
         return; // because we can't associate a channel id with the message yet
@@ -255,24 +255,24 @@ void ANTChannel::broadcastEvent(const BroadCastMessage &broadcastMessage)
         switch (channel_type) {
         // Power
         case indoorcycling::SENSOR_TYPE_POWER:
-            handlePowerMessage(broadcastMessage.toSpecificBroadCastMessage<PowerMessage>());
+            handlePowerMessage(PowerMessage(broadcastMessage.antMessage()));
             break;
 
             // HR
         case indoorcycling::SENSOR_TYPE_HR:
-            handleHeartRateMessage(broadcastMessage.toSpecificBroadCastMessage<HeartRateMessage>());
+            handleHeartRateMessage(HeartRateMessage(broadcastMessage.antMessage()));
             break;
             // Cadence
         case indoorcycling::SENSOR_TYPE_CADENCE:
-            handleCadenceMessage(broadcastMessage.toSpecificBroadCastMessage<CadenceMessage>());
+            handleCadenceMessage(CadenceMessage(broadcastMessage.antMessage()));
             break;
             // Speed and Cadence
         case indoorcycling::SENSOR_TYPE_SPEED_AND_CADENCE:
-            handleSpeedAndCadenceMessage(broadcastMessage.toSpecificBroadCastMessage<SpeedAndCadenceMessage>());
+            handleSpeedAndCadenceMessage(SpeedAndCadenceMessage(broadcastMessage.antMessage()));
             break;
             // Speed
         case indoorcycling::SENSOR_TYPE_SPEED:
-            handleSpeedMessage(broadcastMessage.toSpecificBroadCastMessage<SpeedMessage>());
+            handleSpeedMessage(SpeedMessage(broadcastMessage.antMessage()));
             break;
         case indoorcycling::SENSOR_TYPE_UNUSED:
             qWarning("We should not be receiving broad cast messages for an unused channel");
