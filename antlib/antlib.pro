@@ -7,9 +7,6 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 SOURCES += \
-    ANT.cpp \
-    ANTChannel.cpp \
-    antcontroller.cpp \
     antdevice.cpp \
     antdevicefinder.cpp \
     antmessagegatherer.cpp \
@@ -27,9 +24,6 @@ linux {
 }
 
 HEADERS += \
-    ANT.h \
-    ANTChannel.h \
-    antcontroller.h \
     antdevice.h \
     antdevicefinder.h \
     antmessagegatherer.h \

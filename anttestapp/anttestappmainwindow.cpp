@@ -53,7 +53,7 @@ void AntTestAppMainWindow::setSensor(AntSensorType channelType, int deviceNumber
     }
 }
 
-void AntTestAppMainWindow::searchStarted(AntSensorType channelType, int deviceNumber)
+void AntTestAppMainWindow::searchStarted(AntSensorType channelType, int)
 {
     if (channelType == AntSensorType::SENSOR_TYPE_HR) {
         ui->pushButton->setEnabled(false);

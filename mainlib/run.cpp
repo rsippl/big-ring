@@ -19,8 +19,6 @@
  */
 
 #include "run.h"
-
-#include "antcontroller.h"
 #include "newvideowidget.h"
 
 #include <QtCore/QTimer>
