@@ -51,22 +51,14 @@ private slots:
     void on_weightSpinBox_valueChanged(int arg1);
 
     void fillUsbStickPresentLabel(bool present);
-    void on_searchSensorsButton_clicked();
-    void sensorFound(indoorcycling::AntSensorType sensorType, int deviceNumber);
-    void sensorNotFound(indoorcycling::AntSensorType sensorType);
-    void handleSensorValue(const indoorcycling::SensorValueType sensorValueType,
-                     const indoorcycling::AntSensorType sensorType,
-                     const QVariant& sensorValue);
-    void performSearch(indoorcycling::AntSensorType sensorType);
     void on_pushButton_clicked();
 
-private:
-    void fillSensorTypeRow(indoorcycling::AntSensorType);
-    int rowForSensorType(indoorcycling::AntSensorType);
+    void on_antConfigurationChooser_currentIndexChanged(const QString &selectedConfiguration);
 
+private:
+    void fillSensorSettingsComboBox();
     Ui::SettingsDialog *_ui;
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
-    QSet<indoorcycling::AntSensorType> _currentSearches;
 };
 
 #endif // SETTINGSDIALOG_H

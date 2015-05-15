@@ -21,34 +21,18 @@
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
 
+#include "addsensorconfigurationdialog.h"
+
 #include <QtCore/QMap>
 #include <QtCore/QSettings>
 #include <QtCore/QtDebug>
-
-#include <QtWidgets/QProgressBar>
-#include <QtWidgets/QPushButton>
 
 using indoorcycling::AntCentralDispatch;
 
 namespace {
 
-const char* SEARCHING = "Searching";
 const char* FOUND = "Found";
 const char* NOT_FOUND = "Not Found";
-
-int sensorTypeRole = Qt::UserRole + 1;
-int sensorDeviceNumberRole = sensorTypeRole + 1;
-
-enum class SearchTableColumn {
-    NAME,
-    BUTTON,
-    STATE,
-    DEVICE_NUMBER,
-    VALUE
-};
-int columnNumber(SearchTableColumn column) {
-    return static_cast<int>(column);
-}
 }
 
 SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDispatch,
@@ -58,12 +42,6 @@ SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDisp
     _antCentralDispatch(antCentralDispatch)
 {
     _ui->setupUi(this);
-    _ui->searchTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    fillSensorTypeRow(indoorcycling::SENSOR_TYPE_HR);
-    fillSensorTypeRow(indoorcycling::SENSOR_TYPE_POWER);
-    fillSensorTypeRow(indoorcycling::SENSOR_TYPE_SPEED_AND_CADENCE);
-    fillSensorTypeRow(indoorcycling::SENSOR_TYPE_CADENCE);
-    fillSensorTypeRow(indoorcycling::SENSOR_TYPE_SPEED);
     QSettings settings;
     _ui->unitChooser->setCurrentText(settings.value("units").toString());
     _ui->weightSpinBox->setValue(settings.value("cyclist.weight", QVariant::fromValue(82)).toInt());
@@ -74,12 +52,7 @@ SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDisp
     fillUsbStickPresentLabel(_antCentralDispatch->antUsbStickPresent());
     connect(_antCentralDispatch, &AntCentralDispatch::antUsbStickScanningFinished, this,
             &SettingsDialog::fillUsbStickPresentLabel);
-    connect(_antCentralDispatch, &AntCentralDispatch::sensorFound, this,
-            &SettingsDialog::sensorFound);
-    connect(_antCentralDispatch, &AntCentralDispatch::sensorNotFound, this,
-            &SettingsDialog::sensorNotFound);
-    connect(_antCentralDispatch, &AntCentralDispatch::sensorValue, this,
-            &SettingsDialog::handleSensorValue);
+    fillSensorSettingsComboBox();
 }
 
 SettingsDialog::~SettingsDialog()
@@ -118,157 +91,35 @@ void SettingsDialog::fillUsbStickPresentLabel(bool present)
     _ui->usbStickPresentLabel->setText(QString("<b>%1</b>").arg(text));
 }
 
-void SettingsDialog::on_searchSensorsButton_clicked()
-{
-    _antCentralDispatch->closeAllChannels();
-    _ui->searchSensorsButton->setEnabled(false);
-    performSearch(indoorcycling::SENSOR_TYPE_HR);
-    performSearch(indoorcycling::SENSOR_TYPE_POWER);
-    performSearch(indoorcycling::SENSOR_TYPE_SPEED_AND_CADENCE);
-    performSearch(indoorcycling::SENSOR_TYPE_CADENCE);
-    performSearch(indoorcycling::SENSOR_TYPE_SPEED);
-}
-
-void SettingsDialog::sensorFound(indoorcycling::AntSensorType sensorType, int deviceNumber)
-{
-    int row = rowForSensorType(sensorType);
-    if (row >= 0) {
-        _currentSearches.remove(sensorType);
-        _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::BUTTON))
-                ->setEnabled(true);
-        QProgressBar* bar = static_cast<QProgressBar*>(
-                    _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::STATE)));
-        bar->setMaximum(10);
-        bar->setFormat(tr(FOUND));
-        QTableWidgetItem* const deviceNumberItem =
-                _ui->searchTableWidget->item(row, columnNumber(SearchTableColumn::DEVICE_NUMBER));
-        deviceNumberItem->setText(QString::number(deviceNumber));
-        _ui->searchTableWidget->item(row, columnNumber(SearchTableColumn::NAME))
-                ->setData(sensorDeviceNumberRole, QVariant::fromValue(deviceNumber));
-    }
-    if (_currentSearches.isEmpty()) {
-        _ui->searchSensorsButton->setEnabled(true);
-    }
-}
-
-void SettingsDialog::sensorNotFound(indoorcycling::AntSensorType sensorType)
-{
-    int row = rowForSensorType(sensorType);
-    if (row >= 0) {
-        _currentSearches.remove(sensorType);
-        _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::BUTTON))
-                ->setEnabled(true);
-        QProgressBar* bar = static_cast<QProgressBar*>(
-                    _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::STATE)));
-        bar->setMaximum(10);
-        bar->setFormat(tr(NOT_FOUND));
-        QTableWidgetItem* const deviceNumberItem =
-                _ui->searchTableWidget->item(row, columnNumber(SearchTableColumn::DEVICE_NUMBER));
-        deviceNumberItem->setText("-");
-    }
-    if (_currentSearches.isEmpty()) {
-        _ui->searchSensorsButton->setEnabled(true);
-    }
-}
-
-void SettingsDialog::handleSensorValue(const indoorcycling::SensorValueType sensorValueType,
-                                       const indoorcycling::AntSensorType sensorType,
-                                       const QVariant &sensorValue)
-{
-    int row = rowForSensorType(sensorType);
-    if (row >= 0) {
-        QTableWidgetItem* item = _ui->searchTableWidget->item(row, columnNumber(SearchTableColumn::VALUE));
-        QString text = QString("%1 %2").arg(QString::number(sensorValue.toInt()))
-                .arg(indoorcycling::SENSOR_VALUE_TYPE_STRINGS[sensorValueType]);
-        item->setText(text);
-    }
-}
-
-void SettingsDialog::performSearch(indoorcycling::AntSensorType sensorType)
-{
-    int row = rowForSensorType(sensorType);
-    if (row >= 0) {
-        // disable push button
-        _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::BUTTON))
-                ->setEnabled(false);
-        // start search bar
-        QProgressBar* bar = static_cast<QProgressBar*>(
-                    _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::STATE)));
-        bar->setRange(0, 0);
-        bar->setFormat(tr(SEARCHING));
-        bar->setTextVisible(true);
-        bar->setValue(0);
-
-        _currentSearches.insert(sensorType);
-        _antCentralDispatch->searchForSensorType(sensorType);
-
-    }
-}
-
-void SettingsDialog::fillSensorTypeRow(indoorcycling::AntSensorType sensorType)
-{
-    _currentSearches.insert(sensorType);
-    int row = _ui->searchTableWidget->rowCount();
-    _ui->searchTableWidget->setRowCount(row + 1);
-    QTableWidgetItem* nameColumn = new QTableWidgetItem(
-                indoorcycling::ANT_SENSOR_TYPE_STRINGS[sensorType]);
-    nameColumn->setData(sensorTypeRole, QVariant::fromValue(static_cast<int>(sensorType)));
-    _ui->searchTableWidget->setItem(row, columnNumber(SearchTableColumn::NAME), nameColumn);
-    QPushButton* button = new QPushButton(tr("Search"));
-    connect(button, &QPushButton::clicked, button, [this, sensorType]() {
-        performSearch(sensorType);
-    });
-    _ui->searchTableWidget->setCellWidget(row, columnNumber(SearchTableColumn::BUTTON), button);
-    QProgressBar* bar = new QProgressBar;
-    bar->setRange(0, 0);
-    bar->setMaximum(10);
-    bar->setFormat(tr(NOT_FOUND));
-    _ui->searchTableWidget->setCellWidget(row, columnNumber(SearchTableColumn::STATE), bar);
-
-    QTableWidgetItem* deviceNumberColumn = new QTableWidgetItem("-");
-    _ui->searchTableWidget->setItem(row, columnNumber(SearchTableColumn::DEVICE_NUMBER),
-                                    deviceNumberColumn);
-    QTableWidgetItem* currentValueColumn = new QTableWidgetItem("-");
-    _ui->searchTableWidget->setItem(row, columnNumber(SearchTableColumn::VALUE),
-                                    currentValueColumn);
-}
-
-int SettingsDialog::rowForSensorType(indoorcycling::AntSensorType typeToFind)
-{
-    for (int row = 0; row < _ui->searchTableWidget->rowCount(); ++row) {
-        QTableWidgetItem* nameItem = _ui->searchTableWidget->item(row, 0);
-        indoorcycling::AntSensorType sensorType =
-                static_cast<indoorcycling::AntSensorType>(nameItem->data(sensorTypeRole).toInt());
-        if (sensorType == typeToFind) {
-            return row;
-        }
-    }
-    return -1;
-}
-
 void SettingsDialog::on_pushButton_clicked()
 {
-    QSettings settings;
+    AddSensorConfigurationDialog dialog(_antCentralDispatch, this);
+    dialog.exec();
+}
 
-    settings.beginGroup("Sensor_Configurations");
-    settings.beginGroup("Sensor_Configuration_1");
-    settings.beginWriteArray("sensors");
-    int settingsIndex = 0;
-    for (int row = 0; row < _ui->searchTableWidget->rowCount(); ++row) {
-        QTableWidgetItem* nameItem = _ui->searchTableWidget->item(row, 0);
-        indoorcycling::AntSensorType sensorType =
-                static_cast<indoorcycling::AntSensorType>(nameItem->data(sensorTypeRole).toInt());
-        QVariant sensorDeviceNumber =
-                nameItem->data(sensorDeviceNumberRole);
-        if (!sensorDeviceNumber.isNull()) {
-            settings.setArrayIndex(settingsIndex++);
-            settings.setValue("sensorType", QVariant::fromValue(static_cast<int>(sensorType)));
-            settings.setValue("deviceNumber", QVariant::fromValue(sensorDeviceNumber));
+void SettingsDialog::fillSensorSettingsComboBox()
+{
+    QSettings settings;
+    settings.beginGroup("Sensor_Configuration");
+    settings.beginGroup("configurations");
+    const QStringList configurationNames = settings.childGroups();
+    _ui->antConfigurationChooser->addItems(configurationNames);
+    settings.endGroup();
+    const QString currentConfiguration = settings.value("selectedConfiguration").toString();
+    if (!configurationNames.isEmpty()) {
+        if (currentConfiguration.isNull() || !configurationNames.contains(currentConfiguration)) {
+            _ui->antConfigurationChooser->setCurrentIndex(0);
+        } else {
+            _ui->antConfigurationChooser->setCurrentText(currentConfiguration);
         }
     }
+    settings.endGroup();
+}
 
-    settings.endArray();
-    settings.endGroup();
-    settings.setValue("selectedConfiguration", "Sensor_Configuration_1");
-    settings.endGroup();
+void SettingsDialog::on_antConfigurationChooser_currentIndexChanged(
+        const QString &selectedConfiguration)
+{
+    QSettings settings;
+    settings.beginGroup("Sensor_Configuration");
+    settings.setValue("selectedConfiguration", QVariant::fromValue(selectedConfiguration));
 }
