@@ -37,6 +37,7 @@ const char* FOUND = "Found";
 const char* NOT_FOUND = "Not Found";
 
 int sensorTypeRole = Qt::UserRole + 1;
+int sensorDeviceNumberRole = sensorTypeRole + 1;
 
 enum class SearchTableColumn {
     NAME,
@@ -142,6 +143,8 @@ void SettingsDialog::sensorFound(indoorcycling::AntSensorType sensorType, int de
         QTableWidgetItem* const deviceNumberItem =
                 _ui->searchTableWidget->item(row, columnNumber(SearchTableColumn::DEVICE_NUMBER));
         deviceNumberItem->setText(QString::number(deviceNumber));
+        _ui->searchTableWidget->item(row, columnNumber(SearchTableColumn::NAME))
+                ->setData(sensorDeviceNumberRole, QVariant::fromValue(deviceNumber));
     }
     if (_currentSearches.isEmpty()) {
         _ui->searchSensorsButton->setEnabled(true);
@@ -241,4 +244,31 @@ int SettingsDialog::rowForSensorType(indoorcycling::AntSensorType typeToFind)
         }
     }
     return -1;
+}
+
+void SettingsDialog::on_pushButton_clicked()
+{
+    QSettings settings;
+
+    settings.beginGroup("Sensor_Configurations");
+    settings.beginGroup("Sensor_Configuration_1");
+    settings.beginWriteArray("sensors");
+    int settingsIndex = 0;
+    for (int row = 0; row < _ui->searchTableWidget->rowCount(); ++row) {
+        QTableWidgetItem* nameItem = _ui->searchTableWidget->item(row, 0);
+        indoorcycling::AntSensorType sensorType =
+                static_cast<indoorcycling::AntSensorType>(nameItem->data(sensorTypeRole).toInt());
+        QVariant sensorDeviceNumber =
+                nameItem->data(sensorDeviceNumberRole);
+        if (!sensorDeviceNumber.isNull()) {
+            settings.setArrayIndex(settingsIndex++);
+            settings.setValue("sensorType", QVariant::fromValue(static_cast<int>(sensorType)));
+            settings.setValue("deviceNumber", QVariant::fromValue(sensorDeviceNumber));
+        }
+    }
+
+    settings.endArray();
+    settings.endGroup();
+    settings.setValue("selectedConfiguration", "Sensor_Configuration_1");
+    settings.endGroup();
 }

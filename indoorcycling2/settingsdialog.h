@@ -58,6 +58,8 @@ private slots:
                      const indoorcycling::AntSensorType sensorType,
                      const QVariant& sensorValue);
     void performSearch(indoorcycling::AntSensorType sensorType);
+    void on_pushButton_clicked();
+
 private:
     void fillSensorTypeRow(indoorcycling::AntSensorType);
     int rowForSensorType(indoorcycling::AntSensorType);
