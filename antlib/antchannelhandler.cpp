@@ -74,6 +74,13 @@ void AntChannelHandler::initialize()
     setState(CHANNEL_ASSIGNED);
 }
 
+void AntChannelHandler::close()
+{
+    qDebug() << QString("Closing channel #%1").arg(_channelNumber);
+    setState(CHANNEL_CLOSED);
+    emit antMessageGenerated(AntMessage2::closeChannel(_channelNumber));
+}
+
 void AntChannelHandler::handleChannelEvent(const AntChannelEventMessage &message)
 {
     if (message.messageCode() == AntChannelEventMessage::MessageCode::EVENT_RESPONSE_NO_ERROR) {
@@ -167,6 +174,11 @@ void AntChannelHandler::advanceState(const AntMessage2::AntMessageId messageId)
     case CHANNEL_OPENED:
         assertMessageId(AntMessage2::AntMessageId::OPEN_CHANNEL, messageId);
         setState(CHANNEL_SEARCHING);
+        break;
+    case CHANNEL_CLOSED:
+        assertMessageId(AntMessage2::AntMessageId::CLOSE_CHANNEL, messageId);
+        emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
+        setState(CHANNEL_UNASSIGNED);
         break;
     case CHANNEL_UNASSIGNED:
         assertMessageId(AntMessage2::AntMessageId::UNASSIGN_CHANNEL, messageId);

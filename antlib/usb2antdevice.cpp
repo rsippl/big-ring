@@ -239,8 +239,6 @@ void initializeUsb()
         usb_set_debug(255);
         usb_init();
 
-        usb_find_busses();
-        usb_find_devices();
         usbInitialized = true;
     }
 }
@@ -248,6 +246,9 @@ void initializeUsb()
 struct usb_device *findAntStick()
 {
     initializeUsb();
+    usb_find_busses();
+    usb_find_devices();
+
     struct usb_bus* bus;
     struct usb_device* device;
 
@@ -255,10 +256,12 @@ struct usb_device *findAntStick()
         for (device = bus->devices; device; device = device->next) {
             if (device->descriptor.idVendor == indoorcycling::GARMIN_USB_VENDOR_ID &&
                     VALID_PRODUCT_IDS.contains(device->descriptor.idProduct)) {
+                qDebug() << "findAntStick(): returning device";
                 return device;
             }
         }
     }
+    qDebug() << "findAntStick(): returning null pointer";
     return nullptr;
 }
 

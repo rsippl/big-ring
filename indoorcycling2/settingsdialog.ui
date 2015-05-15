@@ -6,123 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>612</width>
+    <height>577</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Preferences</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Settings</string>
-     </property>
-     <layout class="QFormLayout" name="formLayout">
-      <property name="fieldGrowthPolicy">
-       <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-      </property>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Unit System</string>
-        </property>
-        <property name="buddy">
-         <cstring>unitChooser</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="unitChooser">
-        <item>
-         <property name="text">
-          <string>Metric</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Imperial</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Cyclist's Weight</string>
-        </property>
-        <property name="buddy">
-         <cstring>weightSpinBox</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QSpinBox" name="weightSpinBox">
-        <property name="toolTip">
-         <string>The weight of the cyclist, including bike</string>
-        </property>
-        <property name="whatsThis">
-         <string>The weight of the cyclist, including bike</string>
-        </property>
-        <property name="suffix">
-         <string extracomment="weight in kg"> kg</string>
-        </property>
-        <property name="minimum">
-         <number>8</number>
-        </property>
-        <property name="maximum">
-         <number>200</number>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="robotLabel">
-        <property name="text">
-         <string>Robot</string>
-        </property>
-        <property name="buddy">
-         <cstring>robotCheckBox</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="robotCheckBox">
-        <property name="text">
-         <string>Use Robot</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Robot Power</string>
-        </property>
-        <property name="buddy">
-         <cstring>powerSpinBox</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QSpinBox" name="powerSpinBox">
-        <property name="suffix">
-         <string> Watts</string>
-        </property>
-        <property name="maximum">
-         <number>500</number>
-        </property>
-        <property name="singleStep">
-         <number>10</number>
-        </property>
-        <property name="value">
-         <number>250</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="1" column="0">
+   <item row="2" column="0">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -132,14 +24,282 @@
      </property>
     </widget>
    </item>
+   <item row="1" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>General</string>
+      </attribute>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>20</y>
+         <width>382</width>
+         <height>163</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Settings</string>
+       </property>
+       <layout class="QFormLayout" name="formLayout">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Unit System</string>
+          </property>
+          <property name="buddy">
+           <cstring>unitChooser</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="unitChooser">
+          <item>
+           <property name="text">
+            <string>Metric</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Imperial</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Cyclist's Weight</string>
+          </property>
+          <property name="buddy">
+           <cstring>weightSpinBox</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QSpinBox" name="weightSpinBox">
+          <property name="toolTip">
+           <string>The weight of the cyclist, including bike</string>
+          </property>
+          <property name="whatsThis">
+           <string>The weight of the cyclist, including bike</string>
+          </property>
+          <property name="suffix">
+           <string extracomment="weight in kg"> kg</string>
+          </property>
+          <property name="minimum">
+           <number>8</number>
+          </property>
+          <property name="maximum">
+           <number>200</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>ANT+ Sensors</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QWidget" name="widget_2" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>1</verstretch>
+          </sizepolicy>
+         </property>
+         <layout class="QFormLayout" name="formLayout_2">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>ANT+ USB</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="usbStickPresentLabel">
+            <property name="text">
+             <string>&lt;b&gt;Not Found&lt;/b&gt;</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::RichText</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>5</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Sensor Configuration</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QPushButton" name="searchSensorsButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Search for sensors</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="searchTableWidget">
+            <property name="alternatingRowColors">
+             <bool>false</bool>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
+            <property name="verticalScrollMode">
+             <enum>QAbstractItemView::ScrollPerPixel</enum>
+            </property>
+            <property name="horizontalScrollMode">
+             <enum>QAbstractItemView::ScrollPerPixel</enum>
+            </property>
+            <property name="columnCount">
+             <number>5</number>
+            </property>
+            <column>
+             <property name="text">
+              <string>Sensor</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Search</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>State</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Device Number</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Current Value</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>1</verstretch>
+          </sizepolicy>
+         </property>
+         <widget class="QLabel" name="label_2">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>50</y>
+            <width>89</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Robot Power</string>
+          </property>
+          <property name="buddy">
+           <cstring>powerSpinBox</cstring>
+          </property>
+         </widget>
+         <widget class="QSpinBox" name="powerSpinBox">
+          <property name="geometry">
+           <rect>
+            <x>97</x>
+            <y>50</y>
+            <width>100</width>
+            <height>27</height>
+           </rect>
+          </property>
+          <property name="suffix">
+           <string> Watts</string>
+          </property>
+          <property name="maximum">
+           <number>500</number>
+          </property>
+          <property name="singleStep">
+           <number>10</number>
+          </property>
+          <property name="value">
+           <number>250</number>
+          </property>
+         </widget>
+         <widget class="QLabel" name="robotLabel">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>16</y>
+            <width>42</width>
+            <height>17</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Robot</string>
+          </property>
+          <property name="buddy">
+           <cstring>robotCheckBox</cstring>
+          </property>
+         </widget>
+         <widget class="QCheckBox" name="robotCheckBox">
+          <property name="geometry">
+           <rect>
+            <x>97</x>
+            <y>16</y>
+            <width>101</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Use Robot</string>
+          </property>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>unitChooser</tabstop>
   <tabstop>weightSpinBox</tabstop>
-  <tabstop>robotCheckBox</tabstop>
-  <tabstop>powerSpinBox</tabstop>
-  <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -150,8 +310,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>257</x>
+     <y>290</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -166,12 +326,28 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>325</x>
+     <y>290</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
      <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>robotCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>powerSpinBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>130</x>
+     <y>58</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>130</x>
+     <y>96</y>
     </hint>
    </hints>
   </connection>

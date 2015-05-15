@@ -21,8 +21,12 @@
 #ifndef SETTINGSDIALOG_H
 #define SETTINGSDIALOG_H
 
+#include <QtCore/QSet>
 #include <QtCore/QSettings>
 #include <QtWidgets/QDialog>
+
+#include "antcentraldispatch.h"
+#include "antsensortype.h"
 
 namespace Ui {
 class SettingsDialog;
@@ -33,7 +37,8 @@ class SettingsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SettingsDialog(QWidget *parent = 0);
+    explicit SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDispatch,
+                            QWidget *parent = 0);
     ~SettingsDialog();
 
 private slots:
@@ -45,8 +50,21 @@ private slots:
 
     void on_weightSpinBox_valueChanged(int arg1);
 
+    void fillUsbStickPresentLabel(bool present);
+    void on_searchSensorsButton_clicked();
+    void sensorFound(indoorcycling::AntSensorType sensorType, int deviceNumber);
+    void sensorNotFound(indoorcycling::AntSensorType sensorType);
+    void handleSensorValue(const indoorcycling::SensorValueType sensorValueType,
+                     const indoorcycling::AntSensorType sensorType,
+                     const QVariant& sensorValue);
+    void performSearch(indoorcycling::AntSensorType sensorType);
 private:
+    void fillSensorTypeRow(indoorcycling::AntSensorType);
+    int rowForSensorType(indoorcycling::AntSensorType);
+
     Ui::SettingsDialog *_ui;
+    indoorcycling::AntCentralDispatch* const _antCentralDispatch;
+    QSet<indoorcycling::AntSensorType> _currentSearches;
 };
 
 #endif // SETTINGSDIALOG_H

@@ -30,7 +30,7 @@
 #include <QtCore/QtDebug>
 
 namespace {
-const int INITIALIZATION_TIMEOUT = 3000; // ms
+const int INITIALIZATION_TIMEOUT = 1000; // ms
 
 // According to the ANT specification, we should wait at least 500ms after sending
 // the System Reset message. To be on the safe side, we'll wait 600ms.
@@ -109,18 +109,32 @@ int AntCentralDispatch::currentHeartRate() const
 
 void AntCentralDispatch::initialize()
 {
-    _initializationTimer->start();
+    qDebug() << "AntCentralDispatch::initialize()";
     scanForAntUsbStick();
     if (!_antUsbStick) {
+        qDebug() << "AntCentralDispatch::initialize() failed";
         emit initializationFinished(false);
+
+        QTimer::singleShot(1000, this, SLOT(initialize()));
         return;
     }
+    _initializationTimer->start();
     _channels.resize(_antUsbStick->numberOfChannels());
     if (_antUsbStick->isReady()) {
         resetAntSystem();
     } else {
         connect(_antUsbStick.get(), &indoorcycling::AntDevice::deviceReady,
                 this, &AntCentralDispatch::resetAntSystem);
+    }
+}
+
+void AntCentralDispatch::closeAllChannels()
+{
+    qDebug() << "Closing all channels";
+    for(AntChannelHandler* handler: _channels) {
+        if (handler) {
+            handler->close();
+        }
     }
 }
 
@@ -151,6 +165,7 @@ void AntCentralDispatch::scanForAntUsbStick()
                 &AntMessageGatherer::submitBytes);
     }
     emit antUsbStickScanningFinished(_antUsbStick.get());
+
 }
 
 AntChannelHandler* AntCentralDispatch::createChannel(int channelNumber, AntSensorType &sensorType)
@@ -195,15 +210,17 @@ void AntCentralDispatch::searchTimedOut(int channelNumber, AntSensorType)
 }
 
 void AntCentralDispatch::handleSensorValue(const SensorValueType sensorValueType,
-                                           const AntSensorType, const QVariant &sensorValue)
+                                           const AntSensorType sensorType,
+                                           const QVariant &value)
 {
+    emit sensorValue(sensorValueType, sensorType, value);
     if (sensorValueType == SENSOR_VALUE_HEARTRATE_BPM) {
-        _currentHeartRate = sensorValue.toInt();
+        _currentHeartRate = value.toInt();
         emit heartRateMeasured(_currentHeartRate);
     } else if (sensorValueType == SENSOR_VALUE_CADENCE_RPM) {
-        emit cadenceMeasured(sensorValue.toInt());
+        emit cadenceMeasured(value.toInt());
     } else if (sensorValueType == SENSOR_VALUE_POWER_WATT) {
-        emit powerMeasured(sensorValue.toInt());
+        emit powerMeasured(value.toInt());
     }
 }
 

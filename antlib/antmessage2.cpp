@@ -110,6 +110,8 @@ QString AntMessage2::toString() const
     switch(_id) {
     case AntMessageId::ASSIGN_CHANNEL:
         return QString("Assign Channel, Channel %1, Channel Type %2, Network Number %3").arg(contentByte(0)).arg(contentByte(1)).arg(contentByte(2));
+    case AntMessageId::CLOSE_CHANNEL:
+        return QString("Close Channel (0x4c), Channel #%1").arg(contentByte(0));
     case AntMessageId::OPEN_CHANNEL:
         return QString("Open Channel (0x4b), Channel %1").arg(contentByte(0));
     case AntMessageId::REQUEST_MESSAGE:
@@ -492,5 +494,5 @@ quint8 SetChannelIdMessage::transmissionType() const
 
 const QString antMessageIdToString(const AntMessage2::AntMessageId messageId)
 {
-    return QString("0x%1").arg(static_cast<quint8>(messageId), 16);
+    return QString("0x%1").arg(QString::number(static_cast<quint8>(messageId), 16));
 }

@@ -25,12 +25,10 @@
 #include <vector>
 
 #include <QtCore/QObject>
-#include <QtCore/QSharedPointer>
 #include <QtCore/QTimer>
+#include <QtCore/QVector>
 
 #include "antsensortype.h"
-
-#include "antchannelhandler.h"
 
 class AntChannelEventMessage;
 class AntMessageGatherer;
@@ -43,6 +41,7 @@ class SetChannelIdMessage;
 #include "antsensortype.h"
 
 namespace indoorcycling {
+class AntChannelHandler;
 /**
  * The Main ANT+ class that manages the connection with the ANT+ usb stick and through that stick, to the ANT+
  * sensors that are found.
@@ -85,6 +84,13 @@ signals:
      *  emitted when a search for sensor has timed out.
      */
     void sensorNotFound(AntSensorType channelType);
+    /** emitted when a sensor value if measured by one of the sensors
+     * @param sensorValueType type of sensor value
+     * @param sensorValueType type of sensor
+     * @param sensorValue the value ifself.
+    */
+    void sensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType,
+                     const QVariant& sensorValue);
     /**
      * heart rate measured
      */
@@ -101,8 +107,15 @@ public slots:
     /**
      * Initialize the connection to the ANT+ stick. After calling this, listen for the signal initializationFinished(bool)
      * to check if the connection was successful.
+     *
+     * If no ANT+ stick can be found or opened, initialization will be retried until it's found.
      */
     void initialize();
+
+    /**
+      Close all channels
+     */
+    void closeAllChannels();
 private slots:
     void messageFromAntUsbStick(const QByteArray& bytes);
     /**
@@ -169,10 +182,7 @@ private:
 
     int _currentHeartRate;
 
-    /**
-     * using an std::vector here, because we use std::unique_ptr, which is not compatible with QVector.
-     */
-    std::vector<AntChannelHandler*> _channels;
+    QVector<AntChannelHandler*> _channels;
     QTimer* _initializationTimer;
 };
 

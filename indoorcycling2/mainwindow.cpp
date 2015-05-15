@@ -110,7 +110,7 @@ void MainWindow::setupMenuBar()
 
     QAction* showPreferencesAction = new QAction(tr("Preferences"), this);
     connect(showPreferencesAction, &QAction::triggered, showPreferencesAction, [=]() {
-        SettingsDialog dialog(this);
+        SettingsDialog dialog(_antCentralDispatch, this);
         dialog.exec();
         update();
     });

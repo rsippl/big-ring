@@ -75,6 +75,11 @@ public slots:
     void setSensorDeviceNumber(int deviceNumber);
     /** initialize the channel */
     void initialize();
+    /**
+     * @brief close the channel
+     */
+    void close();
+
     void handleChannelEvent(const AntChannelEventMessage& message);
     void handleBroadcastEvent(const BroadCastMessage& broadcastMessage);
     void handleChannelIdEvent(const SetChannelIdMessage& channelIdMessage);
