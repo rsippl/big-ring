@@ -25,6 +25,7 @@
 #include <QtWidgets/QPushButton>
 
 using indoorcycling::AntCentralDispatch;
+using indoorcycling::AntSensorType;
 using indoorcycling::NamedSensorConfigurationGroup;
 
 namespace
@@ -55,6 +56,8 @@ AddSensorConfigurationDialog::AddSensorConfigurationDialog(
 {
     _ui->setupUi(this);
     _ui->searchTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    updateSimulationSettings();
+    _ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
     fillSensorTypeRow(indoorcycling::SENSOR_TYPE_HR);
     fillSensorTypeRow(indoorcycling::SENSOR_TYPE_POWER);
     fillSensorTypeRow(indoorcycling::SENSOR_TYPE_SPEED_AND_CADENCE);
@@ -132,6 +135,25 @@ void AddSensorConfigurationDialog::saveConfiguration()
     NamedSensorConfigurationGroup::saveSelectedConfigurationGroup(_configurationName);
 }
 
+void AddSensorConfigurationDialog::updateSimulationSettings()
+{
+    bool powerSensorPresent = _configurations.contains(AntSensorType::SENSOR_TYPE_POWER);
+    bool speedSensorPresent = _configurations.contains(AntSensorType::SENSOR_TYPE_SPEED) ||
+            _configurations.contains(AntSensorType::SENSOR_TYPE_SPEED_AND_CADENCE);
+    _ui->directPowerButton->setEnabled(powerSensorPresent);
+    _ui->directSpeedButton->setEnabled(speedSensorPresent);
+    _ui->virtualPowerButton->setEnabled(speedSensorPresent);
+
+    if (powerSensorPresent) {
+        _ui->directPowerButton->setChecked(true);
+    } else if (speedSensorPresent) {
+        _ui->virtualPowerButton->setChecked(true);
+    } else {
+        _ui->fixedPowerButton->setChecked(true);
+    }
+
+}
+
 void AddSensorConfigurationDialog::on_searchSensorsButton_clicked()
 {
     _antCentralDispatch->closeAllChannels();
@@ -145,45 +167,14 @@ void AddSensorConfigurationDialog::on_searchSensorsButton_clicked()
 
 void AddSensorConfigurationDialog::sensorFound(indoorcycling::AntSensorType sensorType, int deviceNumber)
 {
-    int row = rowForSensorType(sensorType);
-    if (row >= 0) {
-        _currentSearches.remove(sensorType);
-        _configurations[sensorType] = indoorcycling::SensorConfiguration(sensorType, deviceNumber);
-        _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::BUTTON))
-                ->setEnabled(true);
-        QProgressBar* bar = static_cast<QProgressBar*>(
-                    _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::STATE)));
-        bar->setMaximum(10);
-        bar->setFormat(tr(FOUND));
-        QTableWidgetItem* const deviceNumberItem =
-                _ui->searchTableWidget->item(row, columnNumber(SearchTableColumn::DEVICE_NUMBER));
-        deviceNumberItem->setText(QString::number(deviceNumber));
-        _ui->searchTableWidget->item(row, columnNumber(SearchTableColumn::NAME))
-                ->setData(sensorDeviceNumberRole, QVariant::fromValue(deviceNumber));
-    }
-    if (_currentSearches.isEmpty()) {
-        _ui->searchSensorsButton->setEnabled(true);
-    }
+    _configurations[sensorType] = indoorcycling::SensorConfiguration(sensorType, deviceNumber);
+    updateRow(sensorType, true, deviceNumber);
+    updateSimulationSettings();
 }
 
 void AddSensorConfigurationDialog::sensorNotFound(indoorcycling::AntSensorType sensorType)
 {
-    int row = rowForSensorType(sensorType);
-    if (row >= 0) {
-        _currentSearches.remove(sensorType);
-        _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::BUTTON))
-                ->setEnabled(true);
-        QProgressBar* bar = static_cast<QProgressBar*>(
-                    _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::STATE)));
-        bar->setMaximum(10);
-        bar->setFormat(tr(NOT_FOUND));
-        QTableWidgetItem* const deviceNumberItem =
-                _ui->searchTableWidget->item(row, columnNumber(SearchTableColumn::DEVICE_NUMBER));
-        deviceNumberItem->setText("-");
-    }
-    if (_currentSearches.isEmpty()) {
-        _ui->searchSensorsButton->setEnabled(true);
-    }
+    updateRow(sensorType, false);
 }
 
 void AddSensorConfigurationDialog::handleSensorValue(const indoorcycling::SensorValueType sensorValueType, const indoorcycling::AntSensorType sensorType, const QVariant &sensorValue)
@@ -199,6 +190,7 @@ void AddSensorConfigurationDialog::handleSensorValue(const indoorcycling::Sensor
 
 void AddSensorConfigurationDialog::performSearch(indoorcycling::AntSensorType sensorType)
 {
+    _ui->simulationSettingsGroupBox->setEnabled(false);
     int row = rowForSensorType(sensorType);
     if (row >= 0) {
         _configurations.remove(sensorType);
@@ -235,4 +227,37 @@ void AddSensorConfigurationDialog::on_buttonBox_clicked(QAbstractButton *button)
 void AddSensorConfigurationDialog::on_lineEdit_textEdited(const QString &text)
 {
     setConfigurationName(text);
+}
+
+void AddSensorConfigurationDialog::updateRow(indoorcycling::AntSensorType sensorType,
+                                             bool found, int deviceNumber)
+{
+    int row = rowForSensorType(sensorType);
+    if (row >= 0) {
+        _currentSearches.remove(sensorType);
+        _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::BUTTON))
+                ->setEnabled(true);
+        QProgressBar* bar = static_cast<QProgressBar*>(
+                    _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::STATE)));
+        bar->setMaximum(10);
+        if (found) {
+            bar->setFormat(tr(FOUND));
+        } else {
+            bar->setFormat(tr(NOT_FOUND));
+        }
+
+        QTableWidgetItem* const deviceNumberItem =
+                _ui->searchTableWidget->item(row, columnNumber(SearchTableColumn::DEVICE_NUMBER));
+        if (found) {
+            deviceNumberItem->setText(QString::number(deviceNumber));
+            _ui->searchTableWidget->item(row, columnNumber(SearchTableColumn::NAME))
+                    ->setData(sensorDeviceNumberRole, QVariant::fromValue(deviceNumber));
+        } else {
+            deviceNumberItem->setText("-");
+        }
+    }
+    if (_currentSearches.isEmpty()) {
+        _ui->searchSensorsButton->setEnabled(true);
+        _ui->simulationSettingsGroupBox->setEnabled(true);
+    }
 }

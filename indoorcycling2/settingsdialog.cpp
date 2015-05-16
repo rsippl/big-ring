@@ -119,6 +119,8 @@ void SettingsDialog::fillSensorSettingsComboBox()
             _ui->antConfigurationChooser->setCurrentText(currentConfigurationName);
         } else {
             _ui->antConfigurationChooser->setCurrentIndex(0);
+            indoorcycling::NamedSensorConfigurationGroup::saveSelectedConfigurationGroup(
+                        configurationGroups.first().name());
         }
     } else {
         _ui->deleteConfigurationButton->setEnabled(false);

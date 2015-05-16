@@ -55,11 +55,15 @@ private slots:
     void on_lineEdit_textEdited(const QString &arg1);
 
 private:
+    void updateRow(indoorcycling::AntSensorType sensorType, bool found,
+                   int deviceNumber = -1);
     void fillSensorTypeRow(indoorcycling::AntSensorType sensorType);
     int rowForSensorType(indoorcycling::AntSensorType);
 
     void setConfigurationName(const QString& name);
     void saveConfiguration();
+    // Checks which simulation options are available and sets options in GUI where appropriate.
+    void updateSimulationSettings();
 
     Ui::AddSensorConfigurationDialog *_ui;
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;

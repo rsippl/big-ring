@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>567</width>
-    <height>396</height>
+    <height>487</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -106,6 +106,69 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="simulationSettingsGroupBox">
+     <property name="title">
+      <string>Simulation Settings</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_2">
+      <item row="0" column="0">
+       <widget class="QRadioButton" name="fixedPowerButton">
+        <property name="text">
+         <string>Use Fixed Power</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="powerSpinBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="suffix">
+         <string> Watts</string>
+        </property>
+        <property name="maximum">
+         <number>500</number>
+        </property>
+        <property name="singleStep">
+         <number>10</number>
+        </property>
+        <property name="value">
+         <number>250</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QRadioButton" name="directPowerButton">
+        <property name="text">
+         <string>Use Power From Power Meter </string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QRadioButton" name="virtualPowerButton">
+        <property name="text">
+         <string>User Virtual Power</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="virtualPowerChooser">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QRadioButton" name="directSpeedButton">
+        <property name="text">
+         <string>Use Speed From Speed Sensor</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -126,8 +189,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>257</x>
+     <y>477</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -142,12 +205,44 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>325</x>
+     <y>477</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
      <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>virtualPowerButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>virtualPowerChooser</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>149</x>
+     <y>394</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>313</x>
+     <y>394</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>fixedPowerButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>powerSpinBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>140</x>
+     <y>323</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>294</x>
+     <y>332</y>
     </hint>
    </hints>
   </connection>
