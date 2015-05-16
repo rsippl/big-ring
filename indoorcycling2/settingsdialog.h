@@ -56,7 +56,10 @@ private slots:
 
     void on_antConfigurationChooser_currentIndexChanged(const QString &selectedConfiguration);
 
+    void on_deleteConfigurationButton_clicked();
+
 private:
+    void reset();
     void fillSensorSettingsComboBox();
     void fillSensorLabels();
     void fillSensorLabel(QLabel* label,

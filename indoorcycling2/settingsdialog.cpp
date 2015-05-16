@@ -27,6 +27,7 @@
 #include <QtCore/QSettings>
 #include <QtCore/QtDebug>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QMessageBox>
 
 using indoorcycling::AntCentralDispatch;
 
@@ -55,8 +56,7 @@ SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDisp
     fillUsbStickPresentLabel(_antCentralDispatch->antUsbStickPresent());
     connect(_antCentralDispatch, &AntCentralDispatch::antUsbStickScanningFinished, this,
             &SettingsDialog::fillUsbStickPresentLabel);
-    fillSensorSettingsComboBox();
-    fillSensorLabels();
+    reset();
 }
 
 SettingsDialog::~SettingsDialog()
@@ -99,10 +99,13 @@ void SettingsDialog::on_pushButton_clicked()
 {
     AddSensorConfigurationDialog dialog(_antCentralDispatch, this);
     dialog.exec();
+    reset();
 }
 
 void SettingsDialog::fillSensorSettingsComboBox()
 {
+    _ui->antConfigurationChooser->blockSignals(true);
+    _ui->antConfigurationChooser->clear();
     QMap<QString,indoorcycling::NamedSensorConfigurationGroup> configurationGroups =
             indoorcycling::NamedSensorConfigurationGroup::readFromSettings();
     _ui->antConfigurationChooser->addItems(configurationGroups.keys());
@@ -111,12 +114,16 @@ void SettingsDialog::fillSensorSettingsComboBox()
             indoorcycling::NamedSensorConfigurationGroup::selectedConfigurationGroup().name();
 
     if (!configurationGroups.isEmpty()) {
+        _ui->deleteConfigurationButton->setEnabled(true);
         if (configurationGroups.contains(currentConfigurationName)) {
             _ui->antConfigurationChooser->setCurrentText(currentConfigurationName);
         } else {
             _ui->antConfigurationChooser->setCurrentIndex(0);
         }
+    } else {
+        _ui->deleteConfigurationButton->setEnabled(false);
     }
+    _ui->antConfigurationChooser->blockSignals(false);
 }
 
 void SettingsDialog::fillSensorLabels()
@@ -153,9 +160,27 @@ void SettingsDialog::fillSensorLabel(QLabel* label,
 void SettingsDialog::on_antConfigurationChooser_currentIndexChanged(
         const QString &selectedConfiguration)
 {
-    QSettings settings;
-    settings.beginGroup("Sensor_Configuration");
-    settings.setValue("selectedConfiguration", QVariant::fromValue(selectedConfiguration));
+    indoorcycling::NamedSensorConfigurationGroup::saveSelectedConfigurationGroup(
+                selectedConfiguration);
+    reset();
+}
 
+void SettingsDialog::reset()
+{
+    fillSensorSettingsComboBox();
     fillSensorLabels();
+}
+
+void SettingsDialog::on_deleteConfigurationButton_clicked()
+{
+    QString configurationName = _ui->antConfigurationChooser->currentText();
+    int result = QMessageBox::warning(this, tr("Remove Sensor Configuration?"),
+                                      tr("Sensor Configuration %1 will be removed.\n"
+                                         "Are you sure?").arg(configurationName),
+                                      QMessageBox::Cancel | QMessageBox::Ok, QMessageBox::Ok);
+    if (result == QMessageBox::Ok) {
+        indoorcycling::NamedSensorConfigurationGroup::removeConfigurationGroup(
+                    configurationName);
+    }
+    reset();
 }

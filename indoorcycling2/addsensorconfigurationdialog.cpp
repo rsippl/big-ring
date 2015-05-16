@@ -20,10 +20,12 @@
 #include "addsensorconfigurationdialog.h"
 #include "ui_addsensorconfigurationdialog.h"
 
+#include <QtCore/QtDebug>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QPushButton>
 
 using indoorcycling::AntCentralDispatch;
+using indoorcycling::NamedSensorConfigurationGroup;
 
 namespace
 {
@@ -114,6 +116,22 @@ int AddSensorConfigurationDialog::rowForSensorType(indoorcycling::AntSensorType 
     return -1;
 }
 
+void AddSensorConfigurationDialog::setConfigurationName(const QString &name)
+{
+    _configurationName = name;
+    _ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(!_configurationName.isEmpty());
+}
+
+void AddSensorConfigurationDialog::saveConfiguration()
+{
+    indoorcycling::NamedSensorConfigurationGroup group(_configurationName,
+                                                       _configurations);
+    indoorcycling::NamedSensorConfigurationGroup::addNamedSensorConfigurationGroup(group);
+
+    // Make sure this new configuration is automatically selected.
+    NamedSensorConfigurationGroup::saveSelectedConfigurationGroup(_configurationName);
+}
+
 void AddSensorConfigurationDialog::on_searchSensorsButton_clicked()
 {
     _antCentralDispatch->closeAllChannels();
@@ -130,6 +148,7 @@ void AddSensorConfigurationDialog::sensorFound(indoorcycling::AntSensorType sens
     int row = rowForSensorType(sensorType);
     if (row >= 0) {
         _currentSearches.remove(sensorType);
+        _configurations[sensorType] = indoorcycling::SensorConfiguration(sensorType, deviceNumber);
         _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::BUTTON))
                 ->setEnabled(true);
         QProgressBar* bar = static_cast<QProgressBar*>(
@@ -182,6 +201,7 @@ void AddSensorConfigurationDialog::performSearch(indoorcycling::AntSensorType se
 {
     int row = rowForSensorType(sensorType);
     if (row >= 0) {
+        _configurations.remove(sensorType);
         // disable push button
         _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::BUTTON))
                 ->setEnabled(false);
@@ -196,4 +216,23 @@ void AddSensorConfigurationDialog::performSearch(indoorcycling::AntSensorType se
         _currentSearches.insert(sensorType);
         _antCentralDispatch->searchForSensorType(sensorType);
     }
+}
+
+void AddSensorConfigurationDialog::on_buttonBox_clicked(QAbstractButton *button)
+{
+    switch(_ui->buttonBox->buttonRole(button)) {
+    case QDialogButtonBox::AcceptRole:
+        qDebug() << "Save";
+        saveConfiguration();
+        QDialog::accept();
+        break;
+    default:
+        QDialog::reject();
+        break;
+    }
+}
+
+void AddSensorConfigurationDialog::on_lineEdit_textEdited(const QString &text)
+{
+    setConfigurationName(text);
 }

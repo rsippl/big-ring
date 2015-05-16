@@ -21,10 +21,12 @@
 #define ADDSENSORCDIALOG_H
 
 #include <QtCore/QSet>
+#include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QDialog>
 
 #include "antcentraldispatch.h"
 #include "antsensortype.h"
+#include "sensorconfiguration.h"
 
 namespace Ui {
 class AddSensorConfigurationDialog;
@@ -48,13 +50,22 @@ private slots:
                      const indoorcycling::AntSensorType sensorType,
                      const QVariant& sensorValue);
     void performSearch(indoorcycling::AntSensorType sensorType);
+    void on_buttonBox_clicked(QAbstractButton *button);
+
+    void on_lineEdit_textEdited(const QString &arg1);
+
 private:
     void fillSensorTypeRow(indoorcycling::AntSensorType sensorType);
     int rowForSensorType(indoorcycling::AntSensorType);
 
+    void setConfigurationName(const QString& name);
+    void saveConfiguration();
+
     Ui::AddSensorConfigurationDialog *_ui;
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
     QSet<indoorcycling::AntSensorType> _currentSearches;
+    QString _configurationName;
+    QMap<indoorcycling::AntSensorType,indoorcycling::SensorConfiguration> _configurations;
 };
 
 #endif // ADDSENSORCDIALOG_H

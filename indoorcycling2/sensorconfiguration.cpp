@@ -83,6 +83,31 @@ void NamedSensorConfigurationGroup::saveSelectedConfigurationGroup(const QString
     return settings.setValue("selectedConfiguration", QVariant::fromValue(name));
 }
 
+void NamedSensorConfigurationGroup::addNamedSensorConfigurationGroup(NamedSensorConfigurationGroup &group)
+{
+    QSettings settings;
+    settings.beginGroup("Sensor_Configuration");
+    settings.beginGroup("configurations");
+    settings.beginGroup(group.name());
+    settings.beginWriteArray("sensors", group.sensorConfigurations().size());
+    int i = 0;
+    for (const auto& configuration: group.sensorConfigurations()) {
+        settings.setArrayIndex(i++);
+        settings.setValue("sensorType",
+                          QVariant::fromValue(static_cast<int>(configuration.sensorType())));
+        settings.setValue("deviceNumber", configuration.deviceNumber());
+    }
+    settings.endArray();
+}
+
+void NamedSensorConfigurationGroup::removeConfigurationGroup(const QString &name)
+{
+    QSettings settings;
+    settings.beginGroup("Sensor_Configuration");
+    settings.beginGroup("configurations");
+    settings.remove(name);
+}
+
 QMap<QString, NamedSensorConfigurationGroup> NamedSensorConfigurationGroup::readFromSettings()
 {
     QSettings settings;

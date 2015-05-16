@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>515</width>
-    <height>440</height>
+    <height>473</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -129,6 +129,11 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <item>
+             <property name="text">
+              <string>-- No Configuration Set --</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item row="0" column="0">
@@ -160,10 +165,17 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="2">
+          <item row="3" column="0" colspan="2">
            <widget class="QPushButton" name="pushButton">
             <property name="text">
              <string>Create New Configuration</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QPushButton" name="deleteConfigurationButton">
+            <property name="text">
+             <string>Delete This Configuration</string>
             </property>
            </widget>
           </item>
@@ -325,8 +337,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>257</x>
-     <y>290</y>
+     <x>266</x>
+     <y>430</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -341,8 +353,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>290</y>
+     <x>334</x>
+     <y>430</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -357,12 +369,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>130</x>
-     <y>58</y>
+     <x>245</x>
+     <y>344</y>
     </hint>
     <hint type="destinationlabel">
-     <x>130</x>
-     <y>96</y>
+     <x>245</x>
+     <y>377</y>
     </hint>
    </hints>
   </connection>

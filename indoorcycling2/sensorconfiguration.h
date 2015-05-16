@@ -52,6 +52,8 @@ public:
 
     static const NamedSensorConfigurationGroup selectedConfigurationGroup();
     static void saveSelectedConfigurationGroup(const QString& name);
+    static void addNamedSensorConfigurationGroup(NamedSensorConfigurationGroup& group);
+    static void removeConfigurationGroup(const QString& name);
     static QMap<QString,NamedSensorConfigurationGroup> readFromSettings();
 private:
     QString _name;
