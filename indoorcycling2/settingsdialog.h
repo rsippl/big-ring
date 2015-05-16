@@ -45,10 +45,6 @@ public:
 private slots:
     void on_unitChooser_currentTextChanged(const QString &arg1);
 
-    void on_robotCheckBox_toggled(bool checked);
-
-    void on_powerSpinBox_valueChanged(int arg1);
-
     void on_weightSpinBox_valueChanged(int arg1);
 
     void fillUsbStickPresentLabel(bool present);
@@ -65,6 +61,7 @@ private:
     void fillSensorLabel(QLabel* label,
                          const QMap<indoorcycling::AntSensorType, indoorcycling::SensorConfiguration> &configurations,
                          const indoorcycling::AntSensorType type);
+    void fillSimulationSettingLabel();
 
     Ui::SettingsDialog *_ui;
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;

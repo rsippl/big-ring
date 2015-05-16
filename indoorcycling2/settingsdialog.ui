@@ -275,47 +275,11 @@
            <height>10</height>
           </size>
          </property>
-         <layout class="QFormLayout" name="formLayout_3">
-          <item row="1" column="0">
-           <widget class="QLabel" name="robotLabel">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="simulationSettingLabel">
             <property name="text">
-             <string>Robot</string>
-            </property>
-            <property name="buddy">
-             <cstring>robotCheckBox</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="robotCheckBox">
-            <property name="text">
-             <string>Use Robot</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Robot Power</string>
-            </property>
-            <property name="buddy">
-             <cstring>powerSpinBox</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QSpinBox" name="powerSpinBox">
-            <property name="suffix">
-             <string> Watts</string>
-            </property>
-            <property name="maximum">
-             <number>500</number>
-            </property>
-            <property name="singleStep">
-             <number>10</number>
-            </property>
-            <property name="value">
-             <number>250</number>
+             <string/>
             </property>
            </widget>
           </item>
@@ -338,7 +302,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>266</x>
-     <y>430</y>
+     <y>463</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -354,27 +318,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>334</x>
-     <y>430</y>
+     <y>463</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
      <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>robotCheckBox</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>powerSpinBox</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>245</x>
-     <y>344</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>245</x>
-     <y>377</y>
     </hint>
    </hints>
   </connection>

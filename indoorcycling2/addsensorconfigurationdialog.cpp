@@ -27,6 +27,7 @@
 using indoorcycling::AntCentralDispatch;
 using indoorcycling::AntSensorType;
 using indoorcycling::NamedSensorConfigurationGroup;
+using indoorcycling::SimulationSetting;
 
 namespace
 {
@@ -80,7 +81,6 @@ AddSensorConfigurationDialog::~AddSensorConfigurationDialog()
 
 void AddSensorConfigurationDialog::fillSensorTypeRow(indoorcycling::AntSensorType sensorType)
 {
-    _currentSearches.insert(sensorType);
     int row = _ui->searchTableWidget->rowCount();
     _ui->searchTableWidget->setRowCount(row + 1);
     QTableWidgetItem* nameColumn = new QTableWidgetItem(
@@ -128,7 +128,12 @@ void AddSensorConfigurationDialog::setConfigurationName(const QString &name)
 void AddSensorConfigurationDialog::saveConfiguration()
 {
     indoorcycling::NamedSensorConfigurationGroup group(_configurationName,
-                                                       _configurations);
+                                                       _configurations,
+                                                       _simulationSetting);
+    if (_simulationSetting == SimulationSetting::FIXED_POWER) {
+        int fixedPower = _ui->powerSpinBox->value();
+        group.setFixedPower(fixedPower);
+    }
     indoorcycling::NamedSensorConfigurationGroup::addNamedSensorConfigurationGroup(group);
 
     // Make sure this new configuration is automatically selected.
@@ -143,6 +148,7 @@ void AddSensorConfigurationDialog::updateSimulationSettings()
     _ui->directPowerButton->setEnabled(powerSensorPresent);
     _ui->directSpeedButton->setEnabled(speedSensorPresent);
     _ui->virtualPowerButton->setEnabled(speedSensorPresent);
+    _ui->fixedPowerButton->setEnabled(true);
 
     if (powerSensorPresent) {
         _ui->directPowerButton->setChecked(true);
@@ -150,6 +156,7 @@ void AddSensorConfigurationDialog::updateSimulationSettings()
         _ui->virtualPowerButton->setChecked(true);
     } else {
         _ui->fixedPowerButton->setChecked(true);
+        _ui->powerSpinBox->setEnabled(true);
     }
 
 }
@@ -259,5 +266,33 @@ void AddSensorConfigurationDialog::updateRow(indoorcycling::AntSensorType sensor
     if (_currentSearches.isEmpty()) {
         _ui->searchSensorsButton->setEnabled(true);
         _ui->simulationSettingsGroupBox->setEnabled(true);
+    }
+}
+
+void AddSensorConfigurationDialog::on_directPowerButton_toggled(bool checked)
+{
+    if (checked) {
+        _simulationSetting = SimulationSetting::DIRECT_POWER;
+    }
+}
+
+void AddSensorConfigurationDialog::on_virtualPowerButton_toggled(bool checked)
+{
+    if (checked) {
+        _simulationSetting = SimulationSetting::VIRTUAL_POWER;
+    }
+}
+
+void AddSensorConfigurationDialog::on_directSpeedButton_toggled(bool checked)
+{
+    if (checked) {
+        _simulationSetting = SimulationSetting::DIRECT_SPEED;
+    }
+}
+
+void AddSensorConfigurationDialog::on_fixedPowerButton_toggled(bool checked)
+{
+    if (checked) {
+        _simulationSetting = SimulationSetting::FIXED_POWER;
     }
 }

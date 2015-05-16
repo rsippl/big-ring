@@ -26,6 +26,13 @@
 
 namespace indoorcycling {
 
+enum class SimulationSetting {
+    FIXED_POWER,
+    DIRECT_POWER,
+    VIRTUAL_POWER,
+    DIRECT_SPEED
+};
+
 class SensorConfiguration
 {
 public:
@@ -46,9 +53,13 @@ public:
      */
     NamedSensorConfigurationGroup();
     NamedSensorConfigurationGroup(const QString&name,
-                                 const QMap<AntSensorType, SensorConfiguration>& sensorConfigurations);
+                                  const QMap<AntSensorType, SensorConfiguration>& sensorConfigurations,
+                                  SimulationSetting simulationSetting);
     const QString& name() const;
     const QMap<AntSensorType, SensorConfiguration>& sensorConfigurations() const;
+    SimulationSetting simulationSetting() const;
+    int fixedPower() const;
+    void setFixedPower(int watts);
 
     static const NamedSensorConfigurationGroup selectedConfigurationGroup();
     static void saveSelectedConfigurationGroup(const QString& name);
@@ -58,6 +69,8 @@ public:
 private:
     QString _name;
     QMap<AntSensorType, SensorConfiguration> _sensorConfigurations;
+    SimulationSetting _simulationSetting;
+    int _fixedPower;
 };
 }
 #endif // SENSORCONFIGURATION_H

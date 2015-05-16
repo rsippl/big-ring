@@ -54,6 +54,14 @@ private slots:
 
     void on_lineEdit_textEdited(const QString &arg1);
 
+    void on_directPowerButton_toggled(bool checked);
+
+    void on_virtualPowerButton_toggled(bool checked);
+
+    void on_directSpeedButton_toggled(bool checked);
+
+    void on_fixedPowerButton_toggled(bool checked);
+
 private:
     void updateRow(indoorcycling::AntSensorType sensorType, bool found,
                    int deviceNumber = -1);
@@ -70,6 +78,7 @@ private:
     QSet<indoorcycling::AntSensorType> _currentSearches;
     QString _configurationName;
     QMap<indoorcycling::AntSensorType,indoorcycling::SensorConfiguration> _configurations;
+    indoorcycling::SimulationSetting _simulationSetting;
 };
 
 #endif // ADDSENSORCDIALOG_H

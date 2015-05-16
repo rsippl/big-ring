@@ -30,6 +30,7 @@
 #include <QtWidgets/QMessageBox>
 
 using indoorcycling::AntCentralDispatch;
+using indoorcycling::SimulationSetting;
 
 namespace {
 
@@ -37,6 +38,16 @@ const char* FOUND = "Found";
 const char* NOT_FOUND = "Not Found";
 
 const char* SENSOR_PRESENT = "Present (device number %1)";
+
+const char* FIXED_POWER_LABEL = "No power measurement. Power fixed to %1 watts.\n"
+        "Road Speed is calculated using this power.";
+const char* DIRECT_POWER_LABEL = "Power measured using power meter."
+        "Road Speed is calculated using this power.";
+const char* DIRECT_SPEED_LABEL = "Speed measured using speed sensor."
+        "This speed is used directly as road speed.";
+const char* VIRTUAL_POWER_LABEL = "Power derived from speed measured using speed sensor and power curve of trainer."
+        "Road speed is calculated using this power.";
+
 }
 
 SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDispatch,
@@ -49,9 +60,6 @@ SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDisp
     QSettings settings;
     _ui->unitChooser->setCurrentText(settings.value("units").toString());
     _ui->weightSpinBox->setValue(settings.value("cyclist.weight", QVariant::fromValue(82)).toInt());
-    _ui->robotCheckBox->setChecked(settings.value("useRobot", QVariant::fromValue(false)).toBool());
-    _ui->powerSpinBox->setValue(settings.value("robotPower", QVariant::fromValue(250)).toInt());
-    _ui->powerSpinBox->setEnabled(_ui->robotCheckBox->isChecked());
 
     fillUsbStickPresentLabel(_antCentralDispatch->antUsbStickPresent());
     connect(_antCentralDispatch, &AntCentralDispatch::antUsbStickScanningFinished, this,
@@ -68,19 +76,6 @@ void SettingsDialog::on_unitChooser_currentTextChanged(const QString &choice)
 {
     QSettings settings;
     settings.setValue("units", choice);
-}
-
-void SettingsDialog::on_robotCheckBox_toggled(bool checked)
-{
-    QSettings settings;
-    settings.setValue("useRobot", QVariant::fromValue(checked));
-    settings.setValue("robotPower", _ui->powerSpinBox->value());
-}
-
-void SettingsDialog::on_powerSpinBox_valueChanged(int robotPower)
-{
-    QSettings settings;
-    settings.setValue("robotPower", QVariant::fromValue(robotPower));
 }
 
 void SettingsDialog::on_weightSpinBox_valueChanged(int cyclistWeight)
@@ -159,6 +154,26 @@ void SettingsDialog::fillSensorLabel(QLabel* label,
     }
 }
 
+void SettingsDialog::fillSimulationSettingLabel()
+{
+    auto configurationGroup =
+            indoorcycling::NamedSensorConfigurationGroup::selectedConfigurationGroup();
+    switch(configurationGroup.simulationSetting()) {
+    case SimulationSetting::FIXED_POWER:
+        _ui->simulationSettingLabel->setText(tr(FIXED_POWER_LABEL).arg(configurationGroup.fixedPower()));
+        break;
+    case SimulationSetting::VIRTUAL_POWER:
+        _ui->simulationSettingLabel->setText(tr(VIRTUAL_POWER_LABEL));
+        break;
+    case SimulationSetting::DIRECT_POWER:
+        _ui->simulationSettingLabel->setText(tr(DIRECT_POWER_LABEL));
+        break;
+    case SimulationSetting::DIRECT_SPEED:
+        _ui->simulationSettingLabel->setText(tr(DIRECT_SPEED_LABEL));
+        break;
+    }
+}
+
 void SettingsDialog::on_antConfigurationChooser_currentIndexChanged(
         const QString &selectedConfiguration)
 {
@@ -171,6 +186,7 @@ void SettingsDialog::reset()
 {
     fillSensorSettingsComboBox();
     fillSensorLabels();
+    fillSimulationSettingLabel();
 }
 
 void SettingsDialog::on_deleteConfigurationButton_clicked()

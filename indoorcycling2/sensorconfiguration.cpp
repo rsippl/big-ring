@@ -51,8 +51,10 @@ NamedSensorConfigurationGroup::NamedSensorConfigurationGroup()
 }
 
 NamedSensorConfigurationGroup::NamedSensorConfigurationGroup(
-        const QString &name, const QMap<AntSensorType, SensorConfiguration> &sensorConfigurations):
-    _name(name), _sensorConfigurations(sensorConfigurations)
+        const QString &name,
+        const QMap<AntSensorType, SensorConfiguration> &sensorConfigurations,
+        SimulationSetting simulationSetting):
+    _name(name), _sensorConfigurations(sensorConfigurations), _simulationSetting(simulationSetting)
 {
     // empty
 }
@@ -65,6 +67,21 @@ const QString &NamedSensorConfigurationGroup::name() const
 const QMap<AntSensorType,SensorConfiguration>& NamedSensorConfigurationGroup::sensorConfigurations() const
 {
     return _sensorConfigurations;
+}
+
+SimulationSetting NamedSensorConfigurationGroup::simulationSetting() const
+{
+    return _simulationSetting;
+}
+
+int NamedSensorConfigurationGroup::fixedPower() const
+{
+    return _fixedPower;
+}
+
+void NamedSensorConfigurationGroup::setFixedPower(int watts)
+{
+    _fixedPower = watts;
 }
 
 const NamedSensorConfigurationGroup NamedSensorConfigurationGroup::selectedConfigurationGroup()
@@ -98,6 +115,11 @@ void NamedSensorConfigurationGroup::addNamedSensorConfigurationGroup(NamedSensor
         settings.setValue("deviceNumber", configuration.deviceNumber());
     }
     settings.endArray();
+    settings.setValue("simulationSetting", QVariant::fromValue(
+                          static_cast<int>(group.simulationSetting())));
+    if (group.simulationSetting() == SimulationSetting::FIXED_POWER) {
+        settings.setValue("fixedPower", QVariant::fromValue(group.fixedPower()));
+    }
 }
 
 void NamedSensorConfigurationGroup::removeConfigurationGroup(const QString &name)
@@ -128,9 +150,16 @@ QMap<QString, NamedSensorConfigurationGroup> NamedSensorConfigurationGroup::read
             sensorConfigurations.insert(sensorType, SensorConfiguration(sensorType, deviceNumber));
         }
         settings.endArray();
-        settings.endGroup();
-        NamedSensorConfigurationGroup group(configurationName, sensorConfigurations);
+
+        SimulationSetting simulationSetting =
+                static_cast<SimulationSetting>(settings.value("simulationSetting").toInt());
+        NamedSensorConfigurationGroup group(configurationName, sensorConfigurations,
+                                            simulationSetting);
+        if (simulationSetting == SimulationSetting::FIXED_POWER) {
+            group.setFixedPower(settings.value("fixedPower").toInt());
+        }
         namedConfigurationGroups[configurationName] = group;
+        settings.endGroup();
     }
     settings.endGroup();
 
