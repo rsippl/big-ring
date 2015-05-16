@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     altitudeprofilewidget.cpp \
     videodetails.cpp \
     createnewcoursedialog.cpp \
-    addsensorconfigurationdialog.cpp
+    addsensorconfigurationdialog.cpp \
+    sensorconfiguration.cpp
 
 HEADERS  += mainwindow.h \
     videolistview.h \
@@ -34,7 +35,8 @@ HEADERS  += mainwindow.h \
     altitudeprofilewidget.h \
     videodetails.h \
     createnewcoursedialog.h \
-    addsensorconfigurationdialog.h
+    addsensorconfigurationdialog.h \
+    sensorconfiguration.h
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib

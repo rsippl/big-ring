@@ -26,6 +26,7 @@
 #include <QtCore/QMap>
 #include <QtCore/QSettings>
 #include <QtCore/QtDebug>
+#include <QtWidgets/QLabel>
 
 using indoorcycling::AntCentralDispatch;
 
@@ -33,6 +34,8 @@ namespace {
 
 const char* FOUND = "Found";
 const char* NOT_FOUND = "Not Found";
+
+const char* SENSOR_PRESENT = "Present (device number %1)";
 }
 
 SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDispatch,
@@ -53,6 +56,7 @@ SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDisp
     connect(_antCentralDispatch, &AntCentralDispatch::antUsbStickScanningFinished, this,
             &SettingsDialog::fillUsbStickPresentLabel);
     fillSensorSettingsComboBox();
+    fillSensorLabels();
 }
 
 SettingsDialog::~SettingsDialog()
@@ -99,21 +103,51 @@ void SettingsDialog::on_pushButton_clicked()
 
 void SettingsDialog::fillSensorSettingsComboBox()
 {
-    QSettings settings;
-    settings.beginGroup("Sensor_Configuration");
-    settings.beginGroup("configurations");
-    const QStringList configurationNames = settings.childGroups();
-    _ui->antConfigurationChooser->addItems(configurationNames);
-    settings.endGroup();
-    const QString currentConfiguration = settings.value("selectedConfiguration").toString();
-    if (!configurationNames.isEmpty()) {
-        if (currentConfiguration.isNull() || !configurationNames.contains(currentConfiguration)) {
-            _ui->antConfigurationChooser->setCurrentIndex(0);
+    QMap<QString,indoorcycling::NamedSensorConfigurationGroup> configurationGroups =
+            indoorcycling::NamedSensorConfigurationGroup::readFromSettings();
+    _ui->antConfigurationChooser->addItems(configurationGroups.keys());
+
+    const QString currentConfigurationName =
+            indoorcycling::NamedSensorConfigurationGroup::selectedConfigurationGroup().name();
+
+    if (!configurationGroups.isEmpty()) {
+        if (configurationGroups.contains(currentConfigurationName)) {
+            _ui->antConfigurationChooser->setCurrentText(currentConfigurationName);
         } else {
-            _ui->antConfigurationChooser->setCurrentText(currentConfiguration);
+            _ui->antConfigurationChooser->setCurrentIndex(0);
         }
     }
-    settings.endGroup();
+}
+
+void SettingsDialog::fillSensorLabels()
+{
+    auto configurationGroup =
+            indoorcycling::NamedSensorConfigurationGroup::selectedConfigurationGroup();
+    auto configurations = configurationGroup.sensorConfigurations();
+    fillSensorLabel(_ui->hrSensorLabel, configurations,
+                    indoorcycling::AntSensorType::SENSOR_TYPE_HR);
+    fillSensorLabel(_ui->cadenceSensorLabel, configurations,
+                    indoorcycling::AntSensorType::SENSOR_TYPE_CADENCE);
+    fillSensorLabel(_ui->speedSensorLabel, configurations,
+                    indoorcycling::AntSensorType::SENSOR_TYPE_SPEED);
+    fillSensorLabel(_ui->speedAndCadenceSensorLabel, configurations,
+                    indoorcycling::AntSensorType::SENSOR_TYPE_SPEED_AND_CADENCE);
+    fillSensorLabel(_ui->powerSensorLabel, configurations,
+                    indoorcycling::AntSensorType::SENSOR_TYPE_POWER);
+
+}
+
+void SettingsDialog::fillSensorLabel(QLabel* label,
+                                     const QMap<indoorcycling::AntSensorType,
+                                        indoorcycling::SensorConfiguration>& configurations,
+                                     const indoorcycling::AntSensorType type)
+{
+    if (configurations.contains(type)) {
+        int deviceNumber = configurations[type].deviceNumber();
+        label->setText(tr(SENSOR_PRESENT).arg(deviceNumber));
+    } else {
+        label->setText("-");
+    }
 }
 
 void SettingsDialog::on_antConfigurationChooser_currentIndexChanged(
@@ -122,4 +156,6 @@ void SettingsDialog::on_antConfigurationChooser_currentIndexChanged(
     QSettings settings;
     settings.beginGroup("Sensor_Configuration");
     settings.setValue("selectedConfiguration", QVariant::fromValue(selectedConfiguration));
+
+    fillSensorLabels();
 }

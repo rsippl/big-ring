@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>478</width>
-    <height>295</height>
+    <width>515</width>
+    <height>440</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -48,77 +48,61 @@
       <attribute name="title">
        <string>General</string>
       </attribute>
-      <widget class="QGroupBox" name="groupBox">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>20</y>
-         <width>382</width>
-         <height>163</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string>Settings</string>
-       </property>
-       <layout class="QFormLayout" name="formLayout">
-        <property name="fieldGrowthPolicy">
-         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-        </property>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label">
+      <layout class="QFormLayout" name="formLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Unit System</string>
+         </property>
+         <property name="buddy">
+          <cstring>unitChooser</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="unitChooser">
+         <item>
           <property name="text">
-           <string>Unit System</string>
+           <string>Metric</string>
           </property>
-          <property name="buddy">
-           <cstring>unitChooser</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QComboBox" name="unitChooser">
-          <item>
-           <property name="text">
-            <string>Metric</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Imperial</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_3">
+         </item>
+         <item>
           <property name="text">
-           <string>Cyclist's Weight</string>
+           <string>Imperial</string>
           </property>
-          <property name="buddy">
-           <cstring>weightSpinBox</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QSpinBox" name="weightSpinBox">
-          <property name="toolTip">
-           <string>The weight of the cyclist, including bike</string>
-          </property>
-          <property name="whatsThis">
-           <string>The weight of the cyclist, including bike</string>
-          </property>
-          <property name="suffix">
-           <string extracomment="weight in kg"> kg</string>
-          </property>
-          <property name="minimum">
-           <number>8</number>
-          </property>
-          <property name="maximum">
-           <number>200</number>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Cyclist's Weight</string>
+         </property>
+         <property name="buddy">
+          <cstring>weightSpinBox</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="weightSpinBox">
+         <property name="toolTip">
+          <string>The weight of the cyclist, including bike</string>
+         </property>
+         <property name="whatsThis">
+          <string>The weight of the cyclist, including bike</string>
+         </property>
+         <property name="suffix">
+          <string extracomment="weight in kg"> kg</string>
+         </property>
+         <property name="minimum">
+          <number>8</number>
+         </property>
+         <property name="maximum">
+          <number>200</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -180,6 +164,85 @@
            <widget class="QPushButton" name="pushButton">
             <property name="text">
              <string>Create New Configuration</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Sensors</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_2">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Heart Rate</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="hrSensorLabel">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Cadence</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Speed</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Speed And Cadence</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Power</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="cadenceSensorLabel">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="speedSensorLabel">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="speedAndCadenceSensorLabel">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="powerSensorLabel">
+            <property name="text">
+             <string>-</string>
             </property>
            </widget>
           </item>
@@ -253,10 +316,6 @@
    </item>
   </layout>
  </widget>
- <tabstops>
-  <tabstop>unitChooser</tabstop>
-  <tabstop>weightSpinBox</tabstop>
- </tabstops>
  <resources/>
  <connections>
   <connection>

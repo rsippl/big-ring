@@ -22,11 +22,12 @@
 #define SETTINGSDIALOG_H
 
 #include <QtCore/QSet>
-#include <QtCore/QSettings>
 #include <QtWidgets/QDialog>
+#include <QtWidgets/QLabel>
 
 #include "antcentraldispatch.h"
 #include "antsensortype.h"
+#include "sensorconfiguration.h"
 
 namespace Ui {
 class SettingsDialog;
@@ -57,6 +58,11 @@ private slots:
 
 private:
     void fillSensorSettingsComboBox();
+    void fillSensorLabels();
+    void fillSensorLabel(QLabel* label,
+                         const QMap<indoorcycling::AntSensorType, indoorcycling::SensorConfiguration> &configurations,
+                         const indoorcycling::AntSensorType type);
+
     Ui::SettingsDialog *_ui;
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
 };
