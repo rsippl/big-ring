@@ -110,7 +110,9 @@ void AntChannelHandler::handleBroadcastEvent(const BroadCastMessage &broadcastMe
     } else if (_state == CHANNEL_TRACKING) {
         handleBroadCastMessage(broadcastMessage);
     } else {
-        qDebug() << "Did not expect a broad cast message in state" << CHANNEL_STATE_STRINGS[_state];
+        qDebug() << "Did not expect a broad cast message in state"
+                 << CHANNEL_STATE_STRINGS[_state]
+                    << QString("data page = %1").arg(QString::number(broadcastMessage.dataPage()));
     }
 }
 
@@ -177,8 +179,7 @@ void AntChannelHandler::advanceState(const AntMessage2::AntMessageId messageId)
         break;
     case CHANNEL_CLOSED:
         assertMessageId(AntMessage2::AntMessageId::CLOSE_CHANNEL, messageId);
-        emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
-        setState(CHANNEL_UNASSIGNED);
+        // we have to wait for a "channel closed message from the ant+ adapter
         break;
     case CHANNEL_UNASSIGNED:
         assertMessageId(AntMessage2::AntMessageId::UNASSIGN_CHANNEL, messageId);
