@@ -53,7 +53,7 @@ private:
     void handleCadence(const QVariant& sensorValue);
     void handlePower(const QVariant& sensorValue);
     void handleWheelSpeed(const QVariant& sensorValue);
-    int calculatePower(const float wheelSpeedRpm);
+    int calculatePower(const float wheelSpeedRpm) const;
 
     AntCentralDispatch* const _antCentralDispatch;
     const NamedSensorConfigurationGroup _sensorConfigurationGroup;
