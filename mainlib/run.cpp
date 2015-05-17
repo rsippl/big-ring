@@ -52,7 +52,7 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
 
 Run::~Run()
 {
-    // empty
+    _antCentralDispatch->closeAllChannels();
 }
 
 const Simulation &Run::simulation() const
