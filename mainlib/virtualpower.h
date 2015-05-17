@@ -17,38 +17,26 @@
  * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-#ifndef ALTITUDEPROFILEWIDGET_H
-#define ALTITUDEPROFILEWIDGET_H
+#ifndef VIRTUALPOWER_H
+#define VIRTUALPOWER_H
 
-#include <QWidget>
+#include <functional>
+#include <QtCore/QMap>
+#include <QtCore/QString>
+namespace indoorcycling {
 
-#include "reallifevideo.h"
-
-class ProfilePainter;
-
-namespace Ui {
-class AltitudeProfileWidget;
-}
-
-class AltitudeProfileWidget : public QWidget
-{
-    Q_OBJECT
-
-public:
-    explicit AltitudeProfileWidget(QWidget *parent = 0);
-    ~AltitudeProfileWidget();
-public slots:
-    void setVideo(RealLifeVideo& rlv);
-    void setCourseIndex(const int courseIndex);
-    void setStartAndEndDistance(qreal startDistance, qreal endDistance);
-protected:
-    virtual void paintEvent(QPaintEvent *) override;
-private:
-    ProfilePainter* _profilePainter;
-    RealLifeVideo _currentRlv;
-    qreal _startDistance;
-    qreal _endDistance;
-    Ui::AltitudeProfileWidget *ui;
+enum class VirtualPowerTrainer {
+    KURT_KINETIC_ROAD_MACHINE = 1,
+    CYCLEOPS_FLUID_2 = 100
 };
 
-#endif // ALTITUDEPROFILEWIDGET_H
+const QMap<VirtualPowerTrainer,QString> VIRTUAL_POWER_TRAINERS =
+        QMap<VirtualPowerTrainer,QString>(
+{{VirtualPowerTrainer::KURT_KINETIC_ROAD_MACHINE, "Kurt Kinetic Road Machine & Rock 'n' Roll"},
+ {VirtualPowerTrainer::CYCLEOPS_FLUID_2, "Saris Cycleops Fluid2"}});
+
+typedef std::function<float(float)> VirtualPowerFunctionType;
+VirtualPowerFunctionType virtualPowerFunctionForTrainer(VirtualPowerTrainer trainer);
+}
+
+#endif // VIRTUALPOWER_H

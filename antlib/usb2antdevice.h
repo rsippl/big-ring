@@ -38,6 +38,15 @@ struct Usb2DeviceConfiguration;
  */
 AntDeviceType findAntDeviceType();
 
+/**
+ * We use a worker which runs on different thread to perform the actual
+ * reading and writing. We do this to make sure that we don't block Qt's
+ * event loop. We could be blocking it, because we're using libusb's
+ * synchronous interface.
+ * Instead, reading and writing takes place on it's own thread. Communication
+ * between the main thread and the worker thread is done using signals and
+ * slots.
+ */
 class Usb2AntDeviceWorker: public QObject
 {
     Q_OBJECT

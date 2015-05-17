@@ -1,13 +1,38 @@
-#include <QtCore/QCoreApplication>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QStyleFactory>
 #include <QtCore/QtDebug>
-#include "antcontroller.h"
+#include "antsensortype.h"
+#include "antcentraldispatch.h"
+#include "anttestappmainwindow.h"
+
+using indoorcycling::AntCentralDispatch;
+using indoorcycling::AntTestAppMainWindow;
 int main(int argc, char** argv)
 {
-    QCoreApplication a(argc, argv);
+    QApplication a(argc, argv);
+    a.setStyle(QStyleFactory::create("Fusion"));
 
-    qDebug() << "Starting";
+    AntTestAppMainWindow mainWindow;
+    AntCentralDispatch acd;
 
-    ANTController* controller = new ANTController;
-//    QObject::connect(controller, &ANTController::destroyed, &a, &QCoreApplication::quit);
+    QObject::connect(&acd, &AntCentralDispatch::antUsbStickScanningFinished, &mainWindow,
+                     &AntTestAppMainWindow::antUsbStickFound);
+    QObject::connect(&acd, &AntCentralDispatch::initializationFinished, &mainWindow,
+                     &AntTestAppMainWindow::initializationFinished);
+//    QObject::connect(&acd, &AntCentralDispatch::initializationFinished, &acd, [&acd](bool success) {
+//        if (success) {
+//            acd.searchForSensorType(indoorcycling::CHANNEL_TYPE_HR);
+//        }
+//    });
+    QObject::connect(&mainWindow, &AntTestAppMainWindow::startSearch, &acd, &AntCentralDispatch::searchForSensorType);
+    QObject::connect(&acd, &AntCentralDispatch::searchStarted, &mainWindow, &AntTestAppMainWindow::searchStarted);
+    QObject::connect(&acd, &AntCentralDispatch::sensorNotFound, &mainWindow,
+                     &AntTestAppMainWindow::searchTimedOut);
+    QObject::connect(&acd, &AntCentralDispatch::sensorFound, &mainWindow,
+                     &AntTestAppMainWindow::setSensor);
+
+    acd.initialize();
+
+    mainWindow.show();
     a.exec();
 }

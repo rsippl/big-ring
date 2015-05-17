@@ -32,7 +32,7 @@ public:
 public slots:
     void submitBytes(QByteArray bytes);
 signals:
-    void antMessageReceived(QByteArray messageBytes);
+    void antMessageReceived(const QByteArray& messageBytes);
 private:
     bool messageIsTooShort(const QByteArray &messageBytes, int length);
     bool checksumIsOk(const QByteArray& messageBytes);

@@ -26,7 +26,7 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QStackedWidget>
 
-#include "antcontroller.h"
+#include "antcentraldispatch.h"
 #include "reallifevideo.h"
 #include "reallifevideoimporter.h"
 
@@ -61,7 +61,7 @@ private:
 
     RealLifeVideoImporter *_importer;
 
-    ANTController* _antController;
+    indoorcycling::AntCentralDispatch* const _antCentralDispatch;
     QScopedPointer<Run,QScopedPointerDeleteLater> _run;
 
     QMenuBar* const _menuBar;

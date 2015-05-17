@@ -7,14 +7,16 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 SOURCES += \
-    ANT.cpp \
-    ANTChannel.cpp \
-    antcontroller.cpp \
     antdevice.cpp \
     antdevicefinder.cpp \
     antmessagegatherer.cpp \
     usb2antdevice.cpp \
-    antmessage2.cpp
+    antmessage2.cpp \
+    antcentraldispatch.cpp \
+    antchannelhandler.cpp \
+    antheartratechannelhandler.cpp \
+    antpowerchannelhandler.cpp \
+    antspeedandcadencechannelhandler.cpp
 
 linux {
     SOURCES += core.c
@@ -22,14 +24,17 @@ linux {
 }
 
 HEADERS += \
-    ANT.h \
-    ANTChannel.h \
-    antcontroller.h \
     antdevice.h \
     antdevicefinder.h \
     antmessagegatherer.h \
     usb2antdevice.h \
-    antmessage2.h
+    antmessage2.h \
+    antcentraldispatch.h \
+    antchannelhandler.h \
+    antsensortype.h \
+    antheartratechannelhandler.h \
+    antpowerchannelhandler.h \
+    antspeedandcadencechannelhandler.h
 
 win32 {
     HEADERS += usbexpressantdevice.h

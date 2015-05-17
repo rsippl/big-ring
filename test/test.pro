@@ -8,12 +8,14 @@ TARGET = tests
 
 SOURCES += \
     antmessage2test.cpp \
-    main.cpp
+    main.cpp \
+    virtualpowertest.cpp
 
 
 HEADERS += \
     antmessage2test.h \
-    common.h
+    common.h \
+    virtualpowertest.h
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../antlib/release/ -lantlib

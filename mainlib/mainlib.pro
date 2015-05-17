@@ -26,7 +26,10 @@ HEADERS += \
     run.h \
     screensaverblocker.h \
     profilepainter.h \
-    quantityprinter.h
+    quantityprinter.h \
+    sensorconfiguration.h \
+    sensors.h \
+    virtualpower.h
 
 SOURCES += \
     cyclist.cpp \
@@ -45,7 +48,10 @@ SOURCES += \
     run.cpp \
     screensaverblocker.cpp \
     profilepainter.cpp \
-    quantityprinter.cpp
+    quantityprinter.cpp \
+    sensorconfiguration.cpp \
+    sensors.cpp \
+    virtualpower.cpp
 
 
 

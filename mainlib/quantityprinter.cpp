@@ -21,8 +21,8 @@
 #include "quantityprinter.h"
 #include <QtCore/QtDebug>
 namespace {
-const double METERS_PER_MILE = 1609.344;
-const double MILES_PER_METER = 1.0 / METERS_PER_MILE;
+const double MILES_PER_METERS = 1609.344;
+const double MILES_PER_METER = 1.0 / MILES_PER_METERS;
 // meters per second to miles per hour.
 const double MPH_PER_MPS = MILES_PER_METER * 3600;
 
@@ -57,7 +57,7 @@ QString QuantityPrinter::unitString(QuantityPrinter::Quantity quantity, Quantity
 QString QuantityPrinter::unitForDistance(QuantityPrinter::Precision precision, QVariant value) const
 {
     if (system() == ImperialSystem) {
-        if (precision == Precise && value.toReal() < METERS_PER_MILE) {
+        if (precision == Precise && value.toReal() < MILES_PER_METERS) {
             return "Y";
         }
         return "Mi";
@@ -91,7 +91,7 @@ QString QuantityPrinter::print(QVariant value, QuantityPrinter::Quantity quantit
 QString QuantityPrinter::printDistance(qreal meters, Precision precision, int width) const
 {
     if (system() == ImperialSystem) {
-        if (precision == Precise && meters < METERS_PER_MILE) {
+        if (precision == Precise && meters < MILES_PER_METERS) {
             return QString("%1").arg(meters * YARDS_PER_METER, width, 'f', 0);
         }
         return QString("%1").arg(meters * MILES_PER_METER, width, 'f', 2);

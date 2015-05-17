@@ -20,7 +20,6 @@
 
 #include "antmessage2.h"
 #include "antmessagegatherer.h"
-#include "ANT.h"
 
 AntMessageGatherer::AntMessageGatherer(QObject *parent) :
     QObject(parent)

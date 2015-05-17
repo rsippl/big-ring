@@ -18,35 +18,46 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "run.h"
-
-#include "antcontroller.h"
 #include "newvideowidget.h"
+#include "run.h"
+#include "sensorconfiguration.h"
+#include "sensors.h"
 
 #include <QtCore/QTimer>
 #include <QtCore/QtDebug>
 
-Run::Run(const ANTController& antController, RealLifeVideo& rlv, Course& course, QObject* parent) :
-    QObject(parent), _antController(antController), _rlv(rlv), _course(course)
+using indoorcycling::AntCentralDispatch;
+using indoorcycling::NamedSensorConfigurationGroup;
+using indoorcycling::Sensors;
+
+Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& rlv, Course& course, QObject* parent) :
+    QObject(parent), _antCentralDispatch(antCentralDispatch), _rlv(rlv), _course(course)
 {
     QSettings settings;
     const int weight = settings.value("cyclist.weight", QVariant::fromValue(82)).toInt();
    _cyclist = new Cyclist(weight, this);
 
-   _simulation = new Simulation(*_cyclist, this);
+    NamedSensorConfigurationGroup sensorConfigurationGroup =
+            NamedSensorConfigurationGroup::selectedConfigurationGroup();
 
-    qDebug() << "new run";
+   _simulation = new Simulation(sensorConfigurationGroup.simulationSetting(), *_cyclist, this);
+
     _simulation->rlvSelected(rlv);
     _simulation->courseSelected(course);
 
-    connect(&antController, &ANTController::heartRateMeasured, &_simulation->cyclist(), &Cyclist::setHeartRate);
-    connect(&antController, &ANTController::cadenceMeasured, &_simulation->cyclist(), &Cyclist::setCadence);
-    connect(&antController, &ANTController::powerMeasured, &_simulation->cyclist(), &Cyclist::setPower);
+    indoorcycling::Sensors* sensors = new indoorcycling::Sensors(_antCentralDispatch,
+                                                                 sensorConfigurationGroup);
+
+    connect(sensors, &Sensors::heartRateBpmMeasured, _simulation, &Simulation::setHeartRate);
+    connect(sensors, &Sensors::cadenceRpmMeasured, _simulation, &Simulation::setCadence);
+    connect(sensors, &Sensors::powerWattsMeasured, _simulation, &Simulation::setPower);
+    connect(sensors, &Sensors::wheelSpeedMpsMeasured, _simulation, &Simulation::setWheelSpeed);
+    sensors->initialize();
 }
 
 Run::~Run()
 {
-    // empty
+    _antCentralDispatch->closeAllChannels();
 }
 
 const Simulation &Run::simulation() const
@@ -73,10 +84,6 @@ void Run::start()
 {
     _running = true;
     _simulation->play(true);
-    QSettings settings;
-    if (settings.value("useRobot", QVariant::fromValue(false)).toBool()) {
-        startRobot(settings);
-    }
 }
 
 void Run::play()
@@ -93,19 +100,5 @@ void Run::stop()
 void Run::pause()
 {
     _simulation->play(false);
-}
-
-void Run::startRobot(const QSettings& settings)
-{
-    const int powerValue = settings.value("robotPower").toInt();
-
-    QTimer* startTimer = new QTimer(this);
-    connect(startTimer, &QTimer::timeout, startTimer, [=]() {
-        _cyclist->setPower(powerValue);
-        _cyclist->setCadence(80);
-        _cyclist->setHeartRate(150);
-    });
-    startTimer->setSingleShot(true);
-    startTimer->start(1000);
 }
 

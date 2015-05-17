@@ -38,11 +38,12 @@
 MainWindow::MainWindow(QString dir, QWidget *parent) :
     QWidget(parent, Qt::Window),
     _importer(new RealLifeVideoImporter(this)),
-    _antController(new ANTController(this)),
+    _antCentralDispatch(new indoorcycling::AntCentralDispatch(this)),
     _menuBar(new QMenuBar),
     _stackedWidget(new QStackedWidget),
-    _listView(new VideoListView)
+    _listView(new VideoListView(_antCentralDispatch))
 {
+    _antCentralDispatch->initialize();
     setupMenuBar();
     QVBoxLayout* layout = new QVBoxLayout;
     layout->setContentsMargins(0, 0, 0, 0);
@@ -109,7 +110,7 @@ void MainWindow::setupMenuBar()
 
     QAction* showPreferencesAction = new QAction(tr("Preferences"), this);
     connect(showPreferencesAction, &QAction::triggered, showPreferencesAction, [=]() {
-        SettingsDialog dialog(this);
+        SettingsDialog dialog(_antCentralDispatch, this);
         dialog.exec();
         update();
     });
@@ -127,7 +128,7 @@ void MainWindow::setupMenuBar()
 void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
 {
     Course course = rlv.courses()[courseNr];
-    _run.reset(new Run(*_antController, rlv, course));
+    _run.reset(new Run(_antCentralDispatch, rlv, course));
     _videoWidget.reset(new NewVideoWidget);
     _videoWidget->setRealLifeVideo(rlv);
     _videoWidget->setCourseIndex(courseNr);
@@ -148,12 +149,18 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     });
     connect(_run.data(), &Run::stopped, _run.data(), [this]() {
         qDebug() << "run finished";
+        bool maximize = isFullScreen();
         _run.reset();
         _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
         _stackedWidget->removeWidget(_videoWidget.data());
         _videoWidget.reset();
-        showNormal();
+        if (maximize) {
+            showMaximized();
+        } else {
+            showNormal();
+        }
         setGeometry(_savedGeometry);
+        raise();
     });
 }
 

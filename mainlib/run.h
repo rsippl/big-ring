@@ -27,6 +27,7 @@
 #include "reallifevideo.h"
 #include "cyclist.h"
 #include "simulation.h"
+#include "antcentraldispatch.h"
 
 class ANTController;
 class NewVideoWidget;
@@ -35,7 +36,7 @@ class Run : public QObject
 {
     Q_OBJECT
 public:
-    explicit Run(const ANTController& antController, RealLifeVideo& rlv, Course& course, QObject *parent = 0);
+    explicit Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& rlv, Course& course, QObject *parent = 0);
     virtual ~Run();
 
     const Simulation& simulation() const;
@@ -50,9 +51,7 @@ public slots:
     void pause();
 
 private:
-    void startRobot(const QSettings &settings);
-
-    const ANTController& _antController;
+    indoorcycling::AntCentralDispatch* const _antCentralDispatch;
     RealLifeVideo _rlv;
     Course _course;
     Cyclist* _cyclist;

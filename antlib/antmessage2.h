@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2015 Ilja Booij (ibooij@gmail.com)
+ *
+ * This file is part of Big Ring Indoor Video Cycling
+ *
+ * Big Ring Indoor Video Cycling is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Big Ring Indoor Video Cycling  is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with Big Ring Indoor Video Cycling.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
 #ifndef ANTMESSAGE2_H
 #define ANTMESSAGE2_H
 
@@ -23,11 +42,12 @@ public:
     static const quint16 ANT_PLUS_CHANNEL_FREQUENCY = 2457; // Mhz
 
     /** message ids (in alphabetic order) */
-    enum AntMessageId {
+    enum class AntMessageId: quint8 {
         INVALID = 0x0,
         ASSIGN_CHANNEL = 0x42,
         BROADCAST_EVENT = 0x4e,
         CHANNEL_EVENT = 0x40,
+        CLOSE_CHANNEL = 0x4c,
         OPEN_CHANNEL = 0x4b,
         REQUEST_MESSAGE = 0x4d,
         SET_CHANNEL_FREQUENCY = 0x45,
@@ -53,6 +73,7 @@ public:
 
     // static factory methods for different messages
     static AntMessage2 assignChannel(quint8 channelNumber, quint8 channelType = 0, quint8 networkNumber = ANT_PLUS_NETWORK_NUMBER);
+    static AntMessage2 closeChannel(quint8 channelNumber);
     static AntMessage2 openChannel(quint8 channelNumber);
     static AntMessage2 requestMessage(quint8 channelNumber, AntMessageId messageId);
     static AntMessage2 setChannelFrequency(quint8 channelNumber, quint16 frequency = ANT_PLUS_CHANNEL_FREQUENCY);
@@ -74,6 +95,7 @@ public:
      */
     static AntMessage2 setNetworkKey(quint8 networkNumber, const std::array<quint8, 8> &networkKey);
     static AntMessage2 setSearchTimeout(quint8 channelNumber, int seconds);
+    static AntMessage2 setInfiniteSearchTimeout(quint8 channelNumber);
     static AntMessage2 systemReset();
     static AntMessage2 unassignChannel(quint8 channelNumber);
 
@@ -100,12 +122,17 @@ private:
     QByteArray _content;
 };
 
+/**
+ * output an AntMessage2::AntMessageId as a string. This outputs the id as a hex string.
+ */
+const QString antMessageIdToString(const AntMessage2::AntMessageId messageId);
+
 class AntChannelEventMessage: public AntMessage2
 {
 public:
     AntChannelEventMessage(const QByteArray& bytes);
 
-    enum MessageCode {
+    enum class MessageCode: quint8 {
         EVENT_CHANNEL_IN_WRONG_STATE = 0x15,
         EVENT_CHANNEL_CLOSED = 0x07,
         EVENT_CHANNEL_COLLISION = 0x09,
@@ -113,18 +140,30 @@ public:
         EVENT_CHANNEL_RX_FAIL = 0x02,
         EVENT_CHANNEL_RX_SEARCH_TIMEOUT = 0x01
     };
-
+    static const QString antMessageCodeToString(const MessageCode messageCode);
     quint8 channelNumber() const;
-    quint8 messageId() const;
+    AntMessageId messageId() const;
     MessageCode messageCode() const;
 
     virtual QString toString() const override;
 private:
     quint8 _channelNumber;
-    quint8 _messageId;
+    AntMessageId _messageId;
     MessageCode _messageCode;
 };
 
+
+
+/**
+ * Set Channel ID message
+ *
+ * Bytes:
+ * 0 channel number
+ * 1-2 device numbers
+ * 3 first bit (MSB) pairing bit.
+ * 3 7 LSB bits device type id
+ * 4 transmission type.
+ */
 class SetChannelIdMessage
 {
 public:
@@ -132,6 +171,7 @@ public:
 
     quint8 channelNumber() const;
     quint16 deviceNumber() const;
+    bool pairing() const;
     quint8 deviceTypeId() const;
     quint8 transmissionType() const;
 
@@ -143,14 +183,12 @@ private:
 class BroadCastMessage
 {
 public:
-    BroadCastMessage(const AntMessage2& antMessage);
+    BroadCastMessage(const AntMessage2& antMessage = AntMessage2());
 
+    bool isNull() const;
     quint8 channelNumber() const;
     quint8 dataPage() const;
     const AntMessage2 &antMessage() const;
-
-    template<class T>
-    T toSpecificBroadCastMessage() const;
 protected:
     AntMessage2 _antMessage;
 private:
@@ -180,7 +218,7 @@ public:
      * @param antMessage the ANT+ broadcast message.
      * @return An HeartRateMessage.
      */
-    HeartRateMessage(const AntMessage2& antMessage);
+    HeartRateMessage(const AntMessage2& antMessage = AntMessage2());
 
     quint16 measurementTime() const;
     quint8 heartBeatCount() const;
@@ -213,7 +251,7 @@ public:
      * @param antMessage the ANT+ broadcast message.
      * @return a PowerMessage
      */
-    PowerMessage(const AntMessage2& antMessage);
+    PowerMessage(const AntMessage2& antMessage = AntMessage2());
 
     bool isPowerOnlyPage() const;
 
@@ -279,9 +317,4 @@ public:
     quint16 pedalRevolutions() const;
 };
 
-template<class T>
-T BroadCastMessage::toSpecificBroadCastMessage() const
-{
-    return T(_antMessage);
-}
 #endif // ANTMESSAGE2_H

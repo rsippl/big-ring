@@ -20,6 +20,8 @@
 
 #include "usb2antdevice.h"
 #include <QtDebug>
+#include <QtCore/QMutex>
+#include <QtCore/QMutexLocker>
 #include <QtCore/QThread>
 
 extern "C" {
@@ -87,6 +89,7 @@ AntDeviceType findAntDeviceType()
  */
 struct Usb2DeviceConfiguration
 {
+    QMutex mutex;
     struct usb_dev_handle* deviceHandle;
     int readEndpoint;
     int writeEndpoint;
@@ -112,12 +115,16 @@ Usb2AntDevice::Usb2AntDevice(QObject *parent) :
 }
 
 Usb2AntDevice::~Usb2AntDevice() {
+    qDebug() << "Usb2AntDevice stopping worker";
     _workerThread->quit();
     _workerThread->wait(1000);
+
+    QMutexLocker locker(&_deviceConfiguration->mutex);
     if (_deviceConfiguration) {
         usb_release_interface(_deviceConfiguration->deviceHandle, _deviceConfiguration->interface);
         usb_close(_deviceConfiguration->deviceHandle);
     }
+    qDebug() << "Usb2AntDevice stopped worker";
 }
 
 bool Usb2AntDevice::isValid() const
@@ -155,7 +162,7 @@ Usb2AntDeviceWorker::Usb2AntDeviceWorker(Usb2DeviceConfiguration *deviceConfigur
 
 void Usb2AntDeviceWorker::initialize()
 {
-    qDebug() << "initiaizing worker";
+    qDebug() << "initializing worker";
     // try to empty the buffer of the device, if needed. We do not want any bytes that are read now to be
     // emitted, so we'll block signals when doing this initial read.
     blockSignals(true);
@@ -165,6 +172,7 @@ void Usb2AntDeviceWorker::initialize()
     _readTimer->setInterval(50);
     connect(_readTimer, &QTimer::timeout, this, &Usb2AntDeviceWorker::read);
     _readTimer->start();
+    qDebug() << "initializing worker finished";
     emit workerReady();
 }
 
@@ -174,6 +182,7 @@ void Usb2AntDeviceWorker::read()
         qWarning("Trying to write without a connection to a USB device");
         return;
     }
+    QMutexLocker lock(&_deviceConfiguration->mutex);
     QByteArray bytes;
     bool bytesAvailable = true;
     int loopNr = 0;
@@ -196,7 +205,9 @@ void Usb2AntDeviceWorker::read()
         }
         loopNr += 1;
     }
-    emit bytesRead(bytes);
+    if (!bytes.isEmpty()) {
+        emit bytesRead(bytes);
+    }
 }
 
 void Usb2AntDeviceWorker::write(const QByteArray &bytes)
@@ -204,6 +215,7 @@ void Usb2AntDeviceWorker::write(const QByteArray &bytes)
     if (!_deviceConfiguration) {
         qWarning("Trying to read without a connection to a USB device");
     }
+    QMutexLocker lock(&_deviceConfiguration->mutex);
     int written;
 #ifdef Q_OS_WIN
     written = usb_interrupt_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 10);
@@ -212,7 +224,6 @@ void Usb2AntDeviceWorker::write(const QByteArray &bytes)
     if (written < 0) {
         qWarning("usb error: %s", usb_strerror());
     }
-    qDebug() << "wrote" << written << "bytes";
 #endif
     emit bytesWritten(written);
 }
@@ -228,8 +239,6 @@ void initializeUsb()
         usb_set_debug(255);
         usb_init();
 
-        usb_find_busses();
-        usb_find_devices();
         usbInitialized = true;
     }
 }
@@ -237,6 +246,9 @@ void initializeUsb()
 struct usb_device *findAntStick()
 {
     initializeUsb();
+    usb_find_busses();
+    usb_find_devices();
+
     struct usb_bus* bus;
     struct usb_device* device;
 
@@ -244,10 +256,12 @@ struct usb_device *findAntStick()
         for (device = bus->devices; device; device = device->next) {
             if (device->descriptor.idVendor == indoorcycling::GARMIN_USB_VENDOR_ID &&
                     VALID_PRODUCT_IDS.contains(device->descriptor.idProduct)) {
+                qDebug() << "findAntStick(): returning device";
                 return device;
             }
         }
     }
+    qDebug() << "findAntStick(): returning null pointer";
     return nullptr;
 }
 

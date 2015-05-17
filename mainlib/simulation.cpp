@@ -57,8 +57,9 @@ float calculateGravityForce(const Cyclist& cyclist, float grade)
 
 
 
-Simulation::Simulation(Cyclist &cyclist, QObject *parent) :
-    QObject(parent), _lastElapsed(0), _simulationTime(0,0,0), _idleTime(),_cyclist(cyclist)
+Simulation::Simulation(indoorcycling::SimulationSetting simulationSetting, Cyclist &cyclist, QObject *parent) :
+    QObject(parent), _simulationSetting(simulationSetting),
+    _lastElapsed(0), _simulationTime(0,0,0), _idleTime(),_cyclist(cyclist)
 {
     _simulationUpdateTimer.setInterval(1000 / 30);
     connect(&_simulationUpdateTimer, SIGNAL(timeout()), SLOT(simulationStep()));
@@ -142,8 +143,33 @@ void Simulation::courseSelected(const Course &course)
     _cyclist.setDistance(course.start());
 }
 
+void Simulation::setPower(int power)
+{
+    _cyclist.setPower(power);
+}
+
+void Simulation::setCadence(float cadenceRpm)
+{
+    _cyclist.setCadence(cadenceRpm);
+}
+
+void Simulation::setWheelSpeed(float wheelSpeedMetersPerSecond)
+{
+    _wheelSpeedMetersPerSecond = wheelSpeedMetersPerSecond;
+}
+
+void Simulation::setHeartRate(int heartRate)
+{
+    _cyclist.setHeartRate(heartRate);
+}
+
 float Simulation::calculateSpeed(quint64 timeDelta)
 {
+    if (_simulationSetting == indoorcycling::SimulationSetting::DIRECT_SPEED) {
+        return _wheelSpeedMetersPerSecond;
+    }
+
+    // Calculate speed from power.
     if (_cyclist.power() < 1.0f) {
         // if there is no power input and current speed is zero, assume we have no input.
         if (_cyclist.speed() < MINIMUM_SPEED)

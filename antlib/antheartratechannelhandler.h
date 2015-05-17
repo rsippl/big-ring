@@ -17,38 +17,26 @@
  * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-#ifndef ALTITUDEPROFILEWIDGET_H
-#define ALTITUDEPROFILEWIDGET_H
+#ifndef ANTHEARTRATECHANNELHANDLER_H
+#define ANTHEARTRATECHANNELHANDLER_H
 
-#include <QWidget>
+#include <QObject>
 
-#include "reallifevideo.h"
-
-class ProfilePainter;
-
-namespace Ui {
-class AltitudeProfileWidget;
-}
-
-class AltitudeProfileWidget : public QWidget
+#include "antchannelhandler.h"
+namespace indoorcycling {
+class AntHeartRateChannelHandler : public AntChannelHandler
 {
     Q_OBJECT
-
 public:
-    explicit AltitudeProfileWidget(QWidget *parent = 0);
-    ~AltitudeProfileWidget();
-public slots:
-    void setVideo(RealLifeVideo& rlv);
-    void setCourseIndex(const int courseIndex);
-    void setStartAndEndDistance(qreal startDistance, qreal endDistance);
-protected:
-    virtual void paintEvent(QPaintEvent *) override;
-private:
-    ProfilePainter* _profilePainter;
-    RealLifeVideo _currentRlv;
-    qreal _startDistance;
-    qreal _endDistance;
-    Ui::AltitudeProfileWidget *ui;
-};
+    explicit AntHeartRateChannelHandler(int channelNumber, QObject* parent);
+    virtual ~AntHeartRateChannelHandler() {}
+signals:
 
-#endif // ALTITUDEPROFILEWIDGET_H
+public slots:
+protected:
+    virtual void handleBroadCastMessage(const BroadCastMessage& message) override;
+private:
+    HeartRateMessage _lastMessage;
+};
+}
+#endif // ANTHEARTRATECHANNELHANDLER_H
