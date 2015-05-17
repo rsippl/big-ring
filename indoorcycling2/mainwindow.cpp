@@ -149,12 +149,18 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     });
     connect(_run.data(), &Run::stopped, _run.data(), [this]() {
         qDebug() << "run finished";
+        bool maximize = isFullScreen();
         _run.reset();
         _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
         _stackedWidget->removeWidget(_videoWidget.data());
         _videoWidget.reset();
-        showNormal();
+        if (maximize) {
+            showMaximized();
+        } else {
+            showNormal();
+        }
         setGeometry(_savedGeometry);
+        raise();
     });
 }
 
