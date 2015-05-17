@@ -102,9 +102,13 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
     return true;
 }
 
-int AntCentralDispatch::currentHeartRate() const
+bool AntCentralDispatch::areAllChannelsClosed() const
 {
-    return _currentHeartRate;
+    auto channelEmpty = [](AntChannelHandler* channelPtr) {
+        return channelPtr == nullptr;
+    };
+
+    return std::all_of(_channels.begin(), _channels.end(), channelEmpty);
 }
 
 void AntCentralDispatch::initialize()
@@ -214,14 +218,6 @@ void AntCentralDispatch::handleSensorValue(const SensorValueType sensorValueType
                                            const QVariant &value)
 {
     emit sensorValue(sensorValueType, sensorType, value);
-    if (sensorValueType == SENSOR_VALUE_HEARTRATE_BPM) {
-        _currentHeartRate = value.toInt();
-        emit heartRateMeasured(_currentHeartRate);
-    } else if (sensorValueType == SENSOR_VALUE_CADENCE_RPM) {
-        emit cadenceMeasured(value.toInt());
-    } else if (sensorValueType == SENSOR_VALUE_POWER_WATT) {
-        emit powerMeasured(value.toInt());
-    }
 }
 
 void AntCentralDispatch::handleChannelFinished(int channelNumber)
@@ -230,7 +226,12 @@ void AntCentralDispatch::handleChannelFinished(int channelNumber)
                "getting channel finished for empty channel number.");
     AntChannelHandler* handler = _channels[channelNumber];
     _channels[channelNumber] = nullptr;
+
+    emit channelClosed(channelNumber, handler->sensorType());
     handler->deleteLater();
+    if (areAllChannelsClosed()) {
+        emit allChannelsClosed();
+    }
 }
 
 void AntCentralDispatch::sendAntMessage(const AntMessage2 &message)

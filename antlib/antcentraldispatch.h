@@ -58,8 +58,7 @@ public:
     bool searchForSensorType(AntSensorType channelType);
     bool searchForSensor(AntSensorType channelType, int deviceNumber);
 
-    int currentHeartRate() const;
-
+    bool areAllChannelsClosed() const;
 signals:
     /** signal emitted when scanning for an usb stick is finished. @param found indicates whether or not an ANT+ usb
      * stick was found.
@@ -92,17 +91,13 @@ signals:
     void sensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType,
                      const QVariant& sensorValue);
     /**
-     * heart rate measured
+     * emitted when a channel is closed
      */
-    void heartRateMeasured(int heartRate);
+    void channelClosed(int channelNumber, const AntSensorType sensorType);
     /**
-      power measured
+     * emitted when all channels are closed
      */
-    void powerMeasured(int power);
-    /**
-      cadence measured
-     */
-    void cadenceMeasured(int cadance);
+    void allChannelsClosed();
 public slots:
     /**
      * Initialize the connection to the ANT+ stick. After calling this, listen for the signal initializationFinished(bool)

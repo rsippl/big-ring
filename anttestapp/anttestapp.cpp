@@ -30,9 +30,6 @@ int main(int argc, char** argv)
                      &AntTestAppMainWindow::searchTimedOut);
     QObject::connect(&acd, &AntCentralDispatch::sensorFound, &mainWindow,
                      &AntTestAppMainWindow::setSensor);
-    QObject::connect(&acd, &AntCentralDispatch::heartRateMeasured, &mainWindow,
-                     &AntTestAppMainWindow::setHeartRate);
-
 
     acd.initialize();
 

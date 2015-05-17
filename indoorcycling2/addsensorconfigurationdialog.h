@@ -62,6 +62,9 @@ private slots:
 
     void on_fixedPowerButton_toggled(bool checked);
 
+protected:
+    virtual void closeEvent(QCloseEvent *) override;
+    virtual void hideEvent(QHideEvent *) override;
 private:
     void updateRow(indoorcycling::AntSensorType sensorType, bool found,
                    int deviceNumber = -1);

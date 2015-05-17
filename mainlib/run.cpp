@@ -38,9 +38,9 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     _simulation->rlvSelected(rlv);
     _simulation->courseSelected(course);
 
-    connect(_antCentralDispatch, &AntCentralDispatch::heartRateMeasured, &_simulation->cyclist(), &Cyclist::setHeartRate);
-    connect(_antCentralDispatch, &AntCentralDispatch::cadenceMeasured, &_simulation->cyclist(), &Cyclist::setCadence);
-    connect(_antCentralDispatch, &AntCentralDispatch::powerMeasured, &_simulation->cyclist(), &Cyclist::setPower);
+//    connect(_antCentralDispatch, &AntCentralDispatch::heartRateMeasured, &_simulation->cyclist(), &Cyclist::setHeartRate);
+//    connect(_antCentralDispatch, &AntCentralDispatch::cadenceMeasured, &_simulation->cyclist(), &Cyclist::setCadence);
+//    connect(_antCentralDispatch, &AntCentralDispatch::powerMeasured, &_simulation->cyclist(), &Cyclist::setPower);
 
     _antCentralDispatch->searchForSensorType(indoorcycling::SENSOR_TYPE_HR);
     _antCentralDispatch->searchForSensorType(indoorcycling::SENSOR_TYPE_CADENCE);

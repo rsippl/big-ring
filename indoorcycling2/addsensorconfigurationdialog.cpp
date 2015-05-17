@@ -21,6 +21,8 @@
 #include "ui_addsensorconfigurationdialog.h"
 
 #include <QtCore/QtDebug>
+#include <QtGui/QCloseEvent>
+#include <QtGui/QHideEvent>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QPushButton>
 
@@ -294,5 +296,40 @@ void AddSensorConfigurationDialog::on_fixedPowerButton_toggled(bool checked)
 {
     if (checked) {
         _simulationSetting = SimulationSetting::FIXED_POWER;
+    }
+}
+
+void AddSensorConfigurationDialog::closeEvent(QCloseEvent *closeEvent)
+{
+    qDebug() << "Close Event called";
+    if (_antCentralDispatch->areAllChannelsClosed()) {
+        qDebug() << "All ANT+ channels are closed. Closing dialog.";
+        closeEvent->accept();
+    } else {
+        qDebug() << "Not all ANT+ channels are closed. Waiting for them to be closed.";
+        connect(_antCentralDispatch, &AntCentralDispatch::allChannelsClosed,
+                this, [this]() {
+            close();
+        });
+        _antCentralDispatch->closeAllChannels();
+        closeEvent->ignore();
+    }
+}
+
+void AddSensorConfigurationDialog::hideEvent(QHideEvent *hideEvent)
+{
+    if (!isVisible()) {
+        if (_antCentralDispatch->areAllChannelsClosed()) {
+            qDebug() << "All ANT+ channels are closed. Hiding dialog.";
+            hideEvent->accept();
+        } else {
+            qDebug() << "Not all ANT+ channels are closed. Waiting for them to be closed.";
+            connect(_antCentralDispatch, &AntCentralDispatch::allChannelsClosed,
+                    this, [this]() {
+                hide();
+            });
+            _antCentralDispatch->closeAllChannels();
+            hideEvent->ignore();
+        }
     }
 }
