@@ -20,12 +20,14 @@
 
 #include "newvideowidget.h"
 #include "run.h"
+#include "sensorconfiguration.h"
 #include "sensors.h"
 
 #include <QtCore/QTimer>
 #include <QtCore/QtDebug>
 
 using indoorcycling::AntCentralDispatch;
+using indoorcycling::NamedSensorConfigurationGroup;
 using indoorcycling::Sensors;
 
 Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& rlv, Course& course, QObject* parent) :
@@ -35,18 +37,21 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     const int weight = settings.value("cyclist.weight", QVariant::fromValue(82)).toInt();
    _cyclist = new Cyclist(weight, this);
 
-   _simulation = new Simulation(*_cyclist, this);
+    NamedSensorConfigurationGroup sensorConfigurationGroup =
+            NamedSensorConfigurationGroup::selectedConfigurationGroup();
 
-    qDebug() << "new run";
+   _simulation = new Simulation(sensorConfigurationGroup.simulationSetting(), *_cyclist, this);
+
     _simulation->rlvSelected(rlv);
     _simulation->courseSelected(course);
 
-    indoorcycling::Sensors* sensors = new indoorcycling::Sensors(_antCentralDispatch);
+    indoorcycling::Sensors* sensors = new indoorcycling::Sensors(_antCentralDispatch,
+                                                                 sensorConfigurationGroup);
 
-    connect(sensors, &Sensors::heartRateBpmMeasured, &_simulation->cyclist(), &Cyclist::setHeartRate);
-    connect(sensors, &Sensors::cadenceRpmMeasured, &_simulation->cyclist(), &Cyclist::setCadence);
-    connect(sensors, &Sensors::powerWattsMeasured, &_simulation->cyclist(), &Cyclist::setPower);
-
+    connect(sensors, &Sensors::heartRateBpmMeasured, _simulation, &Simulation::setHeartRate);
+    connect(sensors, &Sensors::cadenceRpmMeasured, _simulation, &Simulation::setCadence);
+    connect(sensors, &Sensors::powerWattsMeasured, _simulation, &Simulation::setPower);
+    connect(sensors, &Sensors::wheelSpeedMpsMeasured, _simulation, &Simulation::setWheelSpeed);
     sensors->initialize();
 }
 

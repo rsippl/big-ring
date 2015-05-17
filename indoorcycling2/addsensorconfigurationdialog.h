@@ -66,6 +66,7 @@ protected:
     virtual void closeEvent(QCloseEvent *) override;
     virtual void hideEvent(QHideEvent *) override;
 private:
+    void fillVirtualPowerOptions();
     void updateRow(indoorcycling::AntSensorType sensorType, bool found,
                    int deviceNumber = -1);
     void fillSensorTypeRow(indoorcycling::AntSensorType sensorType);

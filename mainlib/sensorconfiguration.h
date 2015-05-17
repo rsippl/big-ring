@@ -23,7 +23,7 @@
 #include <QtCore/QMap>
 
 #include "antsensortype.h"
-
+#include "virtualpower.h"
 namespace indoorcycling {
 
 enum class SimulationSetting {
@@ -60,6 +60,8 @@ public:
     SimulationSetting simulationSetting() const;
     int fixedPower() const;
     void setFixedPower(int watts);
+    VirtualPowerTrainer trainer() const;
+    void setTrainer(VirtualPowerTrainer trainer);
 
     static const NamedSensorConfigurationGroup selectedConfigurationGroup();
     static void saveSelectedConfigurationGroup(const QString& name);
@@ -71,6 +73,7 @@ private:
     QMap<AntSensorType, SensorConfiguration> _sensorConfigurations;
     SimulationSetting _simulationSetting;
     int _fixedPower;
+    VirtualPowerTrainer _trainer;
 };
 }
 #endif // SENSORCONFIGURATION_H

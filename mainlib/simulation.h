@@ -21,17 +21,19 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
-#include <QObject>
-#include <QTime>
-#include <QTimer>
+#include <QtCore/QObject>
+#include <QtCore/QTime>
+#include <QtCore/QTimer>
 #include "cyclist.h"
 #include "reallifevideo.h"
+#include "sensorconfiguration.h"
 
 class Simulation : public QObject
 {
     Q_OBJECT
 public:
-    explicit Simulation(Cyclist& cyclist, QObject *parent = 0);
+    explicit Simulation(indoorcycling::SimulationSetting simulationSetting, Cyclist& cyclist,
+                        QObject *parent = 0);
     virtual ~Simulation();
 
     Cyclist& cyclist() const;
@@ -50,11 +52,19 @@ public slots:
     void courseSelected(int courseNr);
     void courseSelected(const Course& course);
 
+    void setPower(int power);
+    void setCadence(float cadenceRpm);
+    void setWheelSpeed(float wheelSpeedMetersPerSecond);
+    void setHeartRate(int heartRate);
 
 private:
     float calculateSpeed(quint64 timeDelta);
     void reset();
 
+    const indoorcycling::SimulationSetting _simulationSetting;
+    /** in case of indoorcycling::SimulationSetting::DIRECT_SPEED, we store the
+     * wheel speed and use it directly, without calculating it from power */
+    float _wheelSpeedMetersPerSecond;
     qint64 _lastElapsed;
     QTime _runTime;
     QTime _simulationTime;

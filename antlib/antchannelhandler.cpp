@@ -23,7 +23,7 @@
 #include <QtCore/QtDebug>
 
 namespace {
-const int SEARCH_TIMEOUT = 5; //seconds.
+const int SEARCH_TIMEOUT = 10; //seconds.
 using indoorcycling::AntChannelHandler;
 const QMap<AntChannelHandler::ChannelState,QString> CHANNEL_STATE_STRINGS(
 {

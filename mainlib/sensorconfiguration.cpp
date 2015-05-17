@@ -84,6 +84,16 @@ void NamedSensorConfigurationGroup::setFixedPower(int watts)
     _fixedPower = watts;
 }
 
+VirtualPowerTrainer NamedSensorConfigurationGroup::trainer() const
+{
+    return _trainer;
+}
+
+void NamedSensorConfigurationGroup::setTrainer(VirtualPowerTrainer trainer)
+{
+    _trainer = trainer;
+}
+
 const NamedSensorConfigurationGroup NamedSensorConfigurationGroup::selectedConfigurationGroup()
 {
     QSettings settings;
@@ -119,6 +129,8 @@ void NamedSensorConfigurationGroup::addNamedSensorConfigurationGroup(NamedSensor
                           static_cast<int>(group.simulationSetting())));
     if (group.simulationSetting() == SimulationSetting::FIXED_POWER) {
         settings.setValue("fixedPower", QVariant::fromValue(group.fixedPower()));
+    } else if (group.simulationSetting() == SimulationSetting::VIRTUAL_POWER) {
+        settings.setValue("trainer", QVariant::fromValue(static_cast<int>(group.trainer())));
     }
 }
 
@@ -157,6 +169,9 @@ QMap<QString, NamedSensorConfigurationGroup> NamedSensorConfigurationGroup::read
                                             simulationSetting);
         if (simulationSetting == SimulationSetting::FIXED_POWER) {
             group.setFixedPower(settings.value("fixedPower").toInt());
+        } else if (simulationSetting == SimulationSetting::VIRTUAL_POWER) {
+            group.setTrainer(static_cast<VirtualPowerTrainer>(
+                                 settings.value("trainer").toInt()));
         }
         namedConfigurationGroups[configurationName] = group;
         settings.endGroup();

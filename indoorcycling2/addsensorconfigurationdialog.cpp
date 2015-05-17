@@ -19,6 +19,7 @@
  */
 #include "addsensorconfigurationdialog.h"
 #include "ui_addsensorconfigurationdialog.h"
+#include "virtualpower.h"
 
 #include <QtCore/QtDebug>
 #include <QtGui/QCloseEvent>
@@ -37,8 +38,9 @@ const char* SEARCHING = "Searching";
 const char* FOUND = "Found";
 const char* NOT_FOUND = "Not Found";
 
-int sensorTypeRole = Qt::UserRole + 1;
-int sensorDeviceNumberRole = sensorTypeRole + 1;
+const int sensorTypeRole = Qt::UserRole + 1;
+const int sensorDeviceNumberRole = sensorTypeRole + 1;
+const int virtualPowerRole = sensorDeviceNumberRole + 1;
 
 enum class SearchTableColumn {
     NAME,
@@ -60,6 +62,7 @@ AddSensorConfigurationDialog::AddSensorConfigurationDialog(
     _ui->setupUi(this);
     _ui->searchTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     updateSimulationSettings();
+    fillVirtualPowerOptions();
     _ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
     fillSensorTypeRow(indoorcycling::SENSOR_TYPE_HR);
     fillSensorTypeRow(indoorcycling::SENSOR_TYPE_POWER);
@@ -135,7 +138,13 @@ void AddSensorConfigurationDialog::saveConfiguration()
     if (_simulationSetting == SimulationSetting::FIXED_POWER) {
         int fixedPower = _ui->powerSpinBox->value();
         group.setFixedPower(fixedPower);
+    } else if (_simulationSetting == SimulationSetting::VIRTUAL_POWER) {
+        indoorcycling::VirtualPowerTrainer trainer =
+                static_cast<indoorcycling::VirtualPowerTrainer>(
+                    _ui->virtualPowerChooser->currentData().toInt());
+        group.setTrainer(trainer);
     }
+
     indoorcycling::NamedSensorConfigurationGroup::addNamedSensorConfigurationGroup(group);
 
     // Make sure this new configuration is automatically selected.
@@ -331,5 +340,15 @@ void AddSensorConfigurationDialog::hideEvent(QHideEvent *hideEvent)
             _antCentralDispatch->closeAllChannels();
             hideEvent->ignore();
         }
+    }
+}
+
+void AddSensorConfigurationDialog::fillVirtualPowerOptions()
+{
+    for(indoorcycling::VirtualPowerTrainer trainer: indoorcycling::VIRTUAL_POWER_TRAINERS.keys()) {
+        const QString& name = indoorcycling::VIRTUAL_POWER_TRAINERS[trainer];
+
+        _ui->virtualPowerChooser->addItem(name, QVariant::fromValue(
+                                              static_cast<int>(trainer)));
     }
 }

@@ -28,7 +28,8 @@ HEADERS += \
     profilepainter.h \
     quantityprinter.h \
     sensorconfiguration.h \
-    sensors.h
+    sensors.h \
+    virtualpower.h
 
 SOURCES += \
     cyclist.cpp \
@@ -49,7 +50,8 @@ SOURCES += \
     profilepainter.cpp \
     quantityprinter.cpp \
     sensorconfiguration.cpp \
-    sensors.cpp
+    sensors.cpp \
+    virtualpower.cpp
 
 
 
