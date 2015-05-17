@@ -18,13 +18,16 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "run.h"
 #include "newvideowidget.h"
+#include "run.h"
+#include "sensors.h"
 
 #include <QtCore/QTimer>
 #include <QtCore/QtDebug>
 
 using indoorcycling::AntCentralDispatch;
+using indoorcycling::Sensors;
+
 Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& rlv, Course& course, QObject* parent) :
     QObject(parent), _antCentralDispatch(antCentralDispatch), _rlv(rlv), _course(course)
 {
@@ -38,13 +41,13 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     _simulation->rlvSelected(rlv);
     _simulation->courseSelected(course);
 
-//    connect(_antCentralDispatch, &AntCentralDispatch::heartRateMeasured, &_simulation->cyclist(), &Cyclist::setHeartRate);
-//    connect(_antCentralDispatch, &AntCentralDispatch::cadenceMeasured, &_simulation->cyclist(), &Cyclist::setCadence);
-//    connect(_antCentralDispatch, &AntCentralDispatch::powerMeasured, &_simulation->cyclist(), &Cyclist::setPower);
+    indoorcycling::Sensors* sensors = new indoorcycling::Sensors(_antCentralDispatch);
 
-    _antCentralDispatch->searchForSensorType(indoorcycling::SENSOR_TYPE_HR);
-    _antCentralDispatch->searchForSensorType(indoorcycling::SENSOR_TYPE_CADENCE);
-    _antCentralDispatch->searchForSensorType(indoorcycling::SENSOR_TYPE_POWER);
+    connect(sensors, &Sensors::heartRateBpmMeasured, &_simulation->cyclist(), &Cyclist::setHeartRate);
+    connect(sensors, &Sensors::cadenceRpmMeasured, &_simulation->cyclist(), &Cyclist::setCadence);
+    connect(sensors, &Sensors::powerWattsMeasured, &_simulation->cyclist(), &Cyclist::setPower);
+
+    sensors->initialize();
 }
 
 Run::~Run()
@@ -76,10 +79,6 @@ void Run::start()
 {
     _running = true;
     _simulation->play(true);
-    QSettings settings;
-    if (settings.value("useRobot", QVariant::fromValue(false)).toBool()) {
-        startRobot(settings);
-    }
 }
 
 void Run::play()
@@ -96,19 +95,5 @@ void Run::stop()
 void Run::pause()
 {
     _simulation->play(false);
-}
-
-void Run::startRobot(const QSettings& settings)
-{
-    const int powerValue = settings.value("robotPower").toInt();
-
-    QTimer* startTimer = new QTimer(this);
-    connect(startTimer, &QTimer::timeout, startTimer, [=]() {
-        _cyclist->setPower(powerValue);
-        _cyclist->setCadence(80);
-        _cyclist->setHeartRate(150);
-    });
-    startTimer->setSingleShot(true);
-    startTimer->start(1000);
 }
 

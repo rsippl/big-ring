@@ -51,8 +51,6 @@ public slots:
     void pause();
 
 private:
-    void startRobot(const QSettings &settings);
-
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
     RealLifeVideo _rlv;
     Course _course;
