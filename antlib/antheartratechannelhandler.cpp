@@ -22,13 +22,40 @@
 #include <QtCore/QTime>
 #include <QtCore/QVariant>
 
-indoorcycling::AntHeartRateChannelHandler::AntHeartRateChannelHandler(int channelNumber, QObject *parent):
+namespace indoorcycling
+{
+HeartRateMessage::HeartRateMessage(const AntMessage2 &antMessage): BroadCastMessage(antMessage)
+{
+    if (!isNull()) {
+        _measurementTime = antMessage.contentShort(5);
+        _heartBeatCount = antMessage.contentByte(7);
+        _computedHeartRate = antMessage.contentByte(8);
+    }
+}
+
+quint16 HeartRateMessage::measurementTime() const
+{
+    return _measurementTime;
+}
+
+quint8 HeartRateMessage::heartBeatCount() const
+{
+    return _heartBeatCount;
+}
+
+quint8 HeartRateMessage::computedHeartRate() const
+{
+    return _computedHeartRate;
+}
+
+
+AntHeartRateChannelHandler::AntHeartRateChannelHandler(int channelNumber, QObject *parent):
     AntChannelHandler(channelNumber, SENSOR_TYPE_HR, ANT_SPORT_HR_PERIOD, parent)
 {
     // empty
 }
 
-void indoorcycling::AntHeartRateChannelHandler::handleBroadCastMessage(const BroadCastMessage &message)
+void AntHeartRateChannelHandler::handleBroadCastMessage(const BroadCastMessage &message)
 {
     HeartRateMessage heartRateMessage(message.antMessage());
     if (_lastMessage.isNull() || heartRateMessage.measurementTime() != _lastMessage.measurementTime()) {
@@ -37,4 +64,5 @@ void indoorcycling::AntHeartRateChannelHandler::handleBroadCastMessage(const Bro
                          QVariant::fromValue(heartRateMessage.computedHeartRate()));
     }
     _lastMessage = heartRateMessage;
+}
 }

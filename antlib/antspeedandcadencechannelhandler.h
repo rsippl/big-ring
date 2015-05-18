@@ -1,13 +1,68 @@
 #ifndef ANTSPEEDANDCADENCECHANNELHANDLER_H
 #define ANTSPEEDANDCADENCECHANNELHANDLER_H
 
-#include <memory>
-#include <QtCore/QVariant>
-
 #include "antchannelhandler.h"
 
 namespace indoorcycling
 {
+
+/**
+ * Speed And Cadence message (Device Type 0x79)
+ * Byte 0 contains the channel
+ *
+ * Byte 1-2 cadence event time
+ * Byte 3-4 cumulative cadence revolution count
+ * Byte 5-6 bike speed event time
+ * Byte 7-8 cumulative wheel revolution count
+*/
+class SpeedAndCadenceMessage: public BroadCastMessage
+{
+public:
+    SpeedAndCadenceMessage(const AntMessage2& antMessage);
+
+    quint16 cadenceEventTime() const;
+    quint16 pedalRevolutions() const;
+    quint16 speedEventTime() const;
+    quint16 wheelRevolutions() const;
+
+};
+
+/**
+ * Bike Speed Message (Device Type 0x7B).
+ * Bytes:
+ * 0: channel
+ * 1: data page
+ * 2-4: depends on data page.
+ * 5-6: bike speed event time
+ * 7-8: cumulative wheel revolution count
+ */
+class SpeedMessage: public BroadCastMessage
+{
+public:
+    SpeedMessage(const AntMessage2& antMessage);
+
+    quint16 speedEventTime() const;
+    quint16 wheelRevolutions() const;
+};
+
+/**
+ * Bike Cadence Message (Device Type 0x7A).
+ * Bytes:
+ * 0: channel
+ * 1: data page
+ * 2-4: depends on data page.
+ * 5-6: bike cadence event time
+ * 7-8: cumulative pedal revolution count
+ */
+class CadenceMessage: public BroadCastMessage
+{
+public:
+    CadenceMessage(const AntMessage2& antMessage);
+
+    quint16 cadenceEventTime() const;
+    quint16 pedalRevolutions() const;
+};
+
 class AntSpeedAndCadenceChannelHandler : public AntChannelHandler
 {
 public:

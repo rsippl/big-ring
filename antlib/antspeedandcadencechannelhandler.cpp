@@ -5,6 +5,66 @@
 
 namespace indoorcycling
 {
+SpeedAndCadenceMessage::SpeedAndCadenceMessage(const AntMessage2 &antMessage):
+    BroadCastMessage(antMessage)
+{
+    // empty
+}
+
+quint16 SpeedAndCadenceMessage::cadenceEventTime() const
+{
+    return antMessage().contentShort(1);
+}
+
+quint16 SpeedAndCadenceMessage::pedalRevolutions() const
+{
+    return antMessage().contentShort(3);
+}
+
+quint16 SpeedAndCadenceMessage::speedEventTime() const
+{
+    return antMessage().contentShort(5);
+}
+
+quint16 SpeedAndCadenceMessage::wheelRevolutions() const
+{
+    return antMessage().contentShort(7);
+}
+
+
+SpeedMessage::SpeedMessage(const AntMessage2 &antMessage):
+    BroadCastMessage(antMessage)
+{
+    // empty
+}
+
+quint16 SpeedMessage::speedEventTime() const
+{
+    return antMessage().contentShort(5);
+}
+
+quint16 SpeedMessage::wheelRevolutions() const
+{
+    return antMessage().contentShort(7);
+}
+
+
+CadenceMessage::CadenceMessage(const AntMessage2 &antMessage):
+    BroadCastMessage(antMessage)
+{
+    // empty
+}
+
+quint16 CadenceMessage::cadenceEventTime() const
+{
+    return antMessage().contentShort(5);
+}
+
+quint16 CadenceMessage::pedalRevolutions() const
+{
+    return antMessage().contentShort(7);
+}
+
 AntChannelHandler* AntSpeedAndCadenceChannelHandler::createCombinedSpeedAndCadenceChannelHandler(
         int channelNumber, QObject* parent)
 {

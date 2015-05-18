@@ -24,6 +24,40 @@
 
 #include "antchannelhandler.h"
 namespace indoorcycling {
+
+/**
+ * HeartRateMessage is an ANT+ Broadcast message.
+ *
+ * There are several data pages in the ANT+ Heart Rate profile.
+ * All Data Pages hold 8 bytes of content.
+ *
+ * Byte 0 contains the channel
+ * Byte 1 contains the data page.
+ * Byte 2-4 are different for different pages. We will not use them here.
+ * Bytes 5 & 6 contain the measurement time in 1/1024s as an unsigned short (16 bits). (this wraps every 64 seconds)
+ * Byte 7 contains the a count of heart beat events. This wraps every 255 counts. It can be used to check for missed
+ * events.
+ * Byte 8 contains the heart rate as computed by the sensor.
+ */
+class HeartRateMessage: public BroadCastMessage
+{
+public:
+    /**
+     * Create a HeartRateMessage
+     * @param antMessage the ANT+ broadcast message.
+     * @return An HeartRateMessage.
+     */
+    HeartRateMessage(const AntMessage2& antMessage = AntMessage2());
+
+    quint16 measurementTime() const;
+    quint8 heartBeatCount() const;
+    quint8 computedHeartRate() const;
+private:
+    quint16 _measurementTime;
+    quint8 _heartBeatCount;
+    quint8 _computedHeartRate;
+};
+
 class AntHeartRateChannelHandler : public AntChannelHandler
 {
     Q_OBJECT

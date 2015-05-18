@@ -313,32 +313,6 @@ std::unique_ptr<AntMessage2> AntMessage2::createMessageFromBytes(const QByteArra
     return std::unique_ptr<AntMessage2>();
 }
 
-HeartRateMessage::HeartRateMessage(const AntMessage2 &antMessage): BroadCastMessage(antMessage)
-{
-    if (!isNull()) {
-        _measurementTime = antMessage.contentShort(5);
-        _heartBeatCount = antMessage.contentByte(7);
-        _computedHeartRate = antMessage.contentByte(8);
-    }
-}
-
-quint16 HeartRateMessage::measurementTime() const
-{
-    return _measurementTime;
-}
-
-quint8 HeartRateMessage::heartBeatCount() const
-{
-    return _heartBeatCount;
-}
-
-quint8 HeartRateMessage::computedHeartRate() const
-{
-    return _computedHeartRate;
-}
-
-
-
 BroadCastMessage::BroadCastMessage(const AntMessage2 &antMessage):
     _antMessage(antMessage)
 {
@@ -367,98 +341,6 @@ const AntMessage2 &BroadCastMessage::antMessage() const
 {
     return _antMessage;
 }
-
-PowerMessage::PowerMessage(const AntMessage2 &antMessage):
-    BroadCastMessage(antMessage)
-{
-
-}
-
-bool PowerMessage::isPowerOnlyPage() const
-{
-    return dataPage() == POWER_ONLY_PAGE;
-}
-
-quint8 PowerMessage::eventCount() const
-{
-    return antMessage().contentByte(2);
-}
-
-quint8 PowerMessage::instantaneousCadence() const
-{
-    return antMessage().contentByte(4);
-}
-
-quint16 PowerMessage::accumulatedPower() const
-{
-    return antMessage().contentShort(5);
-}
-
-quint16 PowerMessage::instantaneousPower() const
-{
-    return antMessage().contentShort(7);
-}
-
-SpeedAndCadenceMessage::SpeedAndCadenceMessage(const AntMessage2 &antMessage):
-    BroadCastMessage(antMessage)
-{
-    // empty
-}
-
-quint16 SpeedAndCadenceMessage::cadenceEventTime() const
-{
-    return antMessage().contentShort(1);
-}
-
-quint16 SpeedAndCadenceMessage::pedalRevolutions() const
-{
-    return antMessage().contentShort(3);
-}
-
-quint16 SpeedAndCadenceMessage::speedEventTime() const
-{
-    return antMessage().contentShort(5);
-}
-
-quint16 SpeedAndCadenceMessage::wheelRevolutions() const
-{
-    return antMessage().contentShort(7);
-}
-
-
-SpeedMessage::SpeedMessage(const AntMessage2 &antMessage):
-    BroadCastMessage(antMessage)
-{
-    // empty
-}
-
-quint16 SpeedMessage::speedEventTime() const
-{
-    return antMessage().contentShort(5);
-}
-
-quint16 SpeedMessage::wheelRevolutions() const
-{
-    return antMessage().contentShort(7);
-}
-
-
-CadenceMessage::CadenceMessage(const AntMessage2 &antMessage):
-    BroadCastMessage(antMessage)
-{
-    // empty
-}
-
-quint16 CadenceMessage::cadenceEventTime() const
-{
-    return antMessage().contentShort(5);
-}
-
-quint16 CadenceMessage::pedalRevolutions() const
-{
-    return antMessage().contentShort(7);
-}
-
 
 SetChannelIdMessage::SetChannelIdMessage(const AntMessage2& antMessage):
     _antMessage(antMessage)

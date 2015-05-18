@@ -180,141 +180,40 @@ private:
     AntMessage2 _antMessage;
 };
 
+/**
+ * A Broadcast message. Each channel can convert this message to a specific message (heartrate, power, etc..)
+ */
 class BroadCastMessage
 {
 public:
+    /**
+     * Construct a new BroadCastMessage. By default, an empty message is created. For an empty message, #isNull() will
+     * return true.
+     * @param antMessage the antMessage with the contents of the message.
+     */
     BroadCastMessage(const AntMessage2& antMessage = AntMessage2());
 
+    /**
+     * Checks if this is an empty message.
+     */
     bool isNull() const;
+    /**
+     * channel number of the message.
+     */
     quint8 channelNumber() const;
+    /**
+     * date page of the message.
+     */
     quint8 dataPage() const;
+    /**
+     * the actual ant message that was used to construct the broadcast message.
+     */
     const AntMessage2 &antMessage() const;
 protected:
     AntMessage2 _antMessage;
 private:
     quint8 _channelNumber;
     quint8 _dataPage;
-};
-
-/**
- * HeartRateMessage is an ANT+ Broadcast message.
- *
- * There are several data pages in the ANT+ Heart Rate profile.
- * All Data Pages hold 8 bytes of content.
- *
- * Byte 0 contains the channel
- * Byte 1 contains the data page.
- * Byte 2-4 are different for different pages. We will not use them here.
- * Bytes 5 & 6 contain the measurement time in 1/1024s as an unsigned short (16 bits). (this wraps every 64 seconds)
- * Byte 7 contains the a count of heart beat events. This wraps every 255 counts. It can be used to check for missed
- * events.
- * Byte 8 contains the heart rate as computed by the sensor.
- */
-class HeartRateMessage: public BroadCastMessage
-{
-public:
-    /**
-     * Create a HeartRateMessage
-     * @param antMessage the ANT+ broadcast message.
-     * @return An HeartRateMessage.
-     */
-    HeartRateMessage(const AntMessage2& antMessage = AntMessage2());
-
-    quint16 measurementTime() const;
-    quint8 heartBeatCount() const;
-    quint8 computedHeartRate() const;
-private:
-    quint16 _measurementTime;
-    quint8 _heartBeatCount;
-    quint8 _computedHeartRate;
-};
-
-/** Power message
- * Byte 0 contains the channel
- * Byte 1 contains the data page.
- *
- * For the Power-only page (0x10):
- * Byte 2 is the event count
- * Byte 3 pedal power (power balance)
- * Byte 4 instantaneous cadence
- * Byte 5-6 Accumulated Power
- * Byte 7-8 Instantaneous Power
-*/
-class PowerMessage: public BroadCastMessage
-{
-public:
-    enum DataPages {
-        POWER_ONLY_PAGE = 0x10
-    };
-
-    /** Create a PowerMessage.
-     * @param antMessage the ANT+ broadcast message.
-     * @return a PowerMessage
-     */
-    PowerMessage(const AntMessage2& antMessage = AntMessage2());
-
-    bool isPowerOnlyPage() const;
-
-    quint8 eventCount() const;
-    quint8 instantaneousCadence() const;
-    quint16 accumulatedPower() const;
-    quint16 instantaneousPower() const;
-};
-
-/** Speed And Cadence message
- * Byte 0 contains the channel
- *
- * Byte 1-2 cadence event time
- * Byte 3-4 cumulative cadence revolution count
- * Byte 5-6 bike speed event time
- * Byte 7-8 cumulative wheel revolution count
-*/
-class SpeedAndCadenceMessage: public BroadCastMessage
-{
-public:
-    SpeedAndCadenceMessage(const AntMessage2& antMessage);
-
-    quint16 cadenceEventTime() const;
-    quint16 pedalRevolutions() const;
-    quint16 speedEventTime() const;
-    quint16 wheelRevolutions() const;
-
-};
-
-/**
- * Bike Speed Message (Device Type 0x7B).
- * Bytes:
- * 0: channel
- * 1: data page
- * 2-4: depends on data page.
- * 5-6: bike speed event time
- * 7-8: cumulative wheel revolution count
- */
-class SpeedMessage: public BroadCastMessage
-{
-public:
-    SpeedMessage(const AntMessage2& antMessage);
-
-    quint16 speedEventTime() const;
-    quint16 wheelRevolutions() const;
-};
-
-/**
- * Bike Cadence Message (Device Type 0x7A).
- * Bytes:
- * 0: channel
- * 1: data page
- * 2-4: depends on data page.
- * 5-6: bike cadence event time
- * 7-8: cumulative pedal revolution count
- */
-class CadenceMessage: public BroadCastMessage
-{
-public:
-    CadenceMessage(const AntMessage2& antMessage);
-
-    quint16 cadenceEventTime() const;
-    quint16 pedalRevolutions() const;
 };
 
 #endif // ANTMESSAGE2_H

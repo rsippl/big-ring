@@ -4,6 +4,37 @@
 #include <QtCore/QVariant>
 namespace indoorcycling
 {
+PowerMessage::PowerMessage(const AntMessage2 &antMessage):
+    BroadCastMessage(antMessage)
+{
+    // empty
+}
+
+bool PowerMessage::isPowerOnlyPage() const
+{
+    return dataPage() == POWER_ONLY_PAGE;
+}
+
+quint8 PowerMessage::eventCount() const
+{
+    return antMessage().contentByte(2);
+}
+
+quint8 PowerMessage::instantaneousCadence() const
+{
+    return antMessage().contentByte(4);
+}
+
+quint16 PowerMessage::accumulatedPower() const
+{
+    return antMessage().contentShort(5);
+}
+
+quint16 PowerMessage::instantaneousPower() const
+{
+    return antMessage().contentShort(7);
+}
+
 AntPowerChannelHandler::AntPowerChannelHandler(int channelNumber, QObject *parent) :
     AntChannelHandler(channelNumber, SENSOR_TYPE_POWER, ANT_SPORT_POWER_PERIOD, parent)
 {
