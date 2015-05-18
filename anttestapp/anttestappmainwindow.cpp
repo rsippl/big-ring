@@ -1,14 +1,20 @@
 #include "anttestappmainwindow.h"
 #include "ui_anttestappmainwindow.h"
 
+#include <QtCore/QTimer>
 namespace indoorcycling
 {
 
 AntTestAppMainWindow::AntTestAppMainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::AntTestAppMainWindow)
+    ui(new Ui::AntTestAppMainWindow), _timer(new QTimer(this))
 {
     ui->setupUi(this);
+    connect(_timer, &QTimer::timeout, _timer, [this]() {
+        quint16 powerWatts = static_cast<quint16>(ui->spinBox->value());
+        emit powerGenerated(powerWatts);
+    });
+    _timer->setInterval(1000);
 }
 
 AntTestAppMainWindow::~AntTestAppMainWindow()
@@ -74,4 +80,10 @@ void indoorcycling::AntTestAppMainWindow::on_pushButton_clicked()
 void indoorcycling::AntTestAppMainWindow::on_pushButton_2_clicked()
 {
     emit startSearch(AntSensorType::SENSOR_TYPE_POWER);
+}
+
+void indoorcycling::AntTestAppMainWindow::on_pushButton_3_clicked()
+{
+    emit openPowerTransmissionChannel();
+    _timer->start();
 }

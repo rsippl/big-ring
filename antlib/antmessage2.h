@@ -77,7 +77,7 @@ public:
     static AntMessage2 openChannel(quint8 channelNumber);
     static AntMessage2 requestMessage(quint8 channelNumber, AntMessageId messageId);
     static AntMessage2 setChannelFrequency(quint8 channelNumber, quint16 frequency = ANT_PLUS_CHANNEL_FREQUENCY);
-    static AntMessage2 setChannelId(quint8 channelNumber, quint16 deviceId, quint8 deviceType);
+    static AntMessage2 setChannelId(quint8 channelNumber, quint16 deviceId, quint8 deviceType, quint8 transmissionType = 0u);
     /**
      * @brief setChannelPeriod set the channel messaging period.
      * @param channelNumber the channel number
@@ -109,9 +109,10 @@ public:
     quint8 contentByte(int nr) const;
     quint16 contentShort(int index) const;
 
+    AntMessage2(const AntMessageId id, const QByteArray& content);
 protected:
     AntMessage2(const QByteArray& completeMessageBytes);
-    AntMessage2(const AntMessageId id, const QByteArray& content);
+
     const QByteArray& content() const;
 
 private:

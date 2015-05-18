@@ -120,7 +120,8 @@ QString AntMessage2::toString() const
         return QString("Set Channel Frequency, Channel %1, Frequency %2Mhz").arg(contentByte(0)).arg(contentByte(1) + ANT_CHANNEL_FREQUENCY_BASE);
     case AntMessageId::SET_CHANNEL_ID:
         return QString("Set Channel Id, Channel %1, Device Nr %2, "
-                       "Device Type %3").arg(contentByte(0)).arg(contentShort(1)).arg(contentByte(3));
+                       "Device Type %3, Transmission Type %4").arg(contentByte(0)).arg(contentShort(1))
+                .arg(contentByte(3)).arg(contentByte(4));
     case AntMessageId::SET_CHANNEL_PERIOD:
         return QString("Set Channel Period, Channel %1, Period %2Hz (%3)").arg(contentByte(0))
                 .arg(QString::number(MESSAGING_PERIOD_BASE / contentShort(1), 'f', 2)).arg(contentShort(1));
@@ -238,15 +239,14 @@ AntMessage2 AntMessage2::setChannelFrequency(quint8 channelNumber, quint16 frequ
     return AntMessage2(AntMessageId::SET_CHANNEL_FREQUENCY, data);
 }
 
-AntMessage2 AntMessage2::setChannelId(quint8 channelNumber, quint16 deviceId, quint8 deviceType)
+AntMessage2 AntMessage2::setChannelId(quint8 channelNumber, quint16 deviceId, quint8 deviceType, quint8 transmissionType)
 {
     QByteArray array;
     array += channelNumber;
     array += deviceId & 0xFF;
     array += (deviceId >> 8) & 0xFF;
     array += deviceType;
-    quint8 zero = 0u;
-    array += zero;
+    array += transmissionType;
 
     return AntMessage2(AntMessageId::SET_CHANNEL_ID, array);
 }

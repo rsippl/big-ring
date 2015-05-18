@@ -44,7 +44,8 @@ const std::array<quint8,8> ANT_PLUS_NETWORK_KEY = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD
 namespace indoorcycling {
 
 AntCentralDispatch::AntCentralDispatch(QObject *parent) :
-    QObject(parent), _initialized(false), _antMessageGatherer(new AntMessageGatherer(this)), _initializationTimer(new QTimer(this))
+    QObject(parent), _initialized(false), _antMessageGatherer(new AntMessageGatherer(this)),
+    _powerTransmissionChannelHandler(nullptr), _initializationTimer(new QTimer(this))
 {
     connect(_antMessageGatherer, &AntMessageGatherer::antMessageReceived, this,
             &AntCentralDispatch::messageFromAntUsbStick);
@@ -73,16 +74,11 @@ bool AntCentralDispatch::searchForSensorType(AntSensorType channelType)
 bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNumber)
 {
     Q_ASSERT_X((_antUsbStick), "AntCentralDispatch::searchForSensor", "usb stick not initialized");
-    int channelNumber;
-    // search for first non-occupied channel.
-    for (channelNumber = 0; channelNumber < _antUsbStick->numberOfChannels(); ++channelNumber) {
-        if (!_channels[channelNumber]) {
-            break;
-        }
-    }
+    int channelNumber = findFreeChannel();
     if (channelNumber == _antUsbStick->numberOfChannels()) {
         return false;
     }
+
     // create and insert new channel
     AntChannelHandler* channel = createChannel(channelNumber, channelType);
     if (deviceNumber != 0) {
@@ -140,6 +136,40 @@ void AntCentralDispatch::closeAllChannels()
             handler->close();
         }
     }
+    _powerTransmissionChannelHandler = nullptr;
+}
+
+bool AntCentralDispatch::openPowerTransmissionChannel()
+{
+    if (_powerTransmissionChannelHandler) {
+        qDebug() << "Power Transmission Channel already opened.";
+        return false;
+    }
+    int channelNumber = findFreeChannel();
+    if (channelNumber == _antUsbStick->numberOfChannels()) {
+        qDebug() << "All channels occupied";
+        return false;
+    }
+    AntPowerTransmissionChannelHandler* channel = new AntPowerTransmissionChannelHandler(channelNumber);
+    _channels[channelNumber] = channel;
+    _powerTransmissionChannelHandler = channel;
+
+    connect(channel, &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
+    connect(channel, &AntChannelHandler::finished, this, &AntCentralDispatch::handleChannelFinished);
+
+    channel->initialize();
+
+    return true;
+}
+
+bool AntCentralDispatch::sendPower(quint16 power)
+{
+    if (_powerTransmissionChannelHandler) {
+        _powerTransmissionChannelHandler->setPower(power);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void AntCentralDispatch::messageFromAntUsbStick(const QByteArray &bytes)
@@ -172,6 +202,18 @@ void AntCentralDispatch::scanForAntUsbStick()
 
 }
 
+int AntCentralDispatch::findFreeChannel()
+{
+    int channelNumber;
+    // search for first non-occupied channel.
+    for (channelNumber = 0; channelNumber < _antUsbStick->numberOfChannels(); ++channelNumber) {
+        if (!_channels[channelNumber]) {
+            break;
+        }
+    }
+    return channelNumber;
+}
+
 AntChannelHandler* AntCentralDispatch::createChannel(int channelNumber, AntSensorType &sensorType)
 {
     switch (sensorType) {
@@ -180,7 +222,7 @@ AntChannelHandler* AntCentralDispatch::createChannel(int channelNumber, AntSenso
     case SENSOR_TYPE_HR:
         return new AntHeartRateChannelHandler(channelNumber, this);
     case SENSOR_TYPE_POWER:
-        return new AntPowerChannelHandler(channelNumber, this);
+        return new AntPowerReceiveChannelHandler(channelNumber, this);
     case SENSOR_TYPE_SPEED:
         return AntSpeedAndCadenceChannelHandler::createSpeedChannelHandler(channelNumber, this);
     case SENSOR_TYPE_SPEED_AND_CADENCE:
@@ -226,6 +268,10 @@ void AntCentralDispatch::handleChannelFinished(int channelNumber)
                "getting channel finished for empty channel number.");
     AntChannelHandler* handler = _channels[channelNumber];
     _channels[channelNumber] = nullptr;
+    // if this was the power transmission channel, reset the pointer to that too.
+    if (handler == _powerTransmissionChannelHandler) {
+        _powerTransmissionChannelHandler = nullptr;
+    }
 
     emit channelClosed(channelNumber, handler->sensorType());
     handler->deleteLater();

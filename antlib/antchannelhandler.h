@@ -86,10 +86,28 @@ public slots:
 protected:
     explicit AntChannelHandler(const int channelNumber, const AntSensorType sensorType,
                                AntSportPeriod channelPeriod, QObject* parent);
+
+    quint8 channelNumber() const;
+
     /** This method should be implemented by subclasses for their
      * specific way of handling broadcast messages.
      */
     virtual void handleBroadCastMessage(const BroadCastMessage& message) = 0;
+    /**
+     * If true, we're implementing a master node of a channel. By default, we'll implement slaves.
+     */
+    virtual bool isMasterNode() const;
+
+    /**
+     * Subclasses may implement transmissionType() to indicate the transmission type for the
+     * channel. For slave channels, the result will always be 0u, which is the default.
+     */
+    virtual quint8 transmissionType() const;
+    /**
+     * Subclasses may implement channelOpened to get a notification of this channel being opened.
+     * The default implementation is empty.
+     */
+    virtual void channelOpened();
 private:
     void setState(ChannelState state);
     void advanceState(const AntMessage2::AntMessageId messageId);

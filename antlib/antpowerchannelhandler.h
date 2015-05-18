@@ -2,6 +2,7 @@
 #define ANTPOWERCHANNELHANDLER_H
 
 #include "antchannelhandler.h"
+#include <QtCore/QTimer>
 namespace indoorcycling
 {
 /** Power message
@@ -28,24 +29,53 @@ public:
      */
     PowerMessage(const AntMessage2& antMessage = AntMessage2());
 
+    static AntMessage2 createPowerMessage(quint8 channel, quint8 eventCount,
+                                           quint16 accumulatedPower, quint16 instantaneousPower);
+
     bool isPowerOnlyPage() const;
 
     quint8 eventCount() const;
     quint8 instantaneousCadence() const;
     quint16 accumulatedPower() const;
     quint16 instantaneousPower() const;
+
+    QByteArray toContentBytes() const;
 };
 
-class AntPowerChannelHandler : public AntChannelHandler
+class AntPowerReceiveChannelHandler : public AntChannelHandler
 {
     Q_OBJECT
 public:
-    explicit AntPowerChannelHandler(int channelNumber, QObject* parent);
-    virtual ~AntPowerChannelHandler() {}
+    explicit AntPowerReceiveChannelHandler(int channelNumber, QObject* parent = nullptr);
+    virtual ~AntPowerReceiveChannelHandler() {}
 protected:
     virtual void handleBroadCastMessage(const BroadCastMessage& message) override;
 private:
     PowerMessage _lastPowerMessage;
+};
+
+class AntPowerTransmissionChannelHandler : public AntChannelHandler
+{
+    Q_OBJECT
+public:
+    explicit AntPowerTransmissionChannelHandler(int channelNumber, QObject* parent = nullptr);
+    virtual ~AntPowerTransmissionChannelHandler() {}
+public slots:
+    void setPower(quint16 power);
+protected:
+    virtual void handleBroadCastMessage(const BroadCastMessage& message) override;
+    virtual bool isMasterNode() const override;
+    virtual quint8 transmissionType() const override;
+    virtual void channelOpened() override;
+private slots:
+    void sendPowerUpdate();
+private:
+    QTimer* _updateTimer;
+    PowerMessage _lastPowerMessage;
+
+    quint8 _eventCount;
+    quint16 _accumulatedPower;
+    quint16 _instantaneousPower;
 };
 }
 #endif // ANTPOWERCHANNELHANDLER_H

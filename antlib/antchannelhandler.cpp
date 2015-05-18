@@ -48,6 +48,26 @@ AntChannelHandler::AntChannelHandler(const int channelNumber, const AntSensorTyp
     // empty
 }
 
+quint8 AntChannelHandler::channelNumber() const
+{
+    return _channelNumber;
+}
+
+bool AntChannelHandler::isMasterNode() const
+{
+    return false;
+}
+
+quint8 AntChannelHandler::transmissionType() const
+{
+    return static_cast<quint8>(0u);
+}
+
+void AntChannelHandler::channelOpened()
+{
+    // empty.
+}
+
 AntChannelHandler::~AntChannelHandler()
 {
     qDebug() << "Deleting AntChannelHandler for channel type" << _sensorType;
@@ -70,7 +90,8 @@ void AntChannelHandler::setSensorDeviceNumber(int deviceNumber)
 
 void AntChannelHandler::initialize()
 {
-    emit antMessageGenerated(AntMessage2::assignChannel(_channelNumber));
+    quint8 channelType = (isMasterNode()) ? 0x10 : 0x0;
+    emit antMessageGenerated(AntMessage2::assignChannel(_channelNumber, channelType));
     setState(CHANNEL_ASSIGNED);
 }
 
@@ -150,7 +171,7 @@ void AntChannelHandler::advanceState(const AntMessage2::AntMessageId messageId)
     case CHANNEL_ASSIGNED:
         assertMessageId(AntMessage2::AntMessageId::ASSIGN_CHANNEL, messageId);
         emit antMessageGenerated(AntMessage2::setChannelId(_channelNumber,
-                                                           _deviceNumber, _sensorType));
+                                                           _deviceNumber, _sensorType, transmissionType()));
         setState(CHANNEL_ID_SET);
         break;
     case CHANNEL_ID_SET:
@@ -165,8 +186,13 @@ void AntChannelHandler::advanceState(const AntMessage2::AntMessageId messageId)
         break;
     case CHANNEL_PERIOD_SET:
         assertMessageId(AntMessage2::AntMessageId::SET_CHANNEL_PERIOD, messageId);
-        emit antMessageGenerated(AntMessage2::setSearchTimeout(_channelNumber, SEARCH_TIMEOUT));
-        setState(CHANNEL_TIMEOUT_SET);
+        if (isMasterNode()) {
+            emit antMessageGenerated(AntMessage2::openChannel(_channelNumber));
+            setState(CHANNEL_OPENED);
+        } else {
+            emit antMessageGenerated(AntMessage2::setSearchTimeout(_channelNumber, SEARCH_TIMEOUT));
+            setState(CHANNEL_TIMEOUT_SET);
+        }
         break;
     case CHANNEL_TIMEOUT_SET:
         assertMessageId(AntMessage2::AntMessageId::SET_SEARCH_TIMEOUT, messageId);
@@ -176,6 +202,7 @@ void AntChannelHandler::advanceState(const AntMessage2::AntMessageId messageId)
     case CHANNEL_OPENED:
         assertMessageId(AntMessage2::AntMessageId::OPEN_CHANNEL, messageId);
         setState(CHANNEL_SEARCHING);
+        channelOpened();
         break;
     case CHANNEL_CLOSED:
         assertMessageId(AntMessage2::AntMessageId::CLOSE_CHANNEL, messageId);
