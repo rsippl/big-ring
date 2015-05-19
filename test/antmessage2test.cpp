@@ -162,7 +162,7 @@ void AntMessage2Test::channelEventNoError()
     int messageId = static_cast<int>(msg.messageId());
     QCOMPARE(messageId, 0x46);
     int actualMessageCode = static_cast<int>(msg.messageCode());
-    int expectedMessageCode = static_cast<int>(AntChannelEventMessage::MessageCode::EVENT_CHANNEL_IN_WRONG_STATE);
+    int expectedMessageCode = static_cast<int>(AntChannelEventMessage::MessageCode::CHANNEL_IN_WRONG_STATE);
     QCOMPARE(actualMessageCode, expectedMessageCode);
 }
 
@@ -179,7 +179,7 @@ void AntMessage2Test::channelEventNoErrorUsingFactory()
     int messageId = static_cast<int>(antChannelEventMessage->messageId());
     QCOMPARE(messageId, 0x46);
     int actualMessageCode = static_cast<int>(antChannelEventMessage->messageCode());
-    int expectedMessageCode = static_cast<int>(AntChannelEventMessage::MessageCode::EVENT_CHANNEL_IN_WRONG_STATE);
+    int expectedMessageCode = static_cast<int>(AntChannelEventMessage::MessageCode::CHANNEL_IN_WRONG_STATE);
     QCOMPARE(actualMessageCode, expectedMessageCode);
 
 }

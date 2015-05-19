@@ -134,12 +134,13 @@ public:
     AntChannelEventMessage(const QByteArray& bytes);
 
     enum class MessageCode: quint8 {
-        EVENT_CHANNEL_IN_WRONG_STATE = 0x15,
+        CHANNEL_IN_WRONG_STATE = 0x15,
         EVENT_CHANNEL_CLOSED = 0x07,
         EVENT_CHANNEL_COLLISION = 0x09,
-        EVENT_RESPONSE_NO_ERROR = 0x00,
-        EVENT_CHANNEL_RX_FAIL = 0x02,
-        EVENT_CHANNEL_RX_SEARCH_TIMEOUT = 0x01
+        RESPONSE_NO_ERROR = 0x00,
+        EVENT_RX_FAILED = 0x02,
+        EVENT_RX_SEARCH_TIMEOUT = 0x01,
+        EVENT_TX = 0x03
     };
     static const QString antMessageCodeToString(const MessageCode messageCode);
     quint8 channelNumber() const;

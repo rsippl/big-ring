@@ -104,22 +104,30 @@ void AntChannelHandler::close()
 
 void AntChannelHandler::handleChannelEvent(const AntChannelEventMessage &message)
 {
-    if (message.messageCode() == AntChannelEventMessage::MessageCode::EVENT_RESPONSE_NO_ERROR) {
+    switch (message.messageCode()) {
+    case AntChannelEventMessage::MessageCode::RESPONSE_NO_ERROR:
         advanceState(message.messageId());
-    } else if (message.messageCode() == AntChannelEventMessage::MessageCode::EVENT_CHANNEL_RX_SEARCH_TIMEOUT) {
+        break;
+    case AntChannelEventMessage::MessageCode::EVENT_RX_SEARCH_TIMEOUT:
         setState(CHANNEL_SEARCH_TIMEOUT);
         emit searchTimeout(_channelNumber, _sensorType);
         emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
         setState(CHANNEL_UNASSIGNED);
-    } else if (message.messageCode() == AntChannelEventMessage::MessageCode::EVENT_CHANNEL_RX_FAIL) {
+        break;
+    case AntChannelEventMessage::MessageCode::EVENT_RX_FAILED:
         qDebug() << "RX Failure on channel" << _channelNumber;
-    } else if (message.messageCode() == AntChannelEventMessage::MessageCode::EVENT_CHANNEL_CLOSED) {
+        break;;
+    case AntChannelEventMessage::MessageCode::EVENT_CHANNEL_CLOSED:
         qDebug() << "Channel closed by ANT+ stick.";
         if (_state != CHANNEL_UNASSIGNED) {
             emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
             setState(CHANNEL_UNASSIGNED);
         }
-    } else {
+        break;
+    case AntChannelEventMessage::MessageCode::EVENT_TX:
+        // message has been sent.
+        break;
+    default:
         qDebug() << "unhandled message" << message.toString();
     }
 }

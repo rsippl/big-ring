@@ -25,12 +25,12 @@ const double MESSAGING_PERIOD_BASE = 32768.0;
 
 const QMap<AntChannelEventMessage::MessageCode,QString> EVENT_CHANNEL_MESSAGES (
 {
-            {AntChannelEventMessage::MessageCode::EVENT_RESPONSE_NO_ERROR, "NO_ERROR"},
+            {AntChannelEventMessage::MessageCode::RESPONSE_NO_ERROR, "NO_ERROR"},
             {AntChannelEventMessage::MessageCode::EVENT_CHANNEL_CLOSED, "CHANNEL CLOSED"},
             {AntChannelEventMessage::MessageCode::EVENT_CHANNEL_COLLISION, "CHANNEL COLLISION"},
-            {AntChannelEventMessage::MessageCode::EVENT_CHANNEL_IN_WRONG_STATE, "WRONG_STATE"},
-            {AntChannelEventMessage::MessageCode::EVENT_CHANNEL_RX_FAIL, "RX_FAIL"},
-            {AntChannelEventMessage::MessageCode::EVENT_CHANNEL_RX_SEARCH_TIMEOUT, "SEARCH_TIMEOUT"}
+            {AntChannelEventMessage::MessageCode::CHANNEL_IN_WRONG_STATE, "WRONG_STATE"},
+            {AntChannelEventMessage::MessageCode::EVENT_RX_FAILED, "RX_FAIL"},
+            {AntChannelEventMessage::MessageCode::EVENT_RX_SEARCH_TIMEOUT, "SEARCH_TIMEOUT"}
 });
 }
 
@@ -273,7 +273,7 @@ AntChannelEventMessage::AntChannelEventMessage(const QByteArray &bytes):
 
 const QString AntChannelEventMessage::antMessageCodeToString(const AntChannelEventMessage::MessageCode messageCode)
 {
-    return QString("0x%1").arg(static_cast<quint8>(messageCode), 16);
+    return QString("0x%1").arg(QString::number(static_cast<quint8>(messageCode), 16));
 }
 
 quint8 AntChannelEventMessage::channelNumber() const
