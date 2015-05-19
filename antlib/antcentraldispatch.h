@@ -42,7 +42,7 @@ class SetChannelIdMessage;
 
 namespace indoorcycling {
 class AntChannelHandler;
-class AntPowerTransmissionChannelHandler;
+class AntPowerMasterChannelHandler;
 /**
  * The Main ANT+ class that manages the connection with the ANT+ usb stick and through that stick, to the ANT+
  * sensors that are found.
@@ -53,12 +53,27 @@ class AntCentralDispatch : public QObject
 public:
     explicit AntCentralDispatch(QObject *parent = 0);
 
-    bool antUsbStickPresent() const;
-    bool initialized() const;
+    /**
+     * Check if an ANT+ adapter is present.
+     */
+    bool antAdapterPresent() const;
+    /**
+     * check if the ANT+ system has been initialized. After this, channels can be opened.
+     */
+    bool isInitialized() const;
 
+    /**
+     * Search for a sensor of a certain type, for instance a Heart Rate Monitor.
+     */
     bool searchForSensorType(AntSensorType channelType);
+    /**
+     * Search for a sensor of a certain type, with a specific device number. Use this if you want to pair with
+     * a specific instance of a sensor type.
+     */
     bool searchForSensor(AntSensorType channelType, int deviceNumber);
-
+    /**
+     * Check if all ANT+ channels are closed.
+     */
     bool areAllChannelsClosed() const;
 signals:
     /** signal emitted when scanning for an usb stick is finished. @param found indicates whether or not an ANT+ usb
@@ -185,18 +200,16 @@ private:
      */
     void handleChannelIdMessage(const SetChannelIdMessage& channelIdMessage);
 
+    /** function template for sending a message to a channel. */
     template <class T>
     bool sendToChannel(const T& message, std::function<void(AntChannelHandler&, const T&)> sendFunction);
 
     std::unique_ptr<AntDevice> _antUsbStick;
     bool _initialized;
-    AntMessageGatherer* _antMessageGatherer;
-
-    int _currentHeartRate;
-
+    AntMessageGatherer* const _antMessageGatherer;
     QVector<AntChannelHandler*> _channels;
-    AntPowerTransmissionChannelHandler* _powerTransmissionChannelHandler;
-    QTimer* _initializationTimer;
+    AntPowerMasterChannelHandler* _powerTransmissionChannelHandler;
+    QTimer* const _initializationTimer;
 };
 
 template <class T>

@@ -56,12 +56,12 @@ AntCentralDispatch::AntCentralDispatch(QObject *parent) :
     });
 }
 
-bool AntCentralDispatch::antUsbStickPresent() const
+bool AntCentralDispatch::antAdapterPresent() const
 {
     return _antUsbStick.get();
 }
 
-bool AntCentralDispatch::initialized() const
+bool AntCentralDispatch::isInitialized() const
 {
     return _initialized;
 }
@@ -150,7 +150,7 @@ bool AntCentralDispatch::openPowerTransmissionChannel()
         qDebug() << "All channels occupied";
         return false;
     }
-    AntPowerTransmissionChannelHandler* channel = new AntPowerTransmissionChannelHandler(channelNumber);
+    AntPowerMasterChannelHandler* channel = new AntPowerMasterChannelHandler(channelNumber);
     _channels[channelNumber] = channel;
     _powerTransmissionChannelHandler = channel;
 
@@ -222,7 +222,7 @@ AntChannelHandler* AntCentralDispatch::createChannel(int channelNumber, AntSenso
     case SENSOR_TYPE_HR:
         return new AntHeartRateChannelHandler(channelNumber, this);
     case SENSOR_TYPE_POWER:
-        return new AntPowerReceiveChannelHandler(channelNumber, this);
+        return new AntPowerSlaveChannelHandler(channelNumber, this);
     case SENSOR_TYPE_SPEED:
         return AntSpeedAndCadenceChannelHandler::createSpeedChannelHandler(channelNumber, this);
     case SENSOR_TYPE_SPEED_AND_CADENCE:
@@ -293,7 +293,7 @@ void AntCentralDispatch::handleChannelEvent(const AntChannelEventMessage &channe
 {
     if (channelEventMessage.messageId() == AntMessage2::AntMessageId::SET_NETWORK_KEY) {
         _initializationTimer->stop();
-        _initialized = (channelEventMessage.messageCode() == AntChannelEventMessage::MessageCode::EVENT_RESPONSE_NO_ERROR);
+        _initialized = (channelEventMessage.messageCode() == AntChannelEventMessage::MessageCode::RESPONSE_NO_ERROR);
         emit initializationFinished(_initialized);
     } else {
         bool sent = sendToChannel<AntChannelEventMessage>(channelEventMessage,

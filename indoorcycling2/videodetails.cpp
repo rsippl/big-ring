@@ -30,7 +30,7 @@ VideoDetails::VideoDetails(indoorcycling::AntCentralDispatch *antCentralDispatch
     _antCentralDispatch(antCentralDispatch)
 {
     ui->setupUi(this);
-    ui->startButton->setEnabled(_antCentralDispatch->antUsbStickPresent());
+    ui->startButton->setEnabled(_antCentralDispatch->antAdapterPresent());
     connect(_antCentralDispatch, &indoorcycling::AntCentralDispatch::initializationFinished, ui->startButton,
             &QPushButton::setEnabled);
 }

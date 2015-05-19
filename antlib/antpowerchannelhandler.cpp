@@ -41,6 +41,11 @@ quint8 PowerMessage::eventCount() const
     return antMessage().contentByte(2);
 }
 
+bool PowerMessage::hasCadence() const
+{
+    return instantaneousCadence() != 0xFF;
+}
+
 quint8 PowerMessage::instantaneousCadence() const
 {
     return antMessage().contentByte(4);
@@ -56,12 +61,12 @@ quint16 PowerMessage::instantaneousPower() const
     return antMessage().contentShort(7);
 }
 
-AntPowerReceiveChannelHandler::AntPowerReceiveChannelHandler(int channelNumber, QObject *parent) :
+AntPowerSlaveChannelHandler::AntPowerSlaveChannelHandler(int channelNumber, QObject *parent) :
     AntChannelHandler(channelNumber, SENSOR_TYPE_POWER, ANT_SPORT_POWER_PERIOD, parent)
 {
 }
 
-void AntPowerReceiveChannelHandler::handleBroadCastMessage(const BroadCastMessage &message)
+void AntPowerSlaveChannelHandler::handleBroadCastMessage(const BroadCastMessage &message)
 {
     PowerMessage powerMessage(message.antMessage());
     if (powerMessage.isPowerOnlyPage()) {
@@ -79,44 +84,44 @@ void AntPowerReceiveChannelHandler::handleBroadCastMessage(const BroadCastMessag
     }
 }
 
-AntPowerTransmissionChannelHandler::AntPowerTransmissionChannelHandler(int channelNumber, QObject *parent):
+AntPowerMasterChannelHandler::AntPowerMasterChannelHandler(int channelNumber, QObject *parent):
     AntChannelHandler(channelNumber, SENSOR_TYPE_POWER, ANT_SPORT_POWER_PERIOD, parent), _updateTimer(new QTimer(this)), _eventCount(0u), _accumulatedPower(0u)
 {
     setSensorDeviceNumber(1);
     _updateTimer->setTimerType(Qt::PreciseTimer);
     _updateTimer->setInterval(250);
-    connect(_updateTimer, &QTimer::timeout, this, &AntPowerTransmissionChannelHandler::sendPowerUpdate);
+    connect(_updateTimer, &QTimer::timeout, this, &AntPowerMasterChannelHandler::sendPowerUpdate);
 }
 
-void AntPowerTransmissionChannelHandler::setPower(quint16 power)
+void AntPowerMasterChannelHandler::setPower(quint16 power)
 {
     _eventCount += 1;
     _instantaneousPower = power;
     _accumulatedPower += power;
 }
 
-void AntPowerTransmissionChannelHandler::handleBroadCastMessage(const BroadCastMessage &message)
+void AntPowerMasterChannelHandler::handleBroadCastMessage(const BroadCastMessage &message)
 {
     qDebug() << "broadcast message received, page" << message.dataPage();
 }
 
-bool AntPowerTransmissionChannelHandler::isMasterNode() const
+bool AntPowerMasterChannelHandler::isMasterNode() const
 {
     return true;
 }
 
-quint8 AntPowerTransmissionChannelHandler::transmissionType() const
+quint8 AntPowerMasterChannelHandler::transmissionType() const
 {
     return SENDING_POWER_CHANNEL_TRANSMISSION_TYPE;
 }
 
-void AntPowerTransmissionChannelHandler::channelOpened()
+void AntPowerMasterChannelHandler::channelOpened()
 {
     qDebug() << "Power transmission channel opened";
     _updateTimer->start();
 }
 
-void AntPowerTransmissionChannelHandler::sendPowerUpdate()
+void AntPowerMasterChannelHandler::sendPowerUpdate()
 {
     qDebug() << "sending power update" << _eventCount << _instantaneousPower << _accumulatedPower;
     emit antMessageGenerated(PowerMessage::createPowerMessage(channelNumber(), _eventCount,

@@ -61,7 +61,7 @@ SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDisp
     _ui->unitChooser->setCurrentText(settings.value("units").toString());
     _ui->weightSpinBox->setValue(settings.value("cyclist.weight", QVariant::fromValue(82)).toInt());
 
-    fillUsbStickPresentLabel(_antCentralDispatch->antUsbStickPresent());
+    fillUsbStickPresentLabel(_antCentralDispatch->antAdapterPresent());
     connect(_antCentralDispatch, &AntCentralDispatch::antUsbStickScanningFinished, this,
             &SettingsDialog::fillUsbStickPresentLabel);
     reset();
