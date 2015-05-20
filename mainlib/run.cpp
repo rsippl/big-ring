@@ -46,7 +46,8 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     _simulation->courseSelected(course);
 
     indoorcycling::Sensors* sensors = new indoorcycling::Sensors(_antCentralDispatch,
-                                                                 sensorConfigurationGroup);
+                                                                 sensorConfigurationGroup,
+                                                                 this);
 
     connect(sensors, &Sensors::heartRateBpmMeasured, _simulation, &Simulation::setHeartRate);
     connect(sensors, &Sensors::cadenceRpmMeasured, _simulation, &Simulation::setCadence);
