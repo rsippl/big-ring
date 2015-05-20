@@ -42,13 +42,14 @@ public:
     ~AddSensorConfigurationDialog();
 
 private slots:
-    void on_searchSensorsButton_clicked();
-
+    void fillUsbStickPresentLabel(bool present);
     void sensorFound(indoorcycling::AntSensorType sensorType, int deviceNumber);
     void sensorNotFound(indoorcycling::AntSensorType sensorType);
     void handleSensorValue(const indoorcycling::SensorValueType sensorValueType,
                      const indoorcycling::AntSensorType sensorType,
                      const QVariant& sensorValue);
+
+    void on_searchSensorsButton_clicked();
     void performSearch(indoorcycling::AntSensorType sensorType);
     void on_buttonBox_clicked(QAbstractButton *button);
 
@@ -76,6 +77,7 @@ private:
     void saveConfiguration();
     // Checks which simulation options are available and sets options in GUI where appropriate.
     void updateSimulationSettings();
+    void updateWheelCircumferenceChooser();
 
     Ui::AddSensorConfigurationDialog *_ui;
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;

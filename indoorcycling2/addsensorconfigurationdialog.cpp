@@ -21,6 +21,7 @@
 #include "ui_addsensorconfigurationdialog.h"
 #include "virtualpower.h"
 
+#include <QtCore/QMap>
 #include <QtCore/QtDebug>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QHideEvent>
@@ -52,6 +53,14 @@ enum class SearchTableColumn {
 int columnNumber(SearchTableColumn column) {
     return static_cast<int>(column);
 }
+
+QMap<QString,int> WHEEL_CIRCUMFERENCES(
+{{"20-622 (700x20C)", 2086},
+ {"23-622 (700x23C)", 2096},
+ {"25-622 (700x25C)", 2105},
+ {"28-622 (700x28C)", 2136},
+ {"30-622 (700x30C)", 2146},
+ {"32-622 (700x32C)", 2155}});
 }
 AddSensorConfigurationDialog::AddSensorConfigurationDialog(
         AntCentralDispatch* antCentralDispatch, QWidget *parent) :
@@ -77,6 +86,14 @@ AddSensorConfigurationDialog::AddSensorConfigurationDialog(
     connect(_antCentralDispatch, &AntCentralDispatch::sensorValue, this,
             &AddSensorConfigurationDialog::handleSensorValue);
 
+    for(const QString& description: WHEEL_CIRCUMFERENCES.keys()) {
+        int mm = WHEEL_CIRCUMFERENCES[description];
+        QString fullDescription = QString("%1 %2 mm").arg(description).arg(mm);
+        _ui->wheelCircumferenceChooser->addItem(fullDescription, QVariant::fromValue(WHEEL_CIRCUMFERENCES[description]));
+    }
+    fillUsbStickPresentLabel(_antCentralDispatch->antAdapterPresent());
+    connect(_antCentralDispatch, &AntCentralDispatch::antUsbStickScanningFinished, this,
+            &AddSensorConfigurationDialog::fillUsbStickPresentLabel);
 }
 
 AddSensorConfigurationDialog::~AddSensorConfigurationDialog()
@@ -145,6 +162,11 @@ void AddSensorConfigurationDialog::saveConfiguration()
         group.setTrainer(trainer);
     }
 
+    if (_simulationSetting == SimulationSetting::DIRECT_SPEED || _simulationSetting == SimulationSetting::VIRTUAL_POWER) {
+        int wheelCircumference = _ui->wheelCircumferenceChooser->currentData().toInt();
+        group.setWheelCircumferenceInMM(wheelCircumference);
+    }
+
     indoorcycling::NamedSensorConfigurationGroup::addNamedSensorConfigurationGroup(group);
 
     // Make sure this new configuration is automatically selected.
@@ -172,6 +194,11 @@ void AddSensorConfigurationDialog::updateSimulationSettings()
 
 }
 
+void AddSensorConfigurationDialog::updateWheelCircumferenceChooser()
+{
+    _ui->wheelCircumferenceChooser->setEnabled(_ui->directSpeedButton->isChecked() || _ui->virtualPowerButton->isChecked());
+}
+
 void AddSensorConfigurationDialog::on_searchSensorsButton_clicked()
 {
     _antCentralDispatch->closeAllChannels();
@@ -181,6 +208,12 @@ void AddSensorConfigurationDialog::on_searchSensorsButton_clicked()
     performSearch(indoorcycling::SENSOR_TYPE_SPEED_AND_CADENCE);
     performSearch(indoorcycling::SENSOR_TYPE_CADENCE);
     performSearch(indoorcycling::SENSOR_TYPE_SPEED);
+}
+
+void AddSensorConfigurationDialog::fillUsbStickPresentLabel(bool present)
+{
+    QString text = tr((present) ? FOUND : NOT_FOUND);
+    _ui->usbStickPresentLabel->setText(QString("<b>%1</b>").arg(text));
 }
 
 void AddSensorConfigurationDialog::sensorFound(indoorcycling::AntSensorType sensorType, int deviceNumber)
@@ -289,6 +322,7 @@ void AddSensorConfigurationDialog::on_directPowerButton_toggled(bool checked)
 
 void AddSensorConfigurationDialog::on_virtualPowerButton_toggled(bool checked)
 {
+    updateWheelCircumferenceChooser();
     if (checked) {
         _simulationSetting = SimulationSetting::VIRTUAL_POWER;
     }
@@ -296,6 +330,7 @@ void AddSensorConfigurationDialog::on_virtualPowerButton_toggled(bool checked)
 
 void AddSensorConfigurationDialog::on_directSpeedButton_toggled(bool checked)
 {
+    updateWheelCircumferenceChooser();
     if (checked) {
         _simulationSetting = SimulationSetting::DIRECT_SPEED;
     }

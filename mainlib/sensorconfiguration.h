@@ -21,6 +21,7 @@
 #define SENSORCONFIGURATION_H
 
 #include <QtCore/QMap>
+#include <QtCore/QSettings>
 
 #include "antsensortype.h"
 #include "virtualpower.h"
@@ -62,6 +63,8 @@ public:
     void setFixedPower(int watts);
     VirtualPowerTrainer trainer() const;
     void setTrainer(VirtualPowerTrainer trainer);
+    int wheelCircumferenceInMM() const;
+    void setWheelCircumferenceInMM(int mm);
 
     static const NamedSensorConfigurationGroup selectedConfigurationGroup();
     static void saveSelectedConfigurationGroup(const QString& name);
@@ -69,11 +72,13 @@ public:
     static void removeConfigurationGroup(const QString& name);
     static QMap<QString,NamedSensorConfigurationGroup> readFromSettings();
 private:
+    static NamedSensorConfigurationGroup readSingleGroupFromSettings(QSettings &settings, const QString &configurationName);
     QString _name;
     QMap<AntSensorType, SensorConfiguration> _sensorConfigurations;
     SimulationSetting _simulationSetting;
     int _fixedPower;
     VirtualPowerTrainer _trainer;
+    int _wheelCircumferenceInMM;
 };
 }
 #endif // SENSORCONFIGURATION_H

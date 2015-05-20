@@ -94,6 +94,16 @@ void NamedSensorConfigurationGroup::setTrainer(VirtualPowerTrainer trainer)
     _trainer = trainer;
 }
 
+int NamedSensorConfigurationGroup::wheelCircumferenceInMM() const
+{
+    return _wheelCircumferenceInMM;;
+}
+
+void NamedSensorConfigurationGroup::setWheelCircumferenceInMM(int mm)
+{
+    _wheelCircumferenceInMM = mm;
+}
+
 const NamedSensorConfigurationGroup NamedSensorConfigurationGroup::selectedConfigurationGroup()
 {
     QSettings settings;
@@ -131,6 +141,9 @@ void NamedSensorConfigurationGroup::addNamedSensorConfigurationGroup(NamedSensor
         settings.setValue("fixedPower", QVariant::fromValue(group.fixedPower()));
     } else if (group.simulationSetting() == SimulationSetting::VIRTUAL_POWER) {
         settings.setValue("trainer", QVariant::fromValue(static_cast<int>(group.trainer())));
+        settings.setValue("wheelCircumference", QVariant::fromValue(static_cast<int>(group.wheelCircumferenceInMM())));
+    } else if (group.simulationSetting() == SimulationSetting::DIRECT_SPEED) {
+        settings.setValue("wheelCircumference", QVariant::fromValue(static_cast<int>(group.wheelCircumferenceInMM())));
     }
 }
 
@@ -151,34 +164,43 @@ QMap<QString, NamedSensorConfigurationGroup> NamedSensorConfigurationGroup::read
 
     QMap<QString,NamedSensorConfigurationGroup> namedConfigurationGroups;
     for (QString configurationName: configurationNames) {
-        QMap<AntSensorType,SensorConfiguration> sensorConfigurations;
-        settings.beginGroup(configurationName);
-        int size = settings.beginReadArray("sensors");
-        for (int i = 0; i < size; ++i) {
-            settings.setArrayIndex(i);
-            AntSensorType sensorType =
-                    static_cast<AntSensorType>(settings.value("sensorType").toInt());
-            int deviceNumber = settings.value("deviceNumber").toInt();
-            sensorConfigurations.insert(sensorType, SensorConfiguration(sensorType, deviceNumber));
-        }
-        settings.endArray();
-
-        SimulationSetting simulationSetting =
-                static_cast<SimulationSetting>(settings.value("simulationSetting").toInt());
-        NamedSensorConfigurationGroup group(configurationName, sensorConfigurations,
-                                            simulationSetting);
-        if (simulationSetting == SimulationSetting::FIXED_POWER) {
-            group.setFixedPower(settings.value("fixedPower").toInt());
-        } else if (simulationSetting == SimulationSetting::VIRTUAL_POWER) {
-            group.setTrainer(static_cast<VirtualPowerTrainer>(
-                                 settings.value("trainer").toInt()));
-        }
-        namedConfigurationGroups[configurationName] = group;
-        settings.endGroup();
+        namedConfigurationGroups[configurationName] = readSingleGroupFromSettings(settings, configurationName);;;
     }
     settings.endGroup();
 
     return namedConfigurationGroups;
 }
 
+NamedSensorConfigurationGroup NamedSensorConfigurationGroup::readSingleGroupFromSettings(QSettings& settings,
+                                                                                         const QString& configurationName)
+{
+    QMap<AntSensorType,SensorConfiguration> sensorConfigurations;
+    settings.beginGroup(configurationName);
+    int size = settings.beginReadArray("sensors");
+    for (int i = 0; i < size; ++i) {
+        settings.setArrayIndex(i);
+        AntSensorType sensorType =
+                static_cast<AntSensorType>(settings.value("sensorType").toInt());
+        int deviceNumber = settings.value("deviceNumber").toInt();
+        sensorConfigurations.insert(sensorType, SensorConfiguration(sensorType, deviceNumber));
+    }
+    settings.endArray();
+
+    SimulationSetting simulationSetting =
+            static_cast<SimulationSetting>(settings.value("simulationSetting").toInt());
+    NamedSensorConfigurationGroup group(configurationName, sensorConfigurations,
+                                        simulationSetting);
+    if (simulationSetting == SimulationSetting::FIXED_POWER) {
+        group.setFixedPower(settings.value("fixedPower").toInt());
+    } else if (simulationSetting == SimulationSetting::VIRTUAL_POWER) {
+        group.setTrainer(static_cast<VirtualPowerTrainer>(
+                             settings.value("trainer").toInt()));
+        group.setWheelCircumferenceInMM(settings.value("wheelCircumference").toInt());
+    } else if (simulationSetting == SimulationSetting::DIRECT_SPEED) {
+        group.setWheelCircumferenceInMM(settings.value("wheelCircumference").toInt());
+    }
+    settings.endGroup();
+
+    return group;
+}
 }

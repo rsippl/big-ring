@@ -118,7 +118,8 @@ void Sensors::handleWheelSpeed(const QVariant &sensorValue)
 
 int Sensors::calculatePower(const float wheelSpeedRpm) const
 {
-    float wheelSpeedMps = wheelSpeedRpm * 2.096 / 60.0;
+    float wheelCircumferenceInM = _sensorConfigurationGroup.wheelCircumferenceInMM() * 0.001;
+    float wheelSpeedMps = wheelSpeedRpm * wheelCircumferenceInM / 60.0;
     float virtualPower = _virtualPowerFunction(wheelSpeedMps);
     qDebug() << QString("Virtual Power For %1 meters per second = %2W")
                 .arg(wheelSpeedMps, 2, 'f')

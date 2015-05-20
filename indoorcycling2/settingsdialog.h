@@ -47,7 +47,6 @@ private slots:
 
     void on_weightSpinBox_valueChanged(int arg1);
 
-    void fillUsbStickPresentLabel(bool present);
     void on_pushButton_clicked();
 
     void on_antConfigurationChooser_currentIndexChanged(const QString &selectedConfiguration);

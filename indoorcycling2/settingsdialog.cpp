@@ -34,9 +34,6 @@ using indoorcycling::SimulationSetting;
 
 namespace {
 
-const char* FOUND = "Found";
-const char* NOT_FOUND = "Not Found";
-
 const char* SENSOR_PRESENT = "Present (device number %1)";
 
 const char* FIXED_POWER_LABEL = "No power measurement. Power fixed to %1 watts.\n"
@@ -61,9 +58,6 @@ SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDisp
     _ui->unitChooser->setCurrentText(settings.value("units").toString());
     _ui->weightSpinBox->setValue(settings.value("cyclist.weight", QVariant::fromValue(82)).toInt());
 
-    fillUsbStickPresentLabel(_antCentralDispatch->antAdapterPresent());
-    connect(_antCentralDispatch, &AntCentralDispatch::antUsbStickScanningFinished, this,
-            &SettingsDialog::fillUsbStickPresentLabel);
     reset();
 }
 
@@ -82,12 +76,6 @@ void SettingsDialog::on_weightSpinBox_valueChanged(int cyclistWeight)
 {
     QSettings settings;
     settings.setValue("cyclist.weight", QVariant::fromValue(cyclistWeight));
-}
-
-void SettingsDialog::fillUsbStickPresentLabel(bool present)
-{
-    QString text = tr((present) ? FOUND : NOT_FOUND);
-    _ui->usbStickPresentLabel->setText(QString("<b>%1</b>").arg(text));
 }
 
 void SettingsDialog::on_pushButton_clicked()
