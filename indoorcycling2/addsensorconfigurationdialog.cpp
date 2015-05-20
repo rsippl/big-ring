@@ -214,6 +214,11 @@ void AddSensorConfigurationDialog::fillUsbStickPresentLabel(bool present)
 {
     QString text = tr((present) ? FOUND : NOT_FOUND);
     _ui->usbStickPresentLabel->setText(QString("<b>%1</b>").arg(text));
+    _ui->searchSensorsButton->setEnabled(present);
+    for (int row = 0; row < _ui->searchTableWidget->rowCount(); ++row) {
+        _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::BUTTON))
+                ->setEnabled(present);
+    }
 }
 
 void AddSensorConfigurationDialog::sensorFound(indoorcycling::AntSensorType sensorType, int deviceNumber)
