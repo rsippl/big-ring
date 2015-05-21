@@ -38,6 +38,8 @@ private slots:
 
     void on_hrSpinBox_valueChanged(int arg1);
 
+    void on_cadenceSpinBox_valueChanged(int arg1);
+
 private:
     Ui::AntTestAppMainWindow *ui;
     QTimer* _timer;

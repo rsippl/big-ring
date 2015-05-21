@@ -98,3 +98,8 @@ void indoorcycling::AntTestAppMainWindow::on_hrSpinBox_valueChanged(int hr)
 {
     emit sensorValue(SensorValueType::SENSOR_VALUE_HEARTRATE_BPM, AntSensorType::SENSOR_TYPE_HR, QVariant::fromValue(hr));
 }
+
+void indoorcycling::AntTestAppMainWindow::on_cadenceSpinBox_valueChanged(int arg1)
+{
+    emit sensorValue(SensorValueType::SENSOR_VALUE_CADENCE_RPM, AntSensorType::SENSOR_TYPE_POWER, QVariant::fromValue(arg1));
+}
