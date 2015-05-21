@@ -12,7 +12,7 @@ AntTestAppMainWindow::AntTestAppMainWindow(QWidget *parent) :
     ui->setupUi(this);
     connect(_timer, &QTimer::timeout, _timer, [this]() {
         quint16 powerWatts = static_cast<quint16>(ui->spinBox->value());
-        emit powerGenerated(powerWatts);
+        emit sensorValue(SensorValueType::SENSOR_VALUE_POWER_WATT, AntSensorType::SENSOR_TYPE_POWER, QVariant::fromValue(powerWatts));
     });
     _timer->setInterval(1000);
 }
@@ -84,6 +84,17 @@ void indoorcycling::AntTestAppMainWindow::on_pushButton_2_clicked()
 
 void indoorcycling::AntTestAppMainWindow::on_pushButton_3_clicked()
 {
-    emit openPowerTransmissionChannel();
+    emit openMasterChannel(AntSensorType::SENSOR_TYPE_POWER);
     _timer->start();
+}
+
+void indoorcycling::AntTestAppMainWindow::on_hrMasterPushButton_clicked()
+{
+    emit openMasterChannel(AntSensorType::SENSOR_TYPE_HR);
+    on_hrSpinBox_valueChanged(ui->hrSpinBox->value());
+}
+
+void indoorcycling::AntTestAppMainWindow::on_hrSpinBox_valueChanged(int hr)
+{
+    emit sensorValue(SensorValueType::SENSOR_VALUE_HEARTRATE_BPM, AntSensorType::SENSOR_TYPE_HR, QVariant::fromValue(hr));
 }

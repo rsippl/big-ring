@@ -115,6 +115,7 @@ void AntCentralDispatch::initialize()
         qDebug() << "AntCentralDispatch::initialize() failed";
         emit initializationFinished(false);
 
+        // try it again after a second.
         QTimer::singleShot(1000, this, SLOT(initialize()));
         return;
     }
@@ -139,10 +140,10 @@ void AntCentralDispatch::closeAllChannels()
     _powerTransmissionChannelHandler = nullptr;
 }
 
-bool AntCentralDispatch::openPowerTransmissionChannel()
+bool AntCentralDispatch::openMasterChannel(AntSensorType sensorType)
 {
-    if (_powerTransmissionChannelHandler) {
-        qDebug() << "Power Transmission Channel already opened.";
+    if (_masterChannels.contains(sensorType)) {
+        qDebug() << ANT_SENSOR_TYPE_STRINGS[sensorType] << " master channel already exists";
         return false;
     }
     int channelNumber = findFreeChannel();
@@ -150,9 +151,19 @@ bool AntCentralDispatch::openPowerTransmissionChannel()
         qDebug() << "All channels occupied";
         return false;
     }
-    AntPowerMasterChannelHandler* channel = new AntPowerMasterChannelHandler(channelNumber);
+    AntMasterChannelHandler *channel;
+    switch (sensorType) {
+    case SENSOR_TYPE_HR:
+        channel = new AntHeartRateMasterChannelHandler(channelNumber, this);
+        break;
+    case SENSOR_TYPE_POWER:
+        channel = new AntPowerMasterChannelHandler(channelNumber, this);
+        break;
+    default:
+        return false;
+    }
     _channels[channelNumber] = channel;
-    _powerTransmissionChannelHandler = channel;
+    _masterChannels[sensorType] = channel;
 
     connect(channel, &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
     connect(channel, &AntChannelHandler::finished, this, &AntCentralDispatch::handleChannelFinished);
@@ -160,16 +171,17 @@ bool AntCentralDispatch::openPowerTransmissionChannel()
     channel->initialize();
 
     return true;
+
 }
 
-bool AntCentralDispatch::sendPower(quint16 power)
+bool AntCentralDispatch::sendSensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType, const QVariant &sensorValue)
 {
-    if (_powerTransmissionChannelHandler) {
-        _powerTransmissionChannelHandler->setPower(power);
-        return true;
-    } else {
+    if (!_masterChannels.contains(sensorType)) {
         return false;
     }
+    AntMasterChannelHandler* channel = _masterChannels[sensorType];
+    channel->sendSensorValue(sensorValueType, sensorValue);
+    return true;
 }
 
 void AntCentralDispatch::messageFromAntUsbStick(const QByteArray &bytes)
@@ -268,10 +280,6 @@ void AntCentralDispatch::handleChannelFinished(int channelNumber)
                "getting channel finished for empty channel number.");
     AntChannelHandler* handler = _channels[channelNumber];
     _channels[channelNumber] = nullptr;
-    // if this was the power transmission channel, reset the pointer to that too.
-    if (handler == _powerTransmissionChannelHandler) {
-        _powerTransmissionChannelHandler = nullptr;
-    }
 
     emit channelClosed(channelNumber, handler->sensorType());
     handler->deleteLater();

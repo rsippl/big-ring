@@ -25,6 +25,7 @@
 #include <vector>
 
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 #include <QtCore/QTimer>
 #include <QtCore/QVector>
 
@@ -42,6 +43,8 @@ class SetChannelIdMessage;
 
 namespace indoorcycling {
 class AntChannelHandler;
+class AntMasterChannelHandler;
+class AntHeartRateMasterChannelHandler;
 class AntPowerMasterChannelHandler;
 /**
  * The Main ANT+ class that manages the connection with the ANT+ usb stick and through that stick, to the ANT+
@@ -129,16 +132,14 @@ public slots:
     void closeAllChannels();
 
     /**
-     * Open a power transmission channel.
+     * open a master (transmitting) channel of a certain type, returns true if opening succeeded.
      */
-    bool openPowerTransmissionChannel();
-
+    bool openMasterChannel(AntSensorType sensorType);
     /**
-     * if we have a power transmission channel, we can send the power value.
-     * This will return true if the power can be sent, that is, if we have
-     * a power transmission channel.
+     * Send value to a master channel
      */
-    bool sendPower(quint16 power);
+    bool sendSensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType,
+                         const QVariant& sensorValue);
 private slots:
     void messageFromAntUsbStick(const QByteArray& bytes);
     /**
@@ -208,7 +209,9 @@ private:
     bool _initialized;
     AntMessageGatherer* const _antMessageGatherer;
     QVector<AntChannelHandler*> _channels;
-    AntPowerMasterChannelHandler* _powerTransmissionChannelHandler;
+    QMap<AntSensorType,QPointer<AntMasterChannelHandler>> _masterChannels;
+    QPointer<AntPowerMasterChannelHandler> _powerTransmissionChannelHandler;
+    QPointer<AntHeartRateMasterChannelHandler> _heartRateMasterChannelhandler;
     QTimer* const _initializationTimer;
 };
 

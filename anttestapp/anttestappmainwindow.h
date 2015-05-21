@@ -4,6 +4,7 @@
 #include <QtWidgets/QMainWindow>
 
 #include "antsensortype.h"
+
 namespace Ui {
 class AntTestAppMainWindow;
 }
@@ -25,13 +26,17 @@ public slots:
     void setHeartRate(int bpm);
 signals:
     void startSearch(AntSensorType channelType);
-    void openPowerTransmissionChannel();
-    void powerGenerated(quint16 watts);
+    void openMasterChannel(AntSensorType sensorType);
+    void sensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType, const QVariant& value);
 private slots:
     void on_pushButton_clicked();
     void on_pushButton_2_clicked();
 
     void on_pushButton_3_clicked();
+
+    void on_hrMasterPushButton_clicked();
+
+    void on_hrSpinBox_valueChanged(int arg1);
 
 private:
     Ui::AntTestAppMainWindow *ui;

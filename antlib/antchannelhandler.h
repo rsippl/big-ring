@@ -120,5 +120,20 @@ private:
     const AntSportPeriod _channelPeriod;
     ChannelState _state;
 };
+
+class AntMasterChannelHandler: public AntChannelHandler
+{
+    Q_OBJECT
+public:
+    AntMasterChannelHandler(int channelNumber, const AntSensorType sensorType,
+                            AntSportPeriod channelPeriod, QObject* parent);
+    virtual ~AntMasterChannelHandler() {}
+    virtual void sendSensorValue(const SensorValueType valueType, const QVariant& value) = 0;
+protected:
+    virtual void handleBroadCastMessage(const BroadCastMessage& message) final;
+
+    /** these channels are always master */
+    virtual bool isMasterNode() const final { return true; }
+};
 }
 #endif // ANTCHANNELHANDLER_H

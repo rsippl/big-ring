@@ -76,7 +76,7 @@ private:
  * Implements a ANT+ Power Master Channel Handler. This channel is used for transmitting messages so they can be picked
  * up by an ANT+ slave, like a head unit, which can display the values.
  */
-class AntPowerMasterChannelHandler : public AntChannelHandler
+class AntPowerMasterChannelHandler : public AntMasterChannelHandler
 {
     Q_OBJECT
 public:
@@ -85,9 +85,8 @@ public:
 public slots:
     /** Set the power that will be transmitted */
     void setPower(quint16 power);
+    virtual void sendSensorValue(const SensorValueType valueType, const QVariant &value) override;
 protected:
-    virtual void handleBroadCastMessage(const BroadCastMessage& message) override;
-    virtual bool isMasterNode() const override;
     virtual quint8 transmissionType() const override;
     virtual void channelOpened() override;
 private slots:

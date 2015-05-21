@@ -20,7 +20,9 @@
 #ifndef ANTHEARTRATECHANNELHANDLER_H
 #define ANTHEARTRATECHANNELHANDLER_H
 
-#include <QObject>
+#include <QtCore/QObject>
+#include <QtCore/QTime>
+#include <QtCore/QTimer>
 
 #include "antchannelhandler.h"
 namespace indoorcycling {
@@ -49,6 +51,9 @@ public:
      */
     HeartRateMessage(const AntMessage2& antMessage = AntMessage2());
 
+    static AntMessage2 createHeartRateMessage(quint8 channelNumber, bool toggleHigh, quint16 measurementTime,
+                                              quint8 heartBeatCount, quint8 computedHeartRate);
+
     quint16 measurementTime() const;
     quint8 heartBeatCount() const;
     quint8 computedHeartRate() const;
@@ -71,6 +76,34 @@ protected:
     virtual void handleBroadCastMessage(const BroadCastMessage& message) override;
 private:
     HeartRateMessage _lastMessage;
+};
+
+/**
+ * Implements a ANT+ Heart rate Master Channel Handler. This channel is used for transmitting messages so they can
+ * be picked up by an ANT+ slave, like a head unit, which can display the values.
+ */
+class AntHeartRateMasterChannelHandler : public AntMasterChannelHandler
+{
+    Q_OBJECT
+public:
+    explicit AntHeartRateMasterChannelHandler(int channelNumber, QObject* parent = nullptr);
+    virtual ~AntHeartRateMasterChannelHandler() {}
+
+    virtual void sendSensorValue(const SensorValueType valueType, const QVariant &value) override;
+protected:
+    virtual quint8 transmissionType() const override;
+    virtual void channelOpened() override;
+private slots:
+    void sendMessage();
+private:
+    QTimer* const _updateTimer;
+    QTime _lastSendTime;
+
+    int _updateCounter;
+    quint8 _heartRate;
+    quint16 _lastEventTime;
+    quint8 _lastNrOfHeartBeats;
+
 };
 }
 #endif // ANTHEARTRATECHANNELHANDLER_H

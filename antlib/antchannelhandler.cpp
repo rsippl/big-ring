@@ -242,4 +242,17 @@ void AntChannelHandler::handleFirstBroadCastMessage(const BroadCastMessage&)
                                                          AntMessage2::AntMessageId::SET_CHANNEL_ID));
     setState(CHANNEL_TRACKING);
 }
+
+AntMasterChannelHandler::AntMasterChannelHandler(int channelNumber, const AntSensorType sensorType,
+                                                 AntChannelHandler::AntSportPeriod channelPeriod, QObject *parent):
+    AntChannelHandler(channelNumber, sensorType, channelPeriod, parent)
+{
+    // empty
+}
+
+void AntMasterChannelHandler::handleBroadCastMessage(const BroadCastMessage &)
+{
+    qDebug() << QString("received broadcast message on master channel #%1").arg(channelNumber());
+}
+
 }

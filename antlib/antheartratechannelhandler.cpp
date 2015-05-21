@@ -22,6 +22,10 @@
 #include <QtCore/QTime>
 #include <QtCore/QVariant>
 
+namespace
+{
+const quint8 HEARTRATE_MASTER_CHANNEL_TRANSMISSION_TYPE = static_cast<quint8>(0x01);
+}
 namespace indoorcycling
 {
 HeartRateMessage::HeartRateMessage(const AntMessage2 &antMessage): BroadCastMessage(antMessage)
@@ -31,6 +35,28 @@ HeartRateMessage::HeartRateMessage(const AntMessage2 &antMessage): BroadCastMess
         _heartBeatCount = antMessage.contentByte(7);
         _computedHeartRate = antMessage.contentByte(8);
     }
+}
+
+AntMessage2 HeartRateMessage::createHeartRateMessage(quint8 channelNumber, bool toggleHigh, quint16 measurementTime,
+                                                     quint8 heartBeatCount, quint8 computedHeartRate)
+{
+    QByteArray content;
+    content += channelNumber;
+    if (toggleHigh) {
+        content += 0x80;
+    } else {
+        quint8 zero = 0x0;
+        content += zero;
+    }
+    content += 0xFF;
+    content += 0xFF;
+    content += 0xFF;
+    content += measurementTime & 0xFF;
+    content += (measurementTime >> 8) & 0xFF;
+    content += heartBeatCount;
+    content += computedHeartRate;
+
+    return AntMessage2(AntMessage2::AntMessageId::BROADCAST_EVENT, content);
 }
 
 quint16 HeartRateMessage::measurementTime() const
@@ -65,4 +91,43 @@ void AntHeartRateChannelHandler::handleBroadCastMessage(const BroadCastMessage &
     }
     _lastMessage = heartRateMessage;
 }
+
+AntHeartRateMasterChannelHandler::AntHeartRateMasterChannelHandler(int channelNumber, QObject *parent):
+    AntMasterChannelHandler(channelNumber, SENSOR_TYPE_HR, ANT_SPORT_HR_PERIOD, parent),
+    _updateTimer(new QTimer(this))
+{
+    _updateTimer->setInterval(250);
+    connect(_updateTimer, &QTimer::timeout, this, &AntHeartRateMasterChannelHandler::sendMessage);
+}
+
+void AntHeartRateMasterChannelHandler::sendSensorValue(const SensorValueType valueType, const QVariant &value)
+{
+    if (valueType == SensorValueType::SENSOR_VALUE_HEARTRATE_BPM) {
+        _heartRate = value.toInt();
+    }
+}
+
+quint8 AntHeartRateMasterChannelHandler::transmissionType() const
+{
+    return HEARTRATE_MASTER_CHANNEL_TRANSMISSION_TYPE;
+}
+
+void AntHeartRateMasterChannelHandler::channelOpened()
+{
+    _updateTimer->start();
+}
+
+void AntHeartRateMasterChannelHandler::sendMessage()
+{
+    int elapsed = _lastSendTime.restart();
+    quint16 elapsedIn1024 = static_cast<quint16>(qRound(elapsed * 1.024));
+    _lastEventTime += elapsedIn1024;
+    _lastNrOfHeartBeats += (_heartRate / 4);
+
+    bool toggle = ((_updateCounter / 4) > 0);
+    _updateCounter = (_updateCounter + 1) % 8;
+    AntMessage2 hrMessage = HeartRateMessage::createHeartRateMessage(channelNumber(), toggle, _lastEventTime, _lastNrOfHeartBeats, _heartRate);
+    emit antMessageGenerated(hrMessage);
+}
+
 }

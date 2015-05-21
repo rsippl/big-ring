@@ -33,7 +33,7 @@ public:
  * 0: channel
  * 1: data page
  * 2-4: depends on data page.
- * 5-6: bike speed event time
+ * 5-6: last bike speed event time in 1/1024s
  * 7-8: cumulative wheel revolution count
  */
 class SpeedMessage: public BroadCastMessage
@@ -41,7 +41,9 @@ class SpeedMessage: public BroadCastMessage
 public:
     SpeedMessage(const AntMessage2& antMessage);
 
+    /** The time of the last valid speed event, in 1/1024s. */
     quint16 speedEventTime() const;
+    /** total number of wheel revolutions */
     quint16 wheelRevolutions() const;
 };
 

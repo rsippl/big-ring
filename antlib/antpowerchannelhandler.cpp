@@ -85,7 +85,7 @@ void AntPowerSlaveChannelHandler::handleBroadCastMessage(const BroadCastMessage 
 }
 
 AntPowerMasterChannelHandler::AntPowerMasterChannelHandler(int channelNumber, QObject *parent):
-    AntChannelHandler(channelNumber, SENSOR_TYPE_POWER, ANT_SPORT_POWER_PERIOD, parent), _updateTimer(new QTimer(this)), _eventCount(0u), _accumulatedPower(0u)
+    AntMasterChannelHandler(channelNumber, SENSOR_TYPE_POWER, ANT_SPORT_POWER_PERIOD, parent), _updateTimer(new QTimer(this)), _eventCount(0u), _accumulatedPower(0u)
 {
     setSensorDeviceNumber(1);
     _updateTimer->setTimerType(Qt::PreciseTimer);
@@ -100,14 +100,13 @@ void AntPowerMasterChannelHandler::setPower(quint16 power)
     _accumulatedPower += power;
 }
 
-void AntPowerMasterChannelHandler::handleBroadCastMessage(const BroadCastMessage &message)
+void AntPowerMasterChannelHandler::sendSensorValue(const SensorValueType valueType, const QVariant &value)
 {
-    qDebug() << "broadcast message received, page" << message.dataPage();
-}
-
-bool AntPowerMasterChannelHandler::isMasterNode() const
-{
-    return true;
+    if (valueType == SensorValueType::SENSOR_VALUE_POWER_WATT) {
+        _eventCount += 1;
+        _instantaneousPower = value.toInt();
+        _accumulatedPower += _instantaneousPower;
+    }
 }
 
 quint8 AntPowerMasterChannelHandler::transmissionType() const
