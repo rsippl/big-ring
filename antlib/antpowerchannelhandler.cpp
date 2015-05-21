@@ -15,14 +15,15 @@ PowerMessage::PowerMessage(const AntMessage2 &antMessage):
     // empty
 }
 
-AntMessage2 PowerMessage::createPowerMessage(quint8 channel, quint8 eventCount, quint16 accumulatedPower, quint16 instantaneousPower)
+AntMessage2 PowerMessage::createPowerMessage(quint8 channel, quint8 eventCount, quint8 cadence,
+                                             quint16 accumulatedPower, quint16 instantaneousPower)
 {
     QByteArray content;
     content += channel;
     content += static_cast<quint8>(0x10);
     content += eventCount;
     content += 0xFF; // no pedal balance available
-    content += 0xFF; // no cadence
+    content += cadence;
     content += accumulatedPower & 0xFF;
     content += (accumulatedPower >> 8) & 0xFF;
     content += instantaneousPower & 0xFF;
@@ -85,7 +86,8 @@ void AntPowerSlaveChannelHandler::handleBroadCastMessage(const BroadCastMessage 
 }
 
 AntPowerMasterChannelHandler::AntPowerMasterChannelHandler(int channelNumber, QObject *parent):
-    AntMasterChannelHandler(channelNumber, SENSOR_TYPE_POWER, ANT_SPORT_POWER_PERIOD, parent), _updateTimer(new QTimer(this)), _eventCount(0u), _accumulatedPower(0u)
+    AntMasterChannelHandler(channelNumber, SENSOR_TYPE_POWER, ANT_SPORT_POWER_PERIOD, parent),
+    _updateTimer(new QTimer(this)), _eventCount(0u), _accumulatedPower(0u), _cadence(0u)
 {
     setSensorDeviceNumber(1);
     _updateTimer->setTimerType(Qt::PreciseTimer);
@@ -106,6 +108,8 @@ void AntPowerMasterChannelHandler::sendSensorValue(const SensorValueType valueTy
         _eventCount += 1;
         _instantaneousPower = value.toInt();
         _accumulatedPower += _instantaneousPower;
+    } else if (valueType == SensorValueType::SENSOR_VALUE_CADENCE_RPM) {
+        _cadence = value.toInt();
     }
 }
 
@@ -123,7 +127,7 @@ void AntPowerMasterChannelHandler::channelOpened()
 void AntPowerMasterChannelHandler::sendPowerUpdate()
 {
     qDebug() << "sending power update" << _eventCount << _instantaneousPower << _accumulatedPower;
-    emit antMessageGenerated(PowerMessage::createPowerMessage(channelNumber(), _eventCount,
+    emit antMessageGenerated(PowerMessage::createPowerMessage(channelNumber(), _eventCount, _cadence,
                                                               _accumulatedPower, _instantaneousPower));
 }
 

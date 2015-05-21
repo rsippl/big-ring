@@ -29,7 +29,7 @@ public:
      */
     PowerMessage(const AntMessage2& antMessage = AntMessage2());
 
-    static AntMessage2 createPowerMessage(quint8 channel, quint8 eventCount,
+    static AntMessage2 createPowerMessage(quint8 channel, quint8 eventCount, quint8 cadence,
                                            quint16 accumulatedPower, quint16 instantaneousPower);
 
     /**
@@ -97,6 +97,7 @@ private:
     quint8 _eventCount;
     quint16 _accumulatedPower;
     quint16 _instantaneousPower;
+    quint8 _cadence;
 };
 }
 #endif // ANTPOWERCHANNELHANDLER_H
