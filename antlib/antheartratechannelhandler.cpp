@@ -94,7 +94,7 @@ void AntHeartRateChannelHandler::handleBroadCastMessage(const BroadCastMessage &
 
 AntHeartRateMasterChannelHandler::AntHeartRateMasterChannelHandler(int channelNumber, QObject *parent):
     AntMasterChannelHandler(channelNumber, SENSOR_TYPE_HR, ANT_SPORT_HR_PERIOD, parent),
-    _updateTimer(new QTimer(this))
+    _updateTimer(new QTimer(this)), _updateCounter(0), _heartRate(0), _lastEventTime(0), _lastNrOfHeartBeats(0)
 {
     _updateTimer->setInterval(250);
     connect(_updateTimer, &QTimer::timeout, this, &AntHeartRateMasterChannelHandler::sendMessage);
