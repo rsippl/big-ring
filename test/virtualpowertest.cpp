@@ -13,5 +13,5 @@ void VirtualPowerTest::testKurtKineticRoadMachine()
     float speedMps = speedMph / 3600 * 1609.344;
     QCOMPARE(kkFunction(speedMps), 164.435f);
     QCOMPARE(static_cast<int>(kkFunction(7.964800)), 201);
-    QCOMPARE(kkFunction(7.964800), 7.964800f);
 }
+
