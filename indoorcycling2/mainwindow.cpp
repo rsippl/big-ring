@@ -41,7 +41,7 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     _antCentralDispatch(new indoorcycling::AntCentralDispatch(this)),
     _menuBar(new QMenuBar),
     _stackedWidget(new QStackedWidget),
-    _listView(new VideoListView(_antCentralDispatch))
+    _listView(new VideoListView(this))
 {
     _antCentralDispatch->initialize();
     setupMenuBar();

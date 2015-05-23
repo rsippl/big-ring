@@ -38,7 +38,7 @@ class VideoListView : public QWidget
     Q_OBJECT
 
 public:
-    explicit VideoListView(indoorcycling::AntCentralDispatch *antCentralDispatch, QWidget *parent = 0);
+    explicit VideoListView(QWidget *parent = 0);
 
 signals:
     void videoSelected(RealLifeVideo& rlv, int courseNr);

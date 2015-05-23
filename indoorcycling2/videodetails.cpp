@@ -23,16 +23,12 @@
 #include "createnewcoursedialog.h"
 #include "quantityprinter.h"
 
-VideoDetails::VideoDetails(indoorcycling::AntCentralDispatch *antCentralDispatch, QWidget *parent) :
+VideoDetails::VideoDetails(QWidget *parent) :
     QWidget(parent),
     _quantityPrinter(new QuantityPrinter(this)),
-    ui(new Ui::VideoDetails),
-    _antCentralDispatch(antCentralDispatch)
+    ui(new Ui::VideoDetails)
 {
     ui->setupUi(this);
-    ui->startButton->setEnabled(_antCentralDispatch->antAdapterPresent());
-    connect(_antCentralDispatch, &indoorcycling::AntCentralDispatch::initializationFinished, ui->startButton,
-            &QPushButton::setEnabled);
 }
 
 VideoDetails::~VideoDetails()

@@ -36,7 +36,7 @@ class VideoDetails : public QWidget
     Q_OBJECT
 
 public:
-    explicit VideoDetails(indoorcycling::AntCentralDispatch* antCentralDispatch, QWidget *parent = 0);
+    explicit VideoDetails(QWidget *parent = 0);
     ~VideoDetails();
 
 public slots:
@@ -55,7 +55,6 @@ private:
     int _courseIndex;
     QuantityPrinter* const _quantityPrinter;
     Ui::VideoDetails *ui;
-    indoorcycling::AntCentralDispatch* const _antCentralDispatch;
 };
 
 #endif // VIDEODETAILS_H

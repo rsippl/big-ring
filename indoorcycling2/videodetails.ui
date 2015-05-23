@@ -83,7 +83,7 @@
    <item row="2" column="0" colspan="2">
     <widget class="QPushButton" name="startButton">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
