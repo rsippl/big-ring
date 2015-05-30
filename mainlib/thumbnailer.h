@@ -38,6 +38,7 @@ class Thumbnailer : public QObject
     Q_OBJECT
 public:
     explicit Thumbnailer(QObject* parent = 0);
+    virtual ~Thumbnailer();
 
     QPixmap thumbnailFor(RealLifeVideo &rlv, const qreal distance = 0.0);
 

@@ -44,6 +44,12 @@ VideoReader::VideoReader(QObject *parent) :
     // empty
 }
 
+VideoReader::~VideoReader()
+{
+    qDebug() << "closing Videoreader";
+    close();
+}
+
 void VideoReader::createImageForFrame(const RealLifeVideo& rlv, const qreal distance)
 {
     QCoreApplication::postEvent(this, new CreateImageForFrameEvent(rlv, distance));

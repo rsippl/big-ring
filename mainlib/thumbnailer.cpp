@@ -71,6 +71,11 @@ Thumbnailer::Thumbnailer(QObject *parent): QObject(parent), _videoReader(new Vid
     videoReaderThread->start();
 }
 
+Thumbnailer::~Thumbnailer()
+{
+    // empty
+}
+
 /**
  * @brief get the thumbnail for an rlv at a certain distance. If no thumbnail is ready yet, an empty thumbnail
  * will be returned. A generated thumbnail will later be emitted using a pixmapUpdated() signal.

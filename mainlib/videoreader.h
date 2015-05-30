@@ -19,6 +19,7 @@ class VideoReader : public QObject
     Q_OBJECT
 public:
     explicit VideoReader(QObject *parent = 0);
+    virtual ~VideoReader();
 
     void createImageForFrame(const RealLifeVideo& rlv, const qreal distance);
 signals:
