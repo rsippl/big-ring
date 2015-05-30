@@ -29,7 +29,8 @@ HEADERS += \
     quantityprinter.h \
     sensorconfiguration.h \
     sensors.h \
-    virtualpower.h
+    virtualpower.h \
+    videoreader.h
 
 SOURCES += \
     cyclist.cpp \
@@ -51,7 +52,8 @@ SOURCES += \
     quantityprinter.cpp \
     sensorconfiguration.cpp \
     sensors.cpp \
-    virtualpower.cpp
+    virtualpower.cpp \
+    videoreader.cpp
 
 
 

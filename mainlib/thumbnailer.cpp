@@ -30,6 +30,7 @@
 #include <QtGui/QFont>
 #include <QtGui/QPainter>
 
+#include "videoreader.h"
 extern "C" {
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
@@ -109,8 +110,9 @@ QPixmap convertSampleToPixmap(GstSample *sample);
 QSize getSizeFromSample(GstSample* sample);
 }
 
-Thumbnailer::Thumbnailer(QObject *parent): QObject(parent)
+Thumbnailer::Thumbnailer(QObject *parent): QObject(parent), _videoReader(new VideoReader)
 {
+    connect(_videoReader, &VideoReader::newFrameReady, this, &Thumbnailer::setNewFrame);
     _cacheDirectory = thumbnailDirectory();
     createCacheDirectoryIfNotExists();
 
@@ -126,6 +128,12 @@ Thumbnailer::Thumbnailer(QObject *parent): QObject(parent)
     textOption.setAlignment(Qt::AlignCenter);
     p.setPen(Qt::white);
     p.drawText(_emptyPixmap.rect(), QString(tr("Loading screenshot")), textOption);
+
+    QThread* videoReaderThread = new QThread;
+    _videoReader->moveToThread(videoReaderThread);
+    connect(this, &Thumbnailer::destroyed, _videoReader, &QThread::deleteLater);
+    connect(videoReaderThread, &QThread::destroyed, _videoReader, &VideoReader::deleteLater);
+    videoReaderThread->start();
 }
 
 QPixmap Thumbnailer::thumbnailFor(RealLifeVideo &rlv, const qreal distance)
@@ -134,6 +142,9 @@ QPixmap Thumbnailer::thumbnailFor(RealLifeVideo &rlv, const qreal distance)
         return loadThumbnailFor(rlv, distance);
     }
 
+    _videoReader->createImageForFrame(rlv, distance);
+
+    return _emptyPixmap;
     QFutureWatcher<QPixmap>* watcher = new QFutureWatcher<QPixmap>(this);
     connect(watcher, &QFutureWatcher<QPixmap>::finished, watcher, [rlv, distance, watcher,this]() {
         qDebug() << "pixmap ready for" << rlv.name();
@@ -143,6 +154,14 @@ QPixmap Thumbnailer::thumbnailFor(RealLifeVideo &rlv, const qreal distance)
     watcher->setFuture(QtConcurrent::run(createThumbnailFor, rlv, distance, cacheFilePathFor(rlv, distance), _emptyPixmap));
 
     return _emptyPixmap;
+}
+
+void Thumbnailer::setNewFrame(const RealLifeVideo& rlv, const qreal distance, const QImage &frame)
+{
+//    qDebug() << "Received image for frame number" << frameNumber;
+    frame.save("/tmp/temp.png");
+    frame.save(cacheFilePathFor(rlv, distance));
+    emit pixmapUpdated(rlv, distance, QPixmap::fromImage(frame));
 }
 
 void Thumbnailer::createCacheDirectoryIfNotExists()

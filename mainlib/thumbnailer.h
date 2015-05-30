@@ -27,6 +27,7 @@
 #include <QtGui/QPixmap>
 #include "reallifevideo.h"
 
+class VideoReader;
 /**
  * @brief Class that handles the making of thumbnails for videos by
  * opening the video files and taking the first frame. That frame
@@ -43,6 +44,8 @@ public:
 signals:
     void pixmapUpdated(const RealLifeVideo& rlv, const qreal distance, QPixmap pixmap);
 
+private slots:
+    void setNewFrame(const RealLifeVideo &rlv, const qreal distance, const QImage& frame);
 private:
     static QDir thumbnailDirectory();
     QString cacheFilePathFor(const RealLifeVideo& rlv, const qreal distance);
@@ -71,6 +74,8 @@ private:
     QDir _cacheDirectory;
 
     QPixmap _emptyPixmap;
+
+    VideoReader* _videoReader;
 };
 
 #endif // THUMBNAILER_H
