@@ -48,6 +48,7 @@ private slots:
     void setNewFrame(const RealLifeVideo &rlv, const qreal distance, const QImage& frame);
 private:
     static QDir thumbnailDirectory();
+    QPixmap createEmptyPixmap() const;
     QString cacheFilePathFor(const RealLifeVideo& rlv, const qreal distance);
 
     /*!
@@ -75,7 +76,7 @@ private:
 
     QPixmap _emptyPixmap;
 
-    VideoReader* _videoReader;
+    VideoReader* const _videoReader;
 };
 
 #endif // THUMBNAILER_H
