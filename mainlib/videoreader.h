@@ -37,7 +37,7 @@ private:
 
     void loadFramesUntilTargetFrame(qint64 targetFrameNumber);
     qint64 loadNextFrame();
-    void createImageForFrameNumber(const RealLifeVideo &rlv, const qreal distance, int frameNumber);
+    void createImageForFrameNumber(RealLifeVideo &rlv, const qreal distance);
     void printError(int errorNumber, const QString& message);
     void printError(const QString &message);
     QImage createImage();
