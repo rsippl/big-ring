@@ -78,6 +78,7 @@ private:
     QPixmap _emptyPixmap;
 
     VideoReader* const _videoReader;
+    QThread* const _videoReaderThread;
 };
 
 #endif // THUMBNAILER_H

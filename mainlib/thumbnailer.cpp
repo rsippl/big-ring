@@ -35,45 +35,29 @@ namespace
  * @brief Size for default empty images.
  */
 const QSize DEFAULT_IMAGE_SIZE(1920, 1080);
-
 }
 
-QPixmap Thumbnailer::createEmptyPixmap() const
+Thumbnailer::Thumbnailer(QObject *parent): QObject(parent), _videoReader(new VideoReader), _videoReaderThread(new QThread)
 {
-    QPixmap emptyPixmap(DEFAULT_IMAGE_SIZE);
-    emptyPixmap.fill(Qt::black);
-
-    QFont font;
-    font.setPointSize(72);
-    QPainter p(&emptyPixmap);
-
-    p.setFont(font);
-    QTextOption textOption;
-    textOption.setAlignment(Qt::AlignCenter);
-    p.setPen(Qt::white);
-    p.drawText(emptyPixmap.rect(), QString(tr("Loading screenshot")), textOption);
-
-    return emptyPixmap;
-}
-
-Thumbnailer::Thumbnailer(QObject *parent): QObject(parent), _videoReader(new VideoReader)
-{
-    connect(_videoReader, &VideoReader::newFrameReady, this, &Thumbnailer::setNewFrame);
     _cacheDirectory = thumbnailDirectory();
     createCacheDirectoryIfNotExists();
 
     _emptyPixmap = createEmptyPixmap();
 
-    QThread* videoReaderThread = new QThread;
-    _videoReader->moveToThread(videoReaderThread);
-    connect(this, &Thumbnailer::destroyed, _videoReader, &QThread::deleteLater);
-    connect(videoReaderThread, &QThread::destroyed, _videoReader, &VideoReader::deleteLater);
-    videoReaderThread->start();
+    // the video reader is running on a seperate thread, so it will not block the UI when decoding video frames.
+    _videoReader->moveToThread(_videoReaderThread);
+
+    connect(_videoReader, &VideoReader::newFrameReady, this, &Thumbnailer::setNewFrame);
+
+    // Make sure that when the videoReaderThread is stopped and it is deleted
+    connect(_videoReaderThread, &QThread::finished, _videoReaderThread, &QThread::deleteLater);
+    connect(_videoReaderThread, &QThread::finished, _videoReader, &VideoReader::deleteLater);
+    _videoReaderThread->start();
 }
 
 Thumbnailer::~Thumbnailer()
 {
-    // empty
+    _videoReaderThread->quit();
 }
 
 /**
@@ -97,6 +81,24 @@ void Thumbnailer::setNewFrame(const RealLifeVideo& rlv, const qreal distance, co
 {
     frame.save(cacheFilePathFor(rlv, distance));
     emit pixmapUpdated(rlv, distance, QPixmap::fromImage(frame));
+}
+
+QPixmap Thumbnailer::createEmptyPixmap() const
+{
+    QPixmap emptyPixmap(DEFAULT_IMAGE_SIZE);
+    emptyPixmap.fill(Qt::black);
+
+    QFont font;
+    font.setPointSize(72);
+    QPainter p(&emptyPixmap);
+
+    p.setFont(font);
+    QTextOption textOption;
+    textOption.setAlignment(Qt::AlignCenter);
+    p.setPen(Qt::white);
+    p.drawText(emptyPixmap.rect(), QString(tr("Loading screenshot")), textOption);
+
+    return emptyPixmap;
 }
 
 void Thumbnailer::createCacheDirectoryIfNotExists()
