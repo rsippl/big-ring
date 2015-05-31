@@ -24,8 +24,15 @@
 #include <QApplication>
 #include <QtGui/QPalette>
 #include <QtWidgets/QStyleFactory>
+#include <cstdio>
+extern "C" {
 #include <gst/gst.h>
+}
 
+namespace
+{
+FILE *logFile;
+}
 void prettyLogging(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     QByteArray localMsg = msg.toLocal8Bit();
@@ -45,6 +52,8 @@ void prettyLogging(QtMsgType type, const QMessageLogContext &context, const QStr
         level = "FATAL";
     }
     fprintf(stderr, "[%s] %s [%s:%u] %s\n", qPrintable(now), level,
+            context.function, context.line, localMsg.constData());
+    fprintf(logFile, "[%s] %s [%s:%u] %s\n", qPrintable(now), level,
             context.function, context.line, localMsg.constData());
     if (type == QtFatalMsg) {
         abort();
@@ -78,6 +87,8 @@ void loadStyleSheet(QApplication& a)
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    logFile = fopen("message.log", "a");
+
     qInstallMessageHandler(prettyLogging);
     loadStyleSheet(a);
 
@@ -96,6 +107,6 @@ int main(int argc, char *argv[])
     w.showMaximized();
 
     return a.exec();
-
+    fclose(logFile);
     gst_deinit();
 }
