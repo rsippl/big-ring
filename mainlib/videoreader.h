@@ -3,7 +3,6 @@
 
 #include <QtCore/QEvent>
 #include <QtCore/QObject>
-#include <QtMultimedia/QVideoFrame>
 
 class RealLifeVideo;
 struct AVCodec;

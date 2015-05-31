@@ -5,8 +5,7 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QSize>
 #include <QtCore/QtDebug>
-#include <QtCore/QTimer>
-#include <QtMultimedia/QVideoFrame>
+#include <QtGui/QImage>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
