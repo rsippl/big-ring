@@ -107,6 +107,14 @@ void VideoReader::openVideoFile(const QString &videoFilename)
     emit videoOpened(videoFilename, QSize(_codecContext->width, _codecContext->height));
 }
 
+void VideoReader::performSeek(qint64 targetFrameNumber)
+{
+    qDebug() << "seeking to" << targetFrameNumber;
+    av_seek_frame(_formatContext, _currentVideoStream, targetFrameNumber,
+                  AVSEEK_FLAG_FRAME | AVSEEK_FLAG_BACKWARD);
+    avcodec_flush_buffers(_codecContext);
+}
+
 qint64 VideoReader::loadNextFrame()
 {
     AVPacket packet;
@@ -132,13 +140,10 @@ void VideoReader::createImageForFrameNumber(RealLifeVideo& rlv, const qreal dist
     // the first few frames are sometimes black, so when requested to take a "screenshot" of the first frames, just
     // skip to a few frames after the start.
     qint64 frameNumber = qMax(5, static_cast<int>(rlv.frameForDistance(distance)));
-
     qDebug() << "creating image for" << rlv.name() << "distance" << distance << "frame nr" << frameNumber;
-    av_seek_frame(_formatContext, _currentVideoStream, frameNumber, AVSEEK_FLAG_FRAME | AVSEEK_FLAG_BACKWARD);
-    avcodec_flush_buffers(_codecContext);
+    performSeek(frameNumber);
     loadFramesUntilTargetFrame(frameNumber);
     emit newFrameReady(rlv, distance, createImage());
-
 }
 
 bool VideoReader::event(QEvent *event)
@@ -148,7 +153,7 @@ bool VideoReader::event(QEvent *event)
 
         RealLifeVideo& rlv = createImageForFrameEvent->_rlv;
         const qreal distance = createImageForFrameEvent->_distance;
-
+        qDebug() << "creating thumbnail for rlv" << rlv.name();
         openVideoFile(rlv.videoInformation().videoFilename());
         rlv.setDuration(_formatContext->duration);
         createImageForFrameNumber(rlv, distance);
@@ -163,10 +168,25 @@ bool VideoReader::event(QEvent *event)
  */
 void VideoReader::loadFramesUntilTargetFrame(qint64 targetFrameNumber)
 {
+    bool seekAgain;
+    bool extraSeekDone = false;
     qint64 currentFrameNumber = -1;
     do {
+        seekAgain = false;
         currentFrameNumber = loadNextFrame();
-    } while (currentFrameNumber >= 0 && currentFrameNumber < targetFrameNumber);
+
+        // special case: Some videos, probably those that do not start with a keyframe,
+        // will exhibit faulty seek behaviour. After a seek, they end up *after* the
+        // targetted frame. In that case, we do another seek to a frame number
+        // some frames before the targetted frame to hopefully get a keyframe there.
+        // We only do this once to prevent us from causing an endless loop here.
+        if (!extraSeekDone && currentFrameNumber > 100 && currentFrameNumber > targetFrameNumber) {
+            performSeek(targetFrameNumber - 500);
+            seekAgain = true;
+            extraSeekDone = true;
+        }
+
+    } while (seekAgain || (currentFrameNumber >= 0 && currentFrameNumber < targetFrameNumber));
     emit seekReady(currentFrameNumber);
 }
 

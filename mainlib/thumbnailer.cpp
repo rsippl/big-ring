@@ -69,11 +69,13 @@ Thumbnailer::~Thumbnailer()
  */
 QPixmap Thumbnailer::thumbnailFor(RealLifeVideo &rlv, const qreal distance)
 {
-    if (doesThumbnailExistsFor(rlv, distance)) {
-        return loadThumbnailFor(rlv, distance);
-    }
+    if (rlv.isValid()) {
+        if (doesThumbnailExistsFor(rlv, distance)) {
+            return loadThumbnailFor(rlv, distance);
+        }
 
-    _videoReader->createImageForFrame(rlv, distance);
+        _videoReader->createImageForFrame(rlv, distance);
+    }
     return _emptyPixmap;
 }
 

@@ -34,6 +34,7 @@ private:
     void close();
     void openVideoFile(const QString& videoFilename);
 
+    void performSeek(qint64 targetFrameNumber);
     void loadFramesUntilTargetFrame(qint64 targetFrameNumber);
     qint64 loadNextFrame();
     void createImageForFrameNumber(RealLifeVideo &rlv, const qreal distance);
