@@ -20,10 +20,6 @@
 
 #include "cyclist.h"
 
-namespace {
-const float POWER = 300;
-const float WEIGHT = 82.0f;
-}
 Cyclist::Cyclist(const int weight, QObject *parent) :
     QObject(parent), _weight(weight), _heartRate(0), _cadence(0), _power(0), _speed(0), _distance(0), _distanceTravelled(0)
 {
