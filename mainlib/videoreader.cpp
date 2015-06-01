@@ -139,7 +139,7 @@ void VideoReader::createImageForFrameNumber(RealLifeVideo& rlv, const qreal dist
 {
     // the first few frames are sometimes black, so when requested to take a "screenshot" of the first frames, just
     // skip to a few frames after the start.
-    qint64 frameNumber = qMax(5, static_cast<int>(rlv.frameForDistance(distance)));
+    qint64 frameNumber = qMax(20, static_cast<int>(rlv.frameForDistance(distance)));
     qDebug() << "creating image for" << rlv.name() << "distance" << distance << "frame nr" << frameNumber;
     performSeek(frameNumber);
     loadFramesUntilTargetFrame(frameNumber);
