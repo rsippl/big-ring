@@ -7,7 +7,8 @@ SUBDIRS += \
     indoorcycling2 \
     antlib \
     anttestapp \
-    test
+    test \
+    videotest
 
 
 #!isEmpty(GOOGLE_TEST_SOURCE_DIR) {
