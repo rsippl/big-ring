@@ -21,6 +21,7 @@ private slots:
                              const qint64 numberOfFrames);
     void getNextFrame();
     void setFrameLoaded(int index, const QSize& frameSize);
+    void setFrameNeeded(const FrameBuffer& frameBuffer);
 protected:
     virtual void resizeEvent(QResizeEvent*);
     virtual void drawBackground(QPainter *painter, const QRectF &rect);

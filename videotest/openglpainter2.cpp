@@ -30,7 +30,8 @@ OpenGLPainter2::OpenGLPainter2(QGLWidget* widget, QObject *parent) :
     QObject(parent), _widget(widget), _openGLInitialized(false), _firstFrameLoaded(false),
     _texturesInitialized(false), _aspectRatioMode(Qt::KeepAspectRatioByExpanding),
     _currentPixelBufferWritePosition(0),
-    _currentPixelBufferReadPosition(0)
+    _currentPixelBufferReadPosition(0),
+    _currentPixelBufferMappedPosition(0)
 {
     Q_INIT_RESOURCE(shaders);
 }
@@ -73,6 +74,8 @@ void OpenGLPainter2::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit
 
 void OpenGLPainter2::paint(QPainter *painter, const QRectF &rect, Qt::AspectRatioMode aspectRatioMode)
 {
+    QTime time;
+    time.start();
     if (!_openGLInitialized) {
         initializeOpenGL();
     }
@@ -133,6 +136,8 @@ void OpenGLPainter2::paint(QPainter *painter, const QRectF &rect, Qt::AspectRati
     painter->endNativePainting();
     painter->fillRect(_blackBar1, Qt::black);
     painter->fillRect(_blackBar2, Qt::black);
+
+    qDebug() << "Painting took" << time.elapsed() << "ms";
 }
 
 FrameBuffer OpenGLPainter2::getNextFrameBuffer()
@@ -143,18 +148,19 @@ FrameBuffer OpenGLPainter2::getNextFrameBuffer()
     }
     _widget->context()->makeCurrent();
 
-    qDebug() << QThread::currentThreadId() << "mapping pixel buffer" << _currentPixelBufferWritePosition;
-    QOpenGLBuffer currentWriteBuffer = _pixelBuffers[_currentPixelBufferWritePosition];
-    currentWriteBuffer.bind();
+    qDebug() << QThread::currentThreadId() << "mapping pixel buffer" << _currentPixelBufferMappedPosition;
+    QOpenGLBuffer currentMappedBuffer = _pixelBuffers[_currentPixelBufferMappedPosition];
+    currentMappedBuffer.bind();
     FrameBuffer frameBuffer;
-    frameBuffer.ptr = currentWriteBuffer.map(QOpenGLBuffer::WriteOnly);
+    frameBuffer.ptr = currentMappedBuffer.map(QOpenGLBuffer::WriteOnly);
     if (frameBuffer.ptr == nullptr) {
         qDebug() << "unable to map buffer";
     }
-    frameBuffer.index = _currentPixelBufferWritePosition;
+    frameBuffer.index = _currentPixelBufferMappedPosition;
     frameBuffer.frameSize = _sourceSize;
-    _currentPixelBufferWritePosition = (_currentPixelBufferWritePosition + 1) % _pixelBuffers.size();
-    currentWriteBuffer.release();
+    _currentPixelBufferMappedPosition = (_currentPixelBufferMappedPosition + 1) % _pixelBuffers.size();
+    currentMappedBuffer.release();
+    qDebug() << "after mapping" << _currentPixelBufferReadPosition << _currentPixelBufferWritePosition << _currentPixelBufferMappedPosition;
 
     return frameBuffer;
 }
@@ -175,18 +181,29 @@ void OpenGLPainter2::setVideoSize(const QSize &frameSize)
 
 void OpenGLPainter2::setFrameLoaded(int index, const QSize &)
 {
+    QTime time;
+    time.start();
     _widget->context()->makeCurrent();
-
-    qDebug() << QThread::currentThreadId() << "pixel buffer" << index << "unmap & release";
+    _currentPixelBufferWritePosition = index;
     _pixelBuffers[index].bind();
     _pixelBuffers[index].unmap();
     _pixelBuffers[index].release();
     _firstFrameLoaded = true;
+    qDebug() << "after loading" << _currentPixelBufferReadPosition << _currentPixelBufferWritePosition << _currentPixelBufferMappedPosition;
 }
 
-void OpenGLPainter2::setFrameToShow(int index)
+void OpenGLPainter2::requestNewFrames()
 {
-    _currentPixelBufferReadPosition = index;
+    while (_currentPixelBufferMappedPosition != _currentPixelBufferReadPosition) {
+        emit frameNeeded(getNextFrameBuffer());
+    }
+}
+
+void OpenGLPainter2::showNextFrame()
+{
+    _currentPixelBufferReadPosition = (_currentPixelBufferReadPosition + 1) % _pixelBuffers.size();
+    qDebug() << "after getting next frame" << _currentPixelBufferReadPosition << _currentPixelBufferWritePosition << _currentPixelBufferMappedPosition;
+    requestNewFrames();
 }
 
 void OpenGLPainter2::reset()

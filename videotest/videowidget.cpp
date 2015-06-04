@@ -32,11 +32,13 @@ VideoWidget::VideoWidget(QWidget *parent) :
 
     connect(_videoReader, &VideoReader2::videoOpened, this, &VideoWidget::setVideoInformation);
     connect(_videoReader, &VideoReader2::frameCopied, this, &VideoWidget::setFrameLoaded);
+    connect(_painter, &OpenGLPainter2::frameNeeded, this, &VideoWidget::setFrameNeeded);
 
+    QString filename = "/mnt/windows/Documents and Settings/Ilja/Documents/Sufferfest/The Sufferfest and CyclingTips Elements of Style v10.mp4";
+    _videoReader->openVideoFile(filename);
 
-    _videoReader->openVideoFile("/mnt/windows/Users/Ilja/Mijn documenten/RLV/videos/FR_MarmotteI.avi");
-
-    _playTimer->setInterval(1000 / 80);
+    _playTimer->setTimerType(Qt::PreciseTimer);
+    _playTimer->setInterval(40);
     connect(_playTimer, &QTimer::timeout, this, &VideoWidget::getNextFrame);
 }
 
@@ -49,22 +51,25 @@ void VideoWidget::setVideoInformation(const QString &videoFilename, const QSize 
 {
     qDebug() << "video opened" << videoFilename << videoSize << numberOfFrames;
     _painter->setVideoSize(videoSize);
-    FrameBuffer buffer = _painter->getNextFrameBuffer();
-    _videoReader->copyNextFrame(buffer);
-    _playTimer->start();
+    _videoReader->seekToFrame(6000);
+    _videoReader->copyNextFrame(_painter->getNextFrameBuffer());
+    _painter->requestNewFrames();
     _time.start();
 }
 
 void VideoWidget::getNextFrame()
 {
-    _painter->setFrameToShow(_currentFrame % 2);
-    FrameBuffer frameBuffer = _painter->getNextFrameBuffer();
-    if (frameBuffer.ptr) {
-        _currentFrame += 1;
-        _videoReader->copyNextFrame(frameBuffer);
-    }
+    _painter->showNextFrame();
+
+//    _painter->setFrameToShow(_currentFrame);
+//    FrameBuffer frameBuffer = _painter->getNextFrameBuffer();
+//    if (frameBuffer.ptr) {
+//        _currentFrame += 1;
+//        _videoReader->copyNextFrame(frameBuffer);
+//    }
     viewport()->update();
-    qDebug() << "avg fps =" << 1000 * _currentFrame / _time.elapsed();
+//    qDebug() << "avg fps =" << 1000 * _currentFrame / _time.elapsed();
+
 }
 
 void VideoWidget::setFrameLoaded(int index, const QSize& frameSize)
@@ -72,6 +77,14 @@ void VideoWidget::setFrameLoaded(int index, const QSize& frameSize)
     _framesLoaded += 1;
     qDebug() << "frames loaded" << _framesLoaded << "showing" << _currentFrame;
     _painter->setFrameLoaded(index, frameSize);
+    _playTimer->start();
+}
+
+void VideoWidget::setFrameNeeded(const FrameBuffer &frameBuffer)
+{
+    if (frameBuffer.ptr) {
+        _videoReader->copyNextFrame(frameBuffer);
+    }
 }
 
 void VideoWidget::resizeEvent(QResizeEvent *)

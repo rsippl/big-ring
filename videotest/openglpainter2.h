@@ -40,11 +40,15 @@ public:
 
     void paint(QPainter* painter, const QRectF& rect, Qt::AspectRatioMode aspectRatioMode);
     FrameBuffer getNextFrameBuffer();
-
+    bool isAFrameNeeded() const;
+signals:
+    void buffersFull();
+    void frameNeeded(const FrameBuffer& frameBuffer);
 public slots:
     void setVideoSize(const QSize& frameSize);
     void setFrameLoaded(int index, const QSize& frameSize);
-    void setFrameToShow(int index);
+    void requestNewFrames();
+    void showNextFrame();
     void reset();
 private slots:
     void handleLoggedMessage(const QOpenGLDebugMessage &debugMessage);
@@ -81,9 +85,10 @@ private:
 
     QOpenGLBuffer _textureCoordinatesBuffer;
     QOpenGLBuffer _vertexBuffer;
-    std::array<QOpenGLBuffer, 2> _pixelBuffers;
-    int _currentPixelBufferWritePosition;
-    int _currentPixelBufferReadPosition;
+    std::array<QOpenGLBuffer, 5> _pixelBuffers;
+    quint32 _currentPixelBufferWritePosition;
+    quint32 _currentPixelBufferReadPosition;
+    quint32 _currentPixelBufferMappedPosition;
 
     QOpenGLShaderProgram _program;
 };

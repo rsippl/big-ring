@@ -5,12 +5,12 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QSize>
 #include <QtCore/QtDebug>
+#include <QtCore/QTime>
 #include <QtGui/QImage>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-#include "libswscale/swscale.h"
 }
 
 #include "reallifevideo.h"
@@ -23,6 +23,7 @@ const int SEEK_TIMEOUT = 10; // ms
 QEvent::Type CreateImageForFrameEventType = static_cast<QEvent::Type>(QEvent::User + 102);
 QEvent::Type OpenVideoFileEventType = static_cast<QEvent::Type>(QEvent::User + 103);
 QEvent::Type CopyNextFrameEventType = static_cast<QEvent::Type>(QEvent::User + 104);
+QEvent::Type SeekEventType = static_cast<QEvent::Type>(QEvent::User + 105);
 
 class CreateImageForFrameEvent: public QEvent
 {
@@ -60,11 +61,22 @@ public:
 
     FrameBuffer _frameBuffer;
 };
+class SeekEvent: public QEvent
+{
+public:
+    SeekEvent(const qint64 frameNumber):
+        QEvent(SeekEventType), _frameNumber(frameNumber)
+    {
+        // empty
+    }
+
+    qint64 _frameNumber;
+};
 }
 
 VideoReader2::VideoReader2(QObject *parent) :
     QObject(parent), _initialized(false), _codec(nullptr), _codecContext(nullptr),
-    _formatContext(nullptr), _frame(nullptr), _frameRgb(nullptr)
+    _formatContext(nullptr), _frame(nullptr)
 {
     // empty
 }
@@ -83,6 +95,11 @@ void VideoReader2::createImageForFrame(const RealLifeVideo& rlv, const qreal dis
 void VideoReader2::copyNextFrame(const FrameBuffer &buffer)
 {
     QCoreApplication::postEvent(this, new CopyNextFrameEvent(buffer));
+}
+
+void VideoReader2::seekToFrame(qint64 frameNumber)
+{
+    QCoreApplication::postEvent(this, new SeekEvent(frameNumber));
 }
 
 void VideoReader2::openVideoFile(const QString &videoFilename)
@@ -129,16 +146,6 @@ void VideoReader2::openVideoFileInternal(const QString &videoFilename)
     }
 
     _frame = av_frame_alloc();
-    _frameRgb = av_frame_alloc();
-    int numBytes= avpicture_get_size(PIX_FMT_RGB24,
-          _codecContext->width, _codecContext->height);
-    _imageBuffer.resize(numBytes);
-    avpicture_fill((AVPicture*) _frameRgb, reinterpret_cast<uint8_t*>(_imageBuffer.data()), PIX_FMT_RGB24,
-                   _codecContext->width, _codecContext->height);
-
-    _swsContext = sws_getContext(_codecContext->width, _codecContext->height, AV_PIX_FMT_YUV420P,
-                                 _codecContext->width, _codecContext->height, AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR,
-                                 nullptr, nullptr, nullptr);
 
     AVStream* videoStream = _formatContext->streams[_currentVideoStream];
     qreal frameRate = av_q2d(videoStream->avg_frame_rate);
@@ -149,6 +156,8 @@ void VideoReader2::openVideoFileInternal(const QString &videoFilename)
 void VideoReader2::copyNextFrameInternal(const FrameBuffer &buffer)
 {
     if (buffer.ptr) {
+        QTime time;
+        time.start();
         quint8* bufferPointer = reinterpret_cast<quint8*>(buffer.ptr);
         qDebug() << "buffer = " << bufferPointer;
         quint32 offset = 0;
@@ -161,11 +170,17 @@ void VideoReader2::copyNextFrameInternal(const FrameBuffer &buffer)
         quint32 vsize = usize;
         std::memcpy(bufferPointer + offset, _frame->data[2], vsize);
 
-        qDebug() << "copied" << offset + vsize << "bytes to buffer";
+        qDebug() << "copied" << offset + vsize << "bytes to buffer in" << time.elapsed() << "ms";
 
         emit frameCopied(buffer.index, buffer.frameSize);
         loadNextFrame();
     }
+}
+
+void VideoReader2::seekToFrameInternal(const qint64 frameNumber)
+{
+    performSeek(frameNumber);
+    loadFramesUntilTargetFrame(frameNumber);
 }
 
 void VideoReader2::performSeek(qint64 targetFrameNumber)
@@ -178,6 +193,8 @@ void VideoReader2::performSeek(qint64 targetFrameNumber)
 
 qint64 VideoReader2::loadNextFrame()
 {
+    QTime time;
+    time.start();
     AVPacket packet;
     int frameFinished = 0;
     while (!frameFinished) {
@@ -192,34 +209,13 @@ qint64 VideoReader2::loadNextFrame()
     }
     qint64 currentFrameNumber = packet.dts;
     av_free_packet(&packet);
-    qDebug() << QString("frame read, frame nr #%1").arg(packet.dts);
+    qDebug() << QString("frame read, frame nr #%1, took %2ms").arg(packet.dts).arg(time.elapsed());
     return currentFrameNumber;
-}
-
-void VideoReader2::createImageForFrameNumber(RealLifeVideo& rlv, const qreal distance)
-{
-    // the first few frames are sometimes black, so when requested to take a "screenshot" of the first frames, just
-    // skip to a few frames after the start.
-    qint64 frameNumber = qMax(20, static_cast<int>(rlv.frameForDistance(distance)));
-    qDebug() << "creating image for" << rlv.name() << "distance" << distance << "frame nr" << frameNumber;
-    performSeek(frameNumber);
-    loadFramesUntilTargetFrame(frameNumber);
-    emit newFrameReady(rlv, distance, createImage());
 }
 
 bool VideoReader2::event(QEvent *event)
 {
-    if (event->type() == CreateImageForFrameEventType) {
-        CreateImageForFrameEvent* createImageForFrameEvent = dynamic_cast<CreateImageForFrameEvent*>(event);
-
-        RealLifeVideo& rlv = createImageForFrameEvent->_rlv;
-        const qreal distance = createImageForFrameEvent->_distance;
-        qDebug() << "creating thumbnail for rlv" << rlv.name();
-        openVideoFile(rlv.videoInformation().videoFilename());
-        rlv.setDuration(_formatContext->duration);
-        createImageForFrameNumber(rlv, distance);
-        return true;
-    } else if (event->type() == OpenVideoFileEventType) {
+    if (event->type() == OpenVideoFileEventType) {
         OpenVideoFileEvent* openVideoFileEvent = dynamic_cast<OpenVideoFileEvent*>(event);
         openVideoFileInternal(openVideoFileEvent->_videoFilename);
         loadNextFrame();
@@ -227,6 +223,10 @@ bool VideoReader2::event(QEvent *event)
     } else if (event->type() == CopyNextFrameEventType) {
         CopyNextFrameEvent* copyNextFrameEvent = dynamic_cast<CopyNextFrameEvent*>(event);
         copyNextFrameInternal(copyNextFrameEvent->_frameBuffer);
+        return true;
+    } else if (event->type() == SeekEventType) {
+        seekToFrameInternal(dynamic_cast<SeekEvent*>(event)->_frameNumber);
+        return true;
     }
     return QObject::event(event);
 }
@@ -270,11 +270,8 @@ void VideoReader2::initialize()
 
 void VideoReader2::close()
 {
-    if (_frameRgb) {
-        av_frame_free(&_frameRgb);
-    }
     if (_frame) {
-        av_frame_free(&_frameRgb);
+        av_frame_free(&_frame);
     }
     if (_codecContext) {
         avcodec_close(_codecContext);
@@ -297,14 +294,6 @@ void VideoReader2::printError(const QString &message)
 {
     qWarning("%s", qPrintable(message));
     emit error(message);
-}
-
-QImage VideoReader2::createImage()
-{
-    sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
-    QImage image(_frame->width, _frame->height, QImage::Format_RGB888);
-    std::memcpy(image.bits(), _frameRgb->data[0], _imageBuffer.size());
-    return image;
 }
 
 /**

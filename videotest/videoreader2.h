@@ -11,9 +11,6 @@ struct AVCodec;
 struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
-struct SwsContext;
-
-
 
 class VideoReader2 : public QObject
 {
@@ -25,6 +22,7 @@ public:
     void openVideoFile(const QString &videoFilename);
     void createImageForFrame(const RealLifeVideo& rlv, const qreal distance);
     void copyNextFrame(const FrameBuffer& buffer);
+    void seekToFrame(qint64 frameNumber);
 signals:
     void error(const QString& errorMessage);
     void videoOpened(const QString& videoFilename, const QSize& videoSize, const qint64 numberOfFrames);
@@ -40,13 +38,13 @@ private:
 
     void openVideoFileInternal(const QString &videoFilename);
     void copyNextFrameInternal(const FrameBuffer &buffer);
+    void seekToFrameInternal(const qint64 frameNumber);
     void performSeek(qint64 targetFrameNumber);
     void loadFramesUntilTargetFrame(qint64 targetFrameNumber);
     qint64 loadNextFrame();
-    void createImageForFrameNumber(RealLifeVideo &rlv, const qreal distance);
     void printError(int errorNumber, const QString& message);
     void printError(const QString &message);
-    QImage createImage();
+
     // libav functions
     int findVideoStream(AVFormatContext* formatContext) const;
 
@@ -56,9 +54,7 @@ private:
     AVCodecContext* _codecContext;
     AVFormatContext* _formatContext;
     AVFrame* _frame;
-    AVFrame* _frameRgb;
-    SwsContext* _swsContext;
-    QByteArray _imageBuffer;
+
     int _currentVideoStream;
 };
 
