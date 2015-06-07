@@ -31,15 +31,16 @@ VideoWidget::VideoWidget(QWidget *parent) :
     _videoReaderThread->start();
 
     connect(_videoReader, &VideoReader2::videoOpened, this, &VideoWidget::setVideoInformation);
+    connect(_videoReader, &VideoReader2::seekReady, this, &VideoWidget::setSeekReady);
     connect(_videoReader, &VideoReader2::frameCopied, this, &VideoWidget::setFrameLoaded);
     connect(_painter, &OpenGLPainter2::frameNeeded, this, &VideoWidget::setFrameNeeded);
 
-    QString filename = "/mnt/windows/Documents and Settings/Ilja/Documents/Sufferfest/The Sufferfest and CyclingTips Elements of Style v10.mp4";
+    QString filename = "/home/ibooij/Videos/rlv/Kaunertal.avi";
     _videoReader->openVideoFile(filename);
 
     _playTimer->setTimerType(Qt::PreciseTimer);
-    _playTimer->setInterval(40);
-    connect(_playTimer, &QTimer::timeout, this, &VideoWidget::getNextFrame);
+    _playTimer->setInterval(1000 / 30);
+    connect(_playTimer, &QTimer::timeout, this, &VideoWidget::showNextFrame);
 }
 
 VideoWidget::~VideoWidget()
@@ -51,39 +52,40 @@ void VideoWidget::setVideoInformation(const QString &videoFilename, const QSize 
 {
     qDebug() << "video opened" << videoFilename << videoSize << numberOfFrames;
     _painter->setVideoSize(videoSize);
-    _videoReader->seekToFrame(6000);
+    _videoReader->seekToFrame(110000);
     _videoReader->copyNextFrame(_painter->getNextFrameBuffer());
     _painter->requestNewFrames();
     _time.start();
 }
 
-void VideoWidget::getNextFrame()
+void VideoWidget::showNextFrame()
 {
-    _painter->showNextFrame();
-
-//    _painter->setFrameToShow(_currentFrame);
-//    FrameBuffer frameBuffer = _painter->getNextFrameBuffer();
-//    if (frameBuffer.ptr) {
-//        _currentFrame += 1;
-//        _videoReader->copyNextFrame(frameBuffer);
-//    }
-    viewport()->update();
-//    qDebug() << "avg fps =" << 1000 * _currentFrame / _time.elapsed();
-
+    qDebug() << "time since last frame" << _betweenFramesTime.restart();
+    _currentFrame += 2;
+    if (_painter->showFrame(_currentFrame)) {
+        viewport()->update();
+    }
 }
 
-void VideoWidget::setFrameLoaded(int index, const QSize& frameSize)
+void VideoWidget::setSeekReady(qint64 frameNumber)
+{
+    qDebug() << "seek ready, now at frame number" << frameNumber;
+    _currentFrame = frameNumber;
+}
+
+void VideoWidget::setFrameLoaded(int index, qint64 frameNumber, const QSize& frameSize)
 {
     _framesLoaded += 1;
-    qDebug() << "frames loaded" << _framesLoaded << "showing" << _currentFrame;
-    _painter->setFrameLoaded(index, frameSize);
+    qDebug() << "frame loaded" << frameNumber << "showing" << _currentFrame;
+    _painter->setFrameLoaded(index, frameNumber, frameSize);
+
     _playTimer->start();
 }
 
 void VideoWidget::setFrameNeeded(const FrameBuffer &frameBuffer)
 {
     if (frameBuffer.ptr) {
-        _videoReader->copyNextFrame(frameBuffer);
+        _videoReader->copyNextFrame(frameBuffer, 2);
     }
 }
 

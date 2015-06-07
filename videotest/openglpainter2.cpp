@@ -25,6 +25,7 @@
 #include <QtCore/QThread>
 #include <QtCore/QTime>
 #include <QtGui/QOpenGLDebugLogger>
+#include <QtGui/QOpenGLFunctions>
 
 OpenGLPainter2::OpenGLPainter2(QGLWidget* widget, QObject *parent) :
     QObject(parent), _widget(widget), _openGLInitialized(false), _firstFrameLoaded(false),
@@ -56,6 +57,8 @@ void OpenGLPainter2::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit
     glActiveTexture(glTextureUnit);
     glBindTexture(GL_TEXTURE_RECTANGLE, textureUnit);
     qDebug() << "reading from pbo" << _currentPixelBufferReadPosition;
+//    GLenum status = _glFunctions.glCheckFramebufferStatus(_pixelBuffers[_currentPixelBufferReadPosition].bufferId());
+//    qDebug() << "status" << status << (status == GL_FRAMEBUFFER_COMPLETE);
     _pixelBuffers[_currentPixelBufferReadPosition].bind();
 
     if (_texturesInitialized) {
@@ -90,6 +93,7 @@ void OpenGLPainter2::paint(QPainter *painter, const QRectF &rect, Qt::AspectRati
     // has been called, as they may get disabled
     bool stencilTestEnabled = glIsEnabled(GL_STENCIL_TEST);
     bool scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST);
+    _pixelBuffers[_currentPixelBufferReadPosition].bufferId();
 
     painter->beginNativePainting();
 
@@ -179,7 +183,7 @@ void OpenGLPainter2::setVideoSize(const QSize &frameSize)
     }
 }
 
-void OpenGLPainter2::setFrameLoaded(int index, const QSize &)
+void OpenGLPainter2::setFrameLoaded(int index, qint64 frameNumber, const QSize &)
 {
     QTime time;
     time.start();
@@ -188,7 +192,9 @@ void OpenGLPainter2::setFrameLoaded(int index, const QSize &)
     _pixelBuffers[index].bind();
     _pixelBuffers[index].unmap();
     _pixelBuffers[index].release();
+    _frameNumbers[index] = frameNumber;
     _firstFrameLoaded = true;
+    glFlush();
     qDebug() << "after loading" << _currentPixelBufferReadPosition << _currentPixelBufferWritePosition << _currentPixelBufferMappedPosition;
 }
 
@@ -199,11 +205,26 @@ void OpenGLPainter2::requestNewFrames()
     }
 }
 
-void OpenGLPainter2::showNextFrame()
+bool OpenGLPainter2::showFrame(qint64 frameNumber)
 {
-    _currentPixelBufferReadPosition = (_currentPixelBufferReadPosition + 1) % _pixelBuffers.size();
-    qDebug() << "after getting next frame" << _currentPixelBufferReadPosition << _currentPixelBufferWritePosition << _currentPixelBufferMappedPosition;
+    qDebug() << "showFrame" << frameNumber;
+    // if we are requested to show the current frame, do nothing.
+    if (_frameNumbers[_currentPixelBufferReadPosition] >= frameNumber) {
+        qDebug() << "now new frame shown, because" << _frameNumbers[_currentPixelBufferReadPosition] << ">=" << frameNumber;
+        return false;
+    }
+
+    quint32 newIndex = (_currentPixelBufferReadPosition + 1) % _pixelBuffers.size();
+    while (_frameNumbers[newIndex] < frameNumber && newIndex != _currentPixelBufferReadPosition) {
+        newIndex = (newIndex + 1) % _pixelBuffers.size();
+    }
+    if (newIndex == _currentPixelBufferWritePosition) {
+        qDebug() << "frame not present, have to wait for new frames to arrive to catch up.";
+    }
+
+    _currentPixelBufferReadPosition = newIndex;
     requestNewFrames();
+    return true;
 }
 
 void OpenGLPainter2::reset()

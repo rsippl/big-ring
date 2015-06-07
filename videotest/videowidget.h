@@ -19,8 +19,9 @@ public slots:
 private slots:
     void setVideoInformation(const QString& videoFilename, const QSize& videoSize,
                              const qint64 numberOfFrames);
-    void getNextFrame();
-    void setFrameLoaded(int index, const QSize& frameSize);
+    void showNextFrame();
+    void setSeekReady(qint64 frameNumber);
+    void setFrameLoaded(int index, qint64 frameNumber, const QSize& frameSize);
     void setFrameNeeded(const FrameBuffer& frameBuffer);
 protected:
     virtual void resizeEvent(QResizeEvent*);
@@ -31,6 +32,7 @@ private:
     QThread* _videoReaderThread;
     QTimer* _playTimer;
     QTime _time;
+    QTime _betweenFramesTime;
     qint64 _framesLoaded;
     qint64 _currentFrame;
 };

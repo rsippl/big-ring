@@ -53,13 +53,14 @@ public:
 class CopyNextFrameEvent: public QEvent
 {
 public:
-    CopyNextFrameEvent(const FrameBuffer& frameBuffer):
-        QEvent(CopyNextFrameEventType), _frameBuffer(frameBuffer)
+    CopyNextFrameEvent(const FrameBuffer& frameBuffer, int skipFrames):
+        QEvent(CopyNextFrameEventType), _frameBuffer(frameBuffer), _skipFrames(skipFrames)
     {
         // empty
     }
 
     FrameBuffer _frameBuffer;
+    int _skipFrames;
 };
 class SeekEvent: public QEvent
 {
@@ -76,7 +77,7 @@ public:
 
 VideoReader2::VideoReader2(QObject *parent) :
     QObject(parent), _initialized(false), _codec(nullptr), _codecContext(nullptr),
-    _formatContext(nullptr), _frame(nullptr)
+    _formatContext(nullptr), _frame(nullptr), _currentFrameNumber(0)
 {
     // empty
 }
@@ -92,9 +93,9 @@ void VideoReader2::createImageForFrame(const RealLifeVideo& rlv, const qreal dis
     QCoreApplication::postEvent(this, new CreateImageForFrameEvent(rlv, distance));
 }
 
-void VideoReader2::copyNextFrame(const FrameBuffer &buffer)
+void VideoReader2::copyNextFrame(const FrameBuffer &buffer, int skipFrames)
 {
-    QCoreApplication::postEvent(this, new CopyNextFrameEvent(buffer));
+    QCoreApplication::postEvent(this, new CopyNextFrameEvent(buffer, skipFrames));
 }
 
 void VideoReader2::seekToFrame(qint64 frameNumber)
@@ -150,16 +151,18 @@ void VideoReader2::openVideoFileInternal(const QString &videoFilename)
     AVStream* videoStream = _formatContext->streams[_currentVideoStream];
     qreal frameRate = av_q2d(videoStream->avg_frame_rate);
     qint64 totalNumberOfFrames = frameRate * (_formatContext->duration / AV_TIME_BASE);
+
+    _currentFrameNumber = 0;
     emit videoOpened(videoFilename, QSize(_codecContext->width, _codecContext->height), totalNumberOfFrames);
 }
 
-void VideoReader2::copyNextFrameInternal(const FrameBuffer &buffer)
+void VideoReader2::copyNextFrameInternal(const FrameBuffer &buffer, int skipFrames)
 {
     if (buffer.ptr) {
         QTime time;
         time.start();
         quint8* bufferPointer = reinterpret_cast<quint8*>(buffer.ptr);
-        qDebug() << "buffer = " << bufferPointer;
+        qDebug() << "will copy frame into buffer nr " << buffer.index;
         quint32 offset = 0;
         quint32 ysize = _frame->linesize[0] * _frame->height;
         std::memcpy(bufferPointer, _frame->data[0], ysize);
@@ -172,7 +175,14 @@ void VideoReader2::copyNextFrameInternal(const FrameBuffer &buffer)
 
         qDebug() << "copied" << offset + vsize << "bytes to buffer in" << time.elapsed() << "ms";
 
-        emit frameCopied(buffer.index, buffer.frameSize);
+        emit frameCopied(buffer.index, _currentFrameNumber, buffer.frameSize);
+
+        // skip frames. We still have to decode these frames, but they won't be saved in _frame for
+        // copying to video memory. This is used when the frame rate requested is higher than
+        // the normal frame rate of the video.
+        for (int i = 0; i < skipFrames; ++i) {
+            loadNextFrame();
+        }
         loadNextFrame();
     }
 }
@@ -207,10 +217,10 @@ qint64 VideoReader2::loadNextFrame()
                                   &frameFinished, &packet);
         }
     }
-    qint64 currentFrameNumber = packet.dts;
+    _currentFrameNumber = packet.dts;
     av_free_packet(&packet);
     qDebug() << QString("frame read, frame nr #%1, took %2ms").arg(packet.dts).arg(time.elapsed());
-    return currentFrameNumber;
+    return _currentFrameNumber;
 }
 
 bool VideoReader2::event(QEvent *event)
@@ -222,7 +232,7 @@ bool VideoReader2::event(QEvent *event)
         return true;
     } else if (event->type() == CopyNextFrameEventType) {
         CopyNextFrameEvent* copyNextFrameEvent = dynamic_cast<CopyNextFrameEvent*>(event);
-        copyNextFrameInternal(copyNextFrameEvent->_frameBuffer);
+        copyNextFrameInternal(copyNextFrameEvent->_frameBuffer, copyNextFrameEvent->_skipFrames);
         return true;
     } else if (event->type() == SeekEventType) {
         seekToFrameInternal(dynamic_cast<SeekEvent*>(event)->_frameNumber);
@@ -239,7 +249,7 @@ void VideoReader2::loadFramesUntilTargetFrame(qint64 targetFrameNumber)
 {
     bool seekAgain;
     bool extraSeekDone = false;
-    qint64 currentFrameNumber = -1;
+    qint64 currentFrameNumber;
     do {
         seekAgain = false;
         currentFrameNumber = loadNextFrame();

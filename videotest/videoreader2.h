@@ -21,13 +21,12 @@ public:
 
     void openVideoFile(const QString &videoFilename);
     void createImageForFrame(const RealLifeVideo& rlv, const qreal distance);
-    void copyNextFrame(const FrameBuffer& buffer);
+    void copyNextFrame(const FrameBuffer& buffer, int skipFrames = 0);
     void seekToFrame(qint64 frameNumber);
 signals:
     void error(const QString& errorMessage);
     void videoOpened(const QString& videoFilename, const QSize& videoSize, const qint64 numberOfFrames);
-    void frameCopied(int index, const QSize& frameSize);
-    void newFrameReady(const RealLifeVideo& rlv, qreal distance, const QImage& frame);
+    void frameCopied(int index, qint64 frameNumber, const QSize& frameSize);
     void seekReady(qint64 frameNumber);
 
 protected:
@@ -37,7 +36,7 @@ private:
     void close();
 
     void openVideoFileInternal(const QString &videoFilename);
-    void copyNextFrameInternal(const FrameBuffer &buffer);
+    void copyNextFrameInternal(const FrameBuffer &buffer, int skipFrames);
     void seekToFrameInternal(const qint64 frameNumber);
     void performSeek(qint64 targetFrameNumber);
     void loadFramesUntilTargetFrame(qint64 targetFrameNumber);
@@ -55,7 +54,9 @@ private:
     AVFormatContext* _formatContext;
     AVFrame* _frame;
 
+    qint64 _currentFrameNumber;
     int _currentVideoStream;
+
 };
 
 #endif // VIDEOREADER_H

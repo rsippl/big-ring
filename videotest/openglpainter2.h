@@ -31,6 +31,10 @@
 #include <array>
 #include "FrameBuffer.h"
 
+namespace
+{
+const int NUMBER_OF_BUFFERS = 5;
+}
 class OpenGLPainter2 : public QObject
 {
     Q_OBJECT
@@ -46,9 +50,9 @@ signals:
     void frameNeeded(const FrameBuffer& frameBuffer);
 public slots:
     void setVideoSize(const QSize& frameSize);
-    void setFrameLoaded(int index, const QSize& frameSize);
+    void setFrameLoaded(int index, qint64 frameNumber, const QSize& frameSize);
     void requestNewFrames();
-    void showNextFrame();
+    bool showFrame(qint64 frameNumber);
     void reset();
 private slots:
     void handleLoggedMessage(const QOpenGLDebugMessage &debugMessage);
@@ -85,7 +89,9 @@ private:
 
     QOpenGLBuffer _textureCoordinatesBuffer;
     QOpenGLBuffer _vertexBuffer;
-    std::array<QOpenGLBuffer, 5> _pixelBuffers;
+
+    std::array<QOpenGLBuffer, NUMBER_OF_BUFFERS> _pixelBuffers;
+    std::array<qint64, NUMBER_OF_BUFFERS> _frameNumbers;
     quint32 _currentPixelBufferWritePosition;
     quint32 _currentPixelBufferReadPosition;
     quint32 _currentPixelBufferMappedPosition;
