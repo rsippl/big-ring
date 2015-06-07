@@ -62,11 +62,6 @@ public:
      */
     bool isReadyToPlay();
 
-    /**
-     * @brief override of standard event handler.
-     * @return true if event is handled by this handler.
-     */
-    virtual bool event(QEvent *) override;
 
 signals:
     /*!
@@ -95,6 +90,13 @@ public slots:
 
     bool seekToFrame(quint32 frameNumber, float frameRate);
     void displayCurrentFrame(QPainter* painter, QRectF rect, Qt::AspectRatioMode aspectRatioMode);
+
+protected:
+    /**
+     * @brief override of standard event handler.
+     * @return true if event is handled by this handler.
+     */
+    virtual bool event(QEvent *) override;
 
 private:
     void cleanupCurrentPipeline();
