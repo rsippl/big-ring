@@ -20,23 +20,10 @@ namespace {
 
 const int ERROR_STR_BUF_SIZE = 128;
 const int SEEK_TIMEOUT = 10; // ms
-QEvent::Type CreateImageForFrameEventType = static_cast<QEvent::Type>(QEvent::User + 102);
 QEvent::Type OpenVideoFileEventType = static_cast<QEvent::Type>(QEvent::User + 103);
 QEvent::Type CopyNextFrameEventType = static_cast<QEvent::Type>(QEvent::User + 104);
 QEvent::Type SeekEventType = static_cast<QEvent::Type>(QEvent::User + 105);
 
-class CreateImageForFrameEvent: public QEvent
-{
-public:
-    CreateImageForFrameEvent(const RealLifeVideo& rlv, qreal distance):
-        QEvent(CreateImageForFrameEventType), _rlv(rlv), _distance(distance)
-    {
-        // empty
-    }
-
-    RealLifeVideo _rlv;
-    qreal _distance;
-};
 
 class OpenVideoFileEvent: public QEvent
 {
@@ -86,11 +73,6 @@ VideoReader2::~VideoReader2()
 {
     qDebug() << "closing VideoReader2";
     close();
-}
-
-void VideoReader2::createImageForFrame(const RealLifeVideo& rlv, const qreal distance)
-{
-    QCoreApplication::postEvent(this, new CreateImageForFrameEvent(rlv, distance));
 }
 
 void VideoReader2::copyNextFrame(const FrameBuffer &buffer, int skipFrames)

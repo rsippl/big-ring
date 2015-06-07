@@ -20,7 +20,6 @@ public:
     virtual ~VideoReader2();
 
     void openVideoFile(const QString &videoFilename);
-    void createImageForFrame(const RealLifeVideo& rlv, const qreal distance);
     void copyNextFrame(const FrameBuffer& buffer, int skipFrames = 0);
     void seekToFrame(qint64 frameNumber);
 signals:
