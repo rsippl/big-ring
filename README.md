@@ -47,7 +47,7 @@ and [O-Synce](http://www.o-synce.com/en/) and [Garmin](http://www.garmin.com/gar
 * An [ANT+ USB stick](https://buy.garmin.com/shop/shop.do?pID=10997).
 I have the USB 1 variant from Garmin and a USB 2 from Suunto, the MoveStick Mini. The Suunto MoveStick Mini is internally just a Garmin USB 2 Stick, so that one should also work. 
 * [Qt](http://qt.digia.com) 5.3. This library is used throughout the program.
-* [gstreamer](http://gstreamer.freedesktop.org/) for video decoding and displaying.
+* [libav](https://libav.org/) for video decoding and displaying.
 * [G++](http://gcc.gnu.org), the compiler.
 * [libusb](http://www.libusb.org/) for handling of the usb device. On Ubuntu, installing libusb-1.0-0-dev will install libusb. Version 1.0 is used on Linux. The standard version that is used on Windows
 for ANT+ is libusb-win32, which is based on libusb-0.1. Because of this, internally the API of libusb-0.1 is used. On Linux the source of [libusb-compat](http://www.libusb.org/wiki/libusb-compat-0.1) is included to make a bridge from the libusb-0.1 API to libusb-1.0.
