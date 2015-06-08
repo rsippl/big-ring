@@ -54,8 +54,7 @@ NewVideoWidget::NewVideoWidget(QWidget *parent) :
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-    setCacheMode(QGraphicsView::CacheNone);
+    setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
 
     addClock(scene);
     addSensorItems(scene);
@@ -94,7 +93,7 @@ void NewVideoWidget::setupVideoPlayer(QGLWidget* paintWidget)
         emit readyToPlay(true);
     });
     connect(_videoPlayer, &VideoPlayer::updateVideo, this, [this]() {
-        this->viewport()->update();
+        this->viewport()->update(rect());
     });
 }
 
