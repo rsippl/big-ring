@@ -146,7 +146,6 @@ void VideoReader2::copyNextFrameInternal(const FrameBuffer &buffer, int skipFram
         quint8* bufferPointer = reinterpret_cast<quint8*>(buffer.ptr);
         quint32 offset = 0;
         quint32 ysize = _frame->linesize[0] * _frame->height;
-        qDebug() << "line sizes" << _frame->linesize[0] << _frame->linesize[1] << _frame->linesize[2];
         std::memcpy(bufferPointer, _frame->data[0], ysize);
         offset += ysize;
         quint32 usize = _frame->linesize[1] * _frame->height / 2;

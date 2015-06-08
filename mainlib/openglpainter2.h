@@ -53,6 +53,7 @@ public slots:
     void setFrameLoaded(int index, qint64 frameNumber, const QSize& frameSize);
     void requestNewFrames();
     bool showFrame(qint64 frameNumber);
+    void fillBuffers();
     void reset();
 private slots:
     void handleLoggedMessage(const QOpenGLDebugMessage &debugMessage);

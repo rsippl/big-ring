@@ -222,6 +222,13 @@ bool OpenGLPainter2::showFrame(qint64 frameNumber)
     return true;
 }
 
+void OpenGLPainter2::fillBuffers()
+{
+    for (quint32 i = 0; i < _pixelBuffers.size(); ++i) {
+        emit frameNeeded(getNextFrameBuffer());
+    }
+}
+
 void OpenGLPainter2::reset()
 {
     _firstFrameLoaded = false;
@@ -351,7 +358,6 @@ void OpenGLPainter2::initYuv420PTextureInfo()
 {
     int bytesPerLine = (_sourceTotalSize.width() + 3) & ~3;
     int bytesPerLine2 = (_sourceTotalSize.width() / 2 + 3) & ~3;
-    qDebug() << "bytes per line = " << bytesPerLine << bytesPerLine2;
     _textureWidths[0] = bytesPerLine;
     _textureHeights[0] = _sourceTotalSize.height();
     _textureOffsets[0] = 0;

@@ -64,19 +64,21 @@ void VideoPlayer::stop()
 
 void VideoPlayer::stepToFrame(quint32 frameNumber)
 {
-    if (frameNumber > _lastFrameLoaded) {
-        qWarning("Requesting to show a frame that is not loaded yet!. Step size %d", _stepSize);
-        _stepSize = 10;
-    }
     if (_loadState == LoadState::DONE) {
-        qint32 stepSize = frameNumber - _currentFrameNumber;
-        if (stepSize == 0) {
+        if (frameNumber > _lastFrameLoaded) {
+            qWarning("Requesting to show a frame that is not loaded yet!. Step size %d", _stepSize);
+            _stepSize = 10;
+            _painter->fillBuffers();
             return;
+        } else {
+            _stepSize = frameNumber - _currentFrameNumber;
+            if (_stepSize == 0) {
+                return;
+            }
+            if (_stepSize > 5) {
+                qDebug() << "step size is too big:" << _stepSize << "current frame number:" << _currentFrameNumber;
+            }
         }
-        if (stepSize > 5) {
-            qDebug() << "step size is too big:" << stepSize << "current frame number:" << _currentFrameNumber;
-        }
-        _stepSize = stepSize;
         _painter->showFrame(frameNumber);
         updateCurrentFrameNumber(frameNumber);
         emit updateVideo();
@@ -120,15 +122,13 @@ void VideoPlayer::setSeekReady(qint64 frameNumber)
 {
     _currentFrameNumber = frameNumber;
     updateLoadState(LoadState::DONE);
-    _videoReader->copyNextFrame(_painter->getNextFrameBuffer());
-    _painter->requestNewFrames();
+    _painter->fillBuffers();
     emit seekDone();
 }
 
 void VideoPlayer::setFrameLoaded(int index, qint64 frameNumber, const QSize &frameSize)
 {
     _lastFrameLoaded = frameNumber;
-//    qDebug() << QString("frame %1 loaded for pbo %2").arg(frameNumber).arg(index);
     _painter->setFrameLoaded(index, frameNumber, frameSize);
 }
 
