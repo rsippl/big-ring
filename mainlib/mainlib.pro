@@ -11,6 +11,7 @@ FORMS +=
 
 HEADERS += \
     cyclist.h \
+    framebuffer.h \
     profile.h \
     reallifevideoimporter.h \
     reallifevideo.h \
@@ -22,7 +23,7 @@ HEADERS += \
     sensoritem.h \
     profileitem.h \
     videoplayer.h \
-    openglpainter.h \
+    openglpainter2.h \
     run.h \
     screensaverblocker.h \
     profilepainter.h \
@@ -30,7 +31,8 @@ HEADERS += \
     sensorconfiguration.h \
     sensors.h \
     virtualpower.h \
-    videoreader.h
+    videoreader.h \
+    videoreader2.h
 
 SOURCES += \
     cyclist.cpp \
@@ -45,7 +47,7 @@ SOURCES += \
     sensoritem.cpp \
     profileitem.cpp \
     videoplayer.cpp \
-    openglpainter.cpp \
+    openglpainter2.cpp \
     run.cpp \
     screensaverblocker.cpp \
     profilepainter.cpp \
@@ -53,7 +55,8 @@ SOURCES += \
     sensorconfiguration.cpp \
     sensors.cpp \
     virtualpower.cpp \
-    videoreader.cpp
+    videoreader.cpp \
+    videoreader2.cpp
 
 
 

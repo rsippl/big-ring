@@ -23,27 +23,40 @@
 
 #include <QObject>
 #include <QtGui/QOpenGLBuffer>
+#include <QtGui/QOpenGLDebugMessage>
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtOpenGL/QGLWidget>
 #include <QtGui/QOpenGLFunctions>
 
-extern "C" {
-#include <gst/gst.h>
+#include <array>
+#include "framebuffer.h"
+
+namespace
+{
+const int NUMBER_OF_BUFFERS = 5;
 }
-class OpenGLPainter : public QObject
+class OpenGLPainter2 : public QObject
 {
     Q_OBJECT
 public:
-    explicit OpenGLPainter(QGLWidget* widget, QObject *parent = 0);
-    virtual ~OpenGLPainter();
+    explicit OpenGLPainter2(QGLWidget* widget, QObject *parent = 0);
+    virtual ~OpenGLPainter2();
 
     void paint(QPainter* painter, const QRectF& rect, Qt::AspectRatioMode aspectRatioMode);
+    FrameBuffer getNextFrameBuffer();
+    bool isAFrameNeeded() const;
+signals:
+    void buffersFull();
+    void frameNeeded(const FrameBuffer& frameBuffer);
 public slots:
-    void setCurrentSample(GstSample* sample);
+    void setVideoSize(const QSize& videoSize, const QSize &frameSize);
+    void setFrameLoaded(int index, qint64 frameNumber, const QSize& frameSize);
+    void requestNewFrames();
+    bool showFrame(qint64 frameNumber);
     void reset();
-
+private slots:
+    void handleLoggedMessage(const QOpenGLDebugMessage &debugMessage);
 private:
-    QSizeF getSizeFromSample(GstSample* sample);
     void initializeOpenGL();
     void initYuv420PTextureInfo();
     void loadTextures();
@@ -60,7 +73,8 @@ private:
     bool _openGLInitialized;
     bool _firstFrameLoaded;
     bool _texturesInitialized;
-    QSizeF _sourceSize;
+    QSize _sourceTotalSize;
+    QSize _sourcePictureSize;
     QRectF _targetRect;
     QRectF _blackBar1, _blackBar2;
     bool _sourceSizeDirty;
@@ -76,7 +90,12 @@ private:
 
     QOpenGLBuffer _textureCoordinatesBuffer;
     QOpenGLBuffer _vertexBuffer;
-    QOpenGLBuffer _pixelBuffer;
+
+    std::array<QOpenGLBuffer, NUMBER_OF_BUFFERS> _pixelBuffers;
+    std::array<qint64, NUMBER_OF_BUFFERS> _frameNumbers;
+    quint32 _currentPixelBufferWritePosition;
+    quint32 _currentPixelBufferReadPosition;
+    quint32 _currentPixelBufferMappedPosition;
 
     QOpenGLShaderProgram _program;
 };

@@ -24,13 +24,10 @@
 #include <QObject>
 #include <QtCore/QTimer>
 #include <QtOpenGL/QGLContext>
-extern "C" {
-#include <gst/gst.h>
-#include <gst/gstpipeline.h>
-#include <gst/app/gstappsink.h>
-}
 
-class OpenGLPainter;
+struct FrameBuffer;
+class OpenGLPainter2;
+class VideoReader2;
 
 /*!
  * \brief Video player for cycling videos. This is a frame based player, so clients can seek to
@@ -38,8 +35,6 @@ class OpenGLPainter;
  *
  * This video player will paint the frames from a video file onto a QGLWidget. A frame is displayed
  * using the displayCurrentFrame method.
- *
- *
  */
 class VideoPlayer : public QObject
 {
@@ -68,7 +63,7 @@ signals:
      * \brief signal emitted when a video is loaded. \param videoDurationNanoSeconds will hold the length
      * of the video in nanoseconds.
      */
-    void videoLoaded(qint64 videoDurationNanoSeconds);
+    void videoLoaded(qint64 totalNumberOfFrames);
     /*!
      * \brief seekDone is emitted when a seek action is ready.
      */
@@ -88,27 +83,21 @@ public slots:
     /*! set the \param uri of the video file and load it. */
     void loadVideo(QString uri);
 
-    bool seekToFrame(quint32 frameNumber, float frameRate);
+    /*! seek to a certain frame number */
+    bool seekToFrame(quint32 frameNumber);
+
     void displayCurrentFrame(QPainter* painter, QRectF rect, Qt::AspectRatioMode aspectRatioMode);
 
-protected:
-    /**
-     * @brief override of standard event handler.
-     * @return true if event is handled by this handler.
-     */
-    virtual bool event(QEvent *) override;
+private slots:
+    void setVideoOpened(const QString& videoFilename, const QSize &videoSize, const QSize& frameSize, const qint64 numberOfFrames);
 
+    void setSeekReady(qint64 frameNumber);
+
+    void setFrameLoaded(int index, qint64 frameNumber, const QSize& frameSize);
+
+    void setFrameNeeded(const FrameBuffer& frameBuffer);
 private:
-    void cleanupCurrentPipeline();
-    void createPipeline();
-    static void onBusMessage(GstBus *bus, GstMessage *msg, VideoPlayer* context);
-    static void onVideoUpdate(GObject *src, guint, VideoPlayer* context);
-    void sendVideoUpdated();
-    void handleAsyncDone();
-    void handleError(GstMessage *msg);
-
-
-    enum LoadState
+    enum class LoadState
     {
         NONE, VIDEO_LOADING, VIDEO_LOADED, SEEKING, DONE, PLAYING
     };
@@ -116,23 +105,14 @@ private:
     void updateCurrentFrameNumber(const quint32 frameNumber);
     void updateLoadState(const LoadState loadState);
 
-    void pollBus();
+    OpenGLPainter2* _painter;
+    VideoReader2 * const _videoReader;
+    QThread *_videoReaderThread;
 
-    /* app sink callbacks */
-    static void handleAppSinkEndOfStream(GstAppSink *appsink, gpointer user_data);
-    static GstFlowReturn handleAppSinkNewPreRoll(GstAppSink *appsink, gpointer user_data);
-    static GstFlowReturn handleAppSinkNewSample(GstAppSink *appsink, gpointer user_data);
-
-    OpenGLPainter* _painter;
-    GstElement* _pipeline;
-    GstElement* _playbin;
-    GstElement* _appSink;
-    GstBus* _pipelineBus;
-
-    QTimer* _busTimer;
     LoadState _loadState;
     quint32 _currentFrameNumber;
-    int _nrOfFramesWaiting;
+    qint64 _lastFrameLoaded;
+    quint32 _stepSize;
 };
 
 #endif // VIDEOPLAYER_H

@@ -25,9 +25,6 @@
 #include <QtGui/QPalette>
 #include <QtWidgets/QStyleFactory>
 #include <cstdio>
-extern "C" {
-#include <gst/gst.h>
-}
 
 namespace
 {
@@ -96,7 +93,6 @@ int main(int argc, char *argv[])
     a.setOrganizationName("Ilja Booij");
     a.setApplicationName("Big Ring Indoor Video Cycling");
 
-    gst_init(&argc, &argv);
     QString dir;
     if (a.arguments().length() > 1) {
         dir = a.arguments()[1];
@@ -108,5 +104,4 @@ int main(int argc, char *argv[])
 
     return a.exec();
     fclose(logFile);
-    gst_deinit();
 }

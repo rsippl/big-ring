@@ -18,28 +18,31 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "openglpainter.h"
+#include "openglpainter2.h"
 
 #include <QtGui/QOpenGLContext>
 #include <QtCore/QtMath>
+#include <QtCore/QThread>
 #include <QtCore/QTime>
-extern "C" {
-#include <gst/video/video-info.h>
-}
+#include <QtGui/QOpenGLDebugLogger>
+#include <QtGui/QOpenGLFunctions>
 
-OpenGLPainter::OpenGLPainter(QGLWidget* widget, QObject *parent) :
+OpenGLPainter2::OpenGLPainter2(QGLWidget* widget, QObject *parent) :
     QObject(parent), _widget(widget), _openGLInitialized(false), _firstFrameLoaded(false),
-    _texturesInitialized(false), _aspectRatioMode(Qt::KeepAspectRatioByExpanding)
+    _texturesInitialized(false), _aspectRatioMode(Qt::KeepAspectRatioByExpanding),
+    _currentPixelBufferWritePosition(0),
+    _currentPixelBufferReadPosition(0),
+    _currentPixelBufferMappedPosition(0)
 {
     Q_INIT_RESOURCE(shaders);
 }
 
-OpenGLPainter::~OpenGLPainter()
+OpenGLPainter2::~OpenGLPainter2()
 {
     // empty
 }
 
-void OpenGLPainter::loadTextures()
+void OpenGLPainter2::loadTextures()
 {
     loadPlaneTexturesFromPbo(GL_TEXTURE0, _yTextureId, _textureWidths[0], _textureHeights[0], (size_t) 0);
     loadPlaneTexturesFromPbo(GL_TEXTURE1, _uTextureId, _textureWidths[1], _textureHeights[1], _textureOffsets[1]);
@@ -48,13 +51,12 @@ void OpenGLPainter::loadTextures()
     _texturesInitialized = true;
 }
 
-void OpenGLPainter::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
+void OpenGLPainter2::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
                                            int lineSize, int height, size_t offset)
 {
     glActiveTexture(glTextureUnit);
     glBindTexture(GL_TEXTURE_RECTANGLE, textureUnit);
-
-    _pixelBuffer.bind();
+    _pixelBuffers[_currentPixelBufferReadPosition].bind();
 
     if (_texturesInitialized) {
         glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, lineSize, height,
@@ -64,15 +66,17 @@ void OpenGLPainter::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
                      0,GL_LUMINANCE,GL_UNSIGNED_BYTE, (void*) offset);
     }
 
-    _pixelBuffer.release();
+    _pixelBuffers[_currentPixelBufferReadPosition].release();
+    glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
     glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 }
 
-void OpenGLPainter::paint(QPainter *painter, const QRectF &rect, Qt::AspectRatioMode aspectRatioMode)
+void OpenGLPainter2::paint(QPainter *painter, const QRectF &rect, Qt::AspectRatioMode aspectRatioMode)
 {
+    QTime time;
+    time.start();
     if (!_openGLInitialized) {
         initializeOpenGL();
     }
@@ -87,6 +91,7 @@ void OpenGLPainter::paint(QPainter *painter, const QRectF &rect, Qt::AspectRatio
     // has been called, as they may get disabled
     bool stencilTestEnabled = glIsEnabled(GL_STENCIL_TEST);
     bool scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST);
+    _pixelBuffers[_currentPixelBufferReadPosition].bufferId();
 
     painter->beginNativePainting();
 
@@ -133,63 +138,104 @@ void OpenGLPainter::paint(QPainter *painter, const QRectF &rect, Qt::AspectRatio
     painter->endNativePainting();
     painter->fillRect(_blackBar1, Qt::black);
     painter->fillRect(_blackBar2, Qt::black);
+
+//    qDebug() << "Painting took" << time.elapsed() << "ms";
 }
 
+FrameBuffer OpenGLPainter2::getNextFrameBuffer()
+{
+    if (!_openGLInitialized) {
+        _widget->context()->makeCurrent();
+        initializeOpenGL();
+    }
+    _widget->context()->makeCurrent();
 
+    QOpenGLBuffer currentMappedBuffer = _pixelBuffers[_currentPixelBufferMappedPosition];
+    currentMappedBuffer.bind();
+    FrameBuffer frameBuffer;
+    frameBuffer.ptr = currentMappedBuffer.map(QOpenGLBuffer::WriteOnly);
+    if (frameBuffer.ptr == nullptr) {
+        qDebug() << "unable to map buffer";
+    }
+    frameBuffer.index = _currentPixelBufferMappedPosition;
+    frameBuffer.frameSize = _sourceTotalSize;
+    _currentPixelBufferMappedPosition = (_currentPixelBufferMappedPosition + 1) % _pixelBuffers.size();
+    currentMappedBuffer.release();
 
-void OpenGLPainter::setCurrentSample(GstSample *sample)
+    return frameBuffer;
+}
+
+void OpenGLPainter2::setVideoSize(const QSize &videoSize, const QSize& frameSize)
 {
     if (!_openGLInitialized) {
         _widget->context()->makeCurrent();
         initializeOpenGL();
         qDebug() << "initializing opengl";
     }
-    if (getSizeFromSample(sample) != _sourceSize) {
+    if (frameSize != _sourceTotalSize) {
         _sourceSizeDirty = true;
-        _sourceSize = getSizeFromSample(sample);
+        _sourceTotalSize = frameSize;
+        _sourcePictureSize = videoSize;
         initYuv420PTextureInfo();
     }
-
-    _pixelBuffer.bind();
-    void* ptr = _pixelBuffer.map(QOpenGLBuffer::WriteOnly);
-    if(ptr) {
-        GstBuffer* buffer = gst_sample_get_buffer(sample);
-        GstMapInfo mapInfo;
-        if (gst_buffer_map(buffer, &mapInfo, GST_MAP_READ)) {
-            // load all three planes in one operation
-            memcpy(ptr, mapInfo.data, combinedSizeOfTextures());
-            gst_buffer_unmap(buffer, &mapInfo);
-        }
-        _pixelBuffer.unmap();
-    }
-    _pixelBuffer.release();
-    gst_sample_unref(sample);
-    _firstFrameLoaded = true;
 }
 
-void OpenGLPainter::reset()
+void OpenGLPainter2::setFrameLoaded(int index, qint64 frameNumber, const QSize &)
+{
+    QTime time;
+    time.start();
+    _widget->context()->makeCurrent();
+    _currentPixelBufferWritePosition = index;
+    _pixelBuffers[index].bind();
+    _pixelBuffers[index].unmap();
+    _pixelBuffers[index].release();
+    _frameNumbers[index] = frameNumber;
+    _firstFrameLoaded = true;
+    glFlush();
+}
+
+void OpenGLPainter2::requestNewFrames()
+{
+    while (_currentPixelBufferMappedPosition != _currentPixelBufferReadPosition) {
+        emit frameNeeded(getNextFrameBuffer());
+    }
+}
+
+bool OpenGLPainter2::showFrame(qint64 frameNumber)
+{
+    // if we are requested to show the current frame, do nothing.
+    if (_frameNumbers[_currentPixelBufferReadPosition] >= frameNumber) {
+        qDebug() << "now new frame shown, because" << _frameNumbers[_currentPixelBufferReadPosition] << ">=" << frameNumber;
+        return false;
+    }
+
+    quint32 newIndex = (_currentPixelBufferReadPosition + 1) % _pixelBuffers.size();
+    while (_frameNumbers[newIndex] < frameNumber && newIndex != _currentPixelBufferReadPosition) {
+        newIndex = (newIndex + 1) % _pixelBuffers.size();
+    }
+    if (newIndex == _currentPixelBufferWritePosition) {
+        qDebug() << "frame not present, have to wait for new frames to arrive to catch up.";
+    }
+
+    _currentPixelBufferReadPosition = newIndex;
+    requestNewFrames();
+    return true;
+}
+
+void OpenGLPainter2::reset()
 {
     _firstFrameLoaded = false;
 }
 
-
-QSizeF OpenGLPainter::getSizeFromSample(GstSample* sample)
+void OpenGLPainter2::handleLoggedMessage(const QOpenGLDebugMessage &debugMessage)
 {
-    const GstCaps* caps = gst_sample_get_caps(sample);
-    GstVideoInfo videoInfo;
-    gst_video_info_from_caps(&videoInfo, caps);
-    const GstStructure* structure = gst_caps_get_structure(caps, 0);
-    gint width, height;
-    gst_structure_get_int(structure, "width", &width);
-    gst_structure_get_int(structure, "height", &height);
-
-    return QSizeF(width, height);
+    qDebug() << "opengl log message" << debugMessage.message();
 }
 
 /**
  * @brief compile the opengl shader program from the sources and link it, if the program is not yet linked.
  */
-void OpenGLPainter::initializeOpenGL()
+void OpenGLPainter2::initializeOpenGL()
 {
     Q_ASSERT_X(!_program.isLinked(), "initializeOpenGL", "OpenGL already initialized");
     qDebug() << "INITIALIZING OPENGL";
@@ -213,6 +259,10 @@ void OpenGLPainter::initializeOpenGL()
     if (!_glFunctions.hasOpenGLFeature(QOpenGLFunctions::Buffers)) {
         qFatal("OpenGL needs to have support for vertex buffers");
     }
+//    QOpenGLDebugLogger *logger = new QOpenGLDebugLogger(this);
+//    connect(logger, &QOpenGLDebugLogger::messageLogged, this, &OpenGLPainter2::handleLoggedMessage);
+//    logger->initialize();
+//    logger->startLogging();
 
     qDebug() << "generating textures.";
     glGenTextures(1, &_yTextureId);
@@ -222,7 +272,7 @@ void OpenGLPainter::initializeOpenGL()
     _openGLInitialized = true;
 }
 
-void OpenGLPainter::initializeVertexCoordinatesBuffer(const QRectF& videoRect)
+void OpenGLPainter2::initializeVertexCoordinatesBuffer(const QRectF& videoRect)
 {
     const QVector<GLfloat> vertexCoordinates =
     {
@@ -241,13 +291,14 @@ void OpenGLPainter::initializeVertexCoordinatesBuffer(const QRectF& videoRect)
     _vertexBuffer.release();
 }
 
-void OpenGLPainter::adjustPaintAreas(const QRectF& targetRect, Qt::AspectRatioMode aspectRationMode)
+void OpenGLPainter2::adjustPaintAreas(const QRectF& targetRect, Qt::AspectRatioMode aspectRationMode)
 {
     if (_sourceSizeDirty || targetRect != _targetRect || aspectRationMode != _aspectRatioMode) {
         _targetRect = targetRect;
 
         // change size of video to fit the targetRect completely.
-        const QSizeF videoSizeAdjusted = _sourceSize.scaled(targetRect.size(), aspectRationMode);
+        QSizeF sourceSizeF(_sourcePictureSize);
+        const QSizeF videoSizeAdjusted(sourceSizeF.scaled(targetRect.size(), aspectRationMode));
 
         QRectF videoRect = QRectF(QPointF(), videoSizeAdjusted);
         videoRect.moveCenter(targetRect.center());
@@ -267,7 +318,7 @@ void OpenGLPainter::adjustPaintAreas(const QRectF& targetRect, Qt::AspectRatioMo
     }
 }
 
-quint32 OpenGLPainter::combinedSizeOfTextures()
+quint32 OpenGLPainter2::combinedSizeOfTextures()
 {
     quint32 size = 0u;
     for (int i = 0; i < 3; ++i) {
@@ -276,13 +327,13 @@ quint32 OpenGLPainter::combinedSizeOfTextures()
     return size;
 }
 
-void OpenGLPainter::initializeTextureCoordinatesBuffer()
+void OpenGLPainter2::initializeTextureCoordinatesBuffer()
 {
     const QVector<GLfloat> textureCoordinates = {
         0, 0,
-        static_cast<GLfloat>(_sourceSize.width()), 0,
-        0, static_cast<GLfloat>(_sourceSize.height()),
-        static_cast<GLfloat>(_sourceSize.width()), static_cast<GLfloat>(_sourceSize.height())
+        static_cast<GLfloat>(_sourcePictureSize.width()), 0,
+        0, static_cast<GLfloat>(_sourcePictureSize.height()),
+        static_cast<GLfloat>(_sourcePictureSize.width()), static_cast<GLfloat>(_sourcePictureSize.height())
     };
 
     if (_textureCoordinatesBuffer.isCreated()) {
@@ -296,33 +347,35 @@ void OpenGLPainter::initializeTextureCoordinatesBuffer()
     _textureCoordinatesBuffer.release();
 }
 
-void OpenGLPainter::initYuv420PTextureInfo()
+void OpenGLPainter2::initYuv420PTextureInfo()
 {
-    int bytesPerLine = (_sourceSize.toSize().width() + 3) & ~3;
-    int bytesPerLine2 = (_sourceSize.toSize().  width() / 2 + 3) & ~3;
+    int bytesPerLine = (_sourceTotalSize.width() + 3) & ~3;
+    int bytesPerLine2 = (_sourceTotalSize.width() / 2 + 3) & ~3;
     qDebug() << "bytes per line = " << bytesPerLine << bytesPerLine2;
     _textureWidths[0] = bytesPerLine;
-    _textureHeights[0] = _sourceSize.height();
+    _textureHeights[0] = _sourceTotalSize.height();
     _textureOffsets[0] = 0;
     _textureWidths[1] = bytesPerLine2;
-    _textureHeights[1] = _sourceSize.height() / 2;
-    _textureOffsets[1] = bytesPerLine * _sourceSize.height();
+    _textureHeights[1] = _sourceTotalSize.height() / 2;
+    _textureOffsets[1] = bytesPerLine * _sourceTotalSize.height();
     _textureWidths[2] = bytesPerLine2;
-    _textureHeights[2] = _sourceSize.height() / 2;
-    _textureOffsets[2] = bytesPerLine * _sourceSize.height() + bytesPerLine2 * _sourceSize.height()/2;
+    _textureHeights[2] = _sourceTotalSize.height() / 2;
+    _textureOffsets[2] = bytesPerLine * _sourceTotalSize.height() + bytesPerLine2 * _sourceTotalSize.height()/2;
 
     initializeTextureCoordinatesBuffer();
 
-    if (_pixelBuffer.isCreated()) {
-        _pixelBuffer.destroy();
+    for (quint32 i = 0; i < _pixelBuffers.size(); ++i) {
+        if (_pixelBuffers[i].isCreated()) {
+            _pixelBuffers[i].destroy();
+        }
+        QOpenGLBuffer pixelBuffer(QOpenGLBuffer::PixelUnpackBuffer);
+        pixelBuffer.create();
+        pixelBuffer.bind();
+        pixelBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
+        pixelBuffer.allocate(combinedSizeOfTextures());
+        pixelBuffer.release();
+        _pixelBuffers[i] = pixelBuffer;
     }
-    _pixelBuffer = QOpenGLBuffer(QOpenGLBuffer::PixelUnpackBuffer);
-    _pixelBuffer.create();
-    _pixelBuffer.bind();
-    _pixelBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
-    _pixelBuffer.allocate(combinedSizeOfTextures());
-    _pixelBuffer.release();
-
     _texturesInitialized = false;
 }
 

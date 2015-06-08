@@ -83,9 +83,9 @@ void NewVideoWidget::setupVideoPlayer(QGLWidget* paintWidget)
 {
     _videoPlayer = new VideoPlayer(paintWidget, this);
 
-    connect(_videoPlayer, &VideoPlayer::videoLoaded, this, [this](qint64 nanoSeconds) {
-        qDebug() << "duration" << nanoSeconds;
-        this->_rlv.setDuration(nanoSeconds / 1000);
+    connect(_videoPlayer, &VideoPlayer::videoLoaded, this, [this](qint64 numberOfFrames) {
+        qDebug() << "total number of frames" << numberOfFrames;
+        this->_rlv.setNumberOfFrames(numberOfFrames);
         if (this->_course.isValid()) {
             this->seekToStart(_course);
         }
@@ -120,12 +120,7 @@ void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
     _rlv = rlv;
     _profileItem->setRlv(rlv);
     _videoPlayer->stop();
-
-    QString uri = rlv.videoInformation().videoFilename();
-    if (uri.indexOf("://") < 0) {
-        uri = QUrl::fromLocalFile(uri).toEncoded();
-    }
-    _videoPlayer->loadVideo(uri);
+    _videoPlayer->loadVideo(rlv.videoInformation().videoFilename());
 }
 
 void NewVideoWidget::setCourse(Course &course)
@@ -252,7 +247,7 @@ void NewVideoWidget::drawBackground(QPainter *painter, const QRectF &)
 void NewVideoWidget::seekToStart(Course &course)
 {
     quint32 frame = _rlv.frameForDistance(course.start());
-    _videoPlayer->seekToFrame(frame, _rlv.videoInformation().frameRate());
+    _videoPlayer->seekToFrame(frame);
 }
 
 void NewVideoWidget::addSensorItems(QGraphicsScene *scene)

@@ -155,7 +155,10 @@ bool VideoReader::event(QEvent *event)
         const qreal distance = createImageForFrameEvent->_distance;
         qDebug() << "creating thumbnail for rlv" << rlv.name();
         openVideoFile(rlv.videoInformation().videoFilename());
-        rlv.setDuration(_formatContext->duration);
+        AVStream* videoStream = _formatContext->streams[_currentVideoStream];
+        qreal frameRate = av_q2d(videoStream->avg_frame_rate);
+        qint64 totalNumberOfFrames = frameRate * (_formatContext->duration / AV_TIME_BASE);
+        rlv.setNumberOfFrames(totalNumberOfFrames);
         createImageForFrameNumber(rlv, distance);
         return true;
     }

@@ -190,10 +190,9 @@ float RealLifeVideo::totalDistance() const
 }
 
 
-void RealLifeVideo::setDuration(quint64 duration)
+void RealLifeVideo::setNumberOfFrames(quint64 numberOfFrames)
 {
-    quint64 totalNrOfFrames = duration * (_d->_videoInformation.frameRate() / 1000000);
-    calculateVideoCorrectionFactor(totalNrOfFrames);
+    calculateVideoCorrectionFactor(numberOfFrames);
     qDebug() << "correction factor" << _d->_videoCorrectionFactor;
 }
 

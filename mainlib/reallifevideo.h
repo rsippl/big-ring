@@ -116,8 +116,8 @@ public:
     float altitudeForDistance(const float distance);
     /** Total distance */
     float totalDistance() const;
-    /** Set duration of video, in microseconds */
-    void setDuration(quint64 duration);
+    /** Set duration of video, in number of frames */
+    void setNumberOfFrames(quint64 numberOfFrames);
 
     bool operator==(const RealLifeVideo& other) const;
     static bool compareByName(const RealLifeVideo& rlv1, const RealLifeVideo& rlv2);
