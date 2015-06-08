@@ -1,5 +1,4 @@
 TEMPLATE = subdirs
-CONFIG += debug
 include(config.pri)
 
 SUBDIRS += \
@@ -7,8 +6,7 @@ SUBDIRS += \
     indoorcycling2 \
     antlib \
     anttestapp \
-    test \
-    videotest
+    test 
 
 indoorcycling2.depends = antlib mainlib
 anttestapp.depends = antlib
