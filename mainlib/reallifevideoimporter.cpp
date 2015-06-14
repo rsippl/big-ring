@@ -24,7 +24,9 @@
 
 #include <functional>
 
+#include <QtCore/QCoreApplication>
 #include <QtCore/QDirIterator>
+#include <QtCore/QEvent>
 #include <QtCore/QSettings>
 
 #include <QStringList>
@@ -38,12 +40,31 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString> &video
 QSet<QString> findFiles(const QString& root, const QString& pattern);
 QSet<QString> findRlvFiles(const QString &root);
 
-RealLifeVideoList importRlvFiles(QString rootFolder);
+const QEvent::Type NR_OF_RLVS_FOUND_TYPE = static_cast<QEvent::Type>(QEvent::User + 100);
+const QEvent::Type RLV_IMPORTED_TYPE = static_cast<QEvent::Type>(NR_OF_RLVS_FOUND_TYPE + 101);
+
+class NrOfRlvsFoundEvent: public QEvent
+{
+public:
+    NrOfRlvsFoundEvent(int nr): QEvent(NR_OF_RLVS_FOUND_TYPE), _nr(nr) {}
+
+    int _nr;
+};
+class RlvImportedEvent: public QEvent
+{
+public:
+    RlvImportedEvent(): QEvent(RLV_IMPORTED_TYPE) {}
+};
 }
 
 RealLifeVideoImporter::RealLifeVideoImporter(QObject* parent): QObject(parent)
 {
     // empty
+}
+
+RealLifeVideoImporter::~RealLifeVideoImporter()
+{
+    qDebug() << "deleting RealLifeVideoImporter";
 }
 
 void RealLifeVideoImporter::importRealLiveVideoFilesFromDir()
@@ -54,10 +75,43 @@ void RealLifeVideoImporter::importRealLiveVideoFilesFromDir()
         futureWatcher->deleteLater();
     });
 
-    QString videoFolder = BigRingSettings().videoFolder();
-    QFuture<QList<RealLifeVideo> > importRlvFuture = QtConcurrent::run(importRlvFiles, videoFolder);
+    std::function<RealLifeVideoList(void)> importFunction([this]() {
+       return this->importRlvFiles(BigRingSettings().videoFolder());
+    });
+    QFuture<QList<RealLifeVideo> > importRlvFuture = QtConcurrent::run(importFunction);
     futureWatcher->setFuture(importRlvFuture);
 }
+
+bool RealLifeVideoImporter::event(QEvent *event)
+{
+    if (event->type() == NR_OF_RLVS_FOUND_TYPE) {
+        emit rlvFilesFound(dynamic_cast<NrOfRlvsFoundEvent*>(event)->_nr);
+        return true;
+    } else if (event->type() == RLV_IMPORTED_TYPE) {
+        emit rlvImported();
+        return true;
+    } else {
+        return QObject::event(event);
+    }
+}
+
+RealLifeVideoList RealLifeVideoImporter::importRlvFiles(const QString& rootFolder)
+{
+    const QSet<QString> rlvFiles = findRlvFiles(rootFolder);
+    const QSet<QString> aviFiles = findFiles(rootFolder, "*.avi");
+
+    QCoreApplication::postEvent(this, new NrOfRlvsFoundEvent(rlvFiles.size()));
+
+    std::function<RealLifeVideo(const QFileInfo&)> importFunction([this, aviFiles](const QFileInfo& fileInfo) -> RealLifeVideo {
+        QFile file(fileInfo.canonicalFilePath());
+        RealLifeVideo rlv = parseRealLiveVideoFile(file, aviFiles.toList());
+        QCoreApplication::postEvent(this, new RlvImportedEvent);
+        return rlv;
+    });
+
+    return QtConcurrent::mapped(rlvFiles.begin(), rlvFiles.end(), importFunction).results();
+}
+
 
 void RealLifeVideoImporter::importReady(const RealLifeVideoList &rlvs)
 {
@@ -121,19 +175,6 @@ QSet<QString> findFiles(const QString& root, const QString& pattern)
 QSet<QString> findRlvFiles(const QString& root)
 {
     return findFiles(root, "*.rlv");
-}
-
-RealLifeVideoList importRlvFiles(QString rootFolder)
-{
-    const QSet<QString> rlvFiles = findRlvFiles(rootFolder);
-    const QSet<QString> aviFiles = findFiles(rootFolder, "*.avi");
-
-    std::function<RealLifeVideo(const QFileInfo&)> importFunction([aviFiles](const QFileInfo& fileInfo) -> RealLifeVideo {
-        QFile file(fileInfo.canonicalFilePath());
-        return parseRealLiveVideoFile(file, aviFiles.toList());
-    });
-
-    return QtConcurrent::mapped(rlvFiles.begin(), rlvFiles.end(), importFunction).results();
 }
 
 }

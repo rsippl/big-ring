@@ -44,6 +44,8 @@ class RealLifeVideoImporter: public QObject
 public:
     explicit RealLifeVideoImporter(QObject* parent = NULL);
 
+    virtual ~RealLifeVideoImporter();
+
     /**
      * @brief parse the Real Life Videos from a root directory.
      * @param the root directory to search files from.
@@ -52,12 +54,23 @@ public:
 
 signals:
     /**
+      * the number of rlvs to be imported.
+      */
+    void rlvFilesFound(int numberOfRlvs);
+    /**
+     * emitted when an RLV has been imported.
+     */
+    void rlvImported();
+    /**
      * @brief signal emitted when the import is finished.
      * @param rlvs list of RealLifeVideo objects.
      */
     void importFinished(RealLifeVideoList rlvs);
 
+protected:
+    virtual bool event(QEvent *event);
 private:
+    RealLifeVideoList importRlvFiles(const QString& rootDir);
     void importReady(const RealLifeVideoList &rlvs);
 };
 

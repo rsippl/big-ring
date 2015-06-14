@@ -21,6 +21,8 @@
 #ifndef SETTINGSDIALOG_H
 #define SETTINGSDIALOG_H
 
+#include <functional>
+
 #include <QtCore/QSet>
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QLabel>
@@ -41,7 +43,7 @@ class SettingsDialog : public QDialog
 
 public:
     explicit SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDispatch,
-                            RealLifeVideoImporter *importer,
+                            std::function<void(void)> &videoLoadFunction,
                             QWidget *parent = 0);
     ~SettingsDialog();
 
@@ -71,7 +73,7 @@ private:
     Ui::SettingsDialog *_ui;
     BigRingSettings _settings;
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
-    RealLifeVideoImporter * const _importer;
+    std::function<void(void)> _videoLoadFunction;
 };
 
 #endif // SETTINGSDIALOG_H

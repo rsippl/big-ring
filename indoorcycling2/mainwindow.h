@@ -51,7 +51,9 @@ public:
 protected:
     virtual void keyPressEvent(QKeyEvent *);
     virtual void closeEvent(QCloseEvent *);
+    virtual void showEvent(QShowEvent *);
 private slots:
+    void loadVideos();
     void importFinished(RealLifeVideoList rlvs);
 private:
     void setupMenuBar();
@@ -59,13 +61,13 @@ private:
     void startRun(RealLifeVideo rlv, int courseNr);
     bool handleStopRun();
 
-    RealLifeVideoImporter *_importer;
-
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
     QScopedPointer<Run,QScopedPointerDeleteLater> _run;
 
     QMenuBar* const _menuBar;
     QStackedWidget* const _stackedWidget;
+    QAction* _showPreferencesAction;
+
     VideoListView* const _listView;
     QScopedPointer<NewVideoWidget> _videoWidget;
     QRect _savedGeometry;

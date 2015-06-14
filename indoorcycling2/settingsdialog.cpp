@@ -52,12 +52,12 @@ const char* VIRTUAL_POWER_LABEL = "Power derived from speed measured using speed
 }
 
 SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDispatch,
-                               RealLifeVideoImporter *importer,
+                               std::function<void(void)> &videoLoadFunction,
                                QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::SettingsDialog),
     _antCentralDispatch(antCentralDispatch),
-    _importer(importer)
+    _videoLoadFunction(videoLoadFunction)
 {
     _ui->setupUi(this);
     QSettings settings;
@@ -176,7 +176,7 @@ void SettingsDialog::fillVideoFolderList()
 void SettingsDialog::saveVideoFolder(const QString& folder)
 {
     BigRingSettings().setVideoFolder(folder);
-    _importer->importRealLiveVideoFilesFromDir();
+    _videoLoadFunction();
 }
 
 void SettingsDialog::on_antConfigurationChooser_currentIndexChanged(

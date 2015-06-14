@@ -19,6 +19,9 @@
  */
 
 #include "mainwindow.h"
+
+#include <functional>
+
 #include <QtCore/QtDebug>
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
@@ -26,6 +29,7 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QProgressDialog>
 #include <QtWidgets/QVBoxLayout>
 
 #include "cyclist.h"
@@ -37,7 +41,6 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent, Qt::Window),
-    _importer(new RealLifeVideoImporter(this)),
     _antCentralDispatch(new indoorcycling::AntCentralDispatch(this)),
     _menuBar(new QMenuBar),
     _stackedWidget(new QStackedWidget),
@@ -48,8 +51,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QVBoxLayout* layout = new QVBoxLayout;
     layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
-    connect(_importer, &RealLifeVideoImporter::importFinished, this, &MainWindow::importFinished);
-    _importer->importRealLiveVideoFilesFromDir();
 
     _stackedWidget->addWidget(_listView);
 
@@ -103,25 +104,65 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
     _listView->setVideos(rlvs);
 }
 
+/**
+ * Asynchronously load all videos.
+ */
+void MainWindow::loadVideos()
+{
+    if (BigRingSettings().videoFolder().isEmpty()) {
+        QMessageBox::StandardButton choice = QMessageBox::question(
+                    this, tr("Video folder not configured"),
+                    tr("No location was configured for the Real Life Videos.\n"
+                       "Do you want to open Preferences now?"),
+                    QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No),
+                    QMessageBox::Yes);
+        if (choice == QMessageBox::Yes) {
+            _showPreferencesAction->trigger();
+        }
+        return;
+    }
+
+    RealLifeVideoImporter *importer = new RealLifeVideoImporter(this);
+
+    QProgressDialog *progressDialog = new QProgressDialog("Importing Videos", QString(), 0, 0, this);
+
+    connect(importer, &RealLifeVideoImporter::importFinished, this, [=](RealLifeVideoList list) {
+        this->importFinished(list);
+        importer->deleteLater();
+        progressDialog->deleteLater();
+    });
+    connect(importer, &RealLifeVideoImporter::rlvFilesFound, importer, [progressDialog](int nr) {
+        progressDialog->setMaximum(nr);
+        progressDialog->setValue(0);
+    });
+    connect(importer, &RealLifeVideoImporter::rlvImported, importer, [progressDialog]() {
+        qDebug() << "rlv imported!" << progressDialog->maximum() << progressDialog->value();
+        int currentValue = progressDialog->value();
+        progressDialog->setValue(currentValue + 1);
+    });
+    progressDialog->setValue(0);
+    importer->importRealLiveVideoFilesFromDir();
+    progressDialog->exec();
+}
+
 void MainWindow::setupMenuBar()
 {
     QMenu* fileMenu = _menuBar->addMenu(tr("File"));
 
-    QAction* showPreferencesAction = new QAction(tr("Preferences"), this);
-    connect(showPreferencesAction, &QAction::triggered, showPreferencesAction, [=]() {
-        SettingsDialog dialog(_antCentralDispatch, _importer, this);
+    _showPreferencesAction = new QAction(tr("Preferences"), this);
+    connect(_showPreferencesAction, &QAction::triggered, _showPreferencesAction, [=]() {
+        std::function<void(void)> videoLoadFunction(std::bind(&MainWindow::loadVideos, this));
+        SettingsDialog dialog(_antCentralDispatch, videoLoadFunction, this);
         dialog.exec();
         update();
     });
-    fileMenu->addAction(showPreferencesAction);
+    fileMenu->addAction(_showPreferencesAction);
 
     QAction* quitAction = new QAction(tr("&Quit"), this);
     quitAction->setShortcut(QKeySequence::Quit);
     connect(quitAction, &QAction::triggered, this, &QWidget::close);
     fileMenu->addAction(quitAction);
     this->addAction(quitAction);
-
-
 }
 
 void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
@@ -196,4 +237,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
     qDebug() << "closing main window";
     event->accept();
+}
+
+void MainWindow::showEvent(QShowEvent *showEvent)
+{
+    QWidget::showEvent(showEvent);
+    if (!showEvent->spontaneous()) {
+        QTimer::singleShot(0, this, SLOT(loadVideos()));
+    }
 }
