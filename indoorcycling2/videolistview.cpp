@@ -29,9 +29,10 @@
 #include "videolistmodel.h"
 #include "videoitemdelegate.h"
 #include "videodetails.h"
+#include "videoqlistview.h"
 
 VideoListView::VideoListView(QWidget *parent) :
-    QWidget(parent), _filterLineEdit(new QLineEdit(this)), _listView(new QListView(this)), _filterProxyModel(new QSortFilterProxyModel(this)), _detailsWidget(new VideoDetails(this)), _videoListModel(new VideoListModel)
+    QWidget(parent), _filterLineEdit(new QLineEdit(this)), _listView(new VideoQListView(this)), _filterProxyModel(new QSortFilterProxyModel(this)), _detailsWidget(new VideoDetails(this)), _videoListModel(new VideoListModel)
 {
     QHBoxLayout* layout = new QHBoxLayout;
     _filterProxyModel->setSourceModel(_videoListModel);

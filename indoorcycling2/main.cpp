@@ -93,13 +93,7 @@ int main(int argc, char *argv[])
     a.setOrganizationName("Ilja Booij");
     a.setApplicationName("Big Ring Indoor Video Cycling");
 
-    QString dir;
-    if (a.arguments().length() > 1) {
-        dir = a.arguments()[1];
-    } else {
-        dir = "/media/ibooij/SamsungTacx/Tacx/";
-    }
-    MainWindow w(dir);
+    MainWindow w;
     w.showMaximized();
 
     return a.exec();

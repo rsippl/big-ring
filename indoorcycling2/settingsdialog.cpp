@@ -18,14 +18,18 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#include "bigringsettings.h"
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+
 
 #include "addsensorconfigurationdialog.h"
 
 #include <QtCore/QMap>
 #include <QtCore/QSettings>
+#include <QtCore/QStandardPaths>
 #include <QtCore/QtDebug>
+#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
 
@@ -48,10 +52,12 @@ const char* VIRTUAL_POWER_LABEL = "Power derived from speed measured using speed
 }
 
 SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDispatch,
+                               RealLifeVideoImporter *importer,
                                QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::SettingsDialog),
-    _antCentralDispatch(antCentralDispatch)
+    _antCentralDispatch(antCentralDispatch),
+    _importer(importer)
 {
     _ui->setupUi(this);
     QSettings settings;
@@ -162,6 +168,17 @@ void SettingsDialog::fillSimulationSettingLabel()
     }
 }
 
+void SettingsDialog::fillVideoFolderList()
+{
+    _ui->videoFolderLineEdit->setText(_settings.videoFolder());
+}
+
+void SettingsDialog::saveVideoFolder(const QString& folder)
+{
+    BigRingSettings().setVideoFolder(folder);
+    _importer->importRealLiveVideoFilesFromDir();
+}
+
 void SettingsDialog::on_antConfigurationChooser_currentIndexChanged(
         const QString &selectedConfiguration)
 {
@@ -175,6 +192,7 @@ void SettingsDialog::reset()
     fillSensorSettingsComboBox();
     fillSensorLabels();
     fillSimulationSettingLabel();
+    fillVideoFolderList();
 }
 
 void SettingsDialog::on_deleteConfigurationButton_clicked()
@@ -189,4 +207,16 @@ void SettingsDialog::on_deleteConfigurationButton_clicked()
                     configurationName);
     }
     reset();
+}
+
+void SettingsDialog::on_changeFolderButton_clicked()
+{
+    QStringList homeDirectories = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+
+    QString startDirectory = (homeDirectories.isEmpty()) ? QString() : homeDirectories[0];
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Open RLV Directory"),
+                                                    startDirectory);
+
+    saveVideoFolder(dir);
+    fillVideoFolderList();
 }

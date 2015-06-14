@@ -21,6 +21,7 @@
 #define VIDEOLISTVIEW_H
 
 #include <QtCore/QSortFilterProxyModel>
+#include <QtGui/QPainter>
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QListView>
 #include <QtWidgets/QLineEdit>

@@ -17,28 +17,25 @@
  * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-#ifndef VIDEOLISTMODEL_H
-#define VIDEOLISTMODEL_H
+#ifndef BIGRINGSETTINGS_H
+#define BIGRINGSETTINGS_H
 
-#include <QtCore/QAbstractListModel>
-#include "reallifevideo.h"
+#include <QtCore/QSettings>
 
-const int VideoDataRole = Qt::UserRole + 1;
-class VideoListModel : public QAbstractListModel
+/**
+ * Wrapper around QSettings, used for application specific settings.
+ * Just create a BigRingSettings object on the stack and load and
+ * save settings.
+ */
+class BigRingSettings
 {
-    Q_OBJECT
 public:
-    explicit VideoListModel(QObject *parent = 0);
+    BigRingSettings();
 
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    virtual QVariant data(const QModelIndex &index, int role) const;
-signals:
-
-public slots:
-    void setVideos(RealLifeVideoList& rlvs);
-
+    QString videoFolder() const;
+    void setVideoFolder(const QString folder);
 private:
-    RealLifeVideoList _rlvs;
+    QSettings _settings;
 };
 
-#endif // VIDEOLISTMODEL_H
+#endif // BIGRINGSETTINGS_H

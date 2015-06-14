@@ -27,6 +27,8 @@
 
 #include "antcentraldispatch.h"
 #include "antsensortype.h"
+#include "bigringsettings.h"
+#include "reallifevideoimporter.h"
 #include "sensorconfiguration.h"
 
 namespace Ui {
@@ -39,6 +41,7 @@ class SettingsDialog : public QDialog
 
 public:
     explicit SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDispatch,
+                            RealLifeVideoImporter *importer,
                             QWidget *parent = 0);
     ~SettingsDialog();
 
@@ -53,6 +56,7 @@ private slots:
 
     void on_deleteConfigurationButton_clicked();
 
+    void on_changeFolderButton_clicked();
 private:
     void reset();
     void fillSensorSettingsComboBox();
@@ -61,9 +65,13 @@ private:
                          const QMap<indoorcycling::AntSensorType, indoorcycling::SensorConfiguration> &configurations,
                          const indoorcycling::AntSensorType type);
     void fillSimulationSettingLabel();
+    void fillVideoFolderList();
+    void saveVideoFolder(const QString &folder);
 
     Ui::SettingsDialog *_ui;
+    BigRingSettings _settings;
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
+    RealLifeVideoImporter * const _importer;
 };
 
 #endif // SETTINGSDIALOG_H

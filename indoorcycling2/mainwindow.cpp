@@ -35,7 +35,7 @@
 #include "newvideowidget.h"
 #include "simulation.h"
 
-MainWindow::MainWindow(QString dir, QWidget *parent) :
+MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent, Qt::Window),
     _importer(new RealLifeVideoImporter(this)),
     _antCentralDispatch(new indoorcycling::AntCentralDispatch(this)),
@@ -48,9 +48,8 @@ MainWindow::MainWindow(QString dir, QWidget *parent) :
     QVBoxLayout* layout = new QVBoxLayout;
     layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
-    qDebug() << "starting from " << dir;
     connect(_importer, &RealLifeVideoImporter::importFinished, this, &MainWindow::importFinished);
-    _importer->parseRealLiveVideoFilesFromDir(dir);
+    _importer->importRealLiveVideoFilesFromDir();
 
     _stackedWidget->addWidget(_listView);
 
@@ -110,7 +109,7 @@ void MainWindow::setupMenuBar()
 
     QAction* showPreferencesAction = new QAction(tr("Preferences"), this);
     connect(showPreferencesAction, &QAction::triggered, showPreferencesAction, [=]() {
-        SettingsDialog dialog(_antCentralDispatch, this);
+        SettingsDialog dialog(_antCentralDispatch, _importer, this);
         dialog.exec();
         update();
     });

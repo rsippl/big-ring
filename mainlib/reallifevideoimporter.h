@@ -48,7 +48,7 @@ public:
      * @brief parse the Real Life Videos from a root directory.
      * @param the root directory to search files from.
      */
-    void parseRealLiveVideoFilesFromDir(const QString &root);
+    void importRealLiveVideoFilesFromDir();
 
 signals:
     /**
