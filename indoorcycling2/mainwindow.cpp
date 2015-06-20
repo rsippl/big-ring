@@ -72,12 +72,18 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     qDebug() << "received key" << event->key() << event->text();
     switch(event->key()) {
     case Qt::Key_F:
-        if (isFullScreen()) {
-            showNormal();
-            setGeometry(_savedGeometry);
-        } else {
-            _savedGeometry = geometry();
-            showFullScreen();
+        if (_run) {
+            if (isFullScreen()) {
+                showNormal();
+                setGeometry(_savedGeometry);
+                _menuBar->show();
+            } else {
+                _savedGeometry = geometry();
+                if (_run) {
+                    _menuBar->hide();
+                    showFullScreen();
+                }
+            }
         }
         break;
     case Qt::Key_M:
@@ -178,6 +184,7 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_videoWidget.data()));
     _savedGeometry = geometry();
     if (isMaximized()) {
+        _menuBar->hide();
         showFullScreen();
     }
     connect(&_run->simulation().cyclist(), &Cyclist::distanceChanged, _videoWidget.data(), &NewVideoWidget::setDistance);
@@ -189,11 +196,12 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     });
     connect(_run.data(), &Run::stopped, _run.data(), [this]() {
         qDebug() << "run finished";
-        bool maximize = isFullScreen();
+        bool maximize = _videoWidget->isFullScreen();
         _run.reset();
         _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
         _stackedWidget->removeWidget(_videoWidget.data());
         _videoWidget.reset();
+        _menuBar->show();
         if (maximize) {
             showMaximized();
         } else {
