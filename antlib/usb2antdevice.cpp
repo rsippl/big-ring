@@ -200,6 +200,7 @@ void Usb2AntDeviceWorker::read()
         int nrOfBytesRead = usb_bulk_read(_deviceConfiguration->deviceHandle, _deviceConfiguration->readEndpoint, buffer.data(), buffer.size(), 10);
         if (nrOfBytesRead <= 0) {
 #ifdef Q_OS_WIN
+            // for some reason, on Windows we get a -116 error code after a timeout. Just accept it.
             if (nrOfBytesRead != -116) {
 #else
             if (nrOfBytesRead != -ETIMEDOUT) {
