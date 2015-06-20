@@ -22,6 +22,8 @@ public slots:
     void initializationFinished(bool success);
     void searchTimedOut(AntSensorType channelType);
     void setSensor(AntSensorType channelType, int deviceNumber);
+    void setSensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType,
+                     const QVariant& sensorValue);
     void searchStarted(AntSensorType channelType, int deviceNumber);
     void setHeartRate(int bpm);
 signals:

@@ -199,7 +199,11 @@ void Usb2AntDeviceWorker::read()
 
         int nrOfBytesRead = usb_bulk_read(_deviceConfiguration->deviceHandle, _deviceConfiguration->readEndpoint, buffer.data(), buffer.size(), 10);
         if (nrOfBytesRead <= 0) {
+#ifdef Q_OS_WIN
+            if (nrOfBytesRead != -116) {
+#else
             if (nrOfBytesRead != -ETIMEDOUT) {
+#endif
                 qDebug() << "usb returns" << nrOfBytesRead << usb_strerror();
             }
             bytesAvailable = false;
@@ -243,7 +247,7 @@ namespace
 void initializeUsb()
 {
     if (!usbInitialized) {
-        usb_set_debug(255);
+        usb_set_debug(0);
         usb_init();
 
         usbInitialized = true;
@@ -274,6 +278,7 @@ struct usb_device *findAntStick()
 
 void resetAntStick(struct usb_device *antStick)
 {
+#ifdef Q_OS_LINUX
     struct usb_dev_handle* antStickHandle;
     if ((antStickHandle = usb_open(antStick))) {
         usb_reset(antStickHandle);
@@ -281,7 +286,11 @@ void resetAntStick(struct usb_device *antStick)
     } else {
         qWarning("Unable to open and reset ANT stick");
     }
+#else
+    Q_UNUSED(antStick);
+#endif
 }
+
 
 std::unique_ptr<indoorcycling::Usb2DeviceConfiguration> openAntStick()
 {
@@ -290,7 +299,6 @@ std::unique_ptr<indoorcycling::Usb2DeviceConfiguration> openAntStick()
     struct usb_device* device = findAntStick();
     if (device) {
         resetAntStick(device);
-
         deviceHandle = usb_open(device);
         if (deviceHandle && device->descriptor.bNumConfigurations) {
             std::unique_ptr<indoorcycling::Usb2DeviceConfiguration> deviceConfiguration = findUsbInterface(*(&device->config[0]));

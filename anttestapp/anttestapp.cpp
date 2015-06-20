@@ -33,7 +33,8 @@ int main(int argc, char** argv)
                      &AntTestAppMainWindow::searchTimedOut);
     QObject::connect(&acd, &AntCentralDispatch::sensorFound, &mainWindow,
                      &AntTestAppMainWindow::setSensor);
-
+    QObject::connect(&acd, &AntCentralDispatch::sensorValue, &mainWindow,
+                     &AntTestAppMainWindow::setSensorValue);
     acd.initialize();
 
     mainWindow.show();
