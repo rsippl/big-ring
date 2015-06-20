@@ -61,14 +61,15 @@ void ScreenSaverBlocker::blockScreenSaver()
 }
 
 #else
-#ifdef Q_OS_WINDOWS
+#ifdef Q_OS_WIN
 void ScreenSaverBlocker::blockScreenSaver()
 {
-    qDebug() << "Screen saver blocking not implemented on windows yet."
+    qDebug() << "Screen saver blocking not implemented on windows yet.";
 }
 #endif
 #endif
 
+#ifdef Q_OS_LINUX
 void ScreenSaverBlocker::handleError(QProcess::ProcessError error)
 {
     QObject* process = sender();
@@ -81,4 +82,5 @@ void ScreenSaverBlocker::handleError(QProcess::ProcessError error)
     }
     process->deleteLater();
 }
+#endif
 }

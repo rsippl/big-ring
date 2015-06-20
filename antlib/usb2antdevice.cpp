@@ -25,7 +25,12 @@
 #include <QtCore/QThread>
 
 extern "C" {
-#include <usb.h>
+#ifdef Q_OS_LINUX
+#include "thirdparty/usb.h"
+#endif
+#ifdef Q_OS_WIN
+#include <lusb0_usb.h>
+#endif
 }
 
 namespace
@@ -218,7 +223,9 @@ void Usb2AntDeviceWorker::write(const QByteArray &bytes)
     QMutexLocker lock(&_deviceConfiguration->mutex);
     int written;
 #ifdef Q_OS_WIN
-    written = usb_interrupt_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 10);
+    const char* constdata = reinterpret_cast<const char*>(bytes.data());
+    char* data = const_cast<char*>(constdata);
+    written = usb_interrupt_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, data, bytes.size(), 10);
 #else
     written = usb_bulk_write(_deviceConfiguration->deviceHandle, _deviceConfiguration->writeEndpoint, bytes.data(), bytes.size(), 10);
     if (written < 0) {

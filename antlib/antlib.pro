@@ -19,8 +19,8 @@ SOURCES += \
     antspeedandcadencechannelhandler.cpp
 
 linux {
-    SOURCES += core.c
-    HEADERS += usb.h usbi.h
+    SOURCES += thirdparty/core.c
+    HEADERS += thirdparty/usb.h thirdparty/usbi.h
 }
 
 HEADERS += \
@@ -37,8 +37,8 @@ HEADERS += \
     antspeedandcadencechannelhandler.h
 
 win32 {
-    HEADERS += usbexpressantdevice.h
-    SOURCES += usbexpressantdevice.cpp
+#    HEADERS += usbexpressantdevice.h
+#    SOURCES += usbexpressantdevice.cpp
 }
 !win32 {
     HEADERS += unixserialusbant.h

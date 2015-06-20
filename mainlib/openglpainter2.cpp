@@ -54,7 +54,7 @@ void OpenGLPainter2::loadTextures()
 void OpenGLPainter2::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
                                            int lineSize, int height, size_t offset)
 {
-    glActiveTexture(glTextureUnit);
+    _glFunctions.glActiveTexture(glTextureUnit);
     glBindTexture(GL_TEXTURE_RECTANGLE, textureUnit);
     _pixelBuffers[_currentPixelBufferReadPosition].bind();
 
@@ -116,13 +116,13 @@ void OpenGLPainter2::paint(QPainter *painter, const QRectF &rect, Qt::AspectRati
     glVertexPointer(2, GL_FLOAT, 0, 0);
     _vertexBuffer.release();
 
-    glActiveTexture(GL_TEXTURE0);
+    _glFunctions.glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_RECTANGLE, _yTextureId);
-    glActiveTexture(GL_TEXTURE1);
+    _glFunctions.glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_RECTANGLE, _uTextureId);
-    glActiveTexture(GL_TEXTURE2);
+    _glFunctions.glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_RECTANGLE, _vTextureId);
-    glActiveTexture(GL_TEXTURE0);
+    _glFunctions.glActiveTexture(GL_TEXTURE0);
 
     _program.setUniformValue("yTex", 0);
     _program.setUniformValue("uTex", 1);

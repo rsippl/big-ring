@@ -38,8 +38,9 @@ public:
     virtual ~ScreenSaverBlocker();
 
 public slots:
+#ifdef Q_OS_LINUX
     void handleError(QProcess::ProcessError error);
-
+#endif
 private:
     void blockScreenSaver();
 

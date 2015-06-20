@@ -98,4 +98,6 @@ int main(int argc, char *argv[])
 
     return a.exec();
     fclose(logFile);
+
+    return 0;
 }
