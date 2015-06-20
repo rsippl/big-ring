@@ -37,5 +37,5 @@ int main(int argc, char** argv)
     acd.initialize();
 
     mainWindow.show();
-    a.exec();
+    return a.exec();
 }

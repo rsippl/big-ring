@@ -1,5 +1,4 @@
 # if installed, point to the source directory of google test here.
-GOOGLE_TEST_SOURCE_DIR=/usr/src/gtest
 
 QMAKE_CXXFLAGS += -std=c++11 -W -Wall -Wextra -Werror
 
@@ -8,6 +7,10 @@ linux {
 }
 win32 {
     INCLUDEPATH += C:\development\libav-i686-w64-mingw32-11.2\usr\include
+    LIBS += C:\development\libav-i686-w64-mingw32-11.2\usr\bin\avcodec-56.dll
+    LIBS += C:\development\libav-i686-w64-mingw32-11.2\usr\bin\avformat-56.dll
+    LIBS += C:\development\libav-i686-w64-mingw32-11.2\usr\bin\avutil-54.dll
+    LIBS += C:\development\libav-i686-w64-mingw32-11.2\usr\bin\swscale-3.dll
 }
 # address sanitizer configuration. Uncomment this to build
 # with address sanitizer.
