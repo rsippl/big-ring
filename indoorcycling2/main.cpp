@@ -34,7 +34,7 @@ void prettyLogging(QtMsgType type, const QMessageLogContext &context, const QStr
 {
     QByteArray localMsg = msg.toLocal8Bit();
     QString now = QTime::currentTime().toString();
-    const char* level;
+    const char* level = "Debug";
     switch (type) {
     case QtDebugMsg:
         level = "DEBUG";
