@@ -30,11 +30,24 @@
 
 namespace indoorcycling
 {
+/**
+ * Block the screen saver, so it will not be started when the user is
+ * performing a training session.
+ */
 class ScreenSaverBlocker : public QObject
 {
     Q_OBJECT
 public:
-    explicit ScreenSaverBlocker(QWidget* window, QObject *parent = 0);
+    /**
+     * Create a ScreenSaverBlocker blocker object. As long as the object is 'alive',
+     * the screen saver will be blocked.
+     * @param parent the widget that requests the screen saver to be blocked. Make
+     * sure that this widget lives longer than the ScreenSaverBlocker instance.
+     */
+    explicit ScreenSaverBlocker(QWidget* parent);
+    /**
+     * Clean up, unblock the screen saver.
+     */
     virtual ~ScreenSaverBlocker();
 
 public slots:
@@ -43,6 +56,7 @@ public slots:
 #endif
 private:
     void blockScreenSaver();
+    void unblockScreenSaver();
 
     QWidget* const _window;
 };
