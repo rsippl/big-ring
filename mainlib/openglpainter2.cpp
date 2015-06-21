@@ -54,23 +54,23 @@ void OpenGLPainter2::loadTextures()
 void OpenGLPainter2::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
                                            int lineSize, int height, size_t offset)
 {
-    glActiveTexture(glTextureUnit);
-    glBindTexture(GL_TEXTURE_RECTANGLE, textureUnit);
+    _glFunctions->glActiveTexture(glTextureUnit);
+    _glFunctions->glBindTexture(GL_TEXTURE_RECTANGLE, textureUnit);
     _pixelBuffers[_currentPixelBufferReadPosition].bind();
 
     if (_texturesInitialized) {
-        glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, lineSize, height,
+        _glFunctions->glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, lineSize, height,
                         GL_LUMINANCE, GL_UNSIGNED_BYTE, (void*) offset);
     } else {
-        glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_LUMINANCE, lineSize, height,
+        _glFunctions->glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_LUMINANCE, lineSize, height,
                      0,GL_LUMINANCE,GL_UNSIGNED_BYTE, (void*) offset);
     }
 
     _pixelBuffers[_currentPixelBufferReadPosition].release();
-    glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-    glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+    _glFunctions->glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    _glFunctions->glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    _glFunctions->glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+    _glFunctions->glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 }
 
 void OpenGLPainter2::paint(QPainter *painter, const QRectF &rect, Qt::AspectRatioMode aspectRatioMode)
@@ -89,19 +89,19 @@ void OpenGLPainter2::paint(QPainter *painter, const QRectF &rect, Qt::AspectRati
 
     // if these are enabled, we need to reenable them after beginNativePainting()
     // has been called, as they may get disabled
-    bool stencilTestEnabled = glIsEnabled(GL_STENCIL_TEST);
-    bool scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST);
+    bool stencilTestEnabled = _glFunctions->glIsEnabled(GL_STENCIL_TEST);
+    bool scissorTestEnabled = _glFunctions->glIsEnabled(GL_SCISSOR_TEST);
     _pixelBuffers[_currentPixelBufferReadPosition].bufferId();
 
     painter->beginNativePainting();
 
     if (stencilTestEnabled)
-        glEnable(GL_STENCIL_TEST);
+        _glFunctions->glEnable(GL_STENCIL_TEST);
     if (scissorTestEnabled)
-        glEnable(GL_SCISSOR_TEST);
+        _glFunctions->glEnable(GL_SCISSOR_TEST);
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    _glFunctions->glEnableClientState(GL_VERTEX_ARRAY);
+    _glFunctions->glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     _program.bind();
 
@@ -109,31 +109,31 @@ void OpenGLPainter2::paint(QPainter *painter, const QRectF &rect, Qt::AspectRati
 
     // set the texture and vertex coordinates using VBOs.
     _textureCoordinatesBuffer.bind();
-    glTexCoordPointer(2, GL_FLOAT, 0, 0);
+    _glFunctions->glTexCoordPointer(2, GL_FLOAT, 0, 0);
     _textureCoordinatesBuffer.release();
 
     _vertexBuffer.bind();
-    glVertexPointer(2, GL_FLOAT, 0, 0);
+    _glFunctions->glVertexPointer(2, GL_FLOAT, 0, 0);
     _vertexBuffer.release();
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE, _yTextureId);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_RECTANGLE, _uTextureId);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_RECTANGLE, _vTextureId);
-    glActiveTexture(GL_TEXTURE0);
+    _glFunctions->glActiveTexture(GL_TEXTURE0);
+    _glFunctions->glBindTexture(GL_TEXTURE_RECTANGLE, _yTextureId);
+    _glFunctions->glActiveTexture(GL_TEXTURE1);
+    _glFunctions->glBindTexture(GL_TEXTURE_RECTANGLE, _uTextureId);
+    _glFunctions->glActiveTexture(GL_TEXTURE2);
+    _glFunctions->glBindTexture(GL_TEXTURE_RECTANGLE, _vTextureId);
+    _glFunctions->glActiveTexture(GL_TEXTURE0);
 
     _program.setUniformValue("yTex", 0);
     _program.setUniformValue("uTex", 1);
     _program.setUniformValue("vTex", 2);
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    _glFunctions->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     _program.release();
 
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    _glFunctions->glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    _glFunctions->glDisableClientState(GL_VERTEX_ARRAY);
 
     painter->endNativePainting();
     painter->fillRect(_blackBar1, Qt::black);
@@ -191,7 +191,7 @@ void OpenGLPainter2::setFrameLoaded(int index, qint64 frameNumber, const QSize &
     _pixelBuffers[index].release();
     _frameNumbers[index] = frameNumber;
     _firstFrameLoaded = true;
-    glFlush();
+    _glFunctions->glFlush();
 }
 
 void OpenGLPainter2::requestNewFrames()
@@ -246,7 +246,13 @@ void OpenGLPainter2::initializeOpenGL()
 {
     Q_ASSERT_X(!_program.isLinked(), "initializeOpenGL", "OpenGL already initialized");
     qDebug() << "INITIALIZING OPENGL";
-    _glFunctions = QOpenGLFunctions(QOpenGLContext::currentContext());
+    _glFunctions = QOpenGLContext::currentContext()->versionFunctions<QOpenGLFunctions_2_0>();
+    if (!_glFunctions) {
+        qWarning() << "Could not obtain required OpenGL context version";
+        exit(1);
+    }
+    _glFunctions->initializeOpenGLFunctions();
+    QOpenGLFunctions functions(QOpenGLContext::currentContext());
     if (!_program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":///shaders/vertexshader.glsl")) {
         qFatal("Unable to add vertex shader: %s", qPrintable(_program.log()));
     }
@@ -257,13 +263,13 @@ void OpenGLPainter2::initializeOpenGL()
         qFatal("Unable to link shader program: %s", qPrintable(_program.log()));
     }
     QOpenGLContext* glContext = QOpenGLContext::currentContext();
-    if (!_glFunctions.hasOpenGLFeature(QOpenGLFunctions::NPOTTextures)) {
+    if (!functions.hasOpenGLFeature(QOpenGLFunctions::NPOTTextures)) {
         qFatal("OpenGL needs to have support for 'Non power of two textures'");
     }
     if (!glContext->hasExtension("GL_ARB_pixel_buffer_object")) {
         qFatal("GL_ARB_pixel_buffer_object is missing");
     }
-    if (!_glFunctions.hasOpenGLFeature(QOpenGLFunctions::Buffers)) {
+    if (!functions.hasOpenGLFeature(QOpenGLFunctions::Buffers)) {
         qFatal("OpenGL needs to have support for vertex buffers");
     }
 //    QOpenGLDebugLogger *logger = new QOpenGLDebugLogger(this);
@@ -272,9 +278,9 @@ void OpenGLPainter2::initializeOpenGL()
 //    logger->startLogging();
 
     qDebug() << "generating textures.";
-    glGenTextures(1, &_yTextureId);
-    glGenTextures(1, &_uTextureId);
-    glGenTextures(1, &_vTextureId);
+    _glFunctions->glGenTextures(1, &_yTextureId);
+    _glFunctions->glGenTextures(1, &_uTextureId);
+    _glFunctions->glGenTextures(1, &_vTextureId);
 
     _openGLInitialized = true;
 }

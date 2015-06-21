@@ -20,7 +20,7 @@
 
 #include "antdevicefinder.h"
 #ifdef Q_OS_WIN
-#include "usbexpressantdevice.h"
+//#include "usbexpressantdevice.h"
 #else
 #include "unixserialusbant.h"
 #endif
@@ -48,7 +48,7 @@ std::unique_ptr<AntDevice> AntDeviceFinder::openAntDevice()
 #ifdef Q_OS_LINUX
         return std::unique_ptr<AntDevice>(new UnixSerialUsbAnt);
 #else
-        return std::unique_ptr<AntDevice>(new UsbExpressAntDevice);
+//        return std::unique_ptr<AntDevice>(new UsbExpressAntDevice);
 #endif
     case ANT_DEVICE_USB_2:
         return std::unique_ptr<AntDevice>(new Usb2AntDevice);

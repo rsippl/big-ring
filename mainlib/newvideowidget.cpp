@@ -38,7 +38,8 @@
 
 
 NewVideoWidget::NewVideoWidget(QWidget *parent) :
-    QGraphicsView(parent), _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this, this)), _mouseIdleTimer(new QTimer(this))
+    QGraphicsView(parent), _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this)),
+    _mouseIdleTimer(new QTimer(this))
 {
     setMinimumSize(800, 600);
     setFocusPolicy(Qt::StrongFocus);

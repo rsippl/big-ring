@@ -59,6 +59,13 @@ void AntTestAppMainWindow::setSensor(AntSensorType channelType, int deviceNumber
     }
 }
 
+void AntTestAppMainWindow::setSensorValue(const SensorValueType, const AntSensorType sensorType, const QVariant &sensorValue)
+{
+    if (sensorType == AntSensorType::SENSOR_TYPE_HR) {
+        ui->currentHrLabel->setText(QString::number(sensorValue.toInt()));
+    }
+}
+
 void AntTestAppMainWindow::searchStarted(AntSensorType channelType, int)
 {
     if (channelType == AntSensorType::SENSOR_TYPE_HR) {
