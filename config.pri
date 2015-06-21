@@ -6,11 +6,13 @@ linux {
     PKGCONFIG += libavcodec libavformat libavutil libswscale
 }
 win32 {
-    INCLUDEPATH += C:\development\libav-i686-w64-mingw32-11.2\usr\include
-    LIBS += C:\development\libav-i686-w64-mingw32-11.2\usr\bin\avcodec-56.dll
-    LIBS += C:\development\libav-i686-w64-mingw32-11.2\usr\bin\avformat-56.dll
-    LIBS += C:\development\libav-i686-w64-mingw32-11.2\usr\bin\avutil-54.dll
-    LIBS += C:\development\libav-i686-w64-mingw32-11.2\usr\bin\swscale-3.dll
+    LIBAV_PATH=C:/development/libav-i686-w64-mingw32-11.2
+    LIBAV_DLL_PATH = $$LIBAV_PATH/usr/bin
+    INCLUDEPATH += $$LIBAV_PATH\usr\include
+    LIBS += $$LIBAV_PATH\usr\bin\avcodec-56.dll
+    LIBS += $$LIBAV_PATH\usr\bin\avformat-56.dll
+    LIBS += $$LIBAV_PATH\usr\bin\avutil-54.dll
+    LIBS += $$LIBAV_PATH\usr\bin\swscale-3.dll
 }
 # address sanitizer configuration. Uncomment this to build
 # with address sanitizer.

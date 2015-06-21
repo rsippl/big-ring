@@ -7,7 +7,7 @@ QT_VERSION = 5
 QT       += core gui serialport
 
 
-TARGET = ../bin/indoorcycling2
+TARGET = ../bin/big-ring
 TEMPLATE = app
 
 include(../mainlib/mainlib.pri)
@@ -78,3 +78,19 @@ FORMS += \
     createnewcoursedialog.ui \
     addsensorconfigurationdialog.ui
 
+win32 {
+    DEPLOY_COMMAND = windeployqt
+    TARGET_CUSTOM_EXT = .exe
+    CONFIG( debug, debug|release ) {
+        # debug
+        DEPLOY_TARGET = $$shell_quote($$shell_path($${OUT_PWD}/debug/$${TARGET}$${TARGET_CUSTOM_EXT}))
+    } else {
+        # release
+        DEPLOY_TARGET = $$shell_quote($$shell_path($${OUT_PWD}/release/$${TARGET}$${TARGET_CUSTOM_EXT}))
+    }
+    warning($${DEPLOY_COMMAND} $${DEPLOY_TARGET})
+
+    QMAKE_PRE_LINK = copy /y \"$${LIBAV_DLL_PATH}\\*.dll\" \"$${OUT_PWD}/bin/\";
+    QMAKE_POST_LINK = $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+
+}
