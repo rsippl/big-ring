@@ -246,7 +246,7 @@ void OpenGLPainter2::initializeOpenGL()
 {
     Q_ASSERT_X(!_program.isLinked(), "initializeOpenGL", "OpenGL already initialized");
     qDebug() << "INITIALIZING OPENGL";
-    _glFunctions = QOpenGLContext::currentContext()->versionFunctions<QOpenGLFunctions_2_0>();
+    _glFunctions = QOpenGLContext::currentContext()->versionFunctions<QOpenGLFunctions_1_3>();
     if (!_glFunctions) {
         qWarning() << "Could not obtain required OpenGL context version";
         exit(1);

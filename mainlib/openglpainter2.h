@@ -26,7 +26,7 @@
 #include <QtGui/QOpenGLDebugMessage>
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtOpenGL/QGLWidget>
-#include <QtGui/QOpenGLFunctions_2_0>
+#include <QtGui/QOpenGLFunctions_1_3>
 
 #include <array>
 #include "framebuffer.h"
@@ -70,7 +70,7 @@ private:
 
 
     QGLWidget* _widget;
-    QOpenGLFunctions_2_0 *_glFunctions;
+    QOpenGLFunctions_1_3 *_glFunctions;
     bool _openGLInitialized;
     bool _firstFrameLoaded;
     bool _texturesInitialized;
