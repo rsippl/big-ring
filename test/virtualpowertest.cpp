@@ -1,7 +1,7 @@
 #include "virtualpowertest.h"
 
 #include "common.h"
-#include "virtualpower.h"
+#include "mainlib/virtualpower.h"
 
 using namespace indoorcycling;
 void VirtualPowerTest::testKurtKineticRoadMachine()

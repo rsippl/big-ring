@@ -1,9 +1,14 @@
 # if installed, point to the source directory of google test here.
 
+QT_VERSION = 5
 QMAKE_CXXFLAGS += -std=c++11 -W -Wall -Wextra -Werror
+QT       += core concurrent gui opengl serialport widgets
+
+INCLUDEPATH = $$PWD
 
 linux {
-    PKGCONFIG += libavcodec libavformat libavutil libswscale
+    PKGCONFIG += libavcodec libavformat libavutil libswscale libusb-1.0
+    CONFIG += link_pkgconfig
 }
 win32 {
     LIBAV_PATH=C:/development/libav-i686-w64-mingw32-11.2
@@ -13,6 +18,9 @@ win32 {
     LIBS += $$LIBAV_PATH\usr\bin\avformat-56.dll
     LIBS += $$LIBAV_PATH\usr\bin\avutil-54.dll
     LIBS += $$LIBAV_PATH\usr\bin\swscale-3.dll
+
+    INCLUDEPATH += C:\development\libusb-win32-bin-1.2.6.0\include
+    LIBS += C:\development\libusb-win32-bin-1.2.6.0\bin\x86\libusb0_x86.dll
 }
 # address sanitizer configuration. Uncomment this to build
 # with address sanitizer.

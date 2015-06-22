@@ -3,14 +3,11 @@
 # Project created by QtCreator 2014-10-26T17:17:44
 #
 #-------------------------------------------------
-QT_VERSION = 5
-QT       += core gui serialport
-
 
 TARGET = ../bin/big-ring
 TEMPLATE = app
 
-include(../mainlib/mainlib.pri)
+include(../config.pri)
 
 
 SOURCES += main.cpp\
@@ -37,6 +34,16 @@ HEADERS  += mainwindow.h \
     createnewcoursedialog.h \
     addsensorconfigurationdialog.h \
     videoqlistview.h
+
+RESOURCES +=
+
+FORMS += \
+    settingsdialog.ui \
+    videoscreenshotwidget.ui \
+    altitudeprofilewidget.ui \
+    videodetails.ui \
+    createnewcoursedialog.ui \
+    addsensorconfigurationdialog.ui
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib
@@ -65,18 +72,6 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../antl
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../antlib/release/antlib.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../antlib/debug/antlib.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../antlib/libantlib.a
-message("Master pro file path : ["$${MAINLIB_LIBRARY_DEPENCIES}"]")
-LIBS += $${MAINLIB_LIBRARY_DEPENCIES}
-
-RESOURCES +=
-
-FORMS += \
-    settingsdialog.ui \
-    videoscreenshotwidget.ui \
-    altitudeprofilewidget.ui \
-    videodetails.ui \
-    createnewcoursedialog.ui \
-    addsensorconfigurationdialog.ui
 
 win32 {
     DEPLOY_COMMAND = windeployqt

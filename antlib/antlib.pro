@@ -1,6 +1,5 @@
-QT       -= gui
 
-include(antlib.pri)
+include(../config.pri)
 
 TARGET = antlib
 TEMPLATE = lib

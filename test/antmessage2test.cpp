@@ -1,5 +1,4 @@
 #include "antmessage2test.h"
-#include "antmessage2.h"
 #include "common.h"
 
 #include <QtCore/QtDebug>

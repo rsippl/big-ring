@@ -27,7 +27,7 @@
 #include "reallifevideo.h"
 #include "cyclist.h"
 #include "simulation.h"
-#include "antcentraldispatch.h"
+#include "antlib/antcentraldispatch.h"
 
 class ANTController;
 class NewVideoWidget;

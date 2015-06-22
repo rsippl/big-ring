@@ -1,6 +1,10 @@
 TEMPLATE = lib
 
-include(mainlib.pri)
+include(../config.pri)
+
+RESOURCES += \
+    $$IN_PWD/shaders.qrc \
+    $$IN_PWD/flags.qrc
 
 target = mainlib
 target.path = ../lib

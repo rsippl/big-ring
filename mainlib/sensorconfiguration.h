@@ -23,7 +23,7 @@
 #include <QtCore/QMap>
 #include <QtCore/QSettings>
 
-#include "antsensortype.h"
+#include "antlib/antsensortype.h"
 #include "virtualpower.h"
 namespace indoorcycling {
 

@@ -3,16 +3,11 @@
 # Project created by QtCreator 2014-10-26T17:17:44
 #
 #-------------------------------------------------
-QT_VERSION = 5
-QT       += core serialport widgets
-CONFIG += link_pkgconfig
-CONFIG += debug
-
 
 TARGET = ../bin/anttestapp
 TEMPLATE = app
 
-include(../antlib/antlib.pri)
+include(../config.pri)
 
 
 SOURCES += anttestapp.cpp \
@@ -31,9 +26,6 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../antl
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../antlib/release/antlib.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../antlib/debug/antlib.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../antlib/libantlib.a
-
-LIBS += $${ANTLIB_LIBRARY_DEPENDENCIES}
-message("Master pro file path : ["$${ANTLIB_LIBRARY_DEPENCIES}"]")
 
 FORMS += \
     anttestappmainwindow.ui

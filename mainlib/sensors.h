@@ -22,7 +22,7 @@
 
 #include <QtCore/QObject>
 
-#include "antcentraldispatch.h"
+#include "antlib/antcentraldispatch.h"
 #include "sensorconfiguration.h"
 #include "virtualpower.h"
 
