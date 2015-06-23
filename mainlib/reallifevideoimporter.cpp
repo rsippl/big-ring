@@ -36,7 +36,7 @@
 
 namespace
 {
-RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString> &videoFilePaths);
+RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString> &videoFilePaths, const QList<QString> &pgmfFilePaths);
 QSet<QString> findFiles(const QString& root, const QString& pattern);
 QSet<QString> findRlvFiles(const QString &root);
 
@@ -98,13 +98,14 @@ bool RealLifeVideoImporter::event(QEvent *event)
 RealLifeVideoList RealLifeVideoImporter::importRlvFiles(const QString& rootFolder)
 {
     const QSet<QString> rlvFiles = findRlvFiles(rootFolder);
+    const QSet<QString> pgmfFiles = findFiles(rootFolder, "*.pgmf");
     const QSet<QString> aviFiles = findFiles(rootFolder, "*.avi");
 
     QCoreApplication::postEvent(this, new NrOfRlvsFoundEvent(rlvFiles.size()));
 
-    std::function<RealLifeVideo(const QFileInfo&)> importFunction([this, aviFiles](const QFileInfo& fileInfo) -> RealLifeVideo {
+    std::function<RealLifeVideo(const QFileInfo&)> importFunction([this, aviFiles, pgmfFiles](const QFileInfo& fileInfo) -> RealLifeVideo {
         QFile file(fileInfo.canonicalFilePath());
-        RealLifeVideo rlv = parseRealLiveVideoFile(file, aviFiles.toList());
+        RealLifeVideo rlv = parseRealLiveVideoFile(file, aviFiles.toList(), pgmfFiles.toList());
         QCoreApplication::postEvent(this, new RlvImportedEvent);
         return rlv;
     });
@@ -130,13 +131,22 @@ void RealLifeVideoImporter::importReady(const RealLifeVideoList &rlvs)
 
 namespace
 {
-RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& videoFilePaths)
+
+QList<QFileInfo> fromPaths(const QList<QString>& filePaths) {
+    QList<QFileInfo> fileInfos;
+    std::for_each(filePaths.constBegin(), filePaths.constEnd(), [&fileInfos](QString filePath) {
+        fileInfos.append(QFileInfo(filePath));
+    });
+    return fileInfos;
+}
+
+RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& videoFilePaths,
+                                     const QList<QString>& pgmfFilePaths)
 {
-    QList<QFileInfo> videoFiles;
-    for(QString path: videoFilePaths) {
-        videoFiles.append(QFileInfo(path));
-    }
-    RlvFileParser parser(videoFiles);
+    QList<QFileInfo> videoFiles = fromPaths(videoFilePaths);
+    QList<QFileInfo> pgmfFiles = fromPaths(pgmfFilePaths);
+
+    RlvFileParser parser(pgmfFiles, videoFiles);
     RealLifeVideo rlv = parser.parseRlvFile(rlvFile);
     QSettings settings;
     settings.beginGroup(QString("%1.custom_courses").arg(rlv.name()));

@@ -39,8 +39,8 @@ QString fromUtf16(const char* string, size_t size) {
 }
 }
 
-RlvFileParser::RlvFileParser(const QList<QFileInfo>& videoFiles): TacxFileParser(),
-    _videoFiles(videoFiles)
+RlvFileParser::RlvFileParser(const QList<QFileInfo> &pgmfFiles, const QList<QFileInfo>& videoFiles): TacxFileParser(),
+    _pgmfFiles(pgmfFiles), _videoFiles(videoFiles)
 {
 }
 
@@ -58,14 +58,22 @@ QString RlvFileParser::findVideoFilename(const QList<QFileInfo>& videoFiles, con
     return QString();
 }
 
-QString RlvFileParser::findPgmfFilename(QFile &rlvFile)
+/**
+ * Find the pgmf file for an rlv file. This checks if any of the pgmf files that were
+ * found has the same name (minus the extension) as the rlv file. If found, returns
+ * the path, else, returns an empty string.
+ */
+QFileInfo RlvFileParser::findPgmfFile(QFile &rlvFile)
 {
     QFileInfo fileInfo(rlvFile);
 
-    QString pgmfFilename(QString("%1.pgmf").arg(fileInfo.baseName()));
-    QFileInfo pgmfFileInfo(fileInfo.dir(), pgmfFilename);
-
-    return pgmfFileInfo.filePath();
+    QString baseName = fileInfo.baseName();
+    for (QFileInfo pgmfFileInfo: _pgmfFiles) {
+        if (pgmfFileInfo.baseName() == baseName) {
+            return pgmfFileInfo;
+        }
+    }
+    return QFileInfo();
 }
 
 RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
@@ -73,7 +81,7 @@ RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
     if (!rlvFile.open(QIODevice::ReadOnly))
         return RealLifeVideo();
 
-    QFile pgmfFile(findPgmfFilename(rlvFile));
+    QFile pgmfFile(findPgmfFile(rlvFile).filePath());
     if (!pgmfFile.open(QIODevice::ReadOnly))
         return RealLifeVideo();
 
