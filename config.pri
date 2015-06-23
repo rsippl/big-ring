@@ -11,16 +11,19 @@ linux {
     CONFIG += link_pkgconfig
 }
 win32 {
-    LIBAV_PATH=C:/development/libav-i686-w64-mingw32-11.2
-    LIBAV_DLL_PATH = $$LIBAV_PATH/usr/bin
+    LIBAV_PATH=C:\development\libav-i686-w64-mingw32-11.2
+    LIBAV_DLL_PATH = $$LIBAV_PATH\usr\bin
     INCLUDEPATH += $$LIBAV_PATH\usr\include
     LIBS += $$LIBAV_PATH\usr\bin\avcodec-56.dll
     LIBS += $$LIBAV_PATH\usr\bin\avformat-56.dll
     LIBS += $$LIBAV_PATH\usr\bin\avutil-54.dll
     LIBS += $$LIBAV_PATH\usr\bin\swscale-3.dll
 
-    INCLUDEPATH += C:\development\libusb-win32-bin-1.2.6.0\include
-    LIBS += C:\development\libusb-win32-bin-1.2.6.0\bin\x86\libusb0_x86.dll
+    LIBUSB_PATH = C:\development\libusb-win32-bin-1.2.6.0
+
+    INCLUDEPATH += $${LIBUSB_PATH}\include
+    LIBUSB_DLL = $${LIBUSB_PATH}\bin\x86\libusb0_x86.dll
+    LIBS += $${LIBUSB_DLL}
 }
 # address sanitizer configuration. Uncomment this to build
 # with address sanitizer.

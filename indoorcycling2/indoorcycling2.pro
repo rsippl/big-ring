@@ -85,7 +85,9 @@ win32 {
     }
     warning($${DEPLOY_COMMAND} $${DEPLOY_TARGET})
 
-    QMAKE_PRE_LINK = copy /y \"$${LIBAV_DLL_PATH}\\*.dll\" \"$${OUT_PWD}/bin/\";
-    QMAKE_POST_LINK = $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+    QMAKE_PRE_LINK = if not exist \"$${OUT_PWD}\\bin\" md \"$${OUT_PWD}\\bin\"
+    QMAKE_POST_LINK = copy /y \"$${LIBAV_DLL_PATH}\\*.dll\" \"$${OUT_PWD}\\bin\\\" && \
+                     copy /y \"$${LIBUSB_DLL}\" \"$${OUT_PWD}\\bin\\libusb0.dll\" && \
+                   $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
 
 }

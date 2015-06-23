@@ -170,7 +170,7 @@ protected:
 class RlvFileParser: public TacxFileParser
 {
 public:
-    RlvFileParser(const QList<QFileInfo>& videoFiles = QList<QFileInfo>());
+    RlvFileParser(const QList<QFileInfo>& pgmfFiles, const QList<QFileInfo>& videoFiles);
 
     RealLifeVideo parseRlvFile(QFile& rlvFile);
 
@@ -180,7 +180,8 @@ public:
 
 private:
     QString findVideoFilename(const QList<QFileInfo> &videoFiles, const QString& rlvVideoFilename);
-    QString findPgmfFilename(QFile& rlvFile);
+    QFileInfo findPgmfFile(QFile& rlvFile);
+    const QList<QFileInfo> _pgmfFiles;
     const QList<QFileInfo> _videoFiles;
 };
 
