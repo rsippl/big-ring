@@ -83,9 +83,7 @@ On Ubuntu, a superuser can put a file with the lines above in `/etc/udev/rules.d
 Usage
 -----
 
-Run `indoorcycling` with the folder containing your real life video files (.rlv, .pgmf and .avi) as the argument. The program will start and try to find your videos. The files will be parsed and when ready, the list of videos will be populated. The program starts looking for ANT+ sensors right away. If you have no power meter, it cannot determine the cyclists speed. Restart the program with the word "robot" as the second parameter. This will give the cyclist a constant power of 300W.
-
-Choose a video, and a course. Press play or press the space bar to play and pause. Use 'F' to go full screen, 'ESC' to go back to windowed mode.
+Run `indoorcycling2\bin\big-ring` program. The program will start and try to find your videos. If no video folder has been configured yet, the program will ask you to configure it. The files will be parsed and when ready, the list of videos will be populated. Using the preferences window, the user can configure the ANT+ sensors. Choose a video, and a course. 
 
 Roadmap
 -------
