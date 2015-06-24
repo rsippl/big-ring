@@ -23,13 +23,15 @@ Current Status
 
 Indoor Cycling currently does the following:
 
-* Works on Linux. On Windows, video is not smooth for HD movies. For some reason, loading a video frame as an OpenGL texture is much too slow on Windows. I'm probably doing something wrong.
+* Works on Linux & Windows 
 * Get information from ANT+ Sensors
     - Power meters
-    - Cadence meter (including cadence from power meters)
-    - Heart rate meters
+    - Cadence sensors (including cadence from power meters)
+    - Speed sensors
+    - Combined Cadence & Speed Sensors
+    - Heart rate sensors
 * Show current values for:
-    - Power
+    - Power, directly measured from Power meter or derived from speed and power curve of trainer
     - Cadence
     - Heart Rate
 * Play a Real Life Video with video frames mapped to the distance
@@ -88,7 +90,6 @@ Choose a video, and a course. Press play or press the space bar to play and paus
 Roadmap
 -------
 
-* Support Windows.
 * Support OS/X.
 * Record data to files (FIT/Powertap CSV/.. ?)
 * Improve user management.
