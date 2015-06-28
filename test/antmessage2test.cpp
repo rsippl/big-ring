@@ -21,7 +21,7 @@ void AntMessage2Test::systemReset()
 
 void AntMessage2Test::setNetworkKey()
 {
-    std::array<quint8,8> theKey = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8 };
+    std::array<quint8,8> theKey = {{ 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8 }};
     AntMessage2 msg = AntMessage2::setNetworkKey(4, theKey);
 
     QCOMPARE_BYTE(msg.id(), AntMessage2::AntMessageId::SET_NETWORK_KEY);

@@ -53,7 +53,7 @@ public:
     explicit Course(float start, float end);
     explicit Course();
 
-    bool isValid() const { return !_type == Invalid;}
+    bool isValid() const { return !(_type == Invalid);}
     const QString& name() const { return _name; }
     Type type() const { return _type; }
     /*! start distance of course in  meters */

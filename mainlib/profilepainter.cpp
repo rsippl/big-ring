@@ -25,7 +25,6 @@
 
 namespace
 {
-const int MININUM_HUE = 0; // red
 const int MAXIMUM_HUE = 240; // dark blue;
 const float MINIMUM_SLOPE = -12.0;
 const float MAXIMUM_SLOPE = 12.0;
@@ -145,6 +144,6 @@ QColor ProfilePainter::colorForSlope(const float slope) const {
     /* 0 is MINIMUM_SLOPE or lower, 1 = MAXIMUM_SLOPE or higher*/
     const float normalizedSlope = (boundedSlope - MINIMUM_SLOPE) * INVERSE_SLOPE_RANGE;
 
-    return QColor::fromHsv(240 - (normalizedSlope * 240), 255, 255);
+    return QColor::fromHsv(MAXIMUM_HUE - (normalizedSlope * MAXIMUM_HUE), 255, 255);
 }
 

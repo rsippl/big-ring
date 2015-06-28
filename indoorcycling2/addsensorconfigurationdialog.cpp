@@ -41,7 +41,6 @@ const char* NOT_FOUND = "Not Found";
 
 const int sensorTypeRole = Qt::UserRole + 1;
 const int sensorDeviceNumberRole = sensorTypeRole + 1;
-const int virtualPowerRole = sensorDeviceNumberRole + 1;
 
 enum class SearchTableColumn {
     NAME,

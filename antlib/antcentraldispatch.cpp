@@ -39,7 +39,7 @@ const int ANT_RESET_SYSTEM_TIMEOUT = 600; // ms.
 // ANT+ Network
 const int ANT_PLUS_NETWORK_NUMBER = 1;
 // ANT+ Network Key
-const std::array<quint8,8> ANT_PLUS_NETWORK_KEY = { 0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45 };
+const std::array<quint8,8> ANT_PLUS_NETWORK_KEY = { {0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45} };
 }
 namespace indoorcycling {
 

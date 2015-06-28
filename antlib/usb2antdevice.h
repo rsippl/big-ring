@@ -74,9 +74,9 @@ class Usb2AntDevice : public AntDevice
 public:
     explicit Usb2AntDevice(QObject *parent = 0);
     virtual ~Usb2AntDevice();
-    virtual bool isValid() const;
-    virtual int numberOfChannels() const;
-    virtual int writeBytes(const QByteArray& bytes);
+    virtual bool isValid() const override;
+    virtual int numberOfChannels() const override;
+    virtual int writeBytes(const QByteArray& bytes) override;
     virtual bool isReady() const override;
 signals:
     void doWrite(const QByteArray& bytes);

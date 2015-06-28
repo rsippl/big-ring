@@ -17,9 +17,7 @@ extern "C" {
 
 namespace {
 
-
 const int ERROR_STR_BUF_SIZE = 128;
-const int SEEK_TIMEOUT = 10; // ms
 QEvent::Type OpenVideoFileEventType = static_cast<QEvent::Type>(QEvent::User + 103);
 QEvent::Type CopyNextFrameEventType = static_cast<QEvent::Type>(QEvent::User + 104);
 QEvent::Type SeekEventType = static_cast<QEvent::Type>(QEvent::User + 105);

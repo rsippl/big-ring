@@ -35,7 +35,7 @@ class ProfileItem : public QGraphicsWidget
 public:
     explicit ProfileItem(QGraphicsItem *parent = 0);
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     virtual void setGeometry(const QRectF &rect) override;
 signals:
 

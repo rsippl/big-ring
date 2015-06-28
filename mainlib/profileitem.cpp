@@ -36,7 +36,7 @@ ProfileItem::ProfileItem(QGraphicsItem *parent):
 
 void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    QPen pen(QColor(Qt::green));
+    QPen pen = QColor(Qt::green);
     pen.setStyle(Qt::SolidLine);
     pen.setWidth(2);
     painter->setOpacity(0.5);
@@ -56,7 +56,7 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
             if (_cyclist) {
                 float distanceRatio = _cyclist->distance() / _rlv.totalDistance();
                 QBrush brush(Qt::black);
-                QPen pen(QColor(Qt::black));
+                QPen pen = QColor(Qt::black);
                 painter->setOpacity(0.4);
                 pen.setStyle(Qt::SolidLine);
                 pen.setWidth(2);

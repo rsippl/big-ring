@@ -42,11 +42,11 @@ public:
     explicit UnixSerialUsbAnt(QObject *parent = 0);
     virtual ~UnixSerialUsbAnt();
 
-    virtual bool isValid() const;
+    virtual bool isValid() const override;
 
-    virtual int numberOfChannels() const;
+    virtual int numberOfChannels() const override;
 
-    virtual int writeBytes(const QByteArray& bytes);
+    virtual int writeBytes(const QByteArray& bytes) override;
 
     virtual bool isReady() const override;
 signals:
