@@ -3,7 +3,7 @@ title: Big Ring Indoor Video Cycling
 email: ibooij@gmail.com
 description: > # this means to ignore newlines until "baseurl:"
   Big Ring Indoor Video Cycling can be used in combination with 
-  a bicycle, indoor trainer and [ANT+](http://www.thisisant.com) power, 
+  a bicycle, indoor trainer and ANT+ power, speed,  
   cadence or heart rate sensors. It will show a video of the road
   you are riding, playing in the speed at which you are riding.
 baseurl: "/big-ring" # the subpath of your site, e.g. /blog/
