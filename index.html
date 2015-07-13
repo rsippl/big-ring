@@ -2,25 +2,88 @@
 layout: default
 ---
 
-<div class="home">
+<div class="col-md-8" role="main">
+    <h1>Big Ring Indoor Video Cycling</h1>
+    <h2>Cycle through amazing scenery, inside</h2>
 
-  <img src="assets/images/run.jpg"/>
+    <p>Use Big Ring Indoor Video Cycling to make your indoor cycling training more
+        interesting by being able to view amazing scenery from your bicycle in your
+        pain cave.</p>
 
-<!-- Accent-colored raised button with ripple -->
- <h1 class="page-heading">Posts</h1>
+    <p>
+    <p>Big Ring Indoor Video Cycling can be used in combination with a bicycle,
+    indoor cycling trainer and <a href="http://www.thisisant.com">ANT+</a> power, cadence or heart rate sensors.</p>
 
-  <ul class="post-list">
-    {% for post in site.posts %}
-      <li>
-        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
+    <p>
+    <div class="embed-responsive embed-responsive-16by9">
+        <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/bYnc8lVDvuY" frameborder="0" allowfullscreen></iframe>
+    </div>
+    </p>
 
-        <h2>
-          <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
-        </h2>
-      </li>
-    {% endfor %}
-  </ul>
 
-  <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | prepend: site.baseurl }}">via RSS</a></p>
+    <h2 id="reallifevideos">Real Life Videos</h2>
 
+    <p>Real Life Videos are videos of roads or paths which have metadata describing
+    the elevation profile and distance of the course. Using this metadata,
+    Big Ring can adjust the playing speed of the video to the speed at which
+    the cyclist is riding.
+    </p>
+    <p>Real Life Videos can be bought and/or downloaded from several places:
+        <ul>
+            <li><a href="http://www.real-life-video.nl/index.php/en/">real-life-video.nl</a></li>
+            <li><a href="https://www.reallifevideo.de/index.php?lang=en">reallifevideo.de</a></li>
+            <li><a href="http://www.bikelabvideo.it/en/">BikeLab</a></li>
+            <li><a href="http://cyclingrlv.com/">Cycling-RLV (free)</a></li>
+            <li><a href="http://rlv-alucard.de/">RLV-alucard (free)</a></li>
+            <li>and more</li>
+        </ul>
+        Both <a href="https://www.reallifevideo.de/index.php?lang=en">reallifevideo.de</a> and
+        <a href="http://www.bikelabvideo.it/en/">BikeLab</a> have high quality demos
+        which you can use to try out this software before having to buy any videos.
+    </p>
+
+    <h2 id="howdoesitwork">How does it work?</h2>
+
+    <p>To use Big Ring Indoor Cycling, you need a couple of attributes:
+        <ul>
+            <li>A Bicycle</li>
+            <li>An Indoor Bike Trainer</li>
+            <li>A PC (Windows or Linux)</li>
+            <li>One or more <a href="#reallifevideos">Real Life Videos</a></li>
+        </ul>
+
+        Using this setup, it's possible to configure a cycling power level (e.g. 250 Watts).
+        Big Ring will determine the speed of the cyclist using the grade of the
+        road, cyclist's weight, wind resistance and rolling resistance.
+    </p>
+    <p>
+        To make things more interesting, you either need an ANT+ power meter or
+        an ANT+ speed sensor. If you are using a power meter, Big Ring will again
+        determine speed from grade of the
+        road, cyclist's weight, wind resistance and rolling resistance, but now
+        using the cyclist's real power as input.
+    </p>
+    <p>
+        When using a speed sensor, there are two possibilities. If you have
+        trainer with a known power curve (currently only <strong>Cycleops Fluid 2</strong>
+        and <strong>Kurt Kinetic Fluid</strong> trainers are supported), you can
+        use what is known as <em>Virtual Power</em>. Using Virtual Power, Big Ring
+        determines the power output of the cyclist by calculating it using the
+        speed of the back wheel.
+    </p>
+    <p>
+        If you have a speed sensor, but no supported trainer, Big Ring can use
+        the speed of the back wheel directly. When cycling, you will have to
+        adjust the resistance setting of the trainer yourself.
+    </p>
+</div>
+
+<div class="col-md-4" role="complementary">
+    <nav class="bs-sidebar affix">
+        <ul class="nav bs-sidenav">
+          <li class="active"><a href="#">Intro</a></li>
+          <li><a href="#howdoesitwork">How does it work?</a></li>
+          <li><a href="#reallifevideos">Real Life Videos</a></li>
+        </ul>
+    </nav>
 </div>
