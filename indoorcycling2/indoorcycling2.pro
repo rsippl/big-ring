@@ -7,8 +7,10 @@
 TARGET = ../bin/big-ring
 TEMPLATE = app
 
-include(../config.pri)
+VERSION = 1.0.3-pre
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
+include(../config.pri)
 
 SOURCES += main.cpp\
         mainwindow.cpp \

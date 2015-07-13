@@ -89,11 +89,14 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(prettyLogging);
     loadStyleSheet(a);
 
+    a.setApplicationVersion(APP_VERSION);
+    qDebug() << "APP VERSION" << a.applicationVersion();
     a.setOrganizationDomain("org.github.ibooij");
     a.setOrganizationName("Ilja Booij");
     a.setApplicationName("Big Ring Indoor Video Cycling");
 
     MainWindow w;
+    w.setWindowTitle(QString("%1 %2").arg(a.applicationName()).arg(a.applicationVersion()));
     w.showMaximized();
 
     return a.exec();
