@@ -9,9 +9,20 @@ struct AVCodec;
 struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
+struct AVPicture;
 struct SwsContext;
 
+/** Simple wrapper around an AVFrame struct. */
+class AVFrameWrapper {
+public:
+    AVFrameWrapper();
+    ~AVFrameWrapper();
 
+    /** return the AVFrame as an AVPicture. */
+    AVPicture* asPicture();
+
+    AVFrame* frame;
+};
 
 class VideoReader : public QObject
 {
@@ -49,8 +60,8 @@ private:
     AVCodec* _codec;
     AVCodecContext* _codecContext;
     AVFormatContext* _formatContext;
-    AVFrame* _frame;
-    AVFrame* _frameRgb;
+    QScopedPointer<AVFrameWrapper> _frameYuv;
+    QScopedPointer<AVFrameWrapper> _frameRgb;
     SwsContext* _swsContext;
     QByteArray _imageBuffer;
     int _currentVideoStream;

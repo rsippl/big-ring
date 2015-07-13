@@ -35,7 +35,7 @@ public:
 
 VideoReader::VideoReader(QObject *parent) :
     QObject(parent), _initialized(false), _codec(nullptr), _codecContext(nullptr),
-    _formatContext(nullptr), _frame(nullptr), _frameRgb(nullptr)
+    _formatContext(nullptr), _frameYuv(nullptr), _frameRgb(nullptr)
 {
     // empty
 }
@@ -89,12 +89,12 @@ void VideoReader::openVideoFile(const QString &videoFilename)
         printError(errorNr, "Unable to open codec");
     }
 
-    _frame = av_frame_alloc();
-    _frameRgb = av_frame_alloc();
+    _frameYuv.reset(new AVFrameWrapper);
+    _frameRgb.reset(new AVFrameWrapper);
     int numBytes= avpicture_get_size(PIX_FMT_RGB24,
           _codecContext->width, _codecContext->height);
     _imageBuffer.resize(numBytes);
-    avpicture_fill((AVPicture*) _frameRgb, reinterpret_cast<uint8_t*>(_imageBuffer.data()), PIX_FMT_RGB24,
+    avpicture_fill(_frameRgb->asPicture(), reinterpret_cast<uint8_t*>(_imageBuffer.data()), PIX_FMT_RGB24,
                    _codecContext->width, _codecContext->height);
 
     _swsContext = sws_getContext(_codecContext->width, _codecContext->height, AV_PIX_FMT_YUV420P,
@@ -122,7 +122,7 @@ qint64 VideoReader::loadNextFrame()
             return -1;
         }
         if (packet.stream_index == _currentVideoStream) {
-            avcodec_decode_video2(_codecContext, _frame,
+            avcodec_decode_video2(_codecContext, _frameYuv->frame,
                                   &frameFinished, &packet);
         }
     }
@@ -201,12 +201,6 @@ void VideoReader::initialize()
 
 void VideoReader::close()
 {
-    if (_frameRgb) {
-        av_frame_free(&_frameRgb);
-    }
-    if (_frame) {
-        av_frame_free(&_frameRgb);
-    }
     if (_codecContext) {
         avcodec_close(_codecContext);
     }
@@ -232,9 +226,10 @@ void VideoReader::printError(const QString &message)
 
 QImage VideoReader::createImage()
 {
-    sws_scale(_swsContext, _frame->data, _frame->linesize, 0, _codecContext->height, _frameRgb->data, _frameRgb->linesize);
-    QImage image(_frame->width, _frame->height, QImage::Format_RGB888);
-    std::memcpy(image.bits(), _frameRgb->data[0], _imageBuffer.size());
+    sws_scale(_swsContext, _frameYuv->frame->data, _frameYuv->frame->linesize, 0, _codecContext->height, _frameRgb->frame->data,
+              _frameRgb->frame->linesize);
+    QImage image(_frameYuv->frame->width, _frameYuv->frame->height, QImage::Format_RGB888);
+    std::memcpy(image.bits(), _frameRgb->frame->data[0], _imageBuffer.size());
     return image;
 }
 
@@ -253,3 +248,19 @@ int VideoReader::findVideoStream(AVFormatContext *formatContext) const
     return -1;
 }
 
+
+
+AVFrameWrapper::AVFrameWrapper()
+{
+    frame = av_frame_alloc();
+}
+
+AVFrameWrapper::~AVFrameWrapper()
+{
+    av_frame_free(&frame);
+}
+
+AVPicture *AVFrameWrapper::asPicture()
+{
+    return reinterpret_cast<AVPicture*>(frame);
+}
