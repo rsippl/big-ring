@@ -1,6 +1,8 @@
 Big Ring Indoor Video Cycling
 =============================
 
+See [the website](https://ibooij.github.io/big-ring/) for user information.
+
 ![screenshot](https://cloud.githubusercontent.com/assets/420742/6061426/0d0dc792-ad48-11e4-93b7-739a7560a0cf.jpg)
 
 Big Ring Indoor Video Cycling can be used in combination with a bicycle, indoor trainer and [ANT+](http://www.thisisant.com) power, cadence or heart rate sensors.
