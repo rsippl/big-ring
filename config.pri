@@ -25,12 +25,15 @@ win32 {
     LIBUSB_DLL = $${LIBUSB_PATH}\bin\x86\libusb0_x86.dll
     LIBS += $${LIBUSB_DLL}
 }
-# address sanitizer configuration. Uncomment this to build
-# with address sanitizer.
-#QMAKE_CXXFLAGS+= -fsanitize=address -fno-omit-frame-pointer
-#QMAKE_CFLAGS+= -fsanitize=address -fno-omit-frame-pointer
-#QMAKE_LFLAGS+= -fsanitize=address
-#LIBS += -Wl,--no-as-needed -lasan -Wl,--as-needed
+
+linux:debug {
+    # address sanitizer configuration. Uncomment this to build
+    # with address sanitizer.
+    QMAKE_CXXFLAGS+= -fsanitize=address -fno-omit-frame-pointer
+    QMAKE_CFLAGS+= -fsanitize=address -fno-omit-frame-pointer
+    QMAKE_LFLAGS+= -fsanitize=address
+    LIBS += -Wl,--no-as-needed -lasan -Wl,--as-needed
+}
 
 # profiler configuration. Uncomment this to use google profiler.
 #LIBS += -Wl,--no-as-needed -lprofiler -Wl,--as-needed
