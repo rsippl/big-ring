@@ -7,7 +7,7 @@ description: > # this means to ignore newlines until "baseurl:"
   cadence or heart rate sensors. It will show a video of the road
   you are riding, playing in the speed at which you are riding.
 baseurl: "/big-ring" # the subpath of your site, e.g. /blog/
-url: "http://ibooij.github.io/big-ring" # the base hostname & protocol for your site
+url: "https://ibooij.github.io/big-ring" # the base hostname & protocol for your site
 github_username:  ibooij
 
 # Build settings
