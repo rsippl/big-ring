@@ -35,10 +35,10 @@ HEADERS += \
     sensorconfiguration.h \
     sensors.h \
     virtualpower.h \
-    videoreader2.h \
     bigringsettings.h \
     genericvideoreader.h \
-    thumbnailcreatingvideoreader.h
+    thumbnailcreatingvideoreader.h \
+    framecopyingvideoreader.h
 
 SOURCES += \
     cyclist.cpp \
@@ -61,10 +61,10 @@ SOURCES += \
     sensorconfiguration.cpp \
     sensors.cpp \
     virtualpower.cpp \
-    videoreader2.cpp \
     bigringsettings.cpp \
     genericvideoreader.cpp \
-    thumbnailcreatingvideoreader.cpp
+    thumbnailcreatingvideoreader.cpp \
+    framecopyingvideoreader.cpp
 
 
 

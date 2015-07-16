@@ -27,7 +27,7 @@
 
 struct FrameBuffer;
 class OpenGLPainter2;
-class VideoReader2;
+class FrameCopyingVideoReader;
 
 /*!
  * \brief Video player for cycling videos. This is a frame based player, so clients can seek to
@@ -106,7 +106,7 @@ private:
     void updateLoadState(const LoadState loadState);
 
     OpenGLPainter2* _painter;
-    VideoReader2 * const _videoReader;
+    FrameCopyingVideoReader * const _videoReader;
     QThread *_videoReaderThread;
 
     LoadState _loadState;

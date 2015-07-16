@@ -3,7 +3,7 @@
 
 #include <QtCore/QEvent>
 #include <QtCore/QObject>
-
+#include "genericvideoreader.h"
 #include "framebuffer.h"
 
 class RealLifeVideo;
@@ -12,12 +12,12 @@ struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
 
-class VideoReader2 : public QObject
+class FrameCopyingVideoReader : public GenericVideoReader
 {
     Q_OBJECT
 public:
-    explicit VideoReader2(QObject *parent = 0);
-    virtual ~VideoReader2();
+    explicit FrameCopyingVideoReader(QObject *parent = 0);
+    virtual ~FrameCopyingVideoReader();
 
     void openVideoFile(const QString &videoFilename);
     void copyNextFrame(const FrameBuffer& buffer, int skipFrames = 0);
@@ -28,37 +28,16 @@ signals:
     void videoOpened(const QString& videoFilename, const QSize& videoSize,
                      const QSize& totalFrameSize, const qint64 numberOfFrames);
     void frameCopied(int index, qint64 frameNumber, const QSize& frameSize);
-    void seekReady(qint64 frameNumber);
 
 protected:
     virtual bool event(QEvent *);
 private:
-    void initialize();
-    void close();
-
-    void openVideoFileInternal(const QString &videoFilename);
+    virtual void openVideoFileInternal(const QString &videoFilename);
     void copyNextFrameInternal(const FrameBuffer &buffer, int skipFrames);
     void seekToFrameInternal(const qint64 frameNumber);
-    void performSeek(qint64 targetFrameNumber);
-    void loadFramesUntilTargetFrame(qint64 targetFrameNumber);
-    qint64 loadNextFrame();
     QSize totalFrameSize();
-    void printError(int errorNumber, const QString& message);
-    void printError(const QString &message);
-
-    // libav functions
-    int findVideoStream(AVFormatContext* formatContext) const;
-
-    bool _initialized;
-    // libav specific data
-    AVCodec* _codec;
-    AVCodecContext* _codecContext;
-    AVFormatContext* _formatContext;
-    AVFrame* _frame;
 
     qint64 _currentFrameNumber;
-    int _currentVideoStream;
-
 };
 
 #endif // VIDEOREADER_H

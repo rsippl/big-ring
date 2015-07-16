@@ -157,8 +157,6 @@ void GenericVideoReader::openVideoFileInternal(const QString &videoFilename)
     }
 
     _frameYuv.reset(new AVFrameWrapper);
-
-    emit videoOpened(videoFilename, QSize(_codecContext->width, _codecContext->height));
 }
 
 /**

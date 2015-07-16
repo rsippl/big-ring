@@ -63,8 +63,6 @@ void ThumbnailCreatingVideoReader::openVideoFileInternal(const QString &videoFil
     _swsContext = sws_getContext(codecContext()->width, codecContext()->height, AV_PIX_FMT_YUV420P,
                                  codecContext()->width, codecContext()->height, AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR,
                                  nullptr, nullptr, nullptr);
-
-    emit videoOpened(videoFilename, QSize(codecContext()->width, codecContext()->height));
 }
 
 void ThumbnailCreatingVideoReader::createImageForFrameNumber(RealLifeVideo& rlv, const qreal distance)

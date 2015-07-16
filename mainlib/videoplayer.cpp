@@ -26,23 +26,23 @@
 #include <QtCore/QThread>
 
 #include "framebuffer.h"
+#include "framecopyingvideoreader.h"
 #include "openglpainter2.h"
-#include "videoreader2.h"
 
 VideoPlayer::VideoPlayer(QGLWidget *paintWidget, QObject *parent) :
-    QObject(parent), _videoReader(new VideoReader2), _videoReaderThread(new QThread),
+    QObject(parent), _videoReader(new FrameCopyingVideoReader), _videoReaderThread(new QThread),
     _loadState(LoadState::NONE), _currentFrameNumber(0u), _lastFrameLoaded(0), _stepSize(1)
 {
     _painter = new OpenGLPainter2(paintWidget, this);
 
     _videoReader->moveToThread(_videoReaderThread);
     connect(_videoReaderThread, &QThread::finished, _videoReaderThread, &QThread::deleteLater);
-    connect(_videoReaderThread, &QThread::finished, _videoReader, &VideoReader2::deleteLater);
+    connect(_videoReaderThread, &QThread::finished, _videoReader, &FrameCopyingVideoReader::deleteLater);
     _videoReaderThread->start();
 
-    connect(_videoReader, &VideoReader2::videoOpened, this, &VideoPlayer::setVideoOpened);
-    connect(_videoReader, &VideoReader2::seekReady, this, &VideoPlayer::setSeekReady);
-    connect(_videoReader, &VideoReader2::frameCopied, this, &VideoPlayer::setFrameLoaded);
+    connect(_videoReader, &FrameCopyingVideoReader::videoOpened, this, &VideoPlayer::setVideoOpened);
+    connect(_videoReader, &FrameCopyingVideoReader::seekReady, this, &VideoPlayer::setSeekReady);
+    connect(_videoReader, &FrameCopyingVideoReader::frameCopied, this, &VideoPlayer::setFrameLoaded);
     connect(_painter, &OpenGLPainter2::frameNeeded, this, &VideoPlayer::setFrameNeeded);
 
 }
@@ -110,8 +110,7 @@ void VideoPlayer::displayCurrentFrame(QPainter *painter, QRectF rect, Qt::Aspect
     _painter->paint(painter, rect, aspectRatioMode);
 }
 
-void VideoPlayer::setVideoOpened(const QString &, const QSize& videoSize, const QSize &videoFrameSize,
-                                 const qint64 numberOfFrames)
+void VideoPlayer::setVideoOpened(const QString &, const QSize& videoSize, const QSize &videoFrameSize, const qint64 numberOfFrames)
 {
     _painter->setVideoSize(videoSize, videoFrameSize);
     updateLoadState(LoadState::VIDEO_LOADED);

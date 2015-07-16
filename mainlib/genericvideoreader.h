@@ -30,7 +30,6 @@ public:
 
 signals:
     void error(const QString& errorMessage);
-    void videoOpened(const QString& videoFilename, const QSize& videoSize);
     void seekReady(qint64 frameNumber);
 
 public slots:
