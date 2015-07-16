@@ -90,7 +90,7 @@ bool ThumbnailCreatingVideoReader::event(QEvent *event)
         createImageForFrameNumber(rlv, distance);
         return true;
     }
-    return QObject::event(event);
+    return GenericVideoReader::event(event);
 }
 
 QImage ThumbnailCreatingVideoReader::createImage()

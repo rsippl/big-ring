@@ -152,5 +152,5 @@ bool FrameCopyingVideoReader::event(QEvent *event)
         seekToFrameInternal(dynamic_cast<SeekEvent*>(event)->_frameNumber);
         return true;
     }
-    return QObject::event(event);
+    return GenericVideoReader::event(event);
 }
