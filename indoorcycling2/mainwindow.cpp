@@ -169,6 +169,15 @@ void MainWindow::setupMenuBar()
     connect(quitAction, &QAction::triggered, this, &QWidget::close);
     fileMenu->addAction(quitAction);
     this->addAction(quitAction);
+
+    QMenu* helpMenu = _menuBar->addMenu(tr("Help"));
+    QAction* aboutQtAction = new QAction(tr("About Qt"), this);
+    connect(aboutQtAction, &QAction::triggered, this, [=]() {
+        QMessageBox::aboutQt(this);
+    });
+    helpMenu->addAction(aboutQtAction);
+
+
 }
 
 void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
