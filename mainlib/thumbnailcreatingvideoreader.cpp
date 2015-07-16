@@ -40,7 +40,7 @@ ThumbnailCreatingVideoReader::ThumbnailCreatingVideoReader(QObject *parent) :
 
 ThumbnailCreatingVideoReader::~ThumbnailCreatingVideoReader()
 {
-    qDebug() << "closing Videoreader";
+    qDebug() << "closing ThumbnailCreatingVideoReader";
 }
 
 void ThumbnailCreatingVideoReader::createImageForFrame(const RealLifeVideo& rlv, const qreal distance)
