@@ -16,7 +16,6 @@ extern "C" {
 #include "reallifevideo.h"
 
 namespace {
-const int ERROR_STR_BUF_SIZE = 128;
 QEvent::Type CreateImageForFrameEventType = static_cast<QEvent::Type>(QEvent::User + 102);
 
 class CreateImageForFrameEvent: public QEvent

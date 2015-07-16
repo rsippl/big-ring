@@ -16,12 +16,9 @@ extern "C" {
 #include "reallifevideo.h"
 
 namespace {
-
-const int ERROR_STR_BUF_SIZE = 128;
 QEvent::Type OpenVideoFileEventType = static_cast<QEvent::Type>(QEvent::User + 103);
 QEvent::Type CopyNextFrameEventType = static_cast<QEvent::Type>(QEvent::User + 104);
 QEvent::Type SeekEventType = static_cast<QEvent::Type>(QEvent::User + 105);
-
 
 class OpenVideoFileEvent: public QEvent
 {
@@ -47,6 +44,7 @@ public:
     FrameBuffer _frameBuffer;
     int _skipFrames;
 };
+
 class SeekEvent: public QEvent
 {
 public:
