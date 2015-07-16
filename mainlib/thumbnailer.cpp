@@ -27,7 +27,7 @@
 #include <QtGui/QFont>
 #include <QtGui/QPainter>
 
-#include "videoreader.h"
+#include "thumbnailcreatingvideoreader.h"
 
 namespace
 {
@@ -37,7 +37,7 @@ namespace
 const QSize DEFAULT_IMAGE_SIZE(1920, 1080);
 }
 
-Thumbnailer::Thumbnailer(QObject *parent): QObject(parent), _videoReader(new VideoReader), _videoReaderThread(new QThread)
+Thumbnailer::Thumbnailer(QObject *parent): QObject(parent), _videoReader(new ThumbnailCreatingVideoReader), _videoReaderThread(new QThread)
 {
     _cacheDirectory = thumbnailDirectory();
     createCacheDirectoryIfNotExists();
@@ -47,11 +47,11 @@ Thumbnailer::Thumbnailer(QObject *parent): QObject(parent), _videoReader(new Vid
     // the video reader is running on a seperate thread, so it will not block the UI when decoding video frames.
     _videoReader->moveToThread(_videoReaderThread);
 
-    connect(_videoReader, &VideoReader::newFrameReady, this, &Thumbnailer::setNewFrame);
+    connect(_videoReader, &ThumbnailCreatingVideoReader::newFrameReady, this, &Thumbnailer::setNewFrame);
 
     // Make sure that when the videoReaderThread is stopped and it is deleted
     connect(_videoReaderThread, &QThread::finished, _videoReaderThread, &QThread::deleteLater);
-    connect(_videoReaderThread, &QThread::finished, _videoReader, &VideoReader::deleteLater);
+    connect(_videoReaderThread, &QThread::finished, _videoReader, &ThumbnailCreatingVideoReader::deleteLater);
     _videoReaderThread->start();
 }
 

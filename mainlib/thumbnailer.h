@@ -27,7 +27,7 @@
 #include <QtGui/QPixmap>
 #include "reallifevideo.h"
 
-class VideoReader;
+class ThumbnailCreatingVideoReader;
 /**
  * @brief Class that handles the making of thumbnails for videos by
  * opening the video files and taking the first frame. That frame
@@ -77,7 +77,7 @@ private:
 
     QPixmap _emptyPixmap;
 
-    VideoReader* const _videoReader;
+    ThumbnailCreatingVideoReader* const _videoReader;
     QThread* const _videoReaderThread;
 };
 

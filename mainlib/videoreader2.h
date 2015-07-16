@@ -22,6 +22,7 @@ public:
     void openVideoFile(const QString &videoFilename);
     void copyNextFrame(const FrameBuffer& buffer, int skipFrames = 0);
     void seekToFrame(qint64 frameNumber);
+
 signals:
     void error(const QString& errorMessage);
     void videoOpened(const QString& videoFilename, const QSize& videoSize,

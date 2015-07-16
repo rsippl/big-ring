@@ -1,4 +1,4 @@
-#include "videoreader.h"
+#include "thumbnailcreatingvideoreader.h"
 
 #include <cstring>
 
@@ -33,23 +33,23 @@ public:
 };
 }
 
-VideoReader::VideoReader(QObject *parent) :
+ThumbnailCreatingVideoReader::ThumbnailCreatingVideoReader(QObject *parent) :
     GenericVideoReader(parent), _frameRgb(nullptr)
 {
     // empty
 }
 
-VideoReader::~VideoReader()
+ThumbnailCreatingVideoReader::~ThumbnailCreatingVideoReader()
 {
     qDebug() << "closing Videoreader";
 }
 
-void VideoReader::createImageForFrame(const RealLifeVideo& rlv, const qreal distance)
+void ThumbnailCreatingVideoReader::createImageForFrame(const RealLifeVideo& rlv, const qreal distance)
 {
     QCoreApplication::postEvent(this, new CreateImageForFrameEvent(rlv, distance));
 }
 
-void VideoReader::openVideoFileInternal(const QString &videoFilename)
+void ThumbnailCreatingVideoReader::openVideoFileInternal(const QString &videoFilename)
 {
     GenericVideoReader::openVideoFileInternal(videoFilename);
 
@@ -67,7 +67,7 @@ void VideoReader::openVideoFileInternal(const QString &videoFilename)
     emit videoOpened(videoFilename, QSize(codecContext()->width, codecContext()->height));
 }
 
-void VideoReader::createImageForFrameNumber(RealLifeVideo& rlv, const qreal distance)
+void ThumbnailCreatingVideoReader::createImageForFrameNumber(RealLifeVideo& rlv, const qreal distance)
 {
     // the first few frames are sometimes black, so when requested to take a "screenshot" of the first frames, just
     // skip to a few frames after the start.
@@ -78,7 +78,7 @@ void VideoReader::createImageForFrameNumber(RealLifeVideo& rlv, const qreal dist
     emit newFrameReady(rlv, distance, createImage());
 }
 
-bool VideoReader::event(QEvent *event)
+bool ThumbnailCreatingVideoReader::event(QEvent *event)
 {
     if (event->type() == CreateImageForFrameEventType) {
         CreateImageForFrameEvent* createImageForFrameEvent = dynamic_cast<CreateImageForFrameEvent*>(event);
@@ -95,7 +95,7 @@ bool VideoReader::event(QEvent *event)
     return QObject::event(event);
 }
 
-QImage VideoReader::createImage()
+QImage ThumbnailCreatingVideoReader::createImage()
 {
     sws_scale(_swsContext, frameYuv().frame->data, frameYuv().frame->linesize, 0, codecContext()->height, _frameRgb->frame->data,
               _frameRgb->frame->linesize);
