@@ -1,30 +1,16 @@
 #ifndef VIDEOREADER_H
 #define VIDEOREADER_H
 
+#include "genericvideoreader.h"
+
 #include <QtCore/QEvent>
 #include <QtCore/QObject>
 
 class RealLifeVideo;
-struct AVCodec;
-struct AVCodecContext;
-struct AVFormatContext;
-struct AVFrame;
-struct AVPicture;
+
 struct SwsContext;
 
-/** Simple wrapper around an AVFrame struct. */
-class AVFrameWrapper {
-public:
-    AVFrameWrapper();
-    ~AVFrameWrapper();
-
-    /** return the AVFrame as an AVPicture. */
-    AVPicture* asPicture();
-
-    AVFrame* frame;
-};
-
-class VideoReader : public QObject
+class VideoReader : public GenericVideoReader
 {
     Q_OBJECT
 public:
@@ -42,29 +28,16 @@ protected:
     virtual bool event(QEvent *);
 private:
     void initialize();
-    void close();
-    void openVideoFile(const QString& videoFilename);
+    virtual void openVideoFileInternal(const QString& videoFilename) override;
 
-    void performSeek(qint64 targetFrameNumber);
-    void loadFramesUntilTargetFrame(qint64 targetFrameNumber);
-    qint64 loadNextFrame();
     void createImageForFrameNumber(RealLifeVideo &rlv, const qreal distance);
-    void printError(int errorNumber, const QString& message);
-    void printError(const QString &message);
     QImage createImage();
-    // libav functions
-    int findVideoStream(AVFormatContext* formatContext) const;
 
     bool _initialized;
     // libav specific data
-    AVCodec* _codec;
-    AVCodecContext* _codecContext;
-    AVFormatContext* _formatContext;
-    QScopedPointer<AVFrameWrapper> _frameYuv;
     QScopedPointer<AVFrameWrapper> _frameRgb;
     SwsContext* _swsContext;
     QByteArray _imageBuffer;
-    int _currentVideoStream;
 };
 
 #endif // VIDEOREADER_H

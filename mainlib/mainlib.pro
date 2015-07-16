@@ -37,7 +37,8 @@ HEADERS += \
     virtualpower.h \
     videoreader.h \
     videoreader2.h \
-    bigringsettings.h
+    bigringsettings.h \
+    genericvideoreader.h
 
 SOURCES += \
     cyclist.cpp \
@@ -62,7 +63,8 @@ SOURCES += \
     virtualpower.cpp \
     videoreader.cpp \
     videoreader2.cpp \
-    bigringsettings.cpp
+    bigringsettings.cpp \
+    genericvideoreader.cpp
 
 
 
