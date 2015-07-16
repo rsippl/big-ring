@@ -33,7 +33,7 @@ public:
 }
 
 ThumbnailCreatingVideoReader::ThumbnailCreatingVideoReader(QObject *parent) :
-    GenericVideoReader(parent), _frameRgb(nullptr)
+    GenericVideoReader(parent)
 {
     // empty
 }
