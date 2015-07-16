@@ -31,7 +31,6 @@ float metersPerSecondToMilesPerHour(float metersPerSecond) {
 
 float kurtKineticRoadMachine(float wheelSpeedMps) {
     float wheelSpeedMilesPerHour = metersPerSecondToMilesPerHour(wheelSpeedMps);
-    qDebug() << "speed mph = " << wheelSpeedMilesPerHour;
     return 5.244820 * wheelSpeedMilesPerHour +
             0.019168 * qPow(wheelSpeedMilesPerHour, 3);
 }
@@ -43,20 +42,24 @@ float cycleopsFluid2(float wheelSpeedMps) {
             0.0137 * qPow(wheelSpeedMilesPerHour, 2) +
             8.9788 * wheelSpeedMilesPerHour;
 }
+using indoorcycling::VirtualPowerTrainer;
+
+const QMap<VirtualPowerTrainer,std::function<float(float)>> VIRTUAL_POWER_FUNCTIONS = {
+{VirtualPowerTrainer::KURT_KINETIC_ROAD_MACHINE, kurtKineticRoadMachine},
+{VirtualPowerTrainer::CYCLEOPS_FLUID_2, cycleopsFluid2},
+};
 }
 namespace indoorcycling
 {
 
 VirtualPowerFunctionType virtualPowerFunctionForTrainer(VirtualPowerTrainer trainer)
 {
-    switch(trainer) {
-    case VirtualPowerTrainer::KURT_KINETIC_ROAD_MACHINE:
-        return kurtKineticRoadMachine;
-    case VirtualPowerTrainer::CYCLEOPS_FLUID_2:
-        return cycleopsFluid2;
-    default:
+    auto it = VIRTUAL_POWER_FUNCTIONS.find(trainer);
+    if (it == VIRTUAL_POWER_FUNCTIONS.end()) {
         // return the identity function if nothing's matched.
         return [](float f) { return f; };
+    } else {
+        return *it;
     }
 }
 
