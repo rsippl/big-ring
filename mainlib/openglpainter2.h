@@ -42,32 +42,56 @@ public:
     explicit OpenGLPainter2(QGLWidget* widget, QObject *parent = 0);
     virtual ~OpenGLPainter2();
 
+    /** paint the current from using OpenGL */
     void paint(QPainter* painter, const QRectF& rect, Qt::AspectRatioMode aspectRatioMode);
-    FrameBuffer getNextFrameBuffer();
-    bool isAFrameNeeded() const;
 signals:
-    void buffersFull();
+    /**
+     * When this signal is emitted, we need to load another frame for the painter.
+     * @param frameBuffer the structure in which to load the frame.
+     */
     void frameNeeded(const FrameBuffer& frameBuffer);
 public slots:
+    /**
+     * Set the video size.
+     * @param videoSize the destination size, in which the video should be presented.
+     * @param frameSize the source size, coming from the video file.
+     */
     void setVideoSize(const QSize& videoSize, const QSize &frameSize);
+    /**
+     * Signal to the painter that a frame is loaded.
+     * @param index internal index in the OpenGLPainter. Get this from the FrameBuffer that has been loaded.
+     * @param frameNumber number of the frame, from the video file.
+     * @param frameSize size of the frame.
+     */
     void setFrameLoaded(int index, qint64 frameNumber, const QSize& frameSize);
-    void requestNewFrames();
+    /**
+     * Prepare a frame for painting.
+     * @param frameNumber frame number of the frame that should be shown later.
+     * @return true if a new frame was prepared. False if no new frame has to be shown
+     */
     bool showFrame(qint64 frameNumber);
+    /**
+     * Make the painter fill it's buffers
+     */
     void fillBuffers();
-    void reset();
 private slots:
     void handleLoggedMessage(const QOpenGLDebugMessage &debugMessage);
 private:
     void initializeOpenGL();
     void initYuv420PTextureInfo();
     void loadTextures();
-    void loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
+    void loadPlaneTextureFromPbo(int glTextureUnit, int textureUnit,
                                   int lineSize, int height, size_t offset);
     void adjustPaintAreas(const QRectF& targetRect, Qt::AspectRatioMode aspectRationMode);
     void initializeVertexCoordinatesBuffer(const QRectF &videoRect);
     void initializeTextureCoordinatesBuffer();
     quint32 combinedSizeOfTextures();
-
+    /** Get a new FrameBuffer, to which we can copy frame information from libav */
+    FrameBuffer getNextFrameBuffer();
+    /**
+     * Make the OpenGLPainter reqeuest new frames to fill it's buffers.
+     */
+    void requestNewFrames();
 
     QGLWidget* _widget;
     QOpenGLFunctions_1_3 *_glFunctions;

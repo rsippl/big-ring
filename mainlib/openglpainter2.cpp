@@ -42,22 +42,29 @@ OpenGLPainter2::~OpenGLPainter2()
     // empty
 }
 
+/**
+ * 3 textures will be loaded, one for each of the Y, U and V planes. These textures will be applied by the the
+ * OpenGL fragment shader. The GPU is much more efficient than the CPU for doing conversion from YUV to RGB, and scaling the
+ * video to the right size.
+ */
 void OpenGLPainter2::loadTextures()
 {
-    loadPlaneTexturesFromPbo(GL_TEXTURE0, _yTextureId, _textureWidths[0], _textureHeights[0], (size_t) 0);
-    loadPlaneTexturesFromPbo(GL_TEXTURE1, _uTextureId, _textureWidths[1], _textureHeights[1], _textureOffsets[1]);
-    loadPlaneTexturesFromPbo(GL_TEXTURE2, _vTextureId, _textureWidths[2], _textureHeights[2], _textureOffsets[2]);
+    loadPlaneTextureFromPbo(GL_TEXTURE0, _yTextureId, _textureWidths[0], _textureHeights[0], (size_t) 0);
+    loadPlaneTextureFromPbo(GL_TEXTURE1, _uTextureId, _textureWidths[1], _textureHeights[1], _textureOffsets[1]);
+    loadPlaneTextureFromPbo(GL_TEXTURE2, _vTextureId, _textureWidths[2], _textureHeights[2], _textureOffsets[2]);
 
     _texturesInitialized = true;
 }
 
-void OpenGLPainter2::loadPlaneTexturesFromPbo(int glTextureUnit, int textureUnit,
+void OpenGLPainter2::loadPlaneTextureFromPbo(int glTextureUnit, int textureUnit,
                                            int lineSize, int height, size_t offset)
 {
     _glFunctions->glActiveTexture(glTextureUnit);
     _glFunctions->glBindTexture(GL_TEXTURE_RECTANGLE, textureUnit);
     _pixelBuffers[_currentPixelBufferReadPosition].bind();
 
+    // for the first texture upload of a texture unit, we need to use glTexImage2D. After that, we can use
+    // glTexSubImage2D, which should be faster most of the times.
     if (_texturesInitialized) {
         _glFunctions->glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, lineSize, height,
                         GL_LUMINANCE, GL_UNSIGNED_BYTE, (void*) offset);
@@ -227,11 +234,6 @@ void OpenGLPainter2::fillBuffers()
     for (quint32 i = 0; i < _pixelBuffers.size(); ++i) {
         emit frameNeeded(getNextFrameBuffer());
     }
-}
-
-void OpenGLPainter2::reset()
-{
-    _firstFrameLoaded = false;
 }
 
 void OpenGLPainter2::handleLoggedMessage(const QOpenGLDebugMessage &debugMessage)
