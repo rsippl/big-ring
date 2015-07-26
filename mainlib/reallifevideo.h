@@ -33,13 +33,15 @@
 class DistanceMappingEntry
 {
 public:
-    explicit DistanceMappingEntry(quint32 frameNumber, float metersPerFrame);
+    explicit DistanceMappingEntry(float distance, quint32 frameNumber, float metersPerFrame);
     explicit DistanceMappingEntry();
 
+    float distance() const { return _distance; }
     quint32 frameNumber() const { return _frameNumber; }
     float metersPerFrame() const { return _metersPerFrame; }
 
 private:
+    float _distance;
     quint32 _frameNumber;
     float _metersPerFrame;
 };
@@ -88,8 +90,8 @@ class RealLifeVideoData;
 class RealLifeVideo
 {
 public:
-    explicit RealLifeVideo(const QString& name, const VideoInformation& videoInformation, QList<Course>& courses,
-                           QList<DistanceMappingEntry> distanceMappings, Profile profile);
+    explicit RealLifeVideo(const QString& name, const VideoInformation& videoInformation, const QList<Course>& courses,
+                           const QList<DistanceMappingEntry>& distanceMappings, Profile profile);
     RealLifeVideo(const RealLifeVideo& other);
     explicit RealLifeVideo();
 
@@ -124,7 +126,7 @@ public:
 private:
     void calculateVideoCorrectionFactor(quint64 totalNrOfFrames);
 
-    const QPair<float, DistanceMappingEntry> &findDistanceMappingEntryFor(const float distance);
+    const DistanceMappingEntry &findDistanceMappingEntryFor(const float distance);
 
     QSharedPointer<RealLifeVideoData> _d;
 
