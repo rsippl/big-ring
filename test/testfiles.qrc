@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/FR_Bavella-utf8.xml</file>
+    </qresource>
+</RCC>

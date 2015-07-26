@@ -7,14 +7,19 @@ TARGET = tests
 SOURCES += \
     antmessage2test.cpp \
     main.cpp \
-    virtualpowertest.cpp
+    virtualpowertest.cpp \
+    virtualcyclingfileparsertest.cpp
 
 
 HEADERS += \
     antmessage2test.h \
     common.h \
-    virtualpowertest.h
+    virtualpowertest.h \
+    virtualcyclingfileparsertest.h
 
+
+RESOURCES += \
+    testfiles.qrc
 
 # Dependency on antlib
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../antlib/release/ -lantlib

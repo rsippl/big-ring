@@ -38,7 +38,8 @@ HEADERS += \
     bigringsettings.h \
     genericvideoreader.h \
     thumbnailcreatingvideoreader.h \
-    framecopyingvideoreader.h
+    framecopyingvideoreader.h \
+    virtualcyclingfileparser.h
 
 SOURCES += \
     cyclist.cpp \
@@ -64,7 +65,8 @@ SOURCES += \
     bigringsettings.cpp \
     genericvideoreader.cpp \
     thumbnailcreatingvideoreader.cpp \
-    framecopyingvideoreader.cpp
+    framecopyingvideoreader.cpp \
+    virtualcyclingfileparser.cpp
 
 
 
