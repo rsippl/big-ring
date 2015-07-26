@@ -33,7 +33,7 @@ VirtualCyclingFileParser::VirtualCyclingFileParser(const QList<QFileInfo> &video
 {
 }
 
-std::unique_ptr<RealLifeVideo> VirtualCyclingFileParser::parseVirtualCyclingFile(QFile &inputFile) const
+RealLifeVideo VirtualCyclingFileParser::parseVirtualCyclingFile(QFile &inputFile) const
 {
     inputFile.open(QIODevice::ReadOnly);
     QXmlStreamReader reader(&inputFile);
@@ -41,7 +41,7 @@ std::unique_ptr<RealLifeVideo> VirtualCyclingFileParser::parseVirtualCyclingFile
     return parseXml(reader);
 }
 
-std::unique_ptr<RealLifeVideo> VirtualCyclingFileParser::parseXml(QXmlStreamReader &reader) const
+RealLifeVideo VirtualCyclingFileParser::parseXml(QXmlStreamReader &reader) const
 {
     QString name;
     QString videoFilePath;
@@ -75,12 +75,11 @@ std::unique_ptr<RealLifeVideo> VirtualCyclingFileParser::parseXml(QXmlStreamRead
     if (reader.hasError()) {
         qDebug() << "error!" << reader.errorString();
         // Error handling..?
-        return std::unique_ptr<RealLifeVideo>();
+        return RealLifeVideo();
     }
     VideoInformation videoInformation(videoFilePath, frameRate);
 
-    return std::unique_ptr<RealLifeVideo>(new RealLifeVideo(name, videoInformation, courses,
-                                                            distanceMappings, profile));
+    return RealLifeVideo(name, videoInformation, courses, distanceMappings, profile);
 }
 
 QList<virtualcyclingfileparser::ProfileEntry> VirtualCyclingFileParser::readProfileEntries(QXmlStreamReader &reader) const

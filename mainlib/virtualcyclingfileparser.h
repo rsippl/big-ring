@@ -20,9 +20,9 @@ class VirtualCyclingFileParser : public QObject
 public:
     explicit VirtualCyclingFileParser(const QList<QFileInfo>& videoFiles, QObject *parent = 0);
 
-    std::unique_ptr<RealLifeVideo> parseVirtualCyclingFile(QFile &inputFile) const;
+    RealLifeVideo parseVirtualCyclingFile(QFile &inputFile) const;
 private:
-    std::unique_ptr<RealLifeVideo> parseXml(QXmlStreamReader& reader) const;
+    RealLifeVideo parseXml(QXmlStreamReader& reader) const;
 
     QList<ProfileEntry> convertProfileEntries(const QList<virtualcyclingfileparser::ProfileEntry> virtualCyclingProfileEntries) const;
     QList<virtualcyclingfileparser::ProfileEntry> readProfileEntries(QXmlStreamReader &reader) const;
