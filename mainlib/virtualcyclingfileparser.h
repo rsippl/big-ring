@@ -11,7 +11,8 @@
 namespace indoorcycling {
 
 namespace virtualcyclingfileparser {
-class ProfileEntry;
+struct ProfileEntry;
+struct DistanceMappingEntry;
 }
 class VirtualCyclingFileParser : public QObject
 {
@@ -28,6 +29,8 @@ private:
     QString findVideoFile(QString filename) const;
     QList<Course> readCourses(QXmlStreamReader& reader) const;
 
+    QList<virtualcyclingfileparser::DistanceMappingEntry> readDistanceMappings(QXmlStreamReader &reader) const;
+    QList<DistanceMappingEntry> convertDistanceMappings(const QList<virtualcyclingfileparser::DistanceMappingEntry> & entries) const;
     const QList<QFileInfo> _videoFilesInfo;
 };
 }

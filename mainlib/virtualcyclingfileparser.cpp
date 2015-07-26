@@ -23,6 +23,10 @@ struct ProfileEntry {
     float distance;
     float altitude;
 };
+struct DistanceMappingEntry {
+    float frame;
+    float distance;
+};
 }
 VirtualCyclingFileParser::VirtualCyclingFileParser(const QList<QFileInfo> &videoFiles, QObject *parent) :
     QObject(parent), _videoFilesInfo(videoFiles)
@@ -44,6 +48,7 @@ std::unique_ptr<RealLifeVideo> VirtualCyclingFileParser::parseXml(QXmlStreamRead
     float frameRate = 0;
     Profile profile;
     QList<Course> courses;
+    QList<DistanceMappingEntry> distanceMappings;
 
     QXmlStreamReader::TokenType currentTokenType;
     while (!reader.atEnd()) {
@@ -60,6 +65,8 @@ std::unique_ptr<RealLifeVideo> VirtualCyclingFileParser::parseXml(QXmlStreamRead
             profile = Profile(ProfileType::SLOPE, 0, profileEntries);
         } else if (currentTokenType == QXmlStreamReader::StartElement && reader.name() == "segments") {
             courses = readCourses(reader);
+        } else if (currentTokenType == QXmlStreamReader::StartElement && reader.name() == "mappings") {
+            distanceMappings = convertDistanceMappings(readDistanceMappings(reader));
         } else {
 //            qDebug() << "unknown token" << reader.name();
         }
@@ -72,7 +79,8 @@ std::unique_ptr<RealLifeVideo> VirtualCyclingFileParser::parseXml(QXmlStreamRead
     }
     VideoInformation videoInformation(videoFilePath, frameRate);
 
-    return std::unique_ptr<RealLifeVideo>(new RealLifeVideo(name, videoInformation, courses, QList<DistanceMappingEntry>(), profile));
+    return std::unique_ptr<RealLifeVideo>(new RealLifeVideo(name, videoInformation, courses,
+                                                            distanceMappings, profile));
 }
 
 QList<virtualcyclingfileparser::ProfileEntry> VirtualCyclingFileParser::readProfileEntries(QXmlStreamReader &reader) const
@@ -136,10 +144,49 @@ QList<Course> VirtualCyclingFileParser::readCourses(QXmlStreamReader &reader) co
             float end = readSingleAttribute(reader.attributes(), "end").toFloat();
 
             courses.append(Course(name, start, end));
-
         }
     }
     return courses;
 }
 
+QList<virtualcyclingfileparser::DistanceMappingEntry> VirtualCyclingFileParser::readDistanceMappings(QXmlStreamReader &reader) const
+{
+    QList<virtualcyclingfileparser::DistanceMappingEntry> entries;
+    while(!reader.atEnd()) {
+        QXmlStreamReader::TokenType tokenType = reader.readNext();
+        if (tokenType == QXmlStreamReader::StartElement && reader.name() == "mapping") {
+            virtualcyclingfileparser::DistanceMappingEntry entry;
+            entry.distance = readSingleAttribute(reader.attributes(), "distance").toFloat();
+            entry.frame = readSingleAttribute(reader.attributes(), "frame").toFloat();
+            entries.append({entry});
+        } else if (tokenType == QXmlStreamReader::EndElement && reader.name() == "mappings") {
+            break;
+        }
+    }
+    return entries;
+
+}
+
+QList<DistanceMappingEntry> VirtualCyclingFileParser::convertDistanceMappings(const QList<virtualcyclingfileparser::DistanceMappingEntry> &vcEntries) const
+{
+    QList<DistanceMappingEntry> mappings;
+
+    virtualcyclingfileparser::DistanceMappingEntry *lastVcEntry = nullptr;
+    float currentDistance;
+    quint32 currentFrame;
+    for (virtualcyclingfileparser::DistanceMappingEntry vcEntry: vcEntries) {
+        if (lastVcEntry) {
+            float segmentDistance = vcEntry.distance - currentDistance;
+            quint32 frameDifference = vcEntry.frame - currentFrame;
+
+            float metersPerFrame = segmentDistance / frameDifference;
+
+            mappings.append(DistanceMappingEntry(currentDistance, currentFrame, metersPerFrame));
+        }
+        currentDistance = vcEntry.distance;
+        currentFrame = vcEntry.frame;
+        lastVcEntry = &vcEntry;
+    }
+    return mappings;
+}
 }
