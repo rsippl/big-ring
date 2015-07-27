@@ -13,8 +13,6 @@ QString readSingleAttribute(const QXmlStreamAttributes& attributes, const QStrin
     }
     return QString();
 }
-
-
 }
 namespace indoorcycling {
 
@@ -106,20 +104,21 @@ QList<ProfileEntry> VirtualTrainingFileParser::convertProfileEntries(const QList
     virtualtrainingfileparser::ProfileEntry *lastEntry = nullptr;
     float currentDistance;
     float currentAltitude;
-    for (virtualtrainingfileparser::ProfileEntry vcProfileEntry: virtualTrainingProfileEntries) {
+    for (virtualtrainingfileparser::ProfileEntry profileEntry: virtualTrainingProfileEntries) {
         if (lastEntry) {
-            float segmentDistance = vcProfileEntry.distance - currentDistance;
-            float segmentAltitudeDifference = vcProfileEntry.altitude - currentAltitude;
+            float segmentDistance = profileEntry.distance - currentDistance;
+            float segmentAltitudeDifference = profileEntry.altitude - currentAltitude;
 
             float slope = segmentAltitudeDifference / segmentDistance;
             float slopeInPercent = slope * 100.0f;
 
             profileEntries.append(ProfileEntry(segmentDistance, currentDistance, slopeInPercent, currentAltitude));
         }
-        currentDistance = vcProfileEntry.distance;
-        currentAltitude = vcProfileEntry.altitude;
-        lastEntry = &vcProfileEntry;
+        currentDistance = profileEntry.distance;
+        currentAltitude = profileEntry.altitude;
+        lastEntry = &profileEntry;
     }
+
     return profileEntries;
 }
 
@@ -173,18 +172,18 @@ QList<DistanceMappingEntry> VirtualTrainingFileParser::convertDistanceMappings(c
     virtualtrainingfileparser::DistanceMappingEntry *lastEntry = nullptr;
     float currentDistance;
     quint32 currentFrame;
-    for (virtualtrainingfileparser::DistanceMappingEntry vcEntry: vcEntries) {
+    for (virtualtrainingfileparser::DistanceMappingEntry distanceMappingEntry: vcEntries) {
         if (lastEntry) {
-            float segmentDistance = vcEntry.distance - currentDistance;
-            quint32 frameDifference = vcEntry.frame - currentFrame;
+            float segmentDistance = distanceMappingEntry.distance - currentDistance;
+            quint32 frameDifference = distanceMappingEntry.frame - currentFrame;
 
             float metersPerFrame = segmentDistance / frameDifference;
 
             mappings.append(DistanceMappingEntry(currentDistance, currentFrame, metersPerFrame));
         }
-        currentDistance = vcEntry.distance;
-        currentFrame = vcEntry.frame;
-        lastEntry = &vcEntry;
+        currentDistance = distanceMappingEntry.distance;
+        currentFrame = distanceMappingEntry.frame;
+        lastEntry = &distanceMappingEntry;
     }
     return mappings;
 }
