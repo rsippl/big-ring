@@ -1,4 +1,4 @@
-#include "virtualcyclingfileparser.h"
+#include "virtualtrainingfileparser.h"
 
 #include <QtCore/QtDebug>
 #include <QtCore/QXmlStreamReader>
@@ -18,7 +18,7 @@ QString readSingleAttribute(const QXmlStreamAttributes& attributes, const QStrin
 }
 namespace indoorcycling {
 
-namespace virtualcyclingfileparser {
+namespace virtualtrainingfileparser {
 struct ProfileEntry {
     float distance;
     float altitude;
@@ -28,12 +28,12 @@ struct DistanceMappingEntry {
     float distance;
 };
 }
-VirtualCyclingFileParser::VirtualCyclingFileParser(const QList<QFileInfo> &videoFiles, QObject *parent) :
+VirtualTrainingFileParser::VirtualTrainingFileParser(const QList<QFileInfo> &videoFiles, QObject *parent) :
     QObject(parent), _videoFilesInfo(videoFiles)
 {
 }
 
-RealLifeVideo VirtualCyclingFileParser::parseVirtualCyclingFile(QFile &inputFile) const
+RealLifeVideo VirtualTrainingFileParser::parseVirtualTrainingFile(QFile &inputFile) const
 {
     inputFile.open(QIODevice::ReadOnly);
     QXmlStreamReader reader(&inputFile);
@@ -41,7 +41,7 @@ RealLifeVideo VirtualCyclingFileParser::parseVirtualCyclingFile(QFile &inputFile
     return parseXml(reader);
 }
 
-RealLifeVideo VirtualCyclingFileParser::parseXml(QXmlStreamReader &reader) const
+RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) const
 {
     QString name;
     QString videoFilePath;
@@ -82,13 +82,13 @@ RealLifeVideo VirtualCyclingFileParser::parseXml(QXmlStreamReader &reader) const
     return RealLifeVideo(name, videoInformation, courses, distanceMappings, profile);
 }
 
-QList<virtualcyclingfileparser::ProfileEntry> VirtualCyclingFileParser::readProfileEntries(QXmlStreamReader &reader) const
+QList<virtualtrainingfileparser::ProfileEntry> VirtualTrainingFileParser::readProfileEntries(QXmlStreamReader &reader) const
 {
-    QList<virtualcyclingfileparser::ProfileEntry> profileEntries;
+    QList<virtualtrainingfileparser::ProfileEntry> profileEntries;
     while(!reader.atEnd()) {
         QXmlStreamReader::TokenType tokenType = reader.readNext();
         if (tokenType == QXmlStreamReader::StartElement && reader.name() == "altitude") {
-            virtualcyclingfileparser::ProfileEntry entry;
+            virtualtrainingfileparser::ProfileEntry entry;
             entry.distance = readSingleAttribute(reader.attributes(), "distance").toFloat();
             entry.altitude = readSingleAttribute(reader.attributes(), "height").toFloat();
             profileEntries.append(entry);
@@ -99,15 +99,15 @@ QList<virtualcyclingfileparser::ProfileEntry> VirtualCyclingFileParser::readProf
     return profileEntries;
 }
 
-QList<ProfileEntry> VirtualCyclingFileParser::convertProfileEntries(const QList<virtualcyclingfileparser::ProfileEntry> virtualCyclingProfileEntries) const
+QList<ProfileEntry> VirtualTrainingFileParser::convertProfileEntries(const QList<virtualtrainingfileparser::ProfileEntry> &virtualTrainingProfileEntries) const
 {
     QList<ProfileEntry> profileEntries;
 
-    virtualcyclingfileparser::ProfileEntry *lastVcProfileEntry = nullptr;
+    virtualtrainingfileparser::ProfileEntry *lastEntry = nullptr;
     float currentDistance;
     float currentAltitude;
-    for (virtualcyclingfileparser::ProfileEntry vcProfileEntry: virtualCyclingProfileEntries) {
-        if (lastVcProfileEntry) {
+    for (virtualtrainingfileparser::ProfileEntry vcProfileEntry: virtualTrainingProfileEntries) {
+        if (lastEntry) {
             float segmentDistance = vcProfileEntry.distance - currentDistance;
             float segmentAltitudeDifference = vcProfileEntry.altitude - currentAltitude;
 
@@ -118,12 +118,12 @@ QList<ProfileEntry> VirtualCyclingFileParser::convertProfileEntries(const QList<
         }
         currentDistance = vcProfileEntry.distance;
         currentAltitude = vcProfileEntry.altitude;
-        lastVcProfileEntry = &vcProfileEntry;
+        lastEntry = &vcProfileEntry;
     }
     return profileEntries;
 }
 
-QString VirtualCyclingFileParser::findVideoFile(QString filename) const
+QString VirtualTrainingFileParser::findVideoFile(QString filename) const
 {
     for (const QFileInfo &fileInfo: _videoFilesInfo) {
         if (fileInfo.fileName().toLower() == filename.toLower()) {
@@ -133,7 +133,7 @@ QString VirtualCyclingFileParser::findVideoFile(QString filename) const
     return "";
 }
 
-QList<Course> VirtualCyclingFileParser::readCourses(QXmlStreamReader &reader) const
+QList<Course> VirtualTrainingFileParser::readCourses(QXmlStreamReader &reader) const
 {
     QList<Course> courses;
     while(!reader.atEnd()) {
@@ -148,13 +148,13 @@ QList<Course> VirtualCyclingFileParser::readCourses(QXmlStreamReader &reader) co
     return courses;
 }
 
-QList<virtualcyclingfileparser::DistanceMappingEntry> VirtualCyclingFileParser::readDistanceMappings(QXmlStreamReader &reader) const
+QList<virtualtrainingfileparser::DistanceMappingEntry> VirtualTrainingFileParser::readDistanceMappings(QXmlStreamReader &reader) const
 {
-    QList<virtualcyclingfileparser::DistanceMappingEntry> entries;
+    QList<virtualtrainingfileparser::DistanceMappingEntry> entries;
     while(!reader.atEnd()) {
         QXmlStreamReader::TokenType tokenType = reader.readNext();
         if (tokenType == QXmlStreamReader::StartElement && reader.name() == "mapping") {
-            virtualcyclingfileparser::DistanceMappingEntry entry;
+            virtualtrainingfileparser::DistanceMappingEntry entry;
             entry.distance = readSingleAttribute(reader.attributes(), "distance").toFloat();
             entry.frame = readSingleAttribute(reader.attributes(), "frame").toFloat();
             entries.append({entry});
@@ -166,15 +166,15 @@ QList<virtualcyclingfileparser::DistanceMappingEntry> VirtualCyclingFileParser::
 
 }
 
-QList<DistanceMappingEntry> VirtualCyclingFileParser::convertDistanceMappings(const QList<virtualcyclingfileparser::DistanceMappingEntry> &vcEntries) const
+QList<DistanceMappingEntry> VirtualTrainingFileParser::convertDistanceMappings(const QList<virtualtrainingfileparser::DistanceMappingEntry> &vcEntries) const
 {
     QList<DistanceMappingEntry> mappings;
 
-    virtualcyclingfileparser::DistanceMappingEntry *lastVcEntry = nullptr;
+    virtualtrainingfileparser::DistanceMappingEntry *lastEntry = nullptr;
     float currentDistance;
     quint32 currentFrame;
-    for (virtualcyclingfileparser::DistanceMappingEntry vcEntry: vcEntries) {
-        if (lastVcEntry) {
+    for (virtualtrainingfileparser::DistanceMappingEntry vcEntry: vcEntries) {
+        if (lastEntry) {
             float segmentDistance = vcEntry.distance - currentDistance;
             quint32 frameDifference = vcEntry.frame - currentFrame;
 
@@ -184,7 +184,7 @@ QList<DistanceMappingEntry> VirtualCyclingFileParser::convertDistanceMappings(co
         }
         currentDistance = vcEntry.distance;
         currentFrame = vcEntry.frame;
-        lastVcEntry = &vcEntry;
+        lastEntry = &vcEntry;
     }
     return mappings;
 }

@@ -20,7 +20,7 @@
 
 #include "reallifevideoimporter.h"
 #include "rlvfileparser.h"
-#include "virtualcyclingfileparser.h"
+#include "virtualtrainingfileparser.h"
 #include "bigringsettings.h"
 
 #include <functional>
@@ -154,7 +154,7 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& video
         RlvFileParser parser(pgmfFiles, videoFiles);
         rlv = parser.parseRlvFile(rlvFile);
     } else if (rlvFile.fileName().endsWith(".xml")) {
-        rlv = indoorcycling::VirtualCyclingFileParser(videoFiles).parseVirtualCyclingFile(rlvFile);
+        rlv = indoorcycling::VirtualTrainingFileParser(videoFiles).parseVirtualTrainingFile(rlvFile);
     }
     QSettings settings;
     settings.beginGroup(QString("%1.custom_courses").arg(rlv.name()));

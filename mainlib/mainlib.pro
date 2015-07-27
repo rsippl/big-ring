@@ -39,7 +39,7 @@ HEADERS += \
     genericvideoreader.h \
     thumbnailcreatingvideoreader.h \
     framecopyingvideoreader.h \
-    virtualcyclingfileparser.h
+    virtualtrainingfileparser.h
 
 SOURCES += \
     cyclist.cpp \
@@ -66,7 +66,7 @@ SOURCES += \
     genericvideoreader.cpp \
     thumbnailcreatingvideoreader.cpp \
     framecopyingvideoreader.cpp \
-    virtualcyclingfileparser.cpp
+    virtualtrainingfileparser.cpp
 
 
 

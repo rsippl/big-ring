@@ -1,7 +1,7 @@
-#include "virtualcyclingfileparsertest.h"
+#include "virtualtrainingfileparsertest.h"
 
 #include "rlvfileparser.h"
-#include "virtualcyclingfileparser.h"
+#include "virtualtrainingfileparser.h"
 #include <QtCore/QFile>
 #include <QtTest/QTest>
 
@@ -11,21 +11,21 @@ const QFileInfo DOBEL_VIDEO_FILE = QFileInfo("/media/video/RLV/DE_Dobel.avi");
 const QFileInfo BAVELLA_PGMF_FILE = QFileInfo(":///resources/FR_Bavella.pgmf");
 QList<QFileInfo> videoFiles = { DOBEL_VIDEO_FILE, BAVELLA_VIDEO_FILE };
 }
-VirtualCyclingFileParserTest::VirtualCyclingFileParserTest(QObject *parent):
+VirtualTrainingFileParserTest::VirtualTrainingFileParserTest(QObject *parent):
     QObject(parent)
 {
     // empty
 }
 
-void VirtualCyclingFileParserTest::testWithBavellaFile()
+void VirtualTrainingFileParserTest::testWithBavellaFile()
 {
     QFile f(":///resources/FR_Bavella-utf8.xml");
     QFile fTacx(":///resources/FR_Bavella.rlv");
 
     RlvFileParser rlvFileParser({BAVELLA_PGMF_FILE}, videoFiles);
 
-    indoorcycling::VirtualCyclingFileParser parser(videoFiles);
-    RealLifeVideo rlv = parser.parseVirtualCyclingFile(f);
+    indoorcycling::VirtualTrainingFileParser parser(videoFiles);
+    RealLifeVideo rlv = parser.parseVirtualTrainingFile(f);
     RealLifeVideo tacxRlv = rlvFileParser.parseRlvFile(fTacx);
 
     QVERIFY(rlv.isValid());
