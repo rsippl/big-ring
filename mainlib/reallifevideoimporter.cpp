@@ -121,7 +121,7 @@ void RealLifeVideoImporter::importReady(const RealLifeVideoList &rlvs)
 
     RealLifeVideoList validRlvs;
 
-    for (RealLifeVideo rlv: rlvs) {
+    for (const RealLifeVideo& rlv: rlvs) {
         if (rlv.isValid() && rlv.type() == ProfileType::SLOPE) {
             validRlvs.append(rlv);
         }
@@ -129,6 +129,9 @@ void RealLifeVideoImporter::importReady(const RealLifeVideoList &rlvs)
     // sort rlv list by name
     qSort(validRlvs.begin(), validRlvs.end(), RealLifeVideo::compareByName);
 
+    for (const RealLifeVideo& rlv: validRlvs) {
+        qDebug() << "imported rlv" << rlv.name() << "of type" << rlv.fileType();
+    }
     emit importFinished(validRlvs);
 }
 

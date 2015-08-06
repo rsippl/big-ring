@@ -29,7 +29,7 @@ void VirtualTrainingFileParserTest::testWithBavellaFile()
     RealLifeVideo tacxRlv = rlvFileParser.parseRlvFile(fTacx);
 
     QVERIFY(rlv.isValid());
-    QCOMPARE(rlv.name(), QString("Col de Bavella"));
+    QCOMPARE(rlv.name(), QString("FR_Bavella"));
     QCOMPARE(rlv.videoInformation().videoFilename(), QString("/media/video/RLV/FR_Bavella.avi"));
     QCOMPARE(rlv.videoInformation().frameRate(), 25.0f);
     QCOMPARE(tacxRlv.videoInformation().frameRate(), 25.0f);

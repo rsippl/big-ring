@@ -31,6 +31,7 @@ public:
     ~RealLifeVideoData() {}
 
     QString _name;
+    QString _fileType;
     Profile _profile;
     QList<DistanceMappingEntry> _distanceMappings;
     VideoInformation _videoInformation;
@@ -61,12 +62,13 @@ Course::Course(float start, float end):
     // empty
 }
 
-RealLifeVideo::RealLifeVideo(const QString& name, const VideoInformation& videoInformation,
+RealLifeVideo::RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation,
                              const QList<Course>& courses, const QList<DistanceMappingEntry>& distanceMappings, Profile profile):
     _d(new RealLifeVideoData),
     _lastKeyDistance(0), _nextLastKeyDistance(0)
 {
     _d->_name = name;
+    _d->_fileType = fileType;
     _d->_profile = profile;
     _d->_videoInformation = videoInformation;
     _d->_courses = courses;
@@ -89,6 +91,11 @@ RealLifeVideo::RealLifeVideo():
 bool RealLifeVideo::isValid() const
 {
     return (!_d->_name.isEmpty() && !_d->_videoInformation.videoFilename().isEmpty());
+}
+
+const QString &RealLifeVideo::fileType() const
+{
+    return _d->_fileType;
 }
 
 ProfileType RealLifeVideo::type() const
@@ -182,7 +189,8 @@ void RealLifeVideo::setNumberOfFrames(quint64 numberOfFrames)
 
 bool RealLifeVideo::operator==(const RealLifeVideo &other) const
 {
-    return isValid() && other.isValid() && _d->_name == other._d->_name;
+    return isValid() && other.isValid() && _d->_name == other._d->_name
+            && _d->_fileType == other._d->_fileType;
 }
 
 VideoInformation::VideoInformation(const QString &videoFilename, float frameRate):

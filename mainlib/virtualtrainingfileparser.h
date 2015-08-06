@@ -18,6 +18,11 @@ struct DistanceMappingEntry;
 /**
  * RealLifeVideo parser for Cycleops Virtual Training (https://www.cycleops.com/virtualtraining/overview) files.
  *
+ * Note that the file is in xml, and the header says it's utf-8. The files from reallifevideo.de
+ * are not utf-8, but "Little-endian UTF-16 Unicode text". To cope with this, we do not open the
+ * files directly, but use a QTextStream to read the file. This class will check the file's BOM
+ * and read it to a QString in a proper way.
+ *
  * header of a relevant Virtual Training .xml file (FR_Restonica):
 
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
@@ -114,6 +119,11 @@ class VirtualTrainingFileParser : public QObject
 public:
     explicit VirtualTrainingFileParser(const QList<QFileInfo>& videoFiles, QObject *parent = 0);
 
+    /**
+     * @brief parse a cycleops virtual training file.
+     * @param inputFile the file to parse.
+     * @return a RealLifeVideo. If parsing failed, the resulting RealLifeVideo will not be valid (check with isValid()).
+     */
     RealLifeVideo parseVirtualTrainingFile(QFile &inputFile) const;
 private:
     RealLifeVideo parseXml(QXmlStreamReader& reader) const;

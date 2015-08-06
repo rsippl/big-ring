@@ -90,12 +90,13 @@ class RealLifeVideoData;
 class RealLifeVideo
 {
 public:
-    explicit RealLifeVideo(const QString& name, const VideoInformation& videoInformation, const QList<Course>& courses,
+    explicit RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation, const QList<Course>& courses,
                            const QList<DistanceMappingEntry>& distanceMappings, Profile profile);
     RealLifeVideo(const RealLifeVideo& other);
     explicit RealLifeVideo();
 
     bool isValid() const;
+    const QString& fileType() const;
     ProfileType type() const;
     Profile& profile() const;
     const QString name() const;

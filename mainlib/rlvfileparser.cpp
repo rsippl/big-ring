@@ -126,7 +126,7 @@ RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
             rlvFile.read(infoBlock.numberOfRecords * infoBlock.recordSize);
         }
     }
-    return RealLifeVideo(name, videoInformation, courses, distanceMapping, profile);
+    return RealLifeVideo(name, "Tacx", videoInformation, courses, distanceMapping, profile);
 }
 
 tacxfile::header_t TacxFileParser::readHeaderBlock(QFile &rlvFile)

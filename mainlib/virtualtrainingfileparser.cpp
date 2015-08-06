@@ -5,13 +5,18 @@
 #include <QtCore/QXmlStreamAttributes>
 
 namespace {
-QString readSingleAttribute(const QXmlStreamAttributes& attributes, const QString attributeName) {
+QString readSingleAttribute(const QXmlStreamAttributes& attributes, const QString& attributeName) {
     for (auto attribute: attributes) {
         if (attribute.name().toString() == attributeName) {
             return attribute.value().toString();
         }
     }
     return QString();
+}
+
+bool isElement(const QXmlStreamReader::TokenType currentTokenType, const QXmlStreamReader& reader, const QString &elementName)
+{
+    return (currentTokenType == QXmlStreamReader::StartElement && reader.name() == elementName);
 }
 }
 namespace indoorcycling {
@@ -34,9 +39,11 @@ VirtualTrainingFileParser::VirtualTrainingFileParser(const QList<QFileInfo> &vid
 RealLifeVideo VirtualTrainingFileParser::parseVirtualTrainingFile(QFile &inputFile) const
 {
     inputFile.open(QIODevice::ReadOnly);
-    QXmlStreamReader reader(&inputFile);
-
-    return parseXml(reader);
+    QTextStream textStream(&inputFile);
+    QString xml = textStream.readAll();
+    QXmlStreamReader reader(xml);
+    RealLifeVideo rlv = parseXml(reader);
+    return rlv;
 }
 
 RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) const
@@ -51,19 +58,19 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
     QXmlStreamReader::TokenType currentTokenType;
     while (!reader.atEnd()) {
         currentTokenType = reader.readNext();
-        if (currentTokenType == QXmlStreamReader::StartElement && reader.name() == "title") {
-            name = readSingleAttribute(reader.attributes(), "en");
-        } else if (currentTokenType == QXmlStreamReader::StartElement && reader.name() == "video-file-path") {
+        if (isElement(currentTokenType, reader, "name")) {
+            name = reader.readElementText();
+        } else if (isElement(currentTokenType, reader, "video-file-path")) {
             QString videoFileName = reader.readElementText();
             videoFilePath = findVideoFile(videoFileName);
-        } else if (currentTokenType == QXmlStreamReader::StartElement && reader.name() == "framerate") {
+        } else if (isElement(currentTokenType, reader, "framerate")) {
             frameRate = reader.readElementText().toFloat();
-        } else if (currentTokenType == QXmlStreamReader::StartElement && reader.name() == "altitudes") {
+        } else if (isElement(currentTokenType, reader, "altitudes")) {
             QList<ProfileEntry> profileEntries = convertProfileEntries(readProfileEntries(reader));
             profile = Profile(ProfileType::SLOPE, 0, profileEntries);
-        } else if (currentTokenType == QXmlStreamReader::StartElement && reader.name() == "segments") {
+        } else if (isElement(currentTokenType, reader, "segments")) {
             courses = readCourses(reader);
-        } else if (currentTokenType == QXmlStreamReader::StartElement && reader.name() == "mappings") {
+        } else if (isElement(currentTokenType, reader, "mappings")) {
             distanceMappings = convertDistanceMappings(readDistanceMappings(reader));
         } else {
 //            qDebug() << "unknown token" << reader.name();
@@ -77,7 +84,7 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
     }
     VideoInformation videoInformation(videoFilePath, frameRate);
 
-    return RealLifeVideo(name, videoInformation, courses, distanceMappings, profile);
+    return RealLifeVideo(name, "Cycleops Virtual Training", videoInformation, courses, distanceMappings, profile);
 }
 
 QList<virtualtrainingfileparser::ProfileEntry> VirtualTrainingFileParser::readProfileEntries(QXmlStreamReader &reader) const
@@ -85,7 +92,7 @@ QList<virtualtrainingfileparser::ProfileEntry> VirtualTrainingFileParser::readPr
     QList<virtualtrainingfileparser::ProfileEntry> profileEntries;
     while(!reader.atEnd()) {
         QXmlStreamReader::TokenType tokenType = reader.readNext();
-        if (tokenType == QXmlStreamReader::StartElement && reader.name() == "altitude") {
+        if (isElement(tokenType, reader, "altitude")) {
             virtualtrainingfileparser::ProfileEntry entry;
             entry.distance = readSingleAttribute(reader.attributes(), "distance").toFloat();
             entry.altitude = readSingleAttribute(reader.attributes(), "height").toFloat();
@@ -136,12 +143,15 @@ QList<Course> VirtualTrainingFileParser::readCourses(QXmlStreamReader &reader) c
 {
     QList<Course> courses;
     while(!reader.atEnd()) {
-        if (reader.readNext() == QXmlStreamReader::StartElement && reader.name() == "segment") {
+        QXmlStreamReader::TokenType tokenType = reader.readNext();
+        if (isElement(tokenType, reader, "segment")) {
             QString name = readSingleAttribute(reader.attributes(), "name");
             float start = readSingleAttribute(reader.attributes(), "start").toFloat();
             float end = readSingleAttribute(reader.attributes(), "end").toFloat();
 
             courses.append(Course(name, start, end));
+        } else if (tokenType == QXmlStreamReader::EndElement && reader.name() == "segments") {
+            break;
         }
     }
     return courses;
@@ -152,7 +162,7 @@ QList<virtualtrainingfileparser::DistanceMappingEntry> VirtualTrainingFileParser
     QList<virtualtrainingfileparser::DistanceMappingEntry> entries;
     while(!reader.atEnd()) {
         QXmlStreamReader::TokenType tokenType = reader.readNext();
-        if (tokenType == QXmlStreamReader::StartElement && reader.name() == "mapping") {
+        if (isElement(tokenType, reader, "mapping")) {
             virtualtrainingfileparser::DistanceMappingEntry entry;
             entry.distance = readSingleAttribute(reader.attributes(), "distance").toFloat();
             entry.frame = readSingleAttribute(reader.attributes(), "frame").toFloat();
