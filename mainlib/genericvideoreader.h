@@ -53,9 +53,9 @@ private:
 
     bool _initialized = false;
     // libav specific data
-    AVCodec* _codec;
-    AVCodecContext* _codecContext;
-    AVFormatContext* _formatContext;
+    AVCodec* _codec = nullptr;
+    AVCodecContext* _codecContext = nullptr;
+    AVFormatContext* _formatContext = nullptr;
     QScopedPointer<AVFrameWrapper> _frameYuv;
     int _currentVideoStream;
 };

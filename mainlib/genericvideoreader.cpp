@@ -12,7 +12,7 @@ namespace {
 const int ERROR_STR_BUF_SIZE = 128;
 }
 GenericVideoReader::GenericVideoReader(QObject *parent) :
-    QObject(parent), _codec(nullptr), _codecContext(nullptr), _formatContext(nullptr)
+    QObject(parent)
 {
 }
 
