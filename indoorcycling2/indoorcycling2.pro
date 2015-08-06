@@ -7,7 +7,9 @@
 TARGET = ../bin/big-ring
 TEMPLATE = app
 
-VERSION = 1.0.3-pre
+win32:VERSION = 1.0.3.0
+linux:VERSION = 1.0.3-pre
+
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 include(../config.pri)
