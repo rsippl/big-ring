@@ -51,7 +51,7 @@ private:
     void printError(const QString &message);
     int findVideoStream(AVFormatContext* formatContext) const;
 
-    bool _initialized;
+    bool _initialized = false;
     // libav specific data
     AVCodec* _codec;
     AVCodecContext* _codecContext;
