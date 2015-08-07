@@ -1,5 +1,7 @@
 #include "genericvideoreader.h"
 
+#include <array>
+
 #include <QtCore/QSize>
 #include <QtCore/QtDebug>
 
@@ -12,7 +14,7 @@ namespace {
 const int ERROR_STR_BUF_SIZE = 128;
 }
 GenericVideoReader::GenericVideoReader(QObject *parent) :
-    QObject(parent), _codec(nullptr), _codecContext(nullptr), _formatContext(nullptr)
+    QObject(parent)
 {
 }
 
@@ -71,10 +73,10 @@ void GenericVideoReader::loadFramesUntilTargetFrame(qint64 targetFrameNumber)
 
 void GenericVideoReader::printError(int errorNumber, const QString &message)
 {
-    char errorstr[ERROR_STR_BUF_SIZE];
-    av_strerror(errorNumber, errorstr, ERROR_STR_BUF_SIZE);
+    std::array<char, ERROR_STR_BUF_SIZE> errorString;
+    av_strerror(errorNumber, errorString.data(), ERROR_STR_BUF_SIZE);
 
-    QString completeMessage = QString("%1 : %2").arg(message).arg(errorstr);
+    QString completeMessage = QString("%1 : %2").arg(message).arg(errorString.data());
     printError(completeMessage);
 }
 

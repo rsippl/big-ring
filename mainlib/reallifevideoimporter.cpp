@@ -20,6 +20,7 @@
 
 #include "reallifevideoimporter.h"
 #include "rlvfileparser.h"
+#include "virtualtrainingfileparser.h"
 #include "bigringsettings.h"
 
 #include <functional>
@@ -37,7 +38,7 @@
 namespace
 {
 RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString> &videoFilePaths, const QList<QString> &pgmfFilePaths);
-QSet<QString> findFiles(const QString& root, const QString& pattern);
+QSet<QString> findFiles(const QString& root, const QStringList &patterns);
 QSet<QString> findRlvFiles(const QString &root);
 
 const QEvent::Type NR_OF_RLVS_FOUND_TYPE = static_cast<QEvent::Type>(QEvent::User + 100);
@@ -98,8 +99,9 @@ bool RealLifeVideoImporter::event(QEvent *event)
 RealLifeVideoList RealLifeVideoImporter::importRlvFiles(const QString& rootFolder)
 {
     const QSet<QString> rlvFiles = findRlvFiles(rootFolder);
-    const QSet<QString> pgmfFiles = findFiles(rootFolder, "*.pgmf");
-    const QSet<QString> aviFiles = findFiles(rootFolder, "*.avi");
+    qDebug() << "rlv files" << rlvFiles;
+    const QSet<QString> pgmfFiles = findFiles(rootFolder, { "*.pgmf" });
+    const QSet<QString> aviFiles = findFiles(rootFolder, { "*.avi" });
 
     QCoreApplication::postEvent(this, new NrOfRlvsFoundEvent(rlvFiles.size()));
 
@@ -116,9 +118,10 @@ RealLifeVideoList RealLifeVideoImporter::importRlvFiles(const QString& rootFolde
 
 void RealLifeVideoImporter::importReady(const RealLifeVideoList &rlvs)
 {
+
     RealLifeVideoList validRlvs;
 
-    for (auto rlv: rlvs) {
+    for (const RealLifeVideo& rlv: rlvs) {
         if (rlv.isValid() && rlv.type() == ProfileType::SLOPE) {
             validRlvs.append(rlv);
         }
@@ -126,6 +129,9 @@ void RealLifeVideoImporter::importReady(const RealLifeVideoList &rlvs)
     // sort rlv list by name
     qSort(validRlvs.begin(), validRlvs.end(), RealLifeVideo::compareByName);
 
+    for (const RealLifeVideo& rlv: validRlvs) {
+        qDebug() << "imported rlv" << rlv.name() << "of type" << rlv.fileType();
+    }
     emit importFinished(validRlvs);
 }
 
@@ -146,8 +152,13 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& video
     QList<QFileInfo> videoFiles = fromPaths(videoFilePaths);
     QList<QFileInfo> pgmfFiles = fromPaths(pgmfFilePaths);
 
-    RlvFileParser parser(pgmfFiles, videoFiles);
-    RealLifeVideo rlv = parser.parseRlvFile(rlvFile);
+    RealLifeVideo rlv;
+    if (rlvFile.fileName().endsWith(".rlv")) {
+        RlvFileParser parser(pgmfFiles, videoFiles);
+        rlv = parser.parseRlvFile(rlvFile);
+    } else if (rlvFile.fileName().endsWith(".xml")) {
+        rlv = indoorcycling::VirtualTrainingFileParser(videoFiles).parseVirtualTrainingFile(rlvFile);
+    }
     QSettings settings;
     settings.beginGroup(QString("%1.custom_courses").arg(rlv.name()));
     QStringList customCourseNames = settings.allKeys();
@@ -167,11 +178,9 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& video
     return rlv;
 }
 
-QSet<QString> findFiles(const QString& root, const QString& pattern)
+QSet<QString> findFiles(const QString& root, const QStringList& patterns)
 {
-    QStringList filters;
-    filters << pattern;
-    QDirIterator it(root, filters, QDir::NoFilter, QDirIterator::Subdirectories);
+    QDirIterator it(root, patterns, QDir::NoFilter, QDirIterator::Subdirectories);
 
     QSet<QString> filePaths;
 
@@ -184,7 +193,7 @@ QSet<QString> findFiles(const QString& root, const QString& pattern)
 
 QSet<QString> findRlvFiles(const QString& root)
 {
-    return findFiles(root, "*.rlv");
+    return findFiles(root, { "*.rlv", "*.xml" } );
 }
 
 }

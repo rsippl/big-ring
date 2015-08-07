@@ -31,11 +31,12 @@ public:
     ~RealLifeVideoData() {}
 
     QString _name;
+    QString _fileType;
     Profile _profile;
-    QList<QPair<float,DistanceMappingEntry> > _distanceMappings;
+    QList<DistanceMappingEntry> _distanceMappings;
     VideoInformation _videoInformation;
     QList<Course> _courses;
-    QPair<float,DistanceMappingEntry> _cachedDistanceMapping;
+    DistanceMappingEntry _cachedDistanceMapping;
     float _videoCorrectionFactor;
 };
 
@@ -61,33 +62,18 @@ Course::Course(float start, float end):
     // empty
 }
 
-RealLifeVideo::RealLifeVideo(const QString& name, const VideoInformation& videoInformation,
-                             QList<Course>& courses, QList<DistanceMappingEntry> distanceMappings, Profile profile):
+RealLifeVideo::RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation,
+                             const QList<Course>& courses, const QList<DistanceMappingEntry>& distanceMappings, Profile profile):
     _d(new RealLifeVideoData),
     _lastKeyDistance(0), _nextLastKeyDistance(0)
 {
     _d->_name = name;
+    _d->_fileType = fileType;
     _d->_profile = profile;
     _d->_videoInformation = videoInformation;
     _d->_courses = courses;
     _d->_videoCorrectionFactor = 1.0;
-
-    float currentDistance = 0.0f;
-    float lastMetersPerFrame = 0;
-
-    quint32 lastFrameNumber = distanceMappings[0].frameNumber();
-    QListIterator<DistanceMappingEntry> it(distanceMappings);
-    QList<QPair<float,DistanceMappingEntry> > distanceMappingsWithDistance;
-    while(it.hasNext()) {
-        const DistanceMappingEntry& entry = it.next();
-        quint32 nrFrames = entry.frameNumber() - lastFrameNumber;
-        currentDistance += nrFrames * lastMetersPerFrame;
-        distanceMappingsWithDistance.append(qMakePair(currentDistance, entry));
-
-        lastMetersPerFrame = entry.metersPerFrame();
-        lastFrameNumber = entry.frameNumber();
-    }
-    _d->_distanceMappings = distanceMappingsWithDistance;
+    _d->_distanceMappings = distanceMappings;
 }
 
 RealLifeVideo::RealLifeVideo(const RealLifeVideo &other):
@@ -105,6 +91,11 @@ RealLifeVideo::RealLifeVideo():
 bool RealLifeVideo::isValid() const
 {
     return (!_d->_name.isEmpty() && !_d->_videoInformation.videoFilename().isEmpty());
+}
+
+const QString &RealLifeVideo::fileType() const
+{
+    return _d->_fileType;
 }
 
 ProfileType RealLifeVideo::type() const
@@ -151,7 +142,7 @@ void RealLifeVideo::printDistanceMapping()
 {
     int i = 0;
     for(auto distanceMapping: _d->_distanceMappings) {
-        qDebug() << i++ << distanceMapping.second.frameNumber() << distanceMapping.first;
+        qDebug() << i++ << distanceMapping.frameNumber() << distanceMapping.distance();
     }
     qDebug() << "framerate" << _d->_videoInformation.frameRate();
 }
@@ -159,15 +150,15 @@ void RealLifeVideo::printDistanceMapping()
 
 float RealLifeVideo::metersPerFrame(const float distance)
 {
-    const QPair<float,DistanceMappingEntry>& entry = findDistanceMappingEntryFor(distance);
-    return entry.second.metersPerFrame();
+    const DistanceMappingEntry& entry = findDistanceMappingEntryFor(distance);
+    return entry.metersPerFrame();
 }
 
 quint32 RealLifeVideo::frameForDistance(const float distance)
 {
     float correctedDistance = distance * _d->_videoCorrectionFactor;
-    const QPair<float,DistanceMappingEntry>& entry = findDistanceMappingEntryFor(correctedDistance);
-    return entry.second.frameNumber() + (correctedDistance - entry.first) / entry.second.metersPerFrame();
+    const DistanceMappingEntry& entry = findDistanceMappingEntryFor(correctedDistance);
+    return entry.frameNumber() + (correctedDistance - entry.distance()) / entry.metersPerFrame();
 }
 
 float RealLifeVideo::slopeForDistance(const float distance)
@@ -198,7 +189,8 @@ void RealLifeVideo::setNumberOfFrames(quint64 numberOfFrames)
 
 bool RealLifeVideo::operator==(const RealLifeVideo &other) const
 {
-    return isValid() && other.isValid() && _d->_name == other._d->_name;
+    return isValid() && other.isValid() && _d->_name == other._d->_name
+            && _d->_fileType == other._d->_fileType;
 }
 
 VideoInformation::VideoInformation(const QString &videoFilename, float frameRate):
@@ -234,47 +226,47 @@ void RealLifeVideo::calculateVideoCorrectionFactor(quint64 totalNrOfFrames)
     } else {
         auto lastDistanceMapping = _d->_distanceMappings.last();
         quint64 framesInLastEntry;
-        if (totalNrOfFrames > lastDistanceMapping.second.frameNumber()) {
-            framesInLastEntry = totalNrOfFrames - lastDistanceMapping.second.frameNumber();
+        if (totalNrOfFrames > lastDistanceMapping.frameNumber()) {
+            framesInLastEntry = totalNrOfFrames - lastDistanceMapping.frameNumber();
         } else {
             framesInLastEntry = 0u;
         }
-        float videoDistance = lastDistanceMapping.first + framesInLastEntry * lastDistanceMapping.second.metersPerFrame();
+        float videoDistance = lastDistanceMapping.distance() + framesInLastEntry * lastDistanceMapping.metersPerFrame();
         _d->_videoCorrectionFactor = videoDistance / _d->_profile.totalDistance();
     }
 }
 
-const QPair<float,DistanceMappingEntry>& RealLifeVideo::findDistanceMappingEntryFor(const float distance)
+const DistanceMappingEntry &RealLifeVideo::findDistanceMappingEntryFor(const float distance)
 {
     if (distance > _lastKeyDistance && distance < _nextLastKeyDistance) {
         return _d->_cachedDistanceMapping;
     }
 
-    QPair<float,DistanceMappingEntry> newEntry;
-    QListIterator<QPair<float, DistanceMappingEntry> > it(_d->_distanceMappings);
+    DistanceMappingEntry newEntry;
+    QListIterator<DistanceMappingEntry> it(_d->_distanceMappings);
     while(it.hasNext()) {
         newEntry = it.peekNext();
 
-        if (newEntry.first > distance)
+        if (newEntry.distance() > distance)
             break;
         else
             _d->_cachedDistanceMapping = it.next();
     }
-    _lastKeyDistance = _d->_cachedDistanceMapping.first;
+    _lastKeyDistance = _d->_cachedDistanceMapping.distance();
     if (it.hasNext())
-        _nextLastKeyDistance = it.peekNext().first;
+        _nextLastKeyDistance = it.peekNext().distance();
     else
         _nextLastKeyDistance = 0;
     return _d->_cachedDistanceMapping;
 }
 
-DistanceMappingEntry::DistanceMappingEntry(quint32 frameNumber, float metersPerFrame):
-    _frameNumber(frameNumber), _metersPerFrame(metersPerFrame)
+DistanceMappingEntry::DistanceMappingEntry(float distance, quint32 frameNumber, float metersPerFrame):
+    _distance(distance), _frameNumber(frameNumber), _metersPerFrame(metersPerFrame)
 {
 }
 
 DistanceMappingEntry::DistanceMappingEntry():
-    _frameNumber(0), _metersPerFrame(0.0f)
+    _distance(0), _frameNumber(0), _metersPerFrame(0.0f)
 {
 }
 

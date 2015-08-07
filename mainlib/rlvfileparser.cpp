@@ -3,18 +3,18 @@
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
- * Big Ring Indoor Video Cycling is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation, either version 3 of the 
+ * Big Ring Indoor Video Cycling is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * Big Ring Indoor Video Cycling  is distributed in the hope that it will 
+ * Big Ring Indoor Video Cycling  is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with Big Ring Indoor Video Cycling.  If not, see 
+ * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
 
@@ -37,6 +37,20 @@ QString fromUtf16(const char* string, size_t size) {
     }
     return QTextCodec::codecForName("UTF-16")->toUnicode(bytes);
 }
+
+class DistanceMappingEntry {
+public:
+    explicit DistanceMappingEntry(quint32 frameNumber, float metersPerFrame) {
+        _frameNumber = frameNumber;
+        _metersPerFrame = metersPerFrame;
+    }
+
+    quint32 frameNumber() const { return _frameNumber; }
+    float metersPerFrame() const { return _metersPerFrame; }
+private:
+    quint32 _frameNumber;
+    float _metersPerFrame;
+};
 }
 
 RlvFileParser::RlvFileParser(const QList<QFileInfo> &pgmfFiles, const QList<QFileInfo>& videoFiles): TacxFileParser(),
@@ -112,7 +126,7 @@ RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
             rlvFile.read(infoBlock.numberOfRecords * infoBlock.recordSize);
         }
     }
-    return RealLifeVideo(name, videoInformation, courses, distanceMapping, profile);
+    return RealLifeVideo(name, "Tacx", videoInformation, courses, distanceMapping, profile);
 }
 
 tacxfile::header_t TacxFileParser::readHeaderBlock(QFile &rlvFile)
@@ -159,15 +173,37 @@ QList<Course> RlvFileParser::readCourseInformation(QFile &rlvFile, qint32 count)
 
 QList<DistanceMappingEntry> RlvFileParser::readFrameDistanceMapping(QFile &rlvFile, qint32 count)
 {
-    QList<DistanceMappingEntry> mappings;
+    QList<tacxfile::DistanceMappingEntry> mappings;
     mappings.reserve(count);
 
     for (qint32 i = 0; i < count; i++) {
         tacxfile::frameDistanceMapping_t frameDistanceMappingBlock;
         rlvFile.read((char*) &frameDistanceMappingBlock, sizeof(frameDistanceMappingBlock));
-        mappings << DistanceMappingEntry(frameDistanceMappingBlock.frameNumber, frameDistanceMappingBlock.metersPerFrame);
+        mappings << tacxfile::DistanceMappingEntry(frameDistanceMappingBlock.frameNumber, frameDistanceMappingBlock.metersPerFrame);
     }
-    return mappings;
+    return calculateRlvDistanceMappings(mappings);
+}
+
+QList<DistanceMappingEntry> RlvFileParser::calculateRlvDistanceMappings(const QList<tacxfile::DistanceMappingEntry> &tacxDistanceMappings) const
+{
+    float currentDistance = 0;
+    float lastMetersPerFrame = 0;
+
+    QList<DistanceMappingEntry> distanceMappings;
+    if (!tacxDistanceMappings.isEmpty()) {
+        quint32 lastFrameNumber = tacxDistanceMappings[0].frameNumber();
+        QListIterator<tacxfile::DistanceMappingEntry> it(tacxDistanceMappings);
+        while(it.hasNext()) {
+            const tacxfile::DistanceMappingEntry& entry = it.next();
+            quint32 nrFrames = entry.frameNumber() - lastFrameNumber;
+            currentDistance += nrFrames * lastMetersPerFrame;
+            distanceMappings.append(DistanceMappingEntry(currentDistance, entry.frameNumber(), entry.metersPerFrame()));
+
+            lastMetersPerFrame = entry.metersPerFrame();
+            lastFrameNumber = entry.frameNumber();
+        }
+    }
+    return distanceMappings;
 }
 
 
