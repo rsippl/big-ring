@@ -40,7 +40,8 @@ HEADERS += \
     thumbnailcreatingvideoreader.h \
     framecopyingvideoreader.h \
     virtualtrainingfileparser.h \
-    gpxfileparser.h
+    gpxfileparser.h \
+    videoinforeader.h
 
 SOURCES += \
     cyclist.cpp \
@@ -68,7 +69,8 @@ SOURCES += \
     thumbnailcreatingvideoreader.cpp \
     framecopyingvideoreader.cpp \
     virtualtrainingfileparser.cpp \
-    gpxfileparser.cpp
+    gpxfileparser.cpp \
+    videoinforeader.cpp
 
 
 

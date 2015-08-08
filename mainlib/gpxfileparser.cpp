@@ -1,5 +1,6 @@
 #include "gpxfileparser.h"
 
+#include "videoinforeader.h"
 #include <cmath>
 
 #include <QtCore/QDateTime>
@@ -69,7 +70,7 @@ RealLifeVideo GpxFileParser::parseXml(const QFile &inputFile,
                                       QXmlStreamReader &reader) const
 {
     QString name = QFileInfo(inputFile).baseName();
-    float frameRate = 30;
+    float frameRate = VideoInfoReader().videoInfoForVideo(videoFileInfo).frameRate;
 
     QList<gpxfileparser::TrackPoint> trackPoints;
     QXmlStreamReader::TokenType currentTokenType;

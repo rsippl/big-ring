@@ -8,6 +8,7 @@ struct AVCodecContext;
 struct AVFormatContext;
 struct AVFrame;
 struct AVPicture;
+struct AVStream;
 
 /** Simple wrapper around an AVFrame struct. */
 class AVFrameWrapper {
@@ -44,6 +45,7 @@ protected:
     AVCodecContext *codecContext() const;
     AVFormatContext *formatContext() const;
     AVFrameWrapper &frameYuv() const;
+    AVStream *videoStream() const;
 private:
     void initialize();
     void close();

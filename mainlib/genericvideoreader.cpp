@@ -191,6 +191,12 @@ AVFrameWrapper &GenericVideoReader::frameYuv() const
     return *_frameYuv;
 }
 
+AVStream *GenericVideoReader::videoStream() const
+{
+    Q_ASSERT(_formatContext != nullptr);
+    return _formatContext->streams[_currentVideoStream];
+}
+
 AVFrameWrapper::AVFrameWrapper()
 {
     frame = av_frame_alloc();
