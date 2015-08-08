@@ -18,6 +18,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#include "gpxfileparser.h"
 #include "reallifevideoimporter.h"
 #include "rlvfileparser.h"
 #include "virtualtrainingfileparser.h"
@@ -158,6 +159,8 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& video
         rlv = parser.parseRlvFile(rlvFile);
     } else if (rlvFile.fileName().endsWith(".xml")) {
         rlv = indoorcycling::VirtualTrainingFileParser(videoFiles).parseVirtualTrainingFile(rlvFile);
+    } else if (rlvFile.fileName().endsWith(".gpx")) {
+        rlv = indoorcycling::GpxFileParser(videoFiles).parseGpxFile(rlvFile);
     }
     QSettings settings;
     settings.beginGroup(QString("%1.custom_courses").arg(rlv.name()));
@@ -193,7 +196,7 @@ QSet<QString> findFiles(const QString& root, const QStringList& patterns)
 
 QSet<QString> findRlvFiles(const QString& root)
 {
-    return findFiles(root, { "*.rlv", "*.xml" } );
+    return findFiles(root, { "*.rlv", "*.xml", "*.gpx" } );
 }
 
 }
