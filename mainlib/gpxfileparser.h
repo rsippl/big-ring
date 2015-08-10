@@ -5,12 +5,11 @@
 #include <QtCore/QObject>
 #include <QtCore/QXmlStreamReader>
 
+#include <QtPositioning/QGeoPositionInfo>
+
 #include "reallifevideo.h"
 
 namespace indoorcycling {
-namespace gpxfileparser {
-class TrackPoint;
-}
 
 class GpxFileParser : public QObject
 {
@@ -26,20 +25,17 @@ public:
 private:
     const QFileInfo* videoFileForGpsFile(const QFile &inputFile) const;
     RealLifeVideo parseXml(const QFile &inputFile, const QFileInfo &videoFileInfo, QXmlStreamReader &reader) const;
-    gpxfileparser::TrackPoint readTrackPoint(QXmlStreamReader &reader) const;
-    QList<ProfileEntry> convertProfileEntries(const QList<gpxfileparser::TrackPoint> &trackPoints) const;
-    QList<gpxfileparser::TrackPoint> smoothTrack(const QList<gpxfileparser::TrackPoint> &trackPoints) const;
-    QList<gpxfileparser::TrackPoint> smoothTrackPoints(const QList<gpxfileparser::TrackPoint> &trackPoints) const;
-    gpxfileparser::TrackPoint smoothSingleTrackPoint(
-            const gpxfileparser::TrackPoint &previousPoint,
-            const gpxfileparser::TrackPoint &point,
-            const gpxfileparser::TrackPoint &nextPoint) const;
+    QGeoPositionInfo readTrackPoint(QXmlStreamReader &reader) const;
+    QList<ProfileEntry> convertProfileEntries(const QList<QGeoPositionInfo> &trackPoints) const;
+    QList<QGeoPositionInfo> smoothTrack(const QList<QGeoPositionInfo> &trackPoints) const;
+    QList<QGeoPositionInfo> smoothTrackPoints(const QList<QGeoPositionInfo> &trackPoints) const;
+    QGeoPositionInfo smoothSingleTrackPoint(
+            const QGeoPositionInfo &previousPoint,
+            const QGeoPositionInfo &point,
+            const QGeoPositionInfo &nextPoint) const;
 
-    QList<DistanceMappingEntry> convertDistanceMappings(const QList<gpxfileparser::TrackPoint> &trackPoints) const;
+    QList<DistanceMappingEntry> convertDistanceMappings(float frameRate, const QList<QGeoPositionInfo> &trackPoints) const;
 
-    QList<gpxfileparser::TrackPoint> addFrameNumbers(const QList<gpxfileparser::TrackPoint> &trackPoints,
-                                                     float frameRate) const;
-    double distanceBetweenPoints(const gpxfileparser::TrackPoint &p1, const gpxfileparser::TrackPoint &p2) const;
     const QList<QFileInfo> _videoFiles;
 };
 }
