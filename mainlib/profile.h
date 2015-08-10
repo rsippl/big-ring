@@ -49,7 +49,7 @@ enum class ProfileType {
 class Profile
 {
 public:
-    explicit Profile(ProfileType type, float startAltitude, QList<ProfileEntry> &entries);
+    explicit Profile(ProfileType type, float startAltitude, const QList<ProfileEntry> &entries);
     explicit Profile();
 
     ProfileType type() const { return _type; }

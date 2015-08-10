@@ -183,8 +183,12 @@ float RealLifeVideo::totalDistance() const
 
 void RealLifeVideo::setNumberOfFrames(quint64 numberOfFrames)
 {
-    calculateVideoCorrectionFactor(numberOfFrames);
-    qDebug() << "correction factor" << _d->_videoCorrectionFactor;
+    if (_d->_fileType == "Tacx") {
+        calculateVideoCorrectionFactor(numberOfFrames);
+        qDebug() << "correction factor" << _d->_videoCorrectionFactor;
+    } else {
+        qDebug() << "no correction factor needed.";
+    }
 }
 
 bool RealLifeVideo::operator==(const RealLifeVideo &other) const

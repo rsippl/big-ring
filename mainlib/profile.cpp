@@ -36,7 +36,7 @@ bool ProfileEntry::operator ==(const ProfileEntry &other) const
 }
 
 
-Profile::Profile(ProfileType type, float startAltitude, QList<ProfileEntry>& entries):
+Profile::Profile(ProfileType type, float startAltitude, const QList<ProfileEntry> &entries):
     _type(type),
     _startAltitude(startAltitude), _entries(entries), _lastKeyDistance(0), _nextLastKeyDistance(0)
 {
