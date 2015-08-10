@@ -7,6 +7,7 @@
 #include <QtCore/QtDebug>
 #include <QtCore/QTextStream>
 #include <QtPositioning/QGeoCoordinate>
+#include <QtPositioning/QGeoPositionInfo>
 
 namespace {
 const double DEGREES_TO_RADIANS_FACTOR = M_PI / 180.0;
@@ -33,9 +34,10 @@ double smooth(double previous, double current, double next) {
 namespace indoorcycling {
 namespace gpxfileparser {
 struct TrackPoint {
-    QGeoCoordinate position;
-    QDateTime dateTime;
+    QGeoPositionInfo positionInfo;
     int frameNumber;
+
+    QGeoCoordinate coordinate() const { return positionInfo.coordinate(); }
 };
 }
 
@@ -99,19 +101,21 @@ gpxfileparser::TrackPoint GpxFileParser::readTrackPoint(QXmlStreamReader &reader
     gpxfileparser::TrackPoint trackPoint;
     double latitude = readSingleAttribute(reader.attributes(), "lat").toDouble();
     double longitude = readSingleAttribute(reader.attributes(), "lon").toDouble();
-    trackPoint.position = QGeoCoordinate(latitude, longitude);
+    double altitude = 0.0;
+    QDateTime dateTime;
 
     while(!reader.atEnd()) {
         QXmlStreamReader::TokenType currentTokenType = reader.readNext();
         if (isElement(currentTokenType, reader, "ele")) {
-            trackPoint.position.setAltitude(reader.readElementText().toDouble());
+            altitude = reader.readElementText().toDouble();
         } else if (isElement(currentTokenType, reader, "time")) {
-            trackPoint.dateTime = QDateTime::fromString(reader.readElementText(), Qt::ISODate);
+            dateTime = QDateTime::fromString(reader.readElementText(), Qt::ISODate);
         } else if (currentTokenType == QXmlStreamReader::EndElement && reader.name() == "trkpt") {
             break;
         }
     }
 
+    trackPoint.positionInfo = QGeoPositionInfo(QGeoCoordinate(latitude, longitude, altitude), dateTime);
     return trackPoint;
 }
 
@@ -125,8 +129,8 @@ QList<ProfileEntry> GpxFileParser::convertProfileEntries(const QList<gpxfilepars
     for (const gpxfileparser::TrackPoint &trackPoint: trackPoints) {
         float segmentDistance = 0;
         if (lastEntry) {
-            segmentDistance = static_cast<float>(lastEntry->position.distanceTo(trackPoint.position));
-            float segmentAltitudeDifference = trackPoint.position.altitude() - currentElevation;
+            segmentDistance = static_cast<float>(lastEntry->coordinate().distanceTo(trackPoint.coordinate()));
+            float segmentAltitudeDifference = trackPoint.coordinate().altitude() - currentElevation;
 
             float slope = segmentAltitudeDifference / segmentDistance;
             float slopeInPercent = slope * 100.0f;
@@ -134,7 +138,7 @@ QList<ProfileEntry> GpxFileParser::convertProfileEntries(const QList<gpxfilepars
             profileEntries.append(ProfileEntry(segmentDistance, currentDistance, slopeInPercent, currentElevation));
         }
         currentDistance += segmentDistance;
-        currentElevation = trackPoint.position.altitude();
+        currentElevation = trackPoint.coordinate().altitude();
         lastEntry = &trackPoint;
     }
 
@@ -172,11 +176,14 @@ QList<gpxfileparser::TrackPoint> GpxFileParser::smoothTrackPoints(const QList<gp
 
 gpxfileparser::TrackPoint GpxFileParser::smoothSingleTrackPoint(const gpxfileparser::TrackPoint &previousPoint, const gpxfileparser::TrackPoint &point, const gpxfileparser::TrackPoint &nextPoint) const
 {
-    gpxfileparser::TrackPoint newTrackPoint = point;
-    newTrackPoint.position.setAltitude(smooth(previousPoint.position.altitude(),
-                                               point.position.altitude(),
-                                               nextPoint.position.altitude()));
+    QGeoCoordinate coordinate = point.coordinate();
 
+    coordinate.setAltitude(smooth(previousPoint.coordinate().altitude(),
+                                               point.coordinate().altitude(),
+                                               nextPoint.coordinate().altitude()));
+
+    gpxfileparser::TrackPoint newTrackPoint = point;
+    newTrackPoint.positionInfo = QGeoPositionInfo(coordinate, point.positionInfo.timestamp());
     return newTrackPoint;
 }
 
@@ -193,7 +200,7 @@ QList<DistanceMappingEntry> GpxFileParser::convertDistanceMappings(
     for (const gpxfileparser::TrackPoint &trackPoint: trackPoints) {
         float segmentDistance = 0;
         if (lastTrackPoint) {
-            segmentDistance = static_cast<float>(lastTrackPoint->position.distanceTo(trackPoint.position));
+            segmentDistance = static_cast<float>(lastTrackPoint->coordinate().distanceTo(trackPoint.coordinate()));
             quint32 frameDifference = trackPoint.frameNumber - currentFrame;
 
             float metersPerFrame = segmentDistance / frameDifference;
@@ -216,10 +223,10 @@ QList<gpxfileparser::TrackPoint> GpxFileParser::addFrameNumbers(const QList<gpxf
         return trackPointsWithFrameNumbers;
     }
 
-    QDateTime startTime = trackPoints[0].dateTime;
+    QDateTime startTime = trackPoints[0].positionInfo.timestamp();
     for(const auto &trackPoint: trackPoints) {
         gpxfileparser::TrackPoint trackPointWithFrameNumber = trackPoint;
-        qint64 differenceFromStart = startTime.msecsTo(trackPointWithFrameNumber.dateTime);
+        qint64 differenceFromStart = startTime.msecsTo(trackPointWithFrameNumber.positionInfo.timestamp());
         trackPointWithFrameNumber.frameNumber = static_cast<quint32>((differenceFromStart * frameRate) / 1000);
         trackPointsWithFrameNumbers.append(trackPointWithFrameNumber);
     }
