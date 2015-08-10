@@ -24,13 +24,16 @@ bool isElement(const QXmlStreamReader::TokenType currentTokenType, const QXmlStr
 {
     return (currentTokenType == QXmlStreamReader::StartElement && reader.name() == elementName);
 }
+
+double smooth(double previous, double current, double next) {
+    return 0.3 * previous + 0.4 * current + 0.3 * next;
+}
 }
 
 namespace indoorcycling {
 namespace gpxfileparser {
 struct TrackPoint {
     QGeoCoordinate position;
-    double elevation;
     QDateTime dateTime;
     int frameNumber;
 };
@@ -81,10 +84,10 @@ RealLifeVideo GpxFileParser::parseXml(const QFile &inputFile,
         }
     }
 
-    QList<gpxfileparser::TrackPoint> trackPointsWithFrameNumbers = addFrameNumbers(trackPoints, frameRate);
+    QList<gpxfileparser::TrackPoint> trackPointsWithFrameNumbers = addFrameNumbers(smoothTrack(trackPoints), frameRate);
 
     VideoInformation videoInformation(videoFileInfo.filePath(), frameRate);
-    Profile profile(ProfileType::SLOPE, 0.0f, convertProfileEntries(trackPoints));
+    Profile profile(ProfileType::SLOPE, 0.0f, convertProfileEntries(trackPointsWithFrameNumbers));
     QList<Course> courses = { Course("Complete Distance", 0, profile.totalDistance()) };
     QList<DistanceMappingEntry> distanceMappings = convertDistanceMappings(trackPointsWithFrameNumbers);
     RealLifeVideo rlv(name, "GPX", videoInformation, courses, distanceMappings, profile);
@@ -101,7 +104,7 @@ gpxfileparser::TrackPoint GpxFileParser::readTrackPoint(QXmlStreamReader &reader
     while(!reader.atEnd()) {
         QXmlStreamReader::TokenType currentTokenType = reader.readNext();
         if (isElement(currentTokenType, reader, "ele")) {
-            trackPoint.elevation = reader.readElementText().toFloat();
+            trackPoint.position.setAltitude(reader.readElementText().toDouble());
         } else if (isElement(currentTokenType, reader, "time")) {
             trackPoint.dateTime = QDateTime::fromString(reader.readElementText(), Qt::ISODate);
         } else if (currentTokenType == QXmlStreamReader::EndElement && reader.name() == "trkpt") {
@@ -123,7 +126,7 @@ QList<ProfileEntry> GpxFileParser::convertProfileEntries(const QList<gpxfilepars
         float segmentDistance = 0;
         if (lastEntry) {
             segmentDistance = static_cast<float>(lastEntry->position.distanceTo(trackPoint.position));
-            float segmentAltitudeDifference = trackPoint.elevation - currentElevation;
+            float segmentAltitudeDifference = trackPoint.position.altitude() - currentElevation;
 
             float slope = segmentAltitudeDifference / segmentDistance;
             float slopeInPercent = slope * 100.0f;
@@ -131,12 +134,53 @@ QList<ProfileEntry> GpxFileParser::convertProfileEntries(const QList<gpxfilepars
             profileEntries.append(ProfileEntry(segmentDistance, currentDistance, slopeInPercent, currentElevation));
         }
         currentDistance += segmentDistance;
-        currentElevation = trackPoint.elevation;
+        currentElevation = trackPoint.position.altitude();
         lastEntry = &trackPoint;
     }
 
     return profileEntries;
 }
+
+/**
+ * @brief smooth the track. We will only smooth altitude, not lat-lon, because that will mess with distances.
+ * @param trackPoints the trackpoints.
+ * @return the track with the altitudes smoothed.
+ */
+QList<gpxfileparser::TrackPoint> GpxFileParser::smoothTrack(const QList<gpxfileparser::TrackPoint> &trackPoints) const
+{
+    QList<gpxfileparser::TrackPoint> smoothedTrackPoints = trackPoints;
+    for (int i = 0; i < 20; ++i) {
+        smoothedTrackPoints = smoothTrackPoints(smoothedTrackPoints);
+    }
+    return smoothedTrackPoints;
+}
+
+QList<gpxfileparser::TrackPoint> GpxFileParser::smoothTrackPoints(const QList<gpxfileparser::TrackPoint> &trackPoints) const
+{
+    QList<gpxfileparser::TrackPoint> smoothedTrackPoints;
+    if (!trackPoints.isEmpty()) {
+        smoothedTrackPoints.append(trackPoints[0]);
+        for(int i = 1; i < trackPoints.size() - 1; ++i) {
+            smoothedTrackPoints.append(smoothSingleTrackPoint(trackPoints[i -1],
+                                       trackPoints[i], trackPoints[i + 1]));
+        }
+        smoothedTrackPoints.append(trackPoints.last());
+    }
+    Q_ASSERT(smoothedTrackPoints.size() == trackPoints.size());
+    return smoothedTrackPoints;
+}
+
+gpxfileparser::TrackPoint GpxFileParser::smoothSingleTrackPoint(const gpxfileparser::TrackPoint &previousPoint, const gpxfileparser::TrackPoint &point, const gpxfileparser::TrackPoint &nextPoint) const
+{
+    gpxfileparser::TrackPoint newTrackPoint = point;
+    newTrackPoint.position.setAltitude(smooth(previousPoint.position.altitude(),
+                                               point.position.altitude(),
+                                               nextPoint.position.altitude()));
+
+    return newTrackPoint;
+}
+
+
 
 QList<DistanceMappingEntry> GpxFileParser::convertDistanceMappings(
         const QList<gpxfileparser::TrackPoint> &trackPoints) const

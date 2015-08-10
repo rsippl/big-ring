@@ -28,6 +28,13 @@ private:
     RealLifeVideo parseXml(const QFile &inputFile, const QFileInfo &videoFileInfo, QXmlStreamReader &reader) const;
     gpxfileparser::TrackPoint readTrackPoint(QXmlStreamReader &reader) const;
     QList<ProfileEntry> convertProfileEntries(const QList<gpxfileparser::TrackPoint> &trackPoints) const;
+    QList<gpxfileparser::TrackPoint> smoothTrack(const QList<gpxfileparser::TrackPoint> &trackPoints) const;
+    QList<gpxfileparser::TrackPoint> smoothTrackPoints(const QList<gpxfileparser::TrackPoint> &trackPoints) const;
+    gpxfileparser::TrackPoint smoothSingleTrackPoint(
+            const gpxfileparser::TrackPoint &previousPoint,
+            const gpxfileparser::TrackPoint &point,
+            const gpxfileparser::TrackPoint &nextPoint) const;
+
     QList<DistanceMappingEntry> convertDistanceMappings(const QList<gpxfileparser::TrackPoint> &trackPoints) const;
 
     QList<gpxfileparser::TrackPoint> addFrameNumbers(const QList<gpxfileparser::TrackPoint> &trackPoints,
