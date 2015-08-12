@@ -109,9 +109,9 @@ private:
     GLuint _uTextureId;
     GLuint _vTextureId;
 
-    int _textureWidths[3];
-    int _textureHeights[3];
-    int _textureOffsets[3];
+    std::array<int, 3> _textureWidths;
+    std::array<int, 3> _textureHeights;
+    std::array<int, 3> _textureOffsets;
 
     QOpenGLBuffer _textureCoordinatesBuffer;
     QOpenGLBuffer _vertexBuffer;

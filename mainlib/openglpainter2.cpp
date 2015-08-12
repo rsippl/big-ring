@@ -53,12 +53,16 @@ void OpenGLPainter2::loadTextures()
     loadPlaneTextureFromPbo(GL_TEXTURE1, _uTextureId, _textureWidths[1], _textureHeights[1], _textureOffsets[1]);
     loadPlaneTextureFromPbo(GL_TEXTURE2, _vTextureId, _textureWidths[2], _textureHeights[2], _textureOffsets[2]);
 
+    // on the first pass, we need to load the textures with glTexImage2D
+    // on every subsequent pass we can use glTexSubImage2D, which can be faster.
+    // To facilitate this, set _texturesInitialized to true after the first pass.
     _texturesInitialized = true;
 }
 
 void OpenGLPainter2::loadPlaneTextureFromPbo(int glTextureUnit, int textureUnit,
                                            int lineSize, int height, size_t offset)
 {
+
     _glFunctions->glActiveTexture(glTextureUnit);
     _glFunctions->glBindTexture(GL_TEXTURE_RECTANGLE, textureUnit);
     _pixelBuffers[_currentPixelBufferReadPosition].bind();
@@ -364,17 +368,17 @@ void OpenGLPainter2::initializeTextureCoordinatesBuffer()
 
 void OpenGLPainter2::initYuv420PTextureInfo()
 {
-    int bytesPerLine = (_sourceTotalSize.width() + 3) & ~3;
-    int bytesPerLine2 = (_sourceTotalSize.width() / 2 + 3) & ~3;
-    _textureWidths[0] = bytesPerLine;
+    const int bytesPerLineY = (_sourceTotalSize.width() + 3) & ~3;
+    const int bytesPerLineUAndV = (_sourceTotalSize.width() / 2 + 3) & ~3;
+    _textureWidths[0] = bytesPerLineY;
     _textureHeights[0] = _sourceTotalSize.height();
     _textureOffsets[0] = 0;
-    _textureWidths[1] = bytesPerLine2;
+    _textureWidths[1] = bytesPerLineUAndV;
     _textureHeights[1] = _sourceTotalSize.height() / 2;
-    _textureOffsets[1] = bytesPerLine * _sourceTotalSize.height();
-    _textureWidths[2] = bytesPerLine2;
+    _textureOffsets[1] = bytesPerLineY * _sourceTotalSize.height();
+    _textureWidths[2] = bytesPerLineUAndV;
     _textureHeights[2] = _sourceTotalSize.height() / 2;
-    _textureOffsets[2] = bytesPerLine * _sourceTotalSize.height() + bytesPerLine2 * _sourceTotalSize.height()/2;
+    _textureOffsets[2] = bytesPerLineY * _sourceTotalSize.height() + bytesPerLineUAndV * _sourceTotalSize.height()/2;
 
     initializeTextureCoordinatesBuffer();
 
