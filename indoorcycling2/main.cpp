@@ -34,7 +34,7 @@ void prettyLogging(QtMsgType type, const QMessageLogContext &context, const QStr
 {
     QByteArray localMsg = msg.toLocal8Bit();
     QString now = QTime::currentTime().toString();
-    const char* level = "Debug";
+    const char* level = "UNKNOWN";
     switch (type) {
     case QtDebugMsg:
         level = "DEBUG";
@@ -42,11 +42,15 @@ void prettyLogging(QtMsgType type, const QMessageLogContext &context, const QStr
     case QtWarningMsg:
         level = "WARNING";
         break;
+    case QtInfoMsg:
+        level = "INFO";
+        break;
     case QtCriticalMsg:
         level = "CRITICAL";
         break;
     case QtFatalMsg:
         level = "FATAL";
+        break;
     }
     fprintf(stderr, "[%s] %s [%s:%u] %s\n", qPrintable(now), level,
             context.function, context.line, localMsg.constData());
