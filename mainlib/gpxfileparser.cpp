@@ -1,7 +1,6 @@
 #include "gpxfileparser.h"
 
 #include "videoinforeader.h"
-#include <cmath>
 
 #include <QtCore/QDateTime>
 #include <QtCore/QtDebug>
@@ -10,7 +9,6 @@
 #include <QtPositioning/QGeoPositionInfo>
 
 namespace {
-const double DEGREES_TO_RADIANS_FACTOR = M_PI / 180.0;
 
 QString readSingleAttribute(const QXmlStreamAttributes& attributes, const QString& attributeName) {
     for (auto attribute: attributes) {
