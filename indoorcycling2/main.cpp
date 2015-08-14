@@ -42,9 +42,11 @@ void prettyLogging(QtMsgType type, const QMessageLogContext &context, const QStr
     case QtWarningMsg:
         level = "WARNING";
         break;
+#if QT_VERSION >= 0x050500
     case QtInfoMsg:
         level = "INFO";
         break;
+#endif
     case QtCriticalMsg:
         level = "CRITICAL";
         break;
