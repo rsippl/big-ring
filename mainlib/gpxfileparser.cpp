@@ -110,8 +110,8 @@ QList<ProfileEntry> GpxFileParser::convertProfileEntries(const QList<QGeoPositio
     QList<ProfileEntry> profileEntries;
 
     const QGeoPositionInfo *lastEntry = nullptr;
-    float currentDistance;
-    float currentElevation;
+    float currentDistance = 0;
+    float currentElevation = 0;
     for (const QGeoPositionInfo &trackPoint: trackPoints) {
         float segmentDistance = 0;
         if (lastEntry) {
