@@ -26,18 +26,16 @@
 class ProfileEntry
 {
 public:
-    explicit ProfileEntry(float distance, float totalDistance, float slope, float altitude);
+    explicit ProfileEntry(float distance, float slope, float altitude);
     explicit ProfileEntry();
 
-    float distance() const { return _distance; }
     float slope() const { return _slope; }
-    float totalDistance() const { return _totalDistance; }
+    float distance() const { return _distance; }
     float altitude() const { return _altitude; }
 
     bool operator ==(const ProfileEntry& other) const;
 private:
     float _distance;
-    float _totalDistance;
     float _altitude;
     float _slope;
 };

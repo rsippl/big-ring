@@ -27,6 +27,20 @@ bool isElement(const QXmlStreamReader::TokenType currentTokenType, const QXmlStr
 double smooth(double previous, double current, double next) {
     return 0.3 * previous + 0.4 * current + 0.3 * next;
 }
+
+/**
+ * @brief calculate the frame number for a trackpoint.
+ * @param trackPoint the track point
+ * @param startTime start time of the track
+ * @param frameRate the frame rate.
+ * @return a frame number.
+ */
+quint32 frameNumberForTrackPoint(const QGeoPositionInfo &trackPoint, const QDateTime &startTime, const float frameRate)
+{
+    const qint64 differenceFromStart = startTime.msecsTo(trackPoint.timestamp());
+    return static_cast<quint32>((differenceFromStart * frameRate) / 1000);
+}
+
 }
 
 namespace indoorcycling {
@@ -118,14 +132,22 @@ QList<ProfileEntry> GpxFileParser::convertProfileEntries(const QList<QGeoPositio
             segmentDistance = static_cast<float>(lastEntry->coordinate().distanceTo(trackPoint.coordinate()));
             float segmentAltitudeDifference = trackPoint.coordinate().altitude() - currentElevation;
 
-            float slope = segmentAltitudeDifference / segmentDistance;
-            float slopeInPercent = slope * 100.0f;
+            if (segmentDistance > 0) {
+                float slope = segmentAltitudeDifference / segmentDistance;
+                float slopeInPercent = slope * 100.0f;
 
-            profileEntries.append(ProfileEntry(segmentDistance, currentDistance, slopeInPercent, currentElevation));
+                profileEntries.append(ProfileEntry(currentDistance, slopeInPercent, currentElevation));
+            }
         }
         currentDistance += segmentDistance;
         currentElevation = trackPoint.coordinate().altitude();
         lastEntry = &trackPoint;
+    }
+
+    // if there was an entry, and there's at least one entry in profile entries, add a last entry
+    // to profile entries with the same slope as the previous one
+    if (lastEntry && !profileEntries.isEmpty()) {
+        profileEntries.append(ProfileEntry(currentDistance, profileEntries.last().slope(), lastEntry->coordinate().altitude()));
     }
 
     return profileEntries;
@@ -177,6 +199,8 @@ QList<DistanceMappingEntry> GpxFileParser::convertDistanceMappings(
         float frameRate,
         const QList<QGeoPositionInfo> &trackPoints) const
 {
+    Q_ASSERT_X(!trackPoints.isEmpty(), "convertDistanceMappings", "trackpoints should not be empty");
+
     QList<DistanceMappingEntry> mappings;
 
     const QDateTime startTime = trackPoints[0].timestamp();
@@ -186,20 +210,31 @@ QList<DistanceMappingEntry> GpxFileParser::convertDistanceMappings(
     quint32 currentFrame = 0;
     for (const QGeoPositionInfo &trackPoint: trackPoints) {
         float segmentDistance = 0;
-        qint64 differenceFromStart = startTime.msecsTo(trackPoint.timestamp());
-        quint32 frameNumberForPoint = static_cast<quint32>((differenceFromStart * frameRate) / 1000);
+        quint32 frameNumberForPoint = frameNumberForTrackPoint(trackPoint, startTime, frameRate);
         if (lastTrackPoint) {
             segmentDistance = static_cast<float>(lastTrackPoint->coordinate().distanceTo(trackPoint.coordinate()));
             quint32 frameDifference = frameNumberForPoint - currentFrame;
-
-            float metersPerFrame = segmentDistance / frameDifference;
-
-            mappings.append(DistanceMappingEntry(currentDistance, currentFrame, metersPerFrame));
+            if (frameDifference > 0) {
+                float metersPerFrame = segmentDistance / frameDifference;
+                mappings.append(DistanceMappingEntry(currentDistance, currentFrame, metersPerFrame));
+            }
         }
         currentDistance += segmentDistance;
         currentFrame = frameNumberForPoint;
         lastTrackPoint = &trackPoint;
     }
+
+    if (lastTrackPoint && !mappings.isEmpty()) {
+        quint32 frameNumber = frameNumberForTrackPoint(*lastTrackPoint, startTime, frameRate);
+        mappings.append(DistanceMappingEntry(currentDistance, frameNumber, mappings.last().metersPerFrame()));
+    }
+
     return mappings;
+}
+
+quint32 frameNumberForTrackPoint(const QGeoPositionInfo &trackPoint, const QDateTime &startTime, const float frameRate)
+{
+    const qint64 differenceFromStart = startTime.msecsTo(trackPoint.timestamp());
+    return static_cast<quint32>((differenceFromStart * frameRate) / 1000);
 }
 }

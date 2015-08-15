@@ -119,11 +119,17 @@ QList<ProfileEntry> VirtualTrainingFileParser::convertProfileEntries(const QList
             float slope = segmentAltitudeDifference / segmentDistance;
             float slopeInPercent = slope * 100.0f;
 
-            profileEntries.append(ProfileEntry(segmentDistance, currentDistance, slopeInPercent, currentAltitude));
+            profileEntries.append(ProfileEntry(currentDistance, slopeInPercent, currentAltitude));
         }
         currentDistance = profileEntry.distance;
         currentAltitude = profileEntry.altitude;
         lastEntry = &profileEntry;
+    }
+
+    // if there was an entry, and there's at least one entry in profile entries, add a last entry
+    // to profile entries with the same slope as the previous one
+    if (lastEntry && !profileEntries.isEmpty()) {
+        profileEntries.append(ProfileEntry(currentDistance, profileEntries.last().slope(), lastEntry->altitude));
     }
 
     return profileEntries;
@@ -195,6 +201,11 @@ QList<DistanceMappingEntry> VirtualTrainingFileParser::convertDistanceMappings(c
         currentFrame = distanceMappingEntry.frame;
         lastEntry = &distanceMappingEntry;
     }
+
+    if (lastEntry && !mappings.isEmpty()) {
+        mappings.append(DistanceMappingEntry(lastEntry->distance, lastEntry->frame, mappings.last().metersPerFrame()));
+    }
+
     return mappings;
 }
 }

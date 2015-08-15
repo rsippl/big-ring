@@ -20,8 +20,8 @@
 
 #include "profile.h"
 
-ProfileEntry::ProfileEntry(float distance, float totalDistance, float slope, float altitude):
-    _distance(distance), _totalDistance(totalDistance),_altitude(altitude), _slope(slope)
+ProfileEntry::ProfileEntry(float distance, float slope, float altitude):
+    _distance(distance),_altitude(altitude), _slope(slope)
 {
 }
 
@@ -55,7 +55,7 @@ float Profile::altitudeForDistance(double distance)
 {
     ProfileEntry& entry = entryForDistance(distance);
 
-    return _startAltitude + entry.altitude() + entry.slope() * 0.01 * (distance - entry.totalDistance());
+    return _startAltitude + entry.altitude() + entry.slope() * 0.01 * (distance - entry.distance());
 }
 
 const QList<ProfileEntry> &Profile::entries() const
@@ -70,16 +70,16 @@ ProfileEntry &Profile::entryForDistance(double distance)
         while(it.hasNext()) {
             const ProfileEntry& newEntry = it.peekNext();
 
-            if (newEntry.totalDistance() > distance)
+            if (newEntry.distance() > distance)
                 break;
             else {
                 _cachedProfileEntry = it.next();
             }
         }
 
-        _lastKeyDistance = _cachedProfileEntry.totalDistance();
+        _lastKeyDistance = _cachedProfileEntry.distance();
         if (it.hasNext())
-            _nextLastKeyDistance = it.peekNext().totalDistance();
+            _nextLastKeyDistance = it.peekNext().distance();
         else
             _nextLastKeyDistance = 0;
     }
@@ -90,6 +90,6 @@ float Profile::totalDistance() const {
     if (_entries.isEmpty()) {
         return 0;
     }
-    return _entries.last().totalDistance();
+    return _entries.last().distance();
 }
 

@@ -92,6 +92,7 @@ QFileInfo RlvFileParser::findPgmfFile(QFile &rlvFile)
 
 RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
 {
+    qDebug() << rlvFile.fileName();
     if (!rlvFile.open(QIODevice::ReadOnly))
         return RealLifeVideo();
 
@@ -232,7 +233,7 @@ Profile PgmfFileParser::readProfile(QFile &pgmfFile)
         QListIterator<tacxfile::program_t> it(profileBlocks);
         while(it.hasNext()) {
             tacxfile::program_t item = it.next();
-            profile << ProfileEntry(item.durationDistance, currentDistance, item.powerSlopeHeartRate, currentAltitude);
+            profile << ProfileEntry(currentDistance, item.powerSlopeHeartRate, currentAltitude);
             currentDistance += item.durationDistance;
             currentAltitude += item.powerSlopeHeartRate * .01f * item.durationDistance;
         }
