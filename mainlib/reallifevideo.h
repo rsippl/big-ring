@@ -110,13 +110,13 @@ public:
 
     void printDistanceMapping();
     /** Get the number or frames per meter for a certain distance */
-    float metersPerFrame(const float distance);
+    float metersPerFrame(const float distance) const;
     /** Get the exact frame for a distance. */
-    quint32 frameForDistance(const float distance);
+    quint32 frameForDistance(const float distance) const;
     /** Get the slope for a distance */
-    float slopeForDistance(const float distance);
+    float slopeForDistance(const float distance) const;
     //! Get the altitude for a distance */
-    float altitudeForDistance(const float distance);
+    float altitudeForDistance(const float distance) const;
     /** Total distance */
     float totalDistance() const;
     /** Set duration of video, in number of frames */
@@ -127,12 +127,13 @@ public:
 private:
     void calculateVideoCorrectionFactor(quint64 totalNrOfFrames);
 
-    const DistanceMappingEntry &findDistanceMappingEntryFor(const float distance);
+    const DistanceMappingEntry &findDistanceMappingEntryFor(const float distance) const;
 
     QSharedPointer<RealLifeVideoData> _d;
 
-    float _lastKeyDistance;
-    float _nextLastKeyDistance;
+    mutable float _lastKeyDistance = -1;
+    mutable float _nextLastKeyDistance = -1;
+    mutable int _currentDistanceMappingIndex = -1;
 };
 typedef QList<RealLifeVideo> RealLifeVideoList;
 

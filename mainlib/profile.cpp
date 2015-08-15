@@ -38,7 +38,7 @@ bool ProfileEntry::operator ==(const ProfileEntry &other) const
 
 Profile::Profile(ProfileType type, float startAltitude, const QList<ProfileEntry> &entries):
     _type(type),
-    _startAltitude(startAltitude), _entries(entries), _lastKeyDistance(0), _nextLastKeyDistance(0)
+    _startAltitude(startAltitude), _entries(entries)
 {
 }
 
@@ -46,14 +46,14 @@ Profile::Profile(): _type(ProfileType::SLOPE), _startAltitude(0.0f)
 {
 }
 
-float Profile::slopeForDistance(double distance)
+float Profile::slopeForDistance(float distance) const
 {
     return entryForDistance(distance).slope();
 }
 
-float Profile::altitudeForDistance(double distance)
+float Profile::altitudeForDistance(float distance) const
 {
-    ProfileEntry& entry = entryForDistance(distance);
+    const ProfileEntry& entry = entryForDistance(distance);
 
     return _startAltitude + entry.altitude() + entry.slope() * 0.01 * (distance - entry.distance());
 }
@@ -63,27 +63,27 @@ const QList<ProfileEntry> &Profile::entries() const
     return _entries;
 }
 
-ProfileEntry &Profile::entryForDistance(double distance)
+const ProfileEntry &Profile::entryForDistance(float distance) const
 {
-    if (distance < 0.01 || distance < _lastKeyDistance || distance > _nextLastKeyDistance) {
-        QListIterator<ProfileEntry> it(_entries);
-        while(it.hasNext()) {
-            const ProfileEntry& newEntry = it.peekNext();
-
-            if (newEntry.distance() > distance)
+    if (distance < _lastKeyDistance || distance > _nextLastKeyDistance) {
+        int i = (distance > _nextLastKeyDistance) ? _currentProfileEntryIndex + 1: 0;
+        for (; i < _entries.size(); ++i) {
+            const ProfileEntry &nextEntry = _entries[i];
+            if (nextEntry.distance() > distance) {
                 break;
-            else {
-                _cachedProfileEntry = it.next();
+            } else {
+                _currentProfileEntryIndex = i;
             }
         }
 
-        _lastKeyDistance = _cachedProfileEntry.distance();
-        if (it.hasNext())
-            _nextLastKeyDistance = it.peekNext().distance();
-        else
+        _lastKeyDistance = _entries[_currentProfileEntryIndex].distance();
+        if (_currentProfileEntryIndex + 1 < _entries.size()) {
+            _nextLastKeyDistance = _entries[_currentProfileEntryIndex + 1].distance();
+        } else {
             _nextLastKeyDistance = 0;
+        }
     }
-    return _cachedProfileEntry;
+    return _entries[_currentProfileEntryIndex];
 }
 
 float Profile::totalDistance() const {

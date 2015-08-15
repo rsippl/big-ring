@@ -53,24 +53,24 @@ public:
     ProfileType type() const { return _type; }
     float startAltitude() const { return _startAltitude; }
     //! get the slope for a particular distance
-    float slopeForDistance(double distance);
+    float slopeForDistance(float distance) const;
     //! total distance of the profile
     float totalDistance() const;
 
     //! get the altitude for a particular distance. The profile always starts at altitude 0.0f
-    float altitudeForDistance(double distance);
+    float altitudeForDistance(float distance) const;
 
     const QList<ProfileEntry>& entries() const;
 private:
-    ProfileEntry& entryForDistance(double distance);
-
+    const ProfileEntry &entryForDistance(float distance) const;
 
     ProfileType _type;
     float _startAltitude;
     QList<ProfileEntry> _entries;
-    ProfileEntry _cachedProfileEntry;
-    float _lastKeyDistance;
-    float _nextLastKeyDistance;
+
+    mutable int _currentProfileEntryIndex = -1;
+    mutable float _lastKeyDistance = -1;
+    mutable float _nextLastKeyDistance = -1;
 };
 
 #endif // PROFILE_H
