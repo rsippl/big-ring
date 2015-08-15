@@ -173,11 +173,7 @@ float RealLifeVideo::altitudeForDistance(const float distance)
 
 float RealLifeVideo::totalDistance() const
 {
-    float maxDistance = 0.0f;
-    foreach(const Course& course, _d->_courses) {
-        maxDistance = qMax(course.end(), maxDistance);
-    }
-    return maxDistance;
+    return _d->_profile.totalDistance();
 }
 
 
