@@ -1,4 +1,4 @@
-#version 120
+#version 110
 /*
  * Copyright (c) 2012-2015 Ilja Booij (ibooij@gmail.com)
  *
