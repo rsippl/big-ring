@@ -48,6 +48,7 @@ class Profile
 {
 public:
     explicit Profile(ProfileType type, float startAltitude, const QList<ProfileEntry> &entries);
+    explicit Profile(ProfileType type, float startAltitude, const std::vector<ProfileEntry> &&entries);
     explicit Profile();
 
     ProfileType type() const { return _type; }
@@ -60,15 +61,16 @@ public:
     //! get the altitude for a particular distance. The profile always starts at altitude 0.0f
     float altitudeForDistance(float distance) const;
 
-    const QList<ProfileEntry>& entries() const;
+    float minimumAltitude() const;
+    float maximumAltitude() const;
 private:
     const ProfileEntry &entryForDistance(float distance) const;
 
     ProfileType _type;
     float _startAltitude;
-    QList<ProfileEntry> _entries;
+    std::vector<ProfileEntry> _entries;
 
-    mutable int _currentProfileEntryIndex = -1;
+    mutable unsigned int _currentProfileEntryIndex = -1;
     mutable float _lastKeyDistance = -1;
     mutable float _nextLastKeyDistance = -1;
 };

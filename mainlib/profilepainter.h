@@ -39,7 +39,6 @@ private:
     qreal distanceToX(const QRect& rect, const RealLifeVideo& rlv, float distance) const;
     float xToDistance(const QRect& rect, const RealLifeVideo& rlv, int x) const;
     int altitudeToHeight(const QRect& rect, float altitudeAboveMinimum, float altitudeDiff) const;
-    QPair<float,float> findMinimumAndMaximumAltiude(const float startAltitude, const QList<ProfileEntry>& profileEntries) const;
     QColor colorForSlope(const float slope) const;
 };
 

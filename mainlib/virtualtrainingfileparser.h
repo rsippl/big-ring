@@ -128,7 +128,7 @@ public:
 private:
     RealLifeVideo parseXml(QXmlStreamReader& reader) const;
 
-    QList<ProfileEntry> convertProfileEntries(const QList<virtualtrainingfileparser::ProfileEntry> &virtualTrainingProfileEntries) const;
+    std::vector<ProfileEntry> convertProfileEntries(const QList<virtualtrainingfileparser::ProfileEntry> &virtualTrainingProfileEntries) const;
     QList<virtualtrainingfileparser::ProfileEntry> readProfileEntries(QXmlStreamReader &reader) const;
     QString findVideoFile(QString filename) const;
     QList<Course> readCourses(QXmlStreamReader& reader) const;

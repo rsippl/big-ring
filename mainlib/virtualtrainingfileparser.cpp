@@ -66,8 +66,8 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
         } else if (isElement(currentTokenType, reader, "framerate")) {
             frameRate = reader.readElementText().toFloat();
         } else if (isElement(currentTokenType, reader, "altitudes")) {
-            QList<ProfileEntry> profileEntries = convertProfileEntries(readProfileEntries(reader));
-            profile = Profile(ProfileType::SLOPE, 0, profileEntries);
+            std::vector<ProfileEntry> profileEntries = convertProfileEntries(readProfileEntries(reader));
+            profile = Profile(ProfileType::SLOPE, 0, std::move(profileEntries));
         } else if (isElement(currentTokenType, reader, "segments")) {
             courses = readCourses(reader);
         } else if (isElement(currentTokenType, reader, "mappings")) {
@@ -104,9 +104,10 @@ QList<virtualtrainingfileparser::ProfileEntry> VirtualTrainingFileParser::readPr
     return profileEntries;
 }
 
-QList<ProfileEntry> VirtualTrainingFileParser::convertProfileEntries(const QList<virtualtrainingfileparser::ProfileEntry> &virtualTrainingProfileEntries) const
+std::vector<ProfileEntry> VirtualTrainingFileParser::convertProfileEntries(const QList<virtualtrainingfileparser::ProfileEntry> &virtualTrainingProfileEntries) const
 {
-    QList<ProfileEntry> profileEntries;
+    std::vector<ProfileEntry> profileEntries;
+    profileEntries.reserve(virtualTrainingProfileEntries.size());
 
     virtualtrainingfileparser::ProfileEntry *lastEntry = nullptr;
     float currentDistance;
@@ -119,7 +120,7 @@ QList<ProfileEntry> VirtualTrainingFileParser::convertProfileEntries(const QList
             float slope = segmentAltitudeDifference / segmentDistance;
             float slopeInPercent = slope * 100.0f;
 
-            profileEntries.append(ProfileEntry(currentDistance, slopeInPercent, currentAltitude));
+            profileEntries.push_back(ProfileEntry(currentDistance, slopeInPercent, currentAltitude));
         }
         currentDistance = profileEntry.distance;
         currentAltitude = profileEntry.altitude;
@@ -128,8 +129,9 @@ QList<ProfileEntry> VirtualTrainingFileParser::convertProfileEntries(const QList
 
     // if there was an entry, and there's at least one entry in profile entries, add a last entry
     // to profile entries with the same slope as the previous one
-    if (lastEntry && !profileEntries.isEmpty()) {
-        profileEntries.append(ProfileEntry(currentDistance, profileEntries.last().slope(), lastEntry->altitude));
+    if (lastEntry && !profileEntries.empty()) {
+        profileEntries.push_back(ProfileEntry(currentDistance, profileEntries.back().slope(),
+                                           lastEntry->altitude));
     }
 
     return profileEntries;

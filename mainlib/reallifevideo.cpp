@@ -33,7 +33,7 @@ public:
     QString _name;
     QString _fileType;
     Profile _profile;
-    QList<DistanceMappingEntry> _distanceMappings;
+    std::vector<DistanceMappingEntry> _distanceMappings;
     VideoInformation _videoInformation;
     QList<Course> _courses;
     float _videoCorrectionFactor;
@@ -71,7 +71,7 @@ RealLifeVideo::RealLifeVideo(const QString& name, const QString& fileType, const
     _d->_videoInformation = videoInformation;
     _d->_courses = courses;
     _d->_videoCorrectionFactor = 1.0;
-    _d->_distanceMappings = distanceMappings;
+    std::copy(distanceMappings.begin(), distanceMappings.end(), std::back_inserter(_d->_distanceMappings));
 }
 
 RealLifeVideo::RealLifeVideo(const RealLifeVideo &other):
@@ -222,7 +222,7 @@ void RealLifeVideo::calculateVideoCorrectionFactor(quint64 totalNrOfFrames)
     if (_d->_distanceMappings.size() < 3) {
         _d->_videoCorrectionFactor = 1;
     } else {
-        auto lastDistanceMapping = _d->_distanceMappings.last();
+        const auto &lastDistanceMapping = _d->_distanceMappings.back();
         quint64 framesInLastEntry;
         if (totalNrOfFrames > lastDistanceMapping.frameNumber()) {
             framesInLastEntry = totalNrOfFrames - lastDistanceMapping.frameNumber();
@@ -237,7 +237,7 @@ void RealLifeVideo::calculateVideoCorrectionFactor(quint64 totalNrOfFrames)
 const DistanceMappingEntry &RealLifeVideo::findDistanceMappingEntryFor(const float distance) const
 {
     if (distance < _lastKeyDistance || distance > _nextLastKeyDistance) {
-        int i = (distance > _nextLastKeyDistance) ? _currentDistanceMappingIndex + 1: 0;
+        unsigned i = (distance > _nextLastKeyDistance) ? _currentDistanceMappingIndex + 1: 0;
         for (; i < _d->_distanceMappings.size(); ++i) {
             const DistanceMappingEntry &nextEntry = _d->_distanceMappings[i];
             if (nextEntry.distance() > distance) {

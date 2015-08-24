@@ -84,11 +84,8 @@ QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv)
     QPixmap pixmap(rect.size());
     QPainter painter(&pixmap);
 
-    const QList<ProfileEntry>& profileEntries = rlv.profile().entries();
-    const QPair<float,float> minAndMaxAltitude = findMinimumAndMaximumAltiude(rlv.profile().startAltitude(), profileEntries);
-
-    float minimumAltitude = minAndMaxAltitude.first;
-    float maximumAltitude = minAndMaxAltitude.second;
+    float minimumAltitude = rlv.profile().minimumAltitude();
+    float maximumAltitude = rlv.profile().maximumAltitude();
 
     float altitudeDiff = maximumAltitude - minimumAltitude;
     painter.setBrush(Qt::gray);
@@ -126,17 +123,6 @@ float ProfilePainter::xToDistance(const QRect& rect, const RealLifeVideo& rlv, i
 int ProfilePainter::altitudeToHeight(const QRect& rect, float altitudeAboveMinimum, float altitudeDiff) const
 {
     return static_cast<int>(((altitudeAboveMinimum) / altitudeDiff) * rect.height() * .9);
-}
-
-QPair<float,float> ProfilePainter::findMinimumAndMaximumAltiude(const float startAltitude, const QList<ProfileEntry>& profileEntries) const
-{
-    float minimumAltitude = std::numeric_limits<float>::max();
-    float maximumAltitude = std::numeric_limits<float>::min();
-    foreach (const ProfileEntry& entry, profileEntries) {
-        minimumAltitude = qMin(minimumAltitude, entry.altitude() + startAltitude);
-        maximumAltitude = qMax(maximumAltitude, entry.altitude() + startAltitude);
-    }
-    return qMakePair(minimumAltitude, maximumAltitude);
 }
 
 QColor ProfilePainter::colorForSlope(const float slope) const {

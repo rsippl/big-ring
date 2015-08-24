@@ -19,6 +19,7 @@
  */
 
 #include "profile.h"
+#include <QtCore/QtDebug>
 
 ProfileEntry::ProfileEntry(float distance, float slope, float altitude):
     _distance(distance),_altitude(altitude), _slope(slope)
@@ -38,8 +39,17 @@ bool ProfileEntry::operator ==(const ProfileEntry &other) const
 
 Profile::Profile(ProfileType type, float startAltitude, const QList<ProfileEntry> &entries):
     _type(type),
-    _startAltitude(startAltitude), _entries(entries)
+    _startAltitude(startAltitude),
+    _entries(entries.begin(), entries.end())
 {
+}
+
+Profile::Profile(ProfileType type, float startAltitude, const std::vector<ProfileEntry> &&entries):
+    _type(type),
+    _startAltitude(startAltitude),
+    _entries(entries)
+{
+    qDebug() << "vector: nr of entries" << _entries.size();
 }
 
 Profile::Profile(): _type(ProfileType::SLOPE), _startAltitude(0.0f)
@@ -58,15 +68,27 @@ float Profile::altitudeForDistance(float distance) const
     return _startAltitude + entry.altitude() + entry.slope() * 0.01 * (distance - entry.distance());
 }
 
-const QList<ProfileEntry> &Profile::entries() const
+float Profile::minimumAltitude() const
 {
-    return _entries;
+    auto minimumEntry = std::min_element(_entries.begin(), _entries.end(),
+            [](const ProfileEntry &entry1, const ProfileEntry &entry2) {
+        return (entry1.altitude() < entry2.altitude());
+    });
+    return (*minimumEntry).altitude() + _startAltitude;
+}
+
+float Profile::maximumAltitude() const
+{
+    return (*std::max_element(_entries.begin(), _entries.end(),
+            [](const ProfileEntry &entry1, const ProfileEntry &entry2) {
+        return (entry1.altitude() < entry2.altitude());
+    })).altitude() + _startAltitude;
 }
 
 const ProfileEntry &Profile::entryForDistance(float distance) const
 {
     if (distance < _lastKeyDistance || distance > _nextLastKeyDistance) {
-        int i = (distance > _nextLastKeyDistance) ? _currentProfileEntryIndex + 1: 0;
+        unsigned int i = (distance > _nextLastKeyDistance) ? _currentProfileEntryIndex + 1: 0;
         for (; i < _entries.size(); ++i) {
             const ProfileEntry &nextEntry = _entries[i];
             if (nextEntry.distance() > distance) {
@@ -87,9 +109,9 @@ const ProfileEntry &Profile::entryForDistance(float distance) const
 }
 
 float Profile::totalDistance() const {
-    if (_entries.isEmpty()) {
+    if (_entries.empty()) {
         return 0;
     }
-    return _entries.last().distance();
+    return _entries.back().distance();
 }
 

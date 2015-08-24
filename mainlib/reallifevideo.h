@@ -133,7 +133,7 @@ private:
 
     mutable float _lastKeyDistance = -1;
     mutable float _nextLastKeyDistance = -1;
-    mutable int _currentDistanceMappingIndex = -1;
+    mutable unsigned int _currentDistanceMappingIndex = 0;
 };
 typedef QList<RealLifeVideo> RealLifeVideoList;
 
