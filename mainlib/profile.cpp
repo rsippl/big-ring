@@ -38,10 +38,9 @@ bool ProfileEntry::operator ==(const ProfileEntry &other) const
 
 
 Profile::Profile(ProfileType type, float startAltitude, const QList<ProfileEntry> &entries):
-    _type(type),
-    _startAltitude(startAltitude),
-    _entries(entries.begin(), entries.end())
+    Profile(type, startAltitude, std::move(std::vector<ProfileEntry>(entries.begin(), entries.end())))
 {
+    // empty
 }
 
 Profile::Profile(ProfileType type, float startAltitude, const std::vector<ProfileEntry> &&entries):
@@ -49,11 +48,12 @@ Profile::Profile(ProfileType type, float startAltitude, const std::vector<Profil
     _startAltitude(startAltitude),
     _entries(entries)
 {
-    qDebug() << "vector: nr of entries" << _entries.size();
+    // empty
 }
 
 Profile::Profile(): _type(ProfileType::SLOPE), _startAltitude(0.0f)
 {
+    // empty
 }
 
 float Profile::slopeForDistance(float distance) const

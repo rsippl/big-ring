@@ -63,6 +63,16 @@ Course::Course(float start, float end):
 
 RealLifeVideo::RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation,
                              const QList<Course>& courses, const QList<DistanceMappingEntry>& distanceMappings, Profile profile):
+    RealLifeVideo(name, fileType, videoInformation, courses,
+                  std::move(std::vector<DistanceMappingEntry>(distanceMappings.begin(), distanceMappings.end())), profile)
+{
+    // empty
+}
+
+RealLifeVideo::RealLifeVideo(const QString &name, const QString &fileType, const VideoInformation &videoInformation,
+                             const QList<Course> &courses,
+                             const std::vector<DistanceMappingEntry> &&distanceMappings,
+                             Profile& profile):
     _d(new RealLifeVideoData)
 {
     _d->_name = name;
@@ -71,7 +81,7 @@ RealLifeVideo::RealLifeVideo(const QString& name, const QString& fileType, const
     _d->_videoInformation = videoInformation;
     _d->_courses = courses;
     _d->_videoCorrectionFactor = 1.0;
-    std::copy(distanceMappings.begin(), distanceMappings.end(), std::back_inserter(_d->_distanceMappings));
+    _d->_distanceMappings = distanceMappings;
 }
 
 RealLifeVideo::RealLifeVideo(const RealLifeVideo &other):

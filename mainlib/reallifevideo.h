@@ -92,6 +92,8 @@ class RealLifeVideo
 public:
     explicit RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation, const QList<Course>& courses,
                            const QList<DistanceMappingEntry>& distanceMappings, Profile profile);
+    explicit RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation, const QList<Course>& courses,
+                           const std::vector<DistanceMappingEntry>&& distanceMappings, Profile &profile);
     RealLifeVideo(const RealLifeVideo& other);
     explicit RealLifeVideo();
 
