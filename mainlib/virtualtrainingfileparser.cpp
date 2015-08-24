@@ -53,7 +53,7 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
     float frameRate = 0;
     Profile profile;
     QList<Course> courses;
-    QList<DistanceMappingEntry> distanceMappings;
+    std::vector<DistanceMappingEntry> distanceMappings;
 
     QXmlStreamReader::TokenType currentTokenType;
     while (!reader.atEnd()) {
@@ -84,19 +84,19 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
     }
     VideoInformation videoInformation(videoFilePath, frameRate);
 
-    return RealLifeVideo(name, "Cycleops Virtual Training", videoInformation, courses, distanceMappings, profile);
+    return RealLifeVideo(name, "Cycleops Virtual Training", videoInformation, courses, std::move(distanceMappings), profile);
 }
 
-QList<virtualtrainingfileparser::ProfileEntry> VirtualTrainingFileParser::readProfileEntries(QXmlStreamReader &reader) const
+std::vector<virtualtrainingfileparser::ProfileEntry> VirtualTrainingFileParser::readProfileEntries(QXmlStreamReader &reader) const
 {
-    QList<virtualtrainingfileparser::ProfileEntry> profileEntries;
+    std::vector<virtualtrainingfileparser::ProfileEntry> profileEntries;
     while(!reader.atEnd()) {
         QXmlStreamReader::TokenType tokenType = reader.readNext();
         if (isElement(tokenType, reader, "altitude")) {
             virtualtrainingfileparser::ProfileEntry entry;
             entry.distance = readSingleAttribute(reader.attributes(), "distance").toFloat();
             entry.altitude = readSingleAttribute(reader.attributes(), "height").toFloat();
-            profileEntries.append(entry);
+            profileEntries.push_back(entry);
         } else if (tokenType == QXmlStreamReader::EndElement && reader.name() == "altitudes") {
             break;
         }
@@ -104,15 +104,15 @@ QList<virtualtrainingfileparser::ProfileEntry> VirtualTrainingFileParser::readPr
     return profileEntries;
 }
 
-std::vector<ProfileEntry> VirtualTrainingFileParser::convertProfileEntries(const QList<virtualtrainingfileparser::ProfileEntry> &virtualTrainingProfileEntries) const
+std::vector<ProfileEntry> VirtualTrainingFileParser::convertProfileEntries(const std::vector<virtualtrainingfileparser::ProfileEntry> &virtualTrainingProfileEntries) const
 {
     std::vector<ProfileEntry> profileEntries;
     profileEntries.reserve(virtualTrainingProfileEntries.size());
 
-    virtualtrainingfileparser::ProfileEntry *lastEntry = nullptr;
+    const virtualtrainingfileparser::ProfileEntry *lastEntry = nullptr;
     float currentDistance;
     float currentAltitude;
-    for (virtualtrainingfileparser::ProfileEntry profileEntry: virtualTrainingProfileEntries) {
+    for (const virtualtrainingfileparser::ProfileEntry &profileEntry: virtualTrainingProfileEntries) {
         if (lastEntry) {
             float segmentDistance = profileEntry.distance - currentDistance;
             float segmentAltitudeDifference = profileEntry.altitude - currentAltitude;
@@ -165,47 +165,47 @@ QList<Course> VirtualTrainingFileParser::readCourses(QXmlStreamReader &reader) c
     return courses;
 }
 
-QList<virtualtrainingfileparser::DistanceMappingEntry> VirtualTrainingFileParser::readDistanceMappings(QXmlStreamReader &reader) const
+std::vector<virtualtrainingfileparser::DistanceMappingEntry> VirtualTrainingFileParser::readDistanceMappings(QXmlStreamReader &reader) const
 {
-    QList<virtualtrainingfileparser::DistanceMappingEntry> entries;
+    std::vector<virtualtrainingfileparser::DistanceMappingEntry> entries;
     while(!reader.atEnd()) {
         QXmlStreamReader::TokenType tokenType = reader.readNext();
         if (isElement(tokenType, reader, "mapping")) {
             virtualtrainingfileparser::DistanceMappingEntry entry;
             entry.distance = readSingleAttribute(reader.attributes(), "distance").toFloat();
             entry.frame = readSingleAttribute(reader.attributes(), "frame").toFloat();
-            entries.append({entry});
+            entries.push_back({entry});
         } else if (tokenType == QXmlStreamReader::EndElement && reader.name() == "mappings") {
             break;
         }
     }
     return entries;
-
 }
 
-QList<DistanceMappingEntry> VirtualTrainingFileParser::convertDistanceMappings(const QList<virtualtrainingfileparser::DistanceMappingEntry> &vcEntries) const
+std::vector<DistanceMappingEntry> VirtualTrainingFileParser::convertDistanceMappings(const std::vector<virtualtrainingfileparser::DistanceMappingEntry> &vcEntries) const
 {
-    QList<DistanceMappingEntry> mappings;
+    std::vector<DistanceMappingEntry> mappings;
+    mappings.reserve(vcEntries.size());
 
-    virtualtrainingfileparser::DistanceMappingEntry *lastEntry = nullptr;
+    const virtualtrainingfileparser::DistanceMappingEntry *lastEntry = nullptr;
     float currentDistance;
     quint32 currentFrame;
-    for (virtualtrainingfileparser::DistanceMappingEntry distanceMappingEntry: vcEntries) {
+    for (const virtualtrainingfileparser::DistanceMappingEntry &distanceMappingEntry: vcEntries) {
         if (lastEntry) {
             float segmentDistance = distanceMappingEntry.distance - currentDistance;
             quint32 frameDifference = distanceMappingEntry.frame - currentFrame;
 
             float metersPerFrame = segmentDistance / frameDifference;
 
-            mappings.append(DistanceMappingEntry(currentDistance, currentFrame, metersPerFrame));
+            mappings.push_back(DistanceMappingEntry(currentDistance, currentFrame, metersPerFrame));
         }
         currentDistance = distanceMappingEntry.distance;
         currentFrame = distanceMappingEntry.frame;
         lastEntry = &distanceMappingEntry;
     }
 
-    if (lastEntry && !mappings.isEmpty()) {
-        mappings.append(DistanceMappingEntry(lastEntry->distance, lastEntry->frame, mappings.last().metersPerFrame()));
+    if (lastEntry && !mappings.empty()) {
+        mappings.push_back(DistanceMappingEntry(lastEntry->distance, lastEntry->frame, mappings.back().metersPerFrame()));
     }
 
     return mappings;

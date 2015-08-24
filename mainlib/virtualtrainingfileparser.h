@@ -128,13 +128,13 @@ public:
 private:
     RealLifeVideo parseXml(QXmlStreamReader& reader) const;
 
-    std::vector<ProfileEntry> convertProfileEntries(const QList<virtualtrainingfileparser::ProfileEntry> &virtualTrainingProfileEntries) const;
-    QList<virtualtrainingfileparser::ProfileEntry> readProfileEntries(QXmlStreamReader &reader) const;
+    std::vector<ProfileEntry> convertProfileEntries(const std::vector<virtualtrainingfileparser::ProfileEntry> &virtualTrainingProfileEntries) const;
+    std::vector<virtualtrainingfileparser::ProfileEntry> readProfileEntries(QXmlStreamReader &reader) const;
     QString findVideoFile(QString filename) const;
     QList<Course> readCourses(QXmlStreamReader& reader) const;
 
-    QList<virtualtrainingfileparser::DistanceMappingEntry> readDistanceMappings(QXmlStreamReader &reader) const;
-    QList<DistanceMappingEntry> convertDistanceMappings(const QList<virtualtrainingfileparser::DistanceMappingEntry> & entries) const;
+    std::vector<virtualtrainingfileparser::DistanceMappingEntry> readDistanceMappings(QXmlStreamReader &reader) const;
+    std::vector<DistanceMappingEntry> convertDistanceMappings(const std::vector<virtualtrainingfileparser::DistanceMappingEntry> & entries) const;
     const QList<QFileInfo> _videoFilesInfo;
 };
 }
