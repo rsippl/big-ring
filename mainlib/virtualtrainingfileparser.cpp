@@ -52,7 +52,7 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
     QString videoFilePath;
     float frameRate = 0;
     Profile profile;
-    QList<Course> courses;
+    std::vector<Course> courses;
     std::vector<DistanceMappingEntry> distanceMappings;
 
     QXmlStreamReader::TokenType currentTokenType;
@@ -84,7 +84,8 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
     }
     VideoInformation videoInformation(videoFilePath, frameRate);
 
-    return RealLifeVideo(name, "Cycleops Virtual Training", videoInformation, courses, std::move(distanceMappings), profile);
+    return RealLifeVideo(name, "Cycleops Virtual Training", videoInformation,
+                         std::move(courses), std::move(distanceMappings), profile);
 }
 
 std::vector<virtualtrainingfileparser::ProfileEntry> VirtualTrainingFileParser::readProfileEntries(QXmlStreamReader &reader) const
@@ -147,9 +148,9 @@ QString VirtualTrainingFileParser::findVideoFile(QString filename) const
     return "";
 }
 
-QList<Course> VirtualTrainingFileParser::readCourses(QXmlStreamReader &reader) const
+std::vector<Course> VirtualTrainingFileParser::readCourses(QXmlStreamReader &reader) const
 {
-    QList<Course> courses;
+    std::vector<Course> courses;
     while(!reader.atEnd()) {
         QXmlStreamReader::TokenType tokenType = reader.readNext();
         if (isElement(tokenType, reader, "segment")) {
@@ -157,7 +158,7 @@ QList<Course> VirtualTrainingFileParser::readCourses(QXmlStreamReader &reader) c
             float start = readSingleAttribute(reader.attributes(), "start").toFloat();
             float end = readSingleAttribute(reader.attributes(), "end").toFloat();
 
-            courses.append(Course(name, start, end));
+            courses.push_back(Course(name, start, end));
         } else if (tokenType == QXmlStreamReader::EndElement && reader.name() == "segments") {
             break;
         }

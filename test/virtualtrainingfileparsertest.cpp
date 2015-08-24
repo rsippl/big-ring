@@ -43,8 +43,8 @@ void VirtualTrainingFileParserTest::testWithBavellaFile()
     QCOMPARE(qRound(profile.slopeForDistance(38432) * 100), -10);
     QCOMPARE(qRound(tacxRlv.profile().slopeForDistance(38432) * 100), -10);
 
-    QList<Course> courses = rlv.courses();
-    QCOMPARE(courses.size(), 3);
+    std::vector<Course> courses = rlv.courses();
+    QCOMPARE(courses.size(), 3ul);
     QCOMPARE(courses[1].name(), QString("Erstes Teilstück"));
     QCOMPARE(courses[1].start(), 0.0f);
     QCOMPARE(courses[1].end(), 20280.0f);

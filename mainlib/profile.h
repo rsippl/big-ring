@@ -21,7 +21,7 @@
 #ifndef PROFILE_H
 #define PROFILE_H
 
-#include <QList>
+#include <vector>
 
 class ProfileEntry
 {
@@ -47,7 +47,6 @@ enum class ProfileType {
 class Profile
 {
 public:
-    explicit Profile(ProfileType type, float startAltitude, const QList<ProfileEntry> &entries);
     explicit Profile(ProfileType type, float startAltitude, const std::vector<ProfileEntry> &&entries);
     explicit Profile();
 

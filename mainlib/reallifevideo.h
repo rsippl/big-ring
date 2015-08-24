@@ -92,7 +92,7 @@ class RealLifeVideo
 public:
     explicit RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation, const QList<Course>& courses,
                            const QList<DistanceMappingEntry>& distanceMappings, Profile profile);
-    explicit RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation, const QList<Course>& courses,
+    explicit RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation, const std::vector<Course> &&courses,
                            const std::vector<DistanceMappingEntry>&& distanceMappings, Profile &profile);
     RealLifeVideo(const RealLifeVideo& other);
     explicit RealLifeVideo();
@@ -103,7 +103,7 @@ public:
     Profile& profile() const;
     const QString name() const;
     const VideoInformation& videoInformation() const;
-    const QList<Course>& courses() const;
+    const std::vector<Course>& courses() const;
 
     /** Set the distance for the current unfinished run */
     void setUnfinishedRun(float distance);

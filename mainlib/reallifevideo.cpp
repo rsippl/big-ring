@@ -35,7 +35,7 @@ public:
     Profile _profile;
     std::vector<DistanceMappingEntry> _distanceMappings;
     VideoInformation _videoInformation;
-    QList<Course> _courses;
+    std::vector<Course> _courses;
     float _videoCorrectionFactor;
 };
 
@@ -63,14 +63,14 @@ Course::Course(float start, float end):
 
 RealLifeVideo::RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation,
                              const QList<Course>& courses, const QList<DistanceMappingEntry>& distanceMappings, Profile profile):
-    RealLifeVideo(name, fileType, videoInformation, courses,
+    RealLifeVideo(name, fileType, videoInformation, std::move(std::vector<Course>(courses.begin(), courses.end())),
                   std::move(std::vector<DistanceMappingEntry>(distanceMappings.begin(), distanceMappings.end())), profile)
 {
     // empty
 }
 
 RealLifeVideo::RealLifeVideo(const QString &name, const QString &fileType, const VideoInformation &videoInformation,
-                             const QList<Course> &courses,
+                             const std::vector<Course> &&courses,
                              const std::vector<DistanceMappingEntry> &&distanceMappings,
                              Profile& profile):
     _d(new RealLifeVideoData)
@@ -126,24 +126,24 @@ const VideoInformation &RealLifeVideo::videoInformation() const
     return _d->_videoInformation;
 }
 
-const QList<Course> &RealLifeVideo::courses() const
+const std::vector<Course> &RealLifeVideo::courses() const
 {
     return _d->_courses;
 }
 
 void RealLifeVideo::setUnfinishedRun(float distance)
 {
-    if (!_d->_courses.isEmpty() && _d->_courses.last().type() == Course::Unfinished) {
-        _d->_courses.removeLast();
+    if (!_d->_courses.empty() && _d->_courses.back().type() == Course::Unfinished) {
+        _d->_courses.pop_back();
     }
     Course unfinishedCourse(distance, totalDistance());
-    _d->_courses.append(unfinishedCourse);
+    _d->_courses.push_back(unfinishedCourse);
 }
 
 void RealLifeVideo::addStartPoint(float distance, const QString &name)
 {
     Course customCourse(name, Course::Custom, distance, totalDistance());
-    _d->_courses.append(customCourse);
+    _d->_courses.push_back(customCourse);
 }
 
 void RealLifeVideo::printDistanceMapping()

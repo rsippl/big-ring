@@ -226,21 +226,21 @@ Profile PgmfFileParser::readProfile(QFile &pgmfFile)
             pgmfFile.read(infoBlock.numberOfRecords * infoBlock.recordSize);
     }
 
-    QList<ProfileEntry> profile;
+    std::vector<ProfileEntry> profile;
     if (generalBlock.powerSlopeOrHr == 1) {
         float currentDistance = 0;
         float currentAltitude = 0;
         QListIterator<tacxfile::program_t> it(profileBlocks);
         while(it.hasNext()) {
             tacxfile::program_t item = it.next();
-            profile << ProfileEntry(currentDistance, item.powerSlopeHeartRate, currentAltitude);
+            profile.push_back(ProfileEntry(currentDistance, item.powerSlopeHeartRate, currentAltitude));
             currentDistance += item.durationDistance;
             currentAltitude += item.powerSlopeHeartRate * .01f * item.durationDistance;
         }
     }
     ProfileType type = (ProfileType) generalBlock.powerSlopeOrHr;
 
-    return Profile(type, generalBlock.startAltitude, profile);
+    return Profile(type, generalBlock.startAltitude, std::move(profile));
 }
 
 tacxfile::generalPgmf_t PgmfFileParser::readGeneralPgmfInfo(QFile &pgmfFile)

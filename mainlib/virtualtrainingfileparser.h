@@ -131,7 +131,7 @@ private:
     std::vector<ProfileEntry> convertProfileEntries(const std::vector<virtualtrainingfileparser::ProfileEntry> &virtualTrainingProfileEntries) const;
     std::vector<virtualtrainingfileparser::ProfileEntry> readProfileEntries(QXmlStreamReader &reader) const;
     QString findVideoFile(QString filename) const;
-    QList<Course> readCourses(QXmlStreamReader& reader) const;
+    std::vector<Course> readCourses(QXmlStreamReader& reader) const;
 
     std::vector<virtualtrainingfileparser::DistanceMappingEntry> readDistanceMappings(QXmlStreamReader &reader) const;
     std::vector<DistanceMappingEntry> convertDistanceMappings(const std::vector<virtualtrainingfileparser::DistanceMappingEntry> & entries) const;

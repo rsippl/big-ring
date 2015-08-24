@@ -77,15 +77,16 @@ private:
     const QFileInfo *videoFileForGpsFile(const QFile &inputFile) const;
     RealLifeVideo parseXml(const QFile &inputFile, const QFileInfo &videoFileInfo, QXmlStreamReader &reader) const;
     QGeoPositionInfo readTrackPoint(QXmlStreamReader &reader) const;
-    QList<ProfileEntry> convertProfileEntries(const QList<QGeoPositionInfo> &trackPoints) const;
-    QList<QGeoPositionInfo> smoothTrack(const QList<QGeoPositionInfo> &trackPoints) const;
-    QList<QGeoPositionInfo> smoothTrackPoints(const QList<QGeoPositionInfo> &trackPoints) const;
+    std::vector<ProfileEntry> convertProfileEntries(const std::vector<QGeoPositionInfo> &trackPoints) const;
+    std::vector<QGeoPositionInfo> smoothTrack(const std::vector<QGeoPositionInfo> &trackPoints) const;
+    std::vector<QGeoPositionInfo> smoothTrackPoints(const std::vector<QGeoPositionInfo> &trackPoints) const;
     QGeoPositionInfo smoothSingleTrackPoint(
             const QGeoPositionInfo &previousPoint,
             const QGeoPositionInfo &point,
             const QGeoPositionInfo &nextPoint) const;
 
-    QList<DistanceMappingEntry> convertDistanceMappings(float frameRate, const QList<QGeoPositionInfo> &trackPoints) const;
+    std::vector<DistanceMappingEntry> convertDistanceMappings(float frameRate,
+                                                              const std::vector<QGeoPositionInfo> &trackPoints) const;
 
     const QList<QFileInfo> _videoFiles;
 };
