@@ -77,11 +77,9 @@ void RealLifeVideoImporter::importRealLiveVideoFilesFromDir()
         futureWatcher->deleteLater();
     });
 
-    std::function<RealLifeVideoList(void)> importFunction([this]() {
-       return this->importRlvFiles(BigRingSettings().videoFolder());
-    });
-    QFuture<QList<RealLifeVideo> > importRlvFuture = QtConcurrent::run(importFunction);
-    futureWatcher->setFuture(importRlvFuture);
+    futureWatcher->setFuture(QtConcurrent::run([this]() {
+        return this->importRlvFiles(BigRingSettings().videoFolder());
+    }));
 }
 
 bool RealLifeVideoImporter::event(QEvent *event)

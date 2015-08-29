@@ -23,13 +23,16 @@
 #include <functional>
 
 #include <QtCore/QtDebug>
+#include <QtCore/QPropertyAnimation>
 #include <QtCore/QUrl>
 #include <QtOpenGL/QGLWidget>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 #include <QtGui/QResizeEvent>
 
+
 #include "clockgraphicsitem.h"
+#include "informationboxgraphicsitem.h"
 #include "profileitem.h"
 #include "sensoritem.h"
 #include "simulation.h"
@@ -58,6 +61,7 @@ NewVideoWidget::NewVideoWidget(QWidget *parent) :
     setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
 
     addClock(scene);
+    addInformationBox(scene);
     addSensorItems(scene);
 
     _profileItem = new ProfileItem;
@@ -104,6 +108,13 @@ void NewVideoWidget::addClock(QGraphicsScene* scene)
     scene->addItem(_clockItem);
 }
 
+void NewVideoWidget::addInformationBox(QGraphicsScene *scene)
+{
+    _informationBoxItem = new InformationBoxGraphicsItem;
+    _informationBoxItem->hide();
+    scene->addItem(_informationBoxItem);
+}
+
 NewVideoWidget::~NewVideoWidget()
 {
     // empty
@@ -141,6 +152,26 @@ void NewVideoWidget::setCourseIndex(int index)
 void NewVideoWidget::setDistance(float distance)
 {
     _videoPlayer->stepToFrame(_rlv.frameForDistance(distance));
+}
+
+void NewVideoWidget::displayInformationBoxText(const QString &text)
+{
+    _informationBoxItem->setText(text);
+    QRectF rect = _informationBoxItem->boundingRect();
+    rect.moveCenter(QPointF(sceneRect().width() / 2, 3 * sceneRect().height() / 4));
+    _informationBoxItem->setPos(rect.topLeft());
+    _informationBoxItem->show();
+
+    QPropertyAnimation *animation = new QPropertyAnimation(_informationBoxItem, "opacity");
+    animation->setDuration(3000);
+    animation->setStartValue(QVariant::fromValue(1.0));
+    animation->setEndValue(QVariant::fromValue(0.0));
+    connect(animation, &QPropertyAnimation::finished, _informationBoxItem, [this]() {
+        _informationBoxItem->hide();
+    });
+    QTimer::singleShot(5000, animation, [animation]() {
+        animation->start(QAbstractAnimation::DeleteWhenStopped);
+    });
 }
 
 void NewVideoWidget::setSimulation(const Simulation& simulation)

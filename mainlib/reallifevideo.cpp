@@ -36,6 +36,7 @@ public:
     std::vector<DistanceMappingEntry> _distanceMappings;
     VideoInformation _videoInformation;
     std::vector<Course> _courses;
+    std::vector<InformationBox> _informationBoxes;
     float _videoCorrectionFactor;
 };
 
@@ -72,7 +73,7 @@ RealLifeVideo::RealLifeVideo(const QString& name, const QString& fileType, const
 RealLifeVideo::RealLifeVideo(const QString &name, const QString &fileType, const VideoInformation &videoInformation,
                              const std::vector<Course> &&courses,
                              const std::vector<DistanceMappingEntry> &&distanceMappings,
-                             Profile& profile):
+                             Profile& profile, const std::vector<InformationBox> &&informationBoxes):
     _d(new RealLifeVideoData)
 {
     _d->_name = name;
@@ -82,6 +83,14 @@ RealLifeVideo::RealLifeVideo(const QString &name, const QString &fileType, const
     _d->_courses = courses;
     _d->_videoCorrectionFactor = 1.0;
     _d->_distanceMappings = distanceMappings;
+    _d->_informationBoxes = informationBoxes;
+
+    if (!informationBoxes.empty()) {
+        qDebug() << "Information Boxes:";
+        for (const InformationBox &informationBox: informationBoxes) {
+            qDebug() << informationBox.frameNumber() << informationBox.message();
+        }
+    }
 }
 
 RealLifeVideo::RealLifeVideo(const RealLifeVideo &other):
@@ -177,6 +186,19 @@ float RealLifeVideo::slopeForDistance(const float distance) const
 float RealLifeVideo::altitudeForDistance(const float distance) const
 {
     return _d->_profile.altitudeForDistance(distance);
+}
+
+const QString RealLifeVideo::messageForDistance(const float distance) const
+{
+    quint32 frame = frameForDistance(distance);
+    QString message("");
+    for (const InformationBox &informationBox: _d->_informationBoxes) {
+        if (informationBox.frameNumber() > frame) {
+            break;
+        }
+        message = informationBox.message();
+    }
+    return message;
 }
 
 float RealLifeVideo::totalDistance() const

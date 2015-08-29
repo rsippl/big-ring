@@ -54,6 +54,17 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     connect(sensors, &Sensors::powerWattsMeasured, _simulation, &Simulation::setPower);
     connect(sensors, &Sensors::wheelSpeedMpsMeasured, _simulation, &Simulation::setWheelSpeed);
     sensors->initialize();
+
+    _informationMessageTimer.setInterval(1000);
+    connect(&_informationMessageTimer, &QTimer::timeout, this, [this]() {
+        QString informationMessage = _rlv.messageForDistance(_cyclist->distance());
+        if (informationMessage != _lastInformationMessage) {
+            _lastInformationMessage = informationMessage;
+            emit newInformationMessage(informationMessage);
+            qDebug() << "New information message found:" << informationMessage;
+        }
+    });
+    _informationMessageTimer.start();
 }
 
 Run::~Run()

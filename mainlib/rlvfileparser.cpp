@@ -19,13 +19,168 @@
  */
 
 #include "rlvfileparser.h"
-
+#include "utility.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QtDebug>
+#include <utility>
 
+namespace
+{
+template <typename T>
+T readBlock(QFile &file)
+{
+    T block;
+    file.read(reinterpret_cast<char*>(&block), sizeof(block));
+    return block;
+}
+
+std::map<QString,QFileInfo> toFileInfoMap(const QList<QFileInfo> &pgmfFiles)
+{
+    std::function<QString(QFileInfo)> keyFunction([](const QFileInfo& fileInfo) {
+        return fileInfo.baseName();
+    });
+
+    return indoorcycling::toMap(std::vector<QFileInfo>(pgmfFiles.begin(), pgmfFiles.end()),
+                                                           keyFunction);
+}
+}
 namespace tacxfile
 {
+
+QString fromUtf16(const char* string, size_t size);
+
+struct headerBlock{
+    qint16 fingerprint;
+    qint16 version;
+    qint32 numberOfBlocks;
+
+    QString toString() const {
+        return QString("fingerprint %1, version %2, number of blocks %3")
+                .arg(fingerprint).arg(version).arg(numberOfBlocks);
+    }
+};
+
+struct infoBlock{
+    qint16 fingerprint;
+    qint16 version;
+    qint32 numberOfRecords;
+    qint32 recordSize;
+
+    qint32 size() const {
+        return numberOfRecords * recordSize;
+    }
+
+    QString toString() const {
+        return QString("block fingerprint %1, block version %2, number of records %3, record size %4")
+                .arg(fingerprint).arg(version).arg(numberOfRecords).arg(recordSize);
+    }
+};
+
+struct generalRlvBlock {
+    char _filename[522];
+    float frameRate;
+    float originalRunWeight;
+    qint32 frameOffset;
+
+    QString filename() const {
+        return fromUtf16(_filename, sizeof(_filename));
+    }
+
+    QString toString() const {
+        return QString("video file name: %1, frame rate %2").arg(filename()).arg(frameRate);
+    }
+};
+
+struct rlvCourseInformation_t {
+    float start;
+    float end;
+    char _courseName[66];
+    quint8 _textFilename[522];
+
+    QString courseName() const {
+        return fromUtf16(_courseName, sizeof(_courseName));
+    }
+
+    QString toString() const {
+        return QString("start: %1, end %2, name: %3")
+                .arg(start).arg(end).arg(courseName());
+    }
+};
+
+struct frameDistanceMapping_t {
+    quint32 frameNumber;
+    float metersPerFrame;
+
+    QString toString() const {
+        return QString("\tframeNumber %1, meters per frame %2").arg(frameNumber).arg(metersPerFrame);
+    }
+};
+
+struct informationBox {
+    qint32 frameNumber;
+    qint32 commandNr;
+};
+
+struct generalProfileBlock {
+    quint32 checksum;
+    char _courseName[34];
+    qint32 powerSlopeOrHr;
+    qint32 _timeOrDistance;
+    double _totalTimeOrDistance;
+    double energyCons;
+    float startAltitude;
+    qint32 breakCategory;
+
+    QString courseName() const {
+        return fromUtf16(_courseName, sizeof(_courseName));
+    }
+
+    QString type() const {
+        if (powerSlopeOrHr == 0)
+            return QString("Power");
+        if (powerSlopeOrHr == 1)
+            return QString("Slope");
+        else
+            return QString("HR");
+    }
+
+    QString timeOrDistance() const {
+        if (_timeOrDistance == 0)
+            return "Time";
+        else
+            return "Distance";
+    }
+
+    QString totalTimeOrDistance() const {
+        if (_timeOrDistance == 0)
+            return QString("%1 seconds").arg(_totalTimeOrDistance);
+        else
+            return QString("%1 km").arg(_totalTimeOrDistance/1000.0);
+    }
+
+    QString toString() const {
+        return QString("General pgmf: %1, type: %2, %3-based, start alt: %4")
+                .arg(courseName())
+                .arg(type())
+                .arg(timeOrDistance())
+                .arg(startAltitude);
+    }
+};
+
+struct programBlock{
+    float durationDistance;
+    float powerSlopeHeartRate;
+    float rollingFriction;
+
+    QString toString() const {
+        return QString("duration or distance: %1, value: %2, friction: %3")
+                .arg(durationDistance).arg(powerSlopeHeartRate)
+                .arg(rollingFriction);
+    }
+};
+
+
 QString fromUtf16(const char* string, size_t size) {
     QByteArray bytes;
 
@@ -54,11 +209,17 @@ private:
 }
 
 RlvFileParser::RlvFileParser(const QList<QFileInfo> &pgmfFiles, const QList<QFileInfo>& videoFiles): TacxFileParser(),
-    _pgmfFiles(pgmfFiles), _videoFiles(videoFiles)
+    _pgmfFiles(toFileInfoMap(pgmfFiles)), _videoFiles(videoFiles)
 {
+
 }
 
 QString RlvFileParser::findVideoFilename(const QList<QFileInfo>& videoFiles, const QString& rlvVideoFilename)
+{
+    return findVideoFileInfo(videoFiles, rlvVideoFilename).canonicalFilePath();
+}
+
+QFileInfo RlvFileParser::findVideoFileInfo(const QList<QFileInfo> &videoFiles, const QString &rlvVideoFilename)
 {
     QString normalizedVideoFilename;
     // if rlv video filename contains a path, get only the last part of it.
@@ -66,10 +227,51 @@ QString RlvFileParser::findVideoFilename(const QList<QFileInfo>& videoFiles, con
 
     foreach(const QFileInfo& fileInfo, videoFiles) {
         if (fileInfo.fileName().toLower() == normalizedVideoFilename.toLower())
-            return fileInfo.canonicalFilePath();
+            return fileInfo;
     }
 
-    return QString();
+    return QFileInfo();
+}
+
+QFileInfo RlvFileParser::findCommandListFileInfo(const QString &rlvName, const QString &videoFilename)
+{
+    QFileInfo videoFile(videoFilename);
+
+    QDir videoDirectory = videoFile.absoluteDir();
+    qDebug() << "video file = " << videoFile.canonicalFilePath();
+    qDebug() << "video directory" << videoDirectory;
+
+    if (videoDirectory.cd(rlvName) && videoDirectory.cd("EN")) {
+        qDebug() << "Command list should be in" << videoDirectory;
+        QFileInfo commandListFileInfo(videoDirectory, "CmdList.txt");
+        if (commandListFileInfo.exists()) {
+            return commandListFileInfo;
+        }
+    }
+    qDebug() << "No command list found for" << videoDirectory;
+
+    return QFileInfo();
+}
+
+std::vector<QString> RlvFileParser::readInfoBoxCommands(const QFileInfo &commandListFileInfo)
+{
+    std::vector<QString> commands;
+    if (commandListFileInfo.exists()) {
+        QFile commandListFile(commandListFileInfo.absoluteFilePath());
+        if (commandListFile.open(QFile::ReadOnly)) {
+            QTextStream in(&commandListFile);
+            while (!in.atEnd()) {
+                QString line = in.readLine();
+                if (line.startsWith("TEXT(\"")) {
+                    int startIndex = QString("TEXT(\"").length();
+                    int endIndex = line.indexOf("\")");
+                    commands.push_back(line.mid(startIndex, endIndex - startIndex));
+                }
+            }
+        }
+
+    }
+    return commands;
 }
 
 /**
@@ -82,12 +284,11 @@ QFileInfo RlvFileParser::findPgmfFile(QFile &rlvFile)
     QFileInfo fileInfo(rlvFile);
 
     QString baseName = fileInfo.baseName();
-    for (QFileInfo pgmfFileInfo: _pgmfFiles) {
-        if (pgmfFileInfo.baseName() == baseName) {
-            return pgmfFileInfo;
-        }
+    auto it = _pgmfFiles.find(fileInfo.baseName());
+    if (it == _pgmfFiles.end()) {
+        return QFileInfo();
     }
-    return QFileInfo();
+    return (*it).second;
 }
 
 RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
@@ -102,23 +303,27 @@ RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
 
     Profile profile = PgmfFileParser().readProfile(pgmfFile);
 
-    QList<Course> courses;
+    std::vector<Course> courses;
     QString name = QFileInfo(rlvFile).baseName();
     VideoInformation videoInformation(QString("Unknown"), 0.0);
-    QList<DistanceMappingEntry> distanceMapping;
+    std::vector<DistanceMappingEntry> distanceMapping;
+    std::vector<tacxfile::informationBox> informationBoxes;
 
-    tacxfile::header_t header = readHeaderBlock(rlvFile);
+    tacxfile::headerBlock header = readHeaderBlock(rlvFile);
     for(qint32 blockNr = 0; blockNr < header.numberOfBlocks; ++blockNr) {
-        tacxfile::info_t infoBlock = readInfoBlock(rlvFile);
+        tacxfile::infoBlock infoBlock = readInfoBlock(rlvFile);
         if (infoBlock.fingerprint < 0 || infoBlock.fingerprint > 10000)
             break;
         if (infoBlock.fingerprint == 2010) {
-            tacxfile::generalRlv_t generalRlv = readGeneralRlvBlock(rlvFile);
+            tacxfile::generalRlvBlock generalRlv = readGeneralRlvBlock(rlvFile);
             QString videoFilename = findVideoFilename(_videoFiles, generalRlv.filename());
             videoInformation = VideoInformation(videoFilename, generalRlv.frameRate);
         }
         else if (infoBlock.fingerprint == 2020) {
             distanceMapping = readFrameDistanceMapping(rlvFile, infoBlock.numberOfRecords);
+        } else if (infoBlock.fingerprint == 2030) {
+            informationBoxes = readInformationBoxes(rlvFile, infoBlock.numberOfRecords);
+
         }
         else if (infoBlock.fingerprint == 2040) {
             courses = readCourseInformation(rlvFile, infoBlock.numberOfRecords);
@@ -127,27 +332,38 @@ RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
             rlvFile.read(infoBlock.numberOfRecords * infoBlock.recordSize);
         }
     }
-    return RealLifeVideo(name, "Tacx", videoInformation, courses, distanceMapping, profile);
+
+    QFileInfo commandListFileInfo = findCommandListFileInfo(name, videoInformation.videoFilename());
+    std::vector<QString> infoBoxCommands = readInfoBoxCommands(commandListFileInfo);
+
+    std::vector<InformationBox> rlvInformationBoxes;
+    for (unsigned i = 0; i < infoBoxCommands.size(); ++i) {
+        if (i < informationBoxes.size()) {
+            rlvInformationBoxes.push_back(InformationBox(informationBoxes[i].frameNumber,
+                                                         infoBoxCommands[i]));
+        }
+    }
+    return RealLifeVideo(name, "Tacx", videoInformation, std::move(courses), std::move(distanceMapping), profile, std::move(rlvInformationBoxes));
 }
 
-tacxfile::header_t TacxFileParser::readHeaderBlock(QFile &rlvFile)
+tacxfile::headerBlock TacxFileParser::readHeaderBlock(QFile &rlvFile)
 {
-    tacxfile::header_t headerBlock;
+    tacxfile::headerBlock headerBlock;
     rlvFile.read((char*) &headerBlock, sizeof(headerBlock));
 
     return headerBlock;
 }
 
-tacxfile::info_t TacxFileParser::readInfoBlock(QFile &rlvFile)
+tacxfile::infoBlock TacxFileParser::readInfoBlock(QFile &rlvFile)
 {
-    tacxfile::info_t infoBlock;
+    tacxfile::infoBlock infoBlock;
     rlvFile.read((char*) &infoBlock, sizeof(infoBlock));
     return infoBlock;
 }
 
-tacxfile::generalRlv_t RlvFileParser::readGeneralRlvBlock(QFile &rlvFile)
+tacxfile::generalRlvBlock RlvFileParser::readGeneralRlvBlock(QFile &rlvFile)
 {
-    tacxfile::generalRlv_t generalBlock;
+    tacxfile::generalRlvBlock generalBlock;
     rlvFile.read((char*) &generalBlock._filename, 522);
     rlvFile.read((char*) &generalBlock.frameRate, sizeof(float));
     rlvFile.read((char*) &generalBlock.originalRunWeight, sizeof(float));
@@ -156,9 +372,9 @@ tacxfile::generalRlv_t RlvFileParser::readGeneralRlvBlock(QFile &rlvFile)
     return generalBlock;
 }
 
-QList<Course> RlvFileParser::readCourseInformation(QFile &rlvFile, qint32 count)
+std::vector<Course> RlvFileParser::readCourseInformation(QFile &rlvFile, qint32 count)
 {
-    QList<Course> courses;
+    std::vector<Course> courses;
     for (qint32 i = 0; i < count; i++) {
         tacxfile::rlvCourseInformation_t courseInfoBlock;
         memset(&courseInfoBlock, 0, sizeof(courseInfoBlock));
@@ -167,38 +383,36 @@ QList<Course> RlvFileParser::readCourseInformation(QFile &rlvFile, qint32 count)
         rlvFile.read((char*) &courseInfoBlock._courseName, 66);
         rlvFile.read((char*) &courseInfoBlock._textFilename, 522);
 
-        courses.append(Course(courseInfoBlock.courseName(), courseInfoBlock.start, courseInfoBlock.end));
+        courses.push_back(Course(courseInfoBlock.courseName(), courseInfoBlock.start, courseInfoBlock.end));
     }
     return courses;
 }
 
-QList<DistanceMappingEntry> RlvFileParser::readFrameDistanceMapping(QFile &rlvFile, qint32 count)
+std::vector<DistanceMappingEntry> RlvFileParser::readFrameDistanceMapping(QFile &rlvFile, qint32 count)
 {
-    QList<tacxfile::DistanceMappingEntry> mappings;
+    std::vector<tacxfile::DistanceMappingEntry> mappings;
     mappings.reserve(count);
 
     for (qint32 i = 0; i < count; i++) {
         tacxfile::frameDistanceMapping_t frameDistanceMappingBlock;
         rlvFile.read((char*) &frameDistanceMappingBlock, sizeof(frameDistanceMappingBlock));
-        mappings << tacxfile::DistanceMappingEntry(frameDistanceMappingBlock.frameNumber, frameDistanceMappingBlock.metersPerFrame);
+        mappings.push_back(tacxfile::DistanceMappingEntry(frameDistanceMappingBlock.frameNumber, frameDistanceMappingBlock.metersPerFrame));
     }
     return calculateRlvDistanceMappings(mappings);
 }
 
-QList<DistanceMappingEntry> RlvFileParser::calculateRlvDistanceMappings(const QList<tacxfile::DistanceMappingEntry> &tacxDistanceMappings) const
+std::vector<DistanceMappingEntry> RlvFileParser::calculateRlvDistanceMappings(const std::vector<tacxfile::DistanceMappingEntry> &tacxDistanceMappings) const
 {
     float currentDistance = 0;
     float lastMetersPerFrame = 0;
 
-    QList<DistanceMappingEntry> distanceMappings;
-    if (!tacxDistanceMappings.isEmpty()) {
+    std::vector<DistanceMappingEntry> distanceMappings;
+    if (!tacxDistanceMappings.empty()) {
         quint32 lastFrameNumber = tacxDistanceMappings[0].frameNumber();
-        QListIterator<tacxfile::DistanceMappingEntry> it(tacxDistanceMappings);
-        while(it.hasNext()) {
-            const tacxfile::DistanceMappingEntry& entry = it.next();
+        for (const auto &entry: tacxDistanceMappings) {
             quint32 nrFrames = entry.frameNumber() - lastFrameNumber;
             currentDistance += nrFrames * lastMetersPerFrame;
-            distanceMappings.append(DistanceMappingEntry(currentDistance, entry.frameNumber(), entry.metersPerFrame()));
+            distanceMappings.push_back(DistanceMappingEntry(currentDistance, entry.frameNumber(), entry.metersPerFrame()));
 
             lastMetersPerFrame = entry.metersPerFrame();
             lastFrameNumber = entry.frameNumber();
@@ -207,15 +421,25 @@ QList<DistanceMappingEntry> RlvFileParser::calculateRlvDistanceMappings(const QL
     return distanceMappings;
 }
 
+std::vector<tacxfile::informationBox> RlvFileParser::readInformationBoxes(QFile &rlvFile, qint32 count)
+{
+    std::vector<tacxfile::informationBox> informationBoxes;
+    for (auto i = 0; i < count; ++i) {
+        tacxfile::informationBox informationBox = readBlock<tacxfile::informationBox>(rlvFile);
+        informationBoxes.push_back(informationBox);
+    }
+    return informationBoxes;
+}
+
 
 Profile PgmfFileParser::readProfile(QFile &pgmfFile)
 {
-    tacxfile::header_t header = readHeaderBlock(pgmfFile);
-    tacxfile::generalPgmf_t generalBlock;
-    QList<tacxfile::program_t> profileBlocks;
+    tacxfile::headerBlock header = readHeaderBlock(pgmfFile);
+    tacxfile::generalProfileBlock generalBlock;
+    std::vector<tacxfile::programBlock> profileBlocks;
 
     for(qint32 blockNr = 0; blockNr < header.numberOfBlocks; ++blockNr) {
-        tacxfile::info_t infoBlock = readInfoBlock(pgmfFile);
+        tacxfile::infoBlock infoBlock = readInfoBlock(pgmfFile);
         if (infoBlock.fingerprint < 0 || infoBlock.fingerprint > 10000)
             break;
         else if (infoBlock.fingerprint == 1010)
@@ -230,12 +454,10 @@ Profile PgmfFileParser::readProfile(QFile &pgmfFile)
     if (generalBlock.powerSlopeOrHr == 1) {
         float currentDistance = 0;
         float currentAltitude = 0;
-        QListIterator<tacxfile::program_t> it(profileBlocks);
-        while(it.hasNext()) {
-            tacxfile::program_t item = it.next();
-            profile.push_back(ProfileEntry(currentDistance, item.powerSlopeHeartRate, currentAltitude));
-            currentDistance += item.durationDistance;
-            currentAltitude += item.powerSlopeHeartRate * .01f * item.durationDistance;
+        for (const auto &entry: profileBlocks) {
+            profile.push_back(ProfileEntry(currentDistance, entry.powerSlopeHeartRate, currentAltitude));
+            currentDistance += entry.durationDistance;
+            currentAltitude += entry.powerSlopeHeartRate * .01f * entry.durationDistance;
         }
     }
     ProfileType type = (ProfileType) generalBlock.powerSlopeOrHr;
@@ -243,25 +465,25 @@ Profile PgmfFileParser::readProfile(QFile &pgmfFile)
     return Profile(type, generalBlock.startAltitude, std::move(profile));
 }
 
-tacxfile::generalPgmf_t PgmfFileParser::readGeneralPgmfInfo(QFile &pgmfFile)
+tacxfile::generalProfileBlock PgmfFileParser::readGeneralPgmfInfo(QFile &pgmfFile)
 {
-    tacxfile::generalPgmf_t generalBlock;
+    tacxfile::generalProfileBlock generalBlock;
     pgmfFile.read((char*) &generalBlock.checksum, sizeof(qint32));
     pgmfFile.read((char*) &generalBlock._courseName, 34);
-    pgmfFile.read((char*) &generalBlock.powerSlopeOrHr, sizeof(generalBlock) - offsetof(tacxfile::generalPgmf_t, powerSlopeOrHr));
+    pgmfFile.read((char*) &generalBlock.powerSlopeOrHr, sizeof(generalBlock) - offsetof(tacxfile::generalProfileBlock, powerSlopeOrHr));
 
     return generalBlock;
 }
 
-QList<tacxfile::program_t> PgmfFileParser::readProgram(QFile &pgmfFile, quint32 count)
+std::vector<tacxfile::programBlock> PgmfFileParser::readProgram(QFile &pgmfFile, quint32 count)
 {
-    QList<tacxfile::program_t> programBlocks;
+    std::vector<tacxfile::programBlock> programBlocks;
     programBlocks.reserve(count);
 
     for (quint32 i = 0; i < count; ++i) {
-        tacxfile::program_t programBlock;
+        tacxfile::programBlock programBlock;
         pgmfFile.read((char*) &programBlock, sizeof(programBlock));
-        programBlocks << programBlock;
+        programBlocks.push_back(programBlock);
     }
     return programBlocks;
 }

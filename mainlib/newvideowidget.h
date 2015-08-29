@@ -28,6 +28,7 @@
 
 #include "reallifevideo.h"
 #include "profileitem.h"
+
 class Simulation;
 class VideoPlayer;
 
@@ -35,6 +36,7 @@ namespace indoorcycling {
 class ScreenSaverBlocker;
 }
 
+class InformationBoxGraphicsItem;
 class SensorItem;
 class ClockGraphicsItem;
 
@@ -54,6 +56,7 @@ public slots:
     void setCourse(Course& course);
     void setCourseIndex(int index);
     void setDistance(float distance);
+    void displayInformationBoxText(const QString &text);
     void setSimulation(const Simulation &cyclist);
 
     void goToFullscreen();
@@ -74,12 +77,15 @@ private:
     void addSensorItems(QGraphicsScene* scene);
 
     void addClock(QGraphicsScene* scene);
+    void addInformationBox(QGraphicsScene *scene);
+
 
     RealLifeVideo _rlv;
     Course _course;
     VideoPlayer* _videoPlayer;
 
     ClockGraphicsItem* _clockItem;
+    InformationBoxGraphicsItem *_informationBoxItem;
     SensorItem* _wattageItem;
     SensorItem* _heartRateItem;
     SensorItem* _cadenceItem;

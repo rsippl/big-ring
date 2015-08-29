@@ -84,6 +84,21 @@ private:
     float _frameRate;
 };
 
+class InformationBox
+{
+public:
+    InformationBox(const quint32 frameNumber, const QString &message):
+        _frameNumber(frameNumber), _message(message) {}
+
+    InformationBox() {}
+
+    quint32 frameNumber() const { return _frameNumber; }
+    const QString &message() const { return _message; }
+private:
+    quint32 _frameNumber = 0u;
+    QString _message = QString("");
+};
+
 
 class RealLifeVideoData;
 
@@ -93,7 +108,8 @@ public:
     explicit RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation, const QList<Course>& courses,
                            const QList<DistanceMappingEntry>& distanceMappings, Profile profile);
     explicit RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation, const std::vector<Course> &&courses,
-                           const std::vector<DistanceMappingEntry>&& distanceMappings, Profile &profile);
+                           const std::vector<DistanceMappingEntry>&& distanceMappings, Profile &profile,
+                           const std::vector<InformationBox> &&informationBoxes = std::vector<InformationBox>());
     RealLifeVideo(const RealLifeVideo& other);
     explicit RealLifeVideo();
 
@@ -119,6 +135,8 @@ public:
     float slopeForDistance(const float distance) const;
     //! Get the altitude for a distance */
     float altitudeForDistance(const float distance) const;
+    //! Get the information box message for a distance */
+    const QString messageForDistance(const float distance) const;
     /** Total distance */
     float totalDistance() const;
     /** Set duration of video, in number of frames */
