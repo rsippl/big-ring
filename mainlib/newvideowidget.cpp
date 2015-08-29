@@ -154,23 +154,23 @@ void NewVideoWidget::setDistance(float distance)
     _videoPlayer->stepToFrame(_rlv.frameForDistance(distance));
 }
 
-void NewVideoWidget::displayInformationBoxText(const QString &text)
+void NewVideoWidget::displayInformationBox(const InformationBox &informationBox)
 {
-    _informationBoxItem->setText(text);
+    if (informationBox.message().isEmpty()) {
+        _informationBoxItem->setImageFileInfo(informationBox.imageFileInfo());
+    } else {
+        _informationBoxItem->setText(informationBox.message());
+    }
     QRectF rect = _informationBoxItem->boundingRect();
     rect.moveCenter(QPointF(sceneRect().width() / 2, 3 * sceneRect().height() / 4));
+    rect.moveBottom(sceneRect().height() * 27 / 32);
     _informationBoxItem->setPos(rect.topLeft());
     _informationBoxItem->show();
-
-    QPropertyAnimation *animation = new QPropertyAnimation(_informationBoxItem, "opacity");
-    animation->setDuration(3000);
-    animation->setStartValue(QVariant::fromValue(1.0));
-    animation->setEndValue(QVariant::fromValue(0.0));
-    connect(animation, &QPropertyAnimation::finished, _informationBoxItem, [this]() {
-        _informationBoxItem->hide();
-    });
-    QTimer::singleShot(5000, animation, [animation]() {
-        animation->start(QAbstractAnimation::DeleteWhenStopped);
+    int informationBoxChangedNumber = ++_informationBoxChangedNumber;
+    QTimer::singleShot(10000, _informationBoxItem, [this, informationBoxChangedNumber]() {
+        if (informationBoxChangedNumber == _informationBoxChangedNumber) {
+            _informationBoxItem->hide();
+        }
     });
 }
 

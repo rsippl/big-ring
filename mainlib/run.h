@@ -44,7 +44,7 @@ public:
     bool isRunning() const;
 signals:
     void stopped();
-    void newInformationMessage(const QString &message);
+    void newInformationMessage(const InformationBox &message);
 public slots:
     void start();
     void play();
@@ -59,7 +59,7 @@ private:
     Simulation* _simulation;
     bool _running;
     QTimer _informationMessageTimer;
-    QString _lastInformationMessage;
+    InformationBox _lastInformationMessage;
 };
 
 #endif // RUN_H

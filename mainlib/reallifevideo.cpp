@@ -188,17 +188,17 @@ float RealLifeVideo::altitudeForDistance(const float distance) const
     return _d->_profile.altitudeForDistance(distance);
 }
 
-const QString RealLifeVideo::messageForDistance(const float distance) const
+const InformationBox RealLifeVideo::messageForDistance(const float distance) const
 {
     quint32 frame = frameForDistance(distance);
-    QString message("");
+    InformationBox informationBoxForDistance;
     for (const InformationBox &informationBox: _d->_informationBoxes) {
         if (informationBox.frameNumber() > frame) {
             break;
         }
-        message = informationBox.message();
+        informationBoxForDistance = informationBox;
     }
-    return message;
+    return informationBoxForDistance;
 }
 
 float RealLifeVideo::totalDistance() const

@@ -203,7 +203,7 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
             _run->start();
         }
     });
-    connect(_run.data(), &Run::newInformationMessage, _videoWidget.data(), &NewVideoWidget::displayInformationBoxText);
+    connect(_run.data(), &Run::newInformationMessage, _videoWidget.data(), &NewVideoWidget::displayInformationBox);
     connect(_run.data(), &Run::stopped, _run.data(), [this]() {
         qDebug() << "run finished";
         bool maximize = _videoWidget->isFullScreen();

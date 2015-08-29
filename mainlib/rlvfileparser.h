@@ -36,6 +36,7 @@ struct generalRlvBlock;
 struct programBlock;
 struct generalProfileBlock;
 struct informationBox;
+struct InformationBoxCommand;
 
 class DistanceMappingEntry;
 }
@@ -63,7 +64,7 @@ private:
     QString findVideoFilename(const QList<QFileInfo> &videoFiles, const QString& rlvVideoFilename);
     QFileInfo findVideoFileInfo(const QList<QFileInfo> &videoFiles, const QString& rlvVideoFilename);
     QFileInfo findCommandListFileInfo(const QString &rlvName, const QString& rlvVideoFilename);
-    std::vector<QString> readInfoBoxCommands(const QFileInfo &commandListFileInfo);
+    std::vector<tacxfile::InformationBoxCommand> readInfoBoxCommands(const QFileInfo &commandListFileInfo, const QDir &infoBoxRootDir);
     QFileInfo findPgmfFile(QFile& rlvFile);
     std::vector<DistanceMappingEntry> calculateRlvDistanceMappings(const std::vector<tacxfile::DistanceMappingEntry> &tacxDistanceMappings) const;
     std::vector<tacxfile::informationBox> readInformationBoxes(QFile &rlvFile, qint32 count);

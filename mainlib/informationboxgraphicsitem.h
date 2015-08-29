@@ -1,7 +1,8 @@
 #ifndef INFORMATIONBOXGRAPHICSITEM_H
 #define INFORMATIONBOXGRAPHICSITEM_H
 
-#include <QObject>
+#include <QtCore/QFileInfo>
+#include <QtCore/QObject>
 #include <QtWidgets/QGraphicsItem>
 
 class InformationBoxGraphicsItem : public QObject, public QGraphicsItem
@@ -14,8 +15,10 @@ public:
     virtual QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public slots:
+    void setImageFileInfo(const QFileInfo &imageFileInfo);
     void setText(const QString &text);
 private:
+    QGraphicsPixmapItem *_pixmapItem;
     QGraphicsTextItem *_textItem;
 
 };

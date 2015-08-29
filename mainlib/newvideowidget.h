@@ -56,7 +56,7 @@ public slots:
     void setCourse(Course& course);
     void setCourseIndex(int index);
     void setDistance(float distance);
-    void displayInformationBoxText(const QString &text);
+    void displayInformationBox(const InformationBox &informationBox);
     void setSimulation(const Simulation &cyclist);
 
     void goToFullscreen();
@@ -86,6 +86,7 @@ private:
 
     ClockGraphicsItem* _clockItem;
     InformationBoxGraphicsItem *_informationBoxItem;
+    int _informationBoxChangedNumber = 0;
     SensorItem* _wattageItem;
     SensorItem* _heartRateItem;
     SensorItem* _cadenceItem;

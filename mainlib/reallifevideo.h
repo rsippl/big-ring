@@ -21,12 +21,13 @@
 #ifndef REALLIVEVIDEO_H
 #define REALLIVEVIDEO_H
 
-#include <QList>
-#include <QMap>
-#include <QPair>
-#include <QString>
-
+#include <QtCore/QFileInfo>
+#include <QtCore/QList>
+#include <QtCore/QMap>
+#include <QtCore/QPair>
 #include <QtCore/QSharedPointer>
+#include <QtCore/QString>
+
 
 #include "profile.h"
 
@@ -87,16 +88,18 @@ private:
 class InformationBox
 {
 public:
-    InformationBox(const quint32 frameNumber, const QString &message):
-        _frameNumber(frameNumber), _message(message) {}
+    InformationBox(const quint32 frameNumber, const QString &message, const QFileInfo &imageFileInfo):
+        _frameNumber(frameNumber), _message(message), _imageFileInfo(imageFileInfo) {}
 
     InformationBox() {}
 
     quint32 frameNumber() const { return _frameNumber; }
     const QString &message() const { return _message; }
+    const QFileInfo &imageFileInfo() const { return _imageFileInfo; }
 private:
     quint32 _frameNumber = 0u;
     QString _message = QString("");
+    QFileInfo _imageFileInfo;
 };
 
 
@@ -136,7 +139,7 @@ public:
     //! Get the altitude for a distance */
     float altitudeForDistance(const float distance) const;
     //! Get the information box message for a distance */
-    const QString messageForDistance(const float distance) const;
+    const InformationBox messageForDistance(const float distance) const;
     /** Total distance */
     float totalDistance() const;
     /** Set duration of video, in number of frames */
