@@ -63,11 +63,13 @@ public:
 private:
     QString findVideoFilename(const QList<QFileInfo> &videoFiles, const QString& rlvVideoFilename);
     QFileInfo findVideoFileInfo(const QList<QFileInfo> &videoFiles, const QString& rlvVideoFilename);
-    QFileInfo findCommandListFileInfo(const QString &rlvName, const QString& rlvVideoFilename);
+    QFileInfo findCommandListFileInfo(const QDir &rlvCommandListDir);
     std::vector<tacxfile::InformationBoxCommand> readInfoBoxCommands(const QFileInfo &commandListFileInfo, const QDir &infoBoxRootDir);
     QFileInfo findPgmfFile(QFile& rlvFile);
     std::vector<DistanceMappingEntry> calculateRlvDistanceMappings(const std::vector<tacxfile::DistanceMappingEntry> &tacxDistanceMappings) const;
-    std::vector<tacxfile::informationBox> readInformationBoxes(QFile &rlvFile, qint32 count);
+    std::vector<tacxfile::informationBox> readTacxInformationBoxes(QFile &rlvFile, qint32 count);
+    std::vector<InformationBox> readInformationBoxesContent(const std::vector<tacxfile::informationBox> &informationBoxes,
+                                                            const QDir &infoBoxRootDir, const QString &rlvName);
 
     const std::map<QString,QFileInfo> _pgmfFiles;
     const QList<QFileInfo> _videoFiles;

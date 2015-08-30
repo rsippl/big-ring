@@ -48,6 +48,7 @@ std::map<QString,QFileInfo> toFileInfoMap(const QList<QFileInfo> &pgmfFiles)
     return indoorcycling::toMap(std::vector<QFileInfo>(pgmfFiles.begin(), pgmfFiles.end()),
                                                            keyFunction);
 }
+
 }
 namespace tacxfile
 {
@@ -215,6 +216,41 @@ private:
     quint32 _frameNumber;
     float _metersPerFrame;
 };
+
+/**
+ * There can be two (? really ?) types of line in the CmdList.txt files:
+ * TEXT("<img src="ImgG/Map.png" width="567" height="285">");HIDE("6");
+ * TEXT("St-Michel-de-Maurienne<br>  Alt 731m");HIDE("7");
+ *
+ * We will first extract the part between TEXT(" and the "), resulting in this:
+ * "<img src="ImgG/Map.png" width="567" height="285">"
+ * "St-Michel-de-Maurienne<br>  Alt 731m"
+ *
+ * For images, we will extract only the filename, Map.png in this case. This is prepended
+ * with "$infobox_root_dir/img/" to make the complete path to image files.
+ * For text entries, we just return this text. The info box can handle displaying html.
+ */
+const InformationBoxCommand extractCommandFromLine(const QString &line, const QDir &infoBoxRootDir) {
+    int startIndex = QString(INFO_BOX_TEXT).length();
+    int endIndex = line.indexOf("\")");
+    QString text = line.mid(startIndex, endIndex - startIndex);
+    QFileInfo imageFileInfo;
+    if (text.contains("<img src=\"")) {
+        int imageSourceStart = text.indexOf(INFO_BOX_IMAGE_SOURCE) + INFO_BOX_IMAGE_SOURCE.length();
+        QString imageSource = text.mid(imageSourceStart);
+        int imageSourceEnd = imageSource.indexOf("\"");
+        imageSource = imageSource.left(imageSourceEnd);
+        int slashIndex = imageSource.lastIndexOf("/");
+        imageSource = imageSource.mid(slashIndex + 1);
+        QDir imageDir = infoBoxRootDir;
+        bool imageDirOk = imageDir.cd("Img") || imageDir.cd("img");
+        if (imageDirOk) {
+            imageFileInfo = QFileInfo(imageDir, imageSource);
+            text.clear();
+        }
+    }
+    return { text, imageFileInfo };
+}
 }
 
 RlvFileParser::RlvFileParser(const QList<QFileInfo> &pgmfFiles, const QList<QFileInfo>& videoFiles): TacxFileParser(),
@@ -242,13 +278,11 @@ QFileInfo RlvFileParser::findVideoFileInfo(const QList<QFileInfo> &videoFiles, c
     return QFileInfo();
 }
 
-QFileInfo RlvFileParser::findCommandListFileInfo(const QString &rlvName, const QString &videoFilename)
+QFileInfo RlvFileParser::findCommandListFileInfo(const QDir &rlvCommandListDir)
 {
-    QFileInfo videoFile(videoFilename);
-
-    QDir videoDirectory = videoFile.absoluteDir();
-    if (videoDirectory.cd(rlvName) && (videoDirectory.cd("EN") || videoDirectory.cd("en"))) {
-        QFileInfo commandListFileInfo(videoDirectory, "CmdList.txt");
+    QDir dir(rlvCommandListDir);
+    if (dir.cd("EN") || dir.cd("en")) {
+        QFileInfo commandListFileInfo(dir, "CmdList.txt");
         if (commandListFileInfo.exists()) {
             return commandListFileInfo;
         }
@@ -268,25 +302,7 @@ std::vector<tacxfile::InformationBoxCommand> RlvFileParser::readInfoBoxCommands(
             while (!in.atEnd()) {
                 QString line = in.readLine();
                 if (line.startsWith(INFO_BOX_TEXT)) {
-                    int startIndex = QString(INFO_BOX_TEXT).length();
-                    int endIndex = line.indexOf("\")");
-                    QString text = line.mid(startIndex, endIndex - startIndex);
-                    QFileInfo imageFileInfo;
-                    if (text.contains("<img src=\"")) {
-                        int imageSourceStart = text.indexOf(INFO_BOX_IMAGE_SOURCE) + INFO_BOX_IMAGE_SOURCE.length();
-                        QString imageSource = text.mid(imageSourceStart);
-                        int imageSourceEnd = imageSource.indexOf("\"");
-                        imageSource = imageSource.left(imageSourceEnd);
-                        int slashIndex = imageSource.lastIndexOf("/");
-                        imageSource = imageSource.mid(slashIndex + 1);
-                        QDir imageDir = infoBoxRootDir;
-                        bool imageDirOk = imageDir.cd("Img") || imageDir.cd("img");
-                        if (imageDirOk) {
-                            imageFileInfo = QFileInfo(imageDir, imageSource);
-                            text.clear();
-                        }
-                    }
-                    commands.push_back({text, imageFileInfo});
+                    commands.push_back(tacxfile::extractCommandFromLine(line, infoBoxRootDir));
                 }
             }
         }
@@ -343,7 +359,7 @@ RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
         else if (infoBlock.fingerprint == 2020) {
             distanceMapping = readFrameDistanceMapping(rlvFile, infoBlock.numberOfRecords);
         } else if (infoBlock.fingerprint == 2030) {
-            informationBoxes = readInformationBoxes(rlvFile, infoBlock.numberOfRecords);
+            informationBoxes = readTacxInformationBoxes(rlvFile, infoBlock.numberOfRecords);
 
         }
         else if (infoBlock.fingerprint == 2040) {
@@ -354,22 +370,9 @@ RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
         }
     }
 
-    std::vector<InformationBox> rlvInformationBoxes;
     QDir infoBoxRootDir = QFileInfo(videoInformation.videoFilename()).dir();
-    if (infoBoxRootDir.cd(name)) {
-        QFileInfo commandListFileInfo = findCommandListFileInfo(name, videoInformation.videoFilename());
-        std::vector<tacxfile::InformationBoxCommand> infoBoxCommands =
-                readInfoBoxCommands(commandListFileInfo, infoBoxRootDir);
-
-        for (unsigned i = 0; i < infoBoxCommands.size(); ++i) {
-            if (i < informationBoxes.size()) {
-                rlvInformationBoxes.push_back(InformationBox(informationBoxes[i].frameNumber,
-                                                             0, // no distance known at this point
-                                                             infoBoxCommands[i].text,
-                                                             infoBoxCommands[i].imageFileInfo));
-            }
-        }
-    }
+    std::vector<InformationBox> rlvInformationBoxes =
+            readInformationBoxesContent(informationBoxes, infoBoxRootDir, name);
 
     return RealLifeVideo(name, RealLifeVideoFileType::TACX,
                          videoInformation, std::move(courses), std::move(distanceMapping), profile, std::move(rlvInformationBoxes));
@@ -450,7 +453,7 @@ std::vector<DistanceMappingEntry> RlvFileParser::calculateRlvDistanceMappings(co
     return distanceMappings;
 }
 
-std::vector<tacxfile::informationBox> RlvFileParser::readInformationBoxes(QFile &rlvFile, qint32 count)
+std::vector<tacxfile::informationBox> RlvFileParser::readTacxInformationBoxes(QFile &rlvFile, qint32 count)
 {
     std::vector<tacxfile::informationBox> informationBoxes;
     for (auto i = 0; i < count; ++i) {
@@ -458,6 +461,27 @@ std::vector<tacxfile::informationBox> RlvFileParser::readInformationBoxes(QFile 
         informationBoxes.push_back(informationBox);
     }
     return informationBoxes;
+}
+
+std::vector<InformationBox> RlvFileParser::readInformationBoxesContent(const std::vector<tacxfile::informationBox> &informationBoxes, const QDir &infoBoxRootDir, const QString &rlvName)
+{
+    std::vector<InformationBox> rlvInformationBoxes;
+    QDir rootDir = infoBoxRootDir;
+    if (rootDir.cd(rlvName)) {
+        QFileInfo commandListFileInfo = findCommandListFileInfo(rootDir);
+        std::vector<tacxfile::InformationBoxCommand> tacxInfoBoxCommands =
+                readInfoBoxCommands(commandListFileInfo, rootDir);
+
+        for (unsigned i = 0; i < tacxInfoBoxCommands.size(); ++i) {
+            if (i < informationBoxes.size()) {
+                rlvInformationBoxes.push_back(InformationBox(informationBoxes[i].frameNumber,
+                                                             0, // no distance known at this point
+                                                             tacxInfoBoxCommands[i].text,
+                                                             tacxInfoBoxCommands[i].imageFileInfo));
+            }
+        }
+    }
+    return rlvInformationBoxes;
 }
 
 
