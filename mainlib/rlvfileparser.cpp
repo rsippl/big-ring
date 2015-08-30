@@ -247,14 +247,12 @@ QFileInfo RlvFileParser::findCommandListFileInfo(const QString &rlvName, const Q
     QFileInfo videoFile(videoFilename);
 
     QDir videoDirectory = videoFile.absoluteDir();
-    if (videoDirectory.cd(rlvName) && videoDirectory.cd("EN")) {
-        qDebug() << "Command list should be in" << videoDirectory;
+    if (videoDirectory.cd(rlvName) && (videoDirectory.cd("EN") || videoDirectory.cd("en"))) {
         QFileInfo commandListFileInfo(videoDirectory, "CmdList.txt");
         if (commandListFileInfo.exists()) {
             return commandListFileInfo;
         }
     }
-    qDebug() << "No command list found for" << videoDirectory;
 
     return QFileInfo();
 }
@@ -272,7 +270,6 @@ std::vector<tacxfile::InformationBoxCommand> RlvFileParser::readInfoBoxCommands(
                 if (line.startsWith(INFO_BOX_TEXT)) {
                     int startIndex = QString(INFO_BOX_TEXT).length();
                     int endIndex = line.indexOf("\")");
-                    tacxfile::InformationBoxCommand informationBoxCommand;
                     QString text = line.mid(startIndex, endIndex - startIndex);
                     QFileInfo imageFileInfo;
                     if (text.contains("<img src=\"")) {
@@ -283,9 +280,11 @@ std::vector<tacxfile::InformationBoxCommand> RlvFileParser::readInfoBoxCommands(
                         int slashIndex = imageSource.lastIndexOf("/");
                         imageSource = imageSource.mid(slashIndex + 1);
                         QDir imageDir = infoBoxRootDir;
-                        imageDir.cd("Img");
-                        imageFileInfo = QFileInfo(imageDir, imageSource);
-                        text.clear();
+                        bool imageDirOk = imageDir.cd("Img") || imageDir.cd("img");
+                        if (imageDirOk) {
+                            imageFileInfo = QFileInfo(imageDir, imageSource);
+                            text.clear();
+                        }
                     }
                     commands.push_back({text, imageFileInfo});
                 }
@@ -365,13 +364,15 @@ RealLifeVideo RlvFileParser::parseRlvFile(QFile &rlvFile)
         for (unsigned i = 0; i < infoBoxCommands.size(); ++i) {
             if (i < informationBoxes.size()) {
                 rlvInformationBoxes.push_back(InformationBox(informationBoxes[i].frameNumber,
+                                                             0, // no distance known at this point
                                                              infoBoxCommands[i].text,
                                                              infoBoxCommands[i].imageFileInfo));
             }
         }
     }
 
-    return RealLifeVideo(name, "Tacx", videoInformation, std::move(courses), std::move(distanceMapping), profile, std::move(rlvInformationBoxes));
+    return RealLifeVideo(name, RealLifeVideoFileType::TACX,
+                         videoInformation, std::move(courses), std::move(distanceMapping), profile, std::move(rlvInformationBoxes));
 }
 
 tacxfile::headerBlock TacxFileParser::readHeaderBlock(QFile &rlvFile)

@@ -41,7 +41,8 @@
 
 
 NewVideoWidget::NewVideoWidget(QWidget *parent) :
-    QGraphicsView(parent), _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this)),
+    QGraphicsView(parent), _informationBoxHideTimer(new QTimer(this)),
+    _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this)),
     _mouseIdleTimer(new QTimer(this))
 {
     setMinimumSize(800, 600);
@@ -76,6 +77,12 @@ NewVideoWidget::NewVideoWidget(QWidget *parent) :
     _pausedItem->setDefaultTextColor(Qt::white);
     _pausedItem->setPlainText("Paused");
 
+    _informationBoxHideTimer->setInterval(10000);
+    _informationBoxHideTimer->setSingleShot(true);
+    connect(_informationBoxHideTimer, &QTimer::timeout,
+            _informationBoxItem, [this]() {
+        _informationBoxItem->hide();
+    });
     _mouseIdleTimer->setInterval(500);
     _mouseIdleTimer->setSingleShot(true);
     connect(_mouseIdleTimer, &QTimer::timeout, _mouseIdleTimer, []() {
@@ -156,22 +163,17 @@ void NewVideoWidget::setDistance(float distance)
 
 void NewVideoWidget::displayInformationBox(const InformationBox &informationBox)
 {
-    if (informationBox.message().isEmpty()) {
-        _informationBoxItem->setImageFileInfo(informationBox.imageFileInfo());
-    } else {
-        _informationBoxItem->setText(informationBox.message());
-    }
+    _informationBoxItem->setInformationBox(informationBox);
+
     QRectF rect = _informationBoxItem->boundingRect();
     rect.moveCenter(QPointF(sceneRect().width() / 2, 3 * sceneRect().height() / 4));
     rect.moveBottom(sceneRect().height() * 27 / 32);
     _informationBoxItem->setPos(rect.topLeft());
     _informationBoxItem->show();
-    int informationBoxChangedNumber = ++_informationBoxChangedNumber;
-    QTimer::singleShot(10000, _informationBoxItem, [this, informationBoxChangedNumber]() {
-        if (informationBoxChangedNumber == _informationBoxChangedNumber) {
-            _informationBoxItem->hide();
-        }
-    });
+    // a previous information box was perhaps popped up. By stopping the time, we make sure
+    // it does not hide the new one when the timer times out.
+    _informationBoxHideTimer->stop();
+    _informationBoxHideTimer->start();
 }
 
 void NewVideoWidget::setSimulation(const Simulation& simulation)

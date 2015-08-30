@@ -5,6 +5,8 @@
 #include <QtCore/QObject>
 #include <QtWidgets/QGraphicsItem>
 
+#include "reallifevideo.h"
+
 class InformationBoxGraphicsItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
@@ -15,9 +17,11 @@ public:
     virtual QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public slots:
+    void setInformationBox(const InformationBox &informationBox);
+private:
     void setImageFileInfo(const QFileInfo &imageFileInfo);
     void setText(const QString &text);
-private:
+
     QGraphicsPixmapItem *_pixmapItem;
     QGraphicsTextItem *_textItem;
 

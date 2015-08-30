@@ -54,6 +54,7 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
     Profile profile;
     std::vector<Course> courses;
     std::vector<DistanceMappingEntry> distanceMappings;
+    std::vector<InformationBox> informationBoxes;
 
     QXmlStreamReader::TokenType currentTokenType;
     while (!reader.atEnd()) {
@@ -72,6 +73,8 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
             courses = readCourses(reader);
         } else if (isElement(currentTokenType, reader, "mappings")) {
             distanceMappings = convertDistanceMappings(readDistanceMappings(reader));
+        } else if (isElement(currentTokenType, reader, "informations")) {
+            informationBoxes = readInformationBoxes(reader);
         } else {
 //            qDebug() << "unknown token" << reader.name();
         }
@@ -84,8 +87,9 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
     }
     VideoInformation videoInformation(videoFilePath, frameRate);
 
-    return RealLifeVideo(name, "Cycleops Virtual Training", videoInformation,
-                         std::move(courses), std::move(distanceMappings), profile);
+    return RealLifeVideo(name, RealLifeVideoFileType::VIRTUAL_TRAINING, videoInformation,
+                         std::move(courses), std::move(distanceMappings), profile,
+                         std::move(informationBoxes));
 }
 
 std::vector<virtualtrainingfileparser::ProfileEntry> VirtualTrainingFileParser::readProfileEntries(QXmlStreamReader &reader) const
@@ -164,6 +168,27 @@ std::vector<Course> VirtualTrainingFileParser::readCourses(QXmlStreamReader &rea
         }
     }
     return courses;
+}
+
+std::vector<InformationBox> VirtualTrainingFileParser::readInformationBoxes(QXmlStreamReader &reader) const
+{
+    std::vector<InformationBox> informationBoxes;
+    while(!reader.atEnd()) {
+        QXmlStreamReader::TokenType tokenType = reader.readNext();
+        if (isElement(tokenType, reader, "information")) {
+            float distance = readSingleAttribute(reader.attributes(), "distance").toFloat();
+            QString message = readSingleAttribute(reader.attributes(), "en");
+
+            // messages are just text, but want to have rich text (with html text). We'll
+            // replace new lines with <br> to fake it.
+            message.replace("\\n", "<br>");
+
+            informationBoxes.push_back(InformationBox(0, distance, message, QFileInfo()));
+        } else if (tokenType == QXmlStreamReader::EndElement && reader.name() == "informations") {
+            break;
+        }
+    }
+    return informationBoxes;
 }
 
 std::vector<virtualtrainingfileparser::DistanceMappingEntry> VirtualTrainingFileParser::readDistanceMappings(QXmlStreamReader &reader) const

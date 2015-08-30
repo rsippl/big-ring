@@ -86,7 +86,7 @@ private:
 
     ClockGraphicsItem* _clockItem;
     InformationBoxGraphicsItem *_informationBoxItem;
-    int _informationBoxChangedNumber = 0;
+    QTimer *_informationBoxHideTimer;
     SensorItem* _wattageItem;
     SensorItem* _heartRateItem;
     SensorItem* _cadenceItem;

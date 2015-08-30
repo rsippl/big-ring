@@ -42,15 +42,14 @@ int VideoListModel::rowCount(const QModelIndex &) const
 QVariant VideoListModel::data(const QModelIndex &index, int role) const
 {
     if (index.row() <= _rlvs.size()) {
+        const RealLifeVideo &rlv = _rlvs[index.row()];
         switch(role) {
         case Qt::DisplayRole:
-            return QVariant::fromValue(_rlvs[index.row()].name());
-
+            return QVariant::fromValue(rlv.name());
         case Qt::ToolTipRole:
-            return QVariant::fromValue(_rlvs[index.row()].fileType());
-
+            return QVariant::fromValue(realLifeVideoFileTypeName(rlv.fileType()));
         case VideoDataRole:
-            return QVariant::fromValue(_rlvs[index.row()]);
+            return QVariant::fromValue(rlv);
         }
     }
     return QVariant();
