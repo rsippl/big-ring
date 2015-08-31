@@ -1,5 +1,7 @@
 #include "virtualtrainingfileparser.h"
 
+#include "distancemappingentry.h"
+
 #include <QtCore/QtDebug>
 #include <QtCore/QXmlStreamReader>
 #include <QtCore/QXmlStreamAttributes>

@@ -20,6 +20,7 @@
 
 #include "reallifevideo.h"
 
+#include "distancemappingentry.h"
 #include <QtDebug>
 #include <QMapIterator>
 
@@ -321,16 +322,6 @@ const InformationBox RealLifeVideo::informationBoxForDistanceTacx(const float di
         informationBoxForDistance = informationBox;
     }
     return informationBoxForDistance;
-}
-
-DistanceMappingEntry::DistanceMappingEntry(float distance, quint32 frameNumber, float metersPerFrame):
-    _distance(distance), _frameNumber(frameNumber), _metersPerFrame(metersPerFrame)
-{
-}
-
-DistanceMappingEntry::DistanceMappingEntry():
-    _distance(0), _frameNumber(0), _metersPerFrame(0.0f)
-{
 }
 
 bool operator==(const InformationBox &lhs, const InformationBox &rhs)

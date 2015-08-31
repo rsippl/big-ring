@@ -26,6 +26,8 @@
 #include <QtDebug>
 #include <utility>
 
+#include "distancemappingentry.h"
+
 namespace
 {
 const QString INFO_BOX_IMAGE_SOURCE = "<img src=\"";

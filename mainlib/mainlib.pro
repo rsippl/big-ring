@@ -43,7 +43,8 @@ HEADERS += \
     gpxfileparser.h \
     videoinforeader.h \
     utility.h \
-    informationboxgraphicsitem.h
+    informationboxgraphicsitem.h \
+    distancemappingentry.h
 
 SOURCES += \
     cyclist.cpp \
@@ -73,7 +74,8 @@ SOURCES += \
     virtualtrainingfileparser.cpp \
     gpxfileparser.cpp \
     videoinforeader.cpp \
-    informationboxgraphicsitem.cpp
+    informationboxgraphicsitem.cpp \
+    distancemappingentry.cpp
 
 
 

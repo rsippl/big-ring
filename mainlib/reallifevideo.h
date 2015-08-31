@@ -31,27 +31,18 @@
 
 #include "profile.h"
 
+/** The different types of RealLifeVideo that are supported */
 enum class RealLifeVideoFileType {
-    TACX, VIRTUAL_TRAINING, GPX
+    TACX, // Tacx Fortius Software (.rlv and .pgmf files)
+    VIRTUAL_TRAINING, // Cycleops Virtual Training .xml files
+    GPX // GPS tracks in GPX format.
 };
 
+/** Return the name of a RealLifeVideoFileType as a string */
 const QString &realLifeVideoFileTypeName(RealLifeVideoFileType type);
 
-class DistanceMappingEntry
-{
-public:
-    explicit DistanceMappingEntry(float distance, quint32 frameNumber, float metersPerFrame);
-    explicit DistanceMappingEntry();
-
-    float distance() const { return _distance; }
-    quint32 frameNumber() const { return _frameNumber; }
-    float metersPerFrame() const { return _metersPerFrame; }
-
-private:
-    float _distance;
-    quint32 _frameNumber;
-    float _metersPerFrame;
-};
+/* forward declarations */
+class DistanceMappingEntry;
 
 class Course
 {
