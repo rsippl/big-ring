@@ -27,6 +27,7 @@
 #include <utility>
 
 #include "distancemappingentry.h"
+#include "videoinformation.h"
 
 namespace
 {

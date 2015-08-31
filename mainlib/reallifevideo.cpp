@@ -21,6 +21,8 @@
 #include "reallifevideo.h"
 
 #include "distancemappingentry.h"
+#include "videoinformation.h"
+
 #include <QtDebug>
 #include <QMapIterator>
 
@@ -148,9 +150,14 @@ const QString RealLifeVideo::name() const
     return _d->_name;
 }
 
-const VideoInformation &RealLifeVideo::videoInformation() const
+const QString &RealLifeVideo::videoFilename() const
 {
-    return _d->_videoInformation;
+    return _d->_videoInformation.videoFilename();
+}
+
+float RealLifeVideo::videoFrameRate() const
+{
+    return _d->_videoInformation.frameRate();
 }
 
 const std::vector<Course> &RealLifeVideo::courses() const

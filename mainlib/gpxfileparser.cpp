@@ -2,6 +2,7 @@
 
 #include "distancemappingentry.h"
 #include "videoinforeader.h"
+#include "videoinformation.h"
 
 #include <QtCore/QDateTime>
 #include <QtCore/QtDebug>

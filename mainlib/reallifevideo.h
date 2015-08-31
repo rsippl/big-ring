@@ -43,6 +43,7 @@ const QString &realLifeVideoFileTypeName(RealLifeVideoFileType type);
 
 /* forward declarations */
 class DistanceMappingEntry;
+class VideoInformation;
 
 class Course
 {
@@ -66,20 +67,6 @@ private:
     Type _type;
     float _start;
     float _end;
-};
-
-class VideoInformation
-{
-public:
-    explicit VideoInformation(const QString& videoFilename, float frameRate);
-    explicit VideoInformation();
-
-    const QString& videoFilename() const { return _videoFilename; }
-    float frameRate() const { return _frameRate; }
-
-private:
-    QString _videoFilename;
-    float _frameRate;
 };
 
 class InformationBox
@@ -122,7 +109,8 @@ public:
     ProfileType type() const;
     Profile& profile() const;
     const QString name() const;
-    const VideoInformation& videoInformation() const;
+    const QString &videoFilename() const;
+    float videoFrameRate() const;
     const std::vector<Course>& courses() const;
 
     /** Set the distance for the current unfinished run */

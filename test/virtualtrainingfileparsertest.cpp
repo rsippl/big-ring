@@ -30,9 +30,9 @@ void VirtualTrainingFileParserTest::testWithBavellaFile()
 
     QVERIFY(rlv.isValid());
     QCOMPARE(rlv.name(), QString("FR_Bavella"));
-    QCOMPARE(rlv.videoInformation().videoFilename(), QString("/media/video/RLV/FR_Bavella.avi"));
-    QCOMPARE(rlv.videoInformation().frameRate(), 25.0f);
-    QCOMPARE(tacxRlv.videoInformation().frameRate(), 25.0f);
+    QCOMPARE(rlv.videoFilename(), QString("/media/video/RLV/FR_Bavella.avi"));
+    QCOMPARE(rlv.videoFrameRate(), 25.0f);
+    QCOMPARE(tacxRlv.videoFrameRate(), 25.0f);
 
     Profile profile = rlv.profile();
     float startAltitude = 12.5033845f;

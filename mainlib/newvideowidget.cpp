@@ -37,6 +37,7 @@
 #include "sensoritem.h"
 #include "simulation.h"
 #include "screensaverblocker.h"
+//#include "videoinformation.h"
 #include "videoplayer.h"
 
 
@@ -138,7 +139,7 @@ void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
     _rlv = rlv;
     _profileItem->setRlv(rlv);
     _videoPlayer->stop();
-    _videoPlayer->loadVideo(rlv.videoInformation().videoFilename());
+    _videoPlayer->loadVideo(rlv.videoFilename());
 }
 
 void NewVideoWidget::setCourse(Course &course)
