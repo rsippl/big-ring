@@ -60,16 +60,16 @@ void Sensors::sensorValue(const SensorValueType sensorValueType,
                           const AntSensorType, const QVariant &sensorValue)
 {
     switch (sensorValueType) {
-    case SensorValueType::SENSOR_VALUE_HEARTRATE_BPM:
+    case SensorValueType::HEARTRATE_BPM:
         handleHeartRate(sensorValue);
         break;
-    case SensorValueType::SENSOR_VALUE_CADENCE_RPM:
+    case SensorValueType::CADENCE_RPM:
         handleCadence(sensorValue);
         break;
-    case SensorValueType::SENSOR_VALUE_POWER_WATT:
+    case SensorValueType::POWER_WATT:
         handlePower(sensorValue);
         break;
-    case SensorValueType::SENSOR_VALUE_WHEEL_SPEED_RPM:
+    case SensorValueType::WHEEL_SPEED_RPM:
         handleWheelSpeed(sensorValue);
         break;
     }

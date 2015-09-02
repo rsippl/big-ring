@@ -70,7 +70,7 @@ void AntChannelHandler::channelOpened()
 
 AntChannelHandler::~AntChannelHandler()
 {
-    qDebug() << "Deleting AntChannelHandler for channel type" << _sensorType;
+    qDebug() << "Deleting AntChannelHandler for channel type" << static_cast<int>(_sensorType);
 }
 
 AntSensorType AntChannelHandler::sensorType() const

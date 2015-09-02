@@ -63,7 +63,7 @@ quint16 PowerMessage::instantaneousPower() const
 }
 
 AntPowerSlaveChannelHandler::AntPowerSlaveChannelHandler(int channelNumber, QObject *parent) :
-    AntChannelHandler(channelNumber, SENSOR_TYPE_POWER, ANT_SPORT_POWER_PERIOD, parent)
+    AntChannelHandler(channelNumber, AntSensorType::POWER, ANT_SPORT_POWER_PERIOD, parent)
 {
 }
 
@@ -73,9 +73,9 @@ void AntPowerSlaveChannelHandler::handleBroadCastMessage(const BroadCastMessage 
     if (powerMessage.isPowerOnlyPage()) {
         if (!_lastPowerMessage.isNull()) {
             if (_lastPowerMessage.eventCount() != powerMessage.eventCount()) {
-                emit sensorValue(SENSOR_VALUE_POWER_WATT, SENSOR_TYPE_POWER,
+                emit sensorValue(SensorValueType::POWER_WATT, AntSensorType::POWER,
                                  QVariant::fromValue(powerMessage.instantaneousPower()));
-                emit sensorValue(SENSOR_VALUE_CADENCE_RPM, SENSOR_TYPE_POWER,
+                emit sensorValue(SensorValueType::CADENCE_RPM, AntSensorType::POWER,
                                  QVariant::fromValue(powerMessage.instantaneousCadence()));
                 qDebug() << QTime::currentTime().toString()
                          << "power" << powerMessage.instantaneousPower() << "cadence" << powerMessage.instantaneousCadence();
@@ -86,7 +86,7 @@ void AntPowerSlaveChannelHandler::handleBroadCastMessage(const BroadCastMessage 
 }
 
 AntPowerMasterChannelHandler::AntPowerMasterChannelHandler(int channelNumber, QObject *parent):
-    AntMasterChannelHandler(channelNumber, SENSOR_TYPE_POWER, ANT_SPORT_POWER_PERIOD, parent),
+    AntMasterChannelHandler(channelNumber, AntSensorType::POWER, ANT_SPORT_POWER_PERIOD, parent),
     _updateTimer(new QTimer(this)), _eventCount(0u), _accumulatedPower(0u), _cadence(0u)
 {
     setSensorDeviceNumber(1);
@@ -104,11 +104,11 @@ void AntPowerMasterChannelHandler::setPower(quint16 power)
 
 void AntPowerMasterChannelHandler::sendSensorValue(const SensorValueType valueType, const QVariant &value)
 {
-    if (valueType == SensorValueType::SENSOR_VALUE_POWER_WATT) {
+    if (valueType == SensorValueType::POWER_WATT) {
         _eventCount += 1;
         _instantaneousPower = value.toInt();
         _accumulatedPower += _instantaneousPower;
-    } else if (valueType == SensorValueType::SENSOR_VALUE_CADENCE_RPM) {
+    } else if (valueType == SensorValueType::CADENCE_RPM) {
         _cadence = value.toInt();
     }
 }

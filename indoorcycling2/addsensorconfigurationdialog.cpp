@@ -72,11 +72,11 @@ AddSensorConfigurationDialog::AddSensorConfigurationDialog(
     updateSimulationSettings();
     fillVirtualPowerOptions();
     _ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
-    fillSensorTypeRow(indoorcycling::SENSOR_TYPE_HR);
-    fillSensorTypeRow(indoorcycling::SENSOR_TYPE_POWER);
-    fillSensorTypeRow(indoorcycling::SENSOR_TYPE_SPEED_AND_CADENCE);
-    fillSensorTypeRow(indoorcycling::SENSOR_TYPE_CADENCE);
-    fillSensorTypeRow(indoorcycling::SENSOR_TYPE_SPEED);
+    fillSensorTypeRow(indoorcycling::AntSensorType::HEART_RATE);
+    fillSensorTypeRow(indoorcycling::AntSensorType::POWER);
+    fillSensorTypeRow(indoorcycling::AntSensorType::SPEED_AND_CADENCE);
+    fillSensorTypeRow(indoorcycling::AntSensorType::CADENCE);
+    fillSensorTypeRow(indoorcycling::AntSensorType::SPEED);
 
     connect(_antCentralDispatch, &AntCentralDispatch::sensorFound, this,
             &AddSensorConfigurationDialog::sensorFound);
@@ -174,9 +174,9 @@ void AddSensorConfigurationDialog::saveConfiguration()
 
 void AddSensorConfigurationDialog::updateSimulationSettings()
 {
-    bool powerSensorPresent = _configurations.contains(AntSensorType::SENSOR_TYPE_POWER);
-    bool speedSensorPresent = _configurations.contains(AntSensorType::SENSOR_TYPE_SPEED) ||
-            _configurations.contains(AntSensorType::SENSOR_TYPE_SPEED_AND_CADENCE);
+    bool powerSensorPresent = _configurations.contains(AntSensorType::POWER);
+    bool speedSensorPresent = _configurations.contains(AntSensorType::SPEED) ||
+            _configurations.contains(AntSensorType::SPEED_AND_CADENCE);
     _ui->directPowerButton->setEnabled(powerSensorPresent);
     _ui->directSpeedButton->setEnabled(speedSensorPresent);
     _ui->virtualPowerButton->setEnabled(speedSensorPresent);
@@ -202,11 +202,11 @@ void AddSensorConfigurationDialog::on_searchSensorsButton_clicked()
 {
     _antCentralDispatch->closeAllChannels();
     _ui->searchSensorsButton->setEnabled(false);
-    performSearch(indoorcycling::SENSOR_TYPE_HR);
-    performSearch(indoorcycling::SENSOR_TYPE_POWER);
-    performSearch(indoorcycling::SENSOR_TYPE_SPEED_AND_CADENCE);
-    performSearch(indoorcycling::SENSOR_TYPE_CADENCE);
-    performSearch(indoorcycling::SENSOR_TYPE_SPEED);
+    performSearch(indoorcycling::AntSensorType::HEART_RATE);
+    performSearch(indoorcycling::AntSensorType::POWER);
+    performSearch(indoorcycling::AntSensorType::SPEED_AND_CADENCE);
+    performSearch(indoorcycling::AntSensorType::CADENCE);
+    performSearch(indoorcycling::AntSensorType::SPEED);
 }
 
 void AddSensorConfigurationDialog::fillUsbStickPresentLabel(bool present)

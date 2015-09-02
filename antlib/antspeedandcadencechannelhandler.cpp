@@ -68,18 +68,18 @@ quint16 CadenceMessage::pedalRevolutions() const
 AntChannelHandler* AntSpeedAndCadenceChannelHandler::createCombinedSpeedAndCadenceChannelHandler(
         int channelNumber, QObject* parent)
 {
-    return  new AntSpeedAndCadenceChannelHandler(channelNumber, SENSOR_TYPE_SPEED_AND_CADENCE,
+    return  new AntSpeedAndCadenceChannelHandler(channelNumber, AntSensorType::SPEED_AND_CADENCE,
                                                      ANT_SPORT_SPEED_AND_CADENCE_PERIOD, parent);
 }
 
 AntChannelHandler* AntSpeedAndCadenceChannelHandler::createCadenceChannelHandler(int channelNumber, QObject* parent)
 {
-    return new AntSpeedAndCadenceChannelHandler(channelNumber, SENSOR_TYPE_CADENCE, ANT_SPORT_CADENCE_PERIOD, parent);
+    return new AntSpeedAndCadenceChannelHandler(channelNumber, AntSensorType::CADENCE, ANT_SPORT_CADENCE_PERIOD, parent);
 }
 
 AntChannelHandler* AntSpeedAndCadenceChannelHandler::createSpeedChannelHandler(int channelNumber, QObject* parent)
 {
-    return new AntSpeedAndCadenceChannelHandler(channelNumber, SENSOR_TYPE_SPEED, ANT_SPORT_SPEED_PERIOD, parent);
+    return new AntSpeedAndCadenceChannelHandler(channelNumber, AntSensorType::SPEED, ANT_SPORT_SPEED_PERIOD, parent);
 }
 
 AntSpeedAndCadenceChannelHandler::AntSpeedAndCadenceChannelHandler(int channelNumber, AntSensorType sensorType, AntSportPeriod period, QObject *parent):
@@ -92,13 +92,13 @@ void AntSpeedAndCadenceChannelHandler::handleBroadCastMessage(const BroadCastMes
 {
     if (!_previousMessage.isNull()) {
         switch(sensorType()) {
-        case SENSOR_TYPE_SPEED_AND_CADENCE:
+        case AntSensorType::SPEED_AND_CADENCE:
             handleSpeedAndCadenceMessage(SpeedAndCadenceMessage(message.antMessage()));
             break;
-        case SENSOR_TYPE_CADENCE:
+        case AntSensorType::CADENCE:
             handleCadenceMessage(CadenceMessage(message.antMessage()));
             break;
-        case SENSOR_TYPE_SPEED:
+        case AntSensorType::SPEED:
             handleSpeedMessage(SpeedMessage(message.antMessage()));
             break;
         default:
@@ -142,7 +142,7 @@ void AntSpeedAndCadenceChannelHandler::calculateSpeed(const quint16 previousTime
     if (time) {
         float rpm = 1024*60*revolutions / static_cast<float>(time);
         qDebug() << QTime::currentTime().toString() << "wheel speed" << rpm << "=" << ((rpm / 60) * 2.070) * 3.6 << "km/h";
-        emit sensorValue(SENSOR_VALUE_WHEEL_SPEED_RPM, sensorType(), QVariant::fromValue(rpm));
+        emit sensorValue(SensorValueType::WHEEL_SPEED_RPM, sensorType(), QVariant::fromValue(rpm));
     }
 }
 
@@ -156,7 +156,7 @@ void AntSpeedAndCadenceChannelHandler::calculateCadence(const quint16 previousTi
     if (time) {
         float cadence = 1024 * 60 * revolutions / static_cast<float>(time);
         qDebug() << QTime::currentTime().toString() << "cadence" << cadence;
-        emit sensorValue(SENSOR_VALUE_CADENCE_RPM, sensorType(), QVariant::fromValue(cadence));
+        emit sensorValue(SensorValueType::CADENCE_RPM, sensorType(), QVariant::fromValue(cadence));
     }
 }
 }

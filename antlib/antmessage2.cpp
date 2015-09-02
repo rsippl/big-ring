@@ -241,13 +241,13 @@ AntMessage2 AntMessage2::setChannelFrequency(quint8 channelNumber, quint16 frequ
     return AntMessage2(AntMessageId::SET_CHANNEL_FREQUENCY, data);
 }
 
-AntMessage2 AntMessage2::setChannelId(quint8 channelNumber, quint16 deviceId, quint8 deviceType, quint8 transmissionType)
+AntMessage2 AntMessage2::setChannelId(quint8 channelNumber, quint16 deviceId, indoorcycling::AntSensorType deviceType, quint8 transmissionType)
 {
     QByteArray array;
     array += channelNumber;
     array += deviceId & 0xFF;
     array += (deviceId >> 8) & 0xFF;
-    array += deviceType;
+    array += static_cast<quint8>(deviceType);
     array += transmissionType;
 
     return AntMessage2(AntMessageId::SET_CHANNEL_ID, array);

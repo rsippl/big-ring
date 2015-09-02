@@ -24,6 +24,8 @@
 #include <memory>
 #include <QtCore/QObject>
 
+#include "antsensortype.h"
+
 /* forward declarations */
 class AntChannelEventMessage;
 
@@ -77,7 +79,7 @@ public:
     static AntMessage2 openChannel(quint8 channelNumber);
     static AntMessage2 requestMessage(quint8 channelNumber, AntMessageId messageId);
     static AntMessage2 setChannelFrequency(quint8 channelNumber, quint16 frequency = ANT_PLUS_CHANNEL_FREQUENCY);
-    static AntMessage2 setChannelId(quint8 channelNumber, quint16 deviceId, quint8 deviceType, quint8 transmissionType = 0u);
+    static AntMessage2 setChannelId(quint8 channelNumber, quint16 deviceId, indoorcycling::AntSensorType deviceType, quint8 transmissionType = 0u);
     /**
      * @brief setChannelPeriod set the channel messaging period.
      * @param channelNumber the channel number

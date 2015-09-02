@@ -123,15 +123,15 @@ void SettingsDialog::fillSensorLabels()
             indoorcycling::NamedSensorConfigurationGroup::selectedConfigurationGroup();
     auto configurations = configurationGroup.sensorConfigurations();
     fillSensorLabel(_ui->hrSensorLabel, configurations,
-                    indoorcycling::AntSensorType::SENSOR_TYPE_HR);
+                    indoorcycling::AntSensorType::HEART_RATE);
     fillSensorLabel(_ui->cadenceSensorLabel, configurations,
-                    indoorcycling::AntSensorType::SENSOR_TYPE_CADENCE);
+                    indoorcycling::AntSensorType::CADENCE);
     fillSensorLabel(_ui->speedSensorLabel, configurations,
-                    indoorcycling::AntSensorType::SENSOR_TYPE_SPEED);
+                    indoorcycling::AntSensorType::SPEED);
     fillSensorLabel(_ui->speedAndCadenceSensorLabel, configurations,
-                    indoorcycling::AntSensorType::SENSOR_TYPE_SPEED_AND_CADENCE);
+                    indoorcycling::AntSensorType::SPEED_AND_CADENCE);
     fillSensorLabel(_ui->powerSensorLabel, configurations,
-                    indoorcycling::AntSensorType::SENSOR_TYPE_POWER);
+                    indoorcycling::AntSensorType::POWER);
 
 }
 

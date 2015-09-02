@@ -54,8 +54,17 @@ public:
     static AntMessage2 createHeartRateMessage(quint8 channelNumber, bool toggleHigh, quint16 measurementTime,
                                               quint8 heartBeatCount, quint8 computedHeartRate);
 
+    /**
+     * Represents the time of the last valid heart beat event.
+     */
     quint16 measurementTime() const;
+    /**
+     * A single byte value which increments with each heart beat event.
+     */
     quint8 heartBeatCount() const;
+    /**
+     * Instantaneous heart rate.
+     */
     quint8 computedHeartRate() const;
 private:
     quint16 _measurementTime;
@@ -69,9 +78,7 @@ class AntHeartRateChannelHandler : public AntChannelHandler
 public:
     explicit AntHeartRateChannelHandler(int channelNumber, QObject* parent);
     virtual ~AntHeartRateChannelHandler() {}
-signals:
 
-public slots:
 protected:
     virtual void handleBroadCastMessage(const BroadCastMessage& message) override;
 private:
@@ -89,6 +96,11 @@ public:
     explicit AntHeartRateMasterChannelHandler(int channelNumber, QObject* parent = nullptr);
     virtual ~AntHeartRateMasterChannelHandler() {}
 
+    /**
+     * Send a new sensor value over the channel.
+     * @param valueType the type of value. For HeartRate channels this is always SensorValueType::SENSOR_TYPE_HR
+     * @param value the value. For heart rate channels, this should be of type integer.
+     */
     virtual void sendSensorValue(const SensorValueType valueType, const QVariant &value) override;
 protected:
     virtual quint8 transmissionType() const override;

@@ -25,39 +25,42 @@
 
 namespace indoorcycling
 {
-enum AntSensorType {
-    SENSOR_TYPE_HR = 0x78,
-    SENSOR_TYPE_POWER = 0x0B,
-    SENSOR_TYPE_SPEED = 0x7B,
-    SENSOR_TYPE_CADENCE = 0x7A,
-    SENSOR_TYPE_SPEED_AND_CADENCE = 0x79
+enum class AntSensorType: quint8 {
+    HEART_RATE = 0x78,
+    POWER = 0x0B,
+    SPEED = 0x7B,
+    CADENCE = 0x7A,
+    SPEED_AND_CADENCE = 0x79
 };
 
-const QMap<AntSensorType,QString> ANT_SENSOR_TYPE_STRINGS =
-        QMap<AntSensorType,QString>(
+inline uint qHash(const AntSensorType antSensorType)
+{
+    return static_cast<uint>(antSensorType);
+}
+
+const QMap<AntSensorType,QString> ANT_SENSOR_TYPE_STRINGS(
         {
-            {SENSOR_TYPE_CADENCE, "Cadence"},
-            {SENSOR_TYPE_HR, "HeartRate"},
-            {SENSOR_TYPE_POWER, "Power"},
-            {SENSOR_TYPE_SPEED, "Speed"},
-            {SENSOR_TYPE_SPEED_AND_CADENCE,"Speed And Cadence"}
+            {AntSensorType::CADENCE, "Cadence"},
+            {AntSensorType::HEART_RATE, "HeartRate"},
+            {AntSensorType::POWER, "Power"},
+            {AntSensorType::SPEED, "Speed"},
+            {AntSensorType::SPEED_AND_CADENCE,"Speed And Cadence"}
         });
 
-enum SensorValueType {
-    SENSOR_VALUE_HEARTRATE_BPM,
-    SENSOR_VALUE_POWER_WATT,
-    SENSOR_VALUE_CADENCE_RPM,
-    SENSOR_VALUE_WHEEL_SPEED_RPM
+enum class SensorValueType {
+    HEARTRATE_BPM,
+    POWER_WATT,
+    CADENCE_RPM,
+    WHEEL_SPEED_RPM
 };
 
 
-const QMap<SensorValueType,QString> SENSOR_VALUE_TYPE_STRINGS =
-        QMap<SensorValueType,QString>(
+const QMap<SensorValueType,QString> SENSOR_VALUE_TYPE_STRINGS(
         {
-            {SENSOR_VALUE_HEARTRATE_BPM, "BPM"},
-            {SENSOR_VALUE_POWER_WATT, "W"},
-            {SENSOR_VALUE_CADENCE_RPM, "RPM"},
-            {SENSOR_VALUE_WHEEL_SPEED_RPM, "RPM"},
+            {SensorValueType::HEARTRATE_BPM, "BPM"},
+            {SensorValueType::POWER_WATT, "W"},
+            {SensorValueType::CADENCE_RPM, "RPM"},
+            {SensorValueType::WHEEL_SPEED_RPM, "RPM"},
         });
 }
 #endif // ANTCHANNELTYPE_H

@@ -85,7 +85,7 @@ void AntMessage2Test::requestMessage()
 void AntMessage2Test::setChannelId()
 {
     quint16 theDeviceId = 10000;
-    int theDeviceType = 3;
+    indoorcycling::AntSensorType theDeviceType = indoorcycling::AntSensorType::HEART_RATE;
     AntMessage2 msg = AntMessage2::setChannelId(1, theDeviceId, theDeviceType);
 
     QCOMPARE_BYTE(msg.id(), AntMessage2::AntMessageId::SET_CHANNEL_ID);
@@ -97,7 +97,7 @@ void AntMessage2Test::setChannelId()
     quint16 deviceId = qFromLittleEndian<quint16>(deviceIdChars);
     QCOMPARE(deviceId, deviceId);
     int deviceType = content[3];
-    QCOMPARE(deviceType, theDeviceType);
+    QCOMPARE(deviceType, static_cast<int>(theDeviceType));
     int transmissionType = content[4];
     QCOMPARE(transmissionType, 0);
 }

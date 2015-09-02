@@ -153,10 +153,10 @@ bool AntCentralDispatch::openMasterChannel(AntSensorType sensorType)
     }
     AntMasterChannelHandler *channel;
     switch (sensorType) {
-    case SENSOR_TYPE_HR:
+    case AntSensorType::HEART_RATE:
         channel = new AntHeartRateMasterChannelHandler(channelNumber, this);
         break;
-    case SENSOR_TYPE_POWER:
+    case AntSensorType::POWER:
         channel = new AntPowerMasterChannelHandler(channelNumber, this);
         break;
     default:
@@ -229,15 +229,15 @@ int AntCentralDispatch::findFreeChannel()
 AntChannelHandler* AntCentralDispatch::createChannel(int channelNumber, AntSensorType &sensorType)
 {
     switch (sensorType) {
-    case SENSOR_TYPE_CADENCE:
+    case AntSensorType::CADENCE:
         return AntSpeedAndCadenceChannelHandler::createCadenceChannelHandler(channelNumber, this);
-    case SENSOR_TYPE_HR:
+    case AntSensorType::HEART_RATE:
         return new AntHeartRateChannelHandler(channelNumber, this);
-    case SENSOR_TYPE_POWER:
+    case AntSensorType::POWER:
         return new AntPowerSlaveChannelHandler(channelNumber, this);
-    case SENSOR_TYPE_SPEED:
+    case AntSensorType::SPEED:
         return AntSpeedAndCadenceChannelHandler::createSpeedChannelHandler(channelNumber, this);
-    case SENSOR_TYPE_SPEED_AND_CADENCE:
+    case AntSensorType::SPEED_AND_CADENCE:
         return AntSpeedAndCadenceChannelHandler::createCombinedSpeedAndCadenceChannelHandler(channelNumber, this);
     default:
         qFatal("Unknown sensor type %d", sensorType);

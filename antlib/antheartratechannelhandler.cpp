@@ -76,7 +76,7 @@ quint8 HeartRateMessage::computedHeartRate() const
 
 
 AntHeartRateChannelHandler::AntHeartRateChannelHandler(int channelNumber, QObject *parent):
-    AntChannelHandler(channelNumber, SENSOR_TYPE_HR, ANT_SPORT_HR_PERIOD, parent)
+    AntChannelHandler(channelNumber, AntSensorType::HEART_RATE, ANT_SPORT_HR_PERIOD, parent)
 {
     // empty
 }
@@ -86,14 +86,14 @@ void AntHeartRateChannelHandler::handleBroadCastMessage(const BroadCastMessage &
     HeartRateMessage heartRateMessage(message.antMessage());
     if (_lastMessage.isNull() || heartRateMessage.measurementTime() != _lastMessage.measurementTime()) {
         qDebug() << QTime::currentTime().toString() << "HR:" << heartRateMessage.computedHeartRate();
-        emit sensorValue(SENSOR_VALUE_HEARTRATE_BPM, sensorType(),
+        emit sensorValue(SensorValueType::HEARTRATE_BPM, sensorType(),
                          QVariant::fromValue(heartRateMessage.computedHeartRate()));
     }
     _lastMessage = heartRateMessage;
 }
 
 AntHeartRateMasterChannelHandler::AntHeartRateMasterChannelHandler(int channelNumber, QObject *parent):
-    AntMasterChannelHandler(channelNumber, SENSOR_TYPE_HR, ANT_SPORT_HR_PERIOD, parent),
+    AntMasterChannelHandler(channelNumber, AntSensorType::HEART_RATE, ANT_SPORT_HR_PERIOD, parent),
     _updateTimer(new QTimer(this)), _updateCounter(0), _heartRate(0), _lastEventTime(0), _lastNrOfHeartBeats(0)
 {
     _updateTimer->setInterval(250);
@@ -102,7 +102,7 @@ AntHeartRateMasterChannelHandler::AntHeartRateMasterChannelHandler(int channelNu
 
 void AntHeartRateMasterChannelHandler::sendSensorValue(const SensorValueType valueType, const QVariant &value)
 {
-    if (valueType == SensorValueType::SENSOR_VALUE_HEARTRATE_BPM) {
+    if (valueType == SensorValueType::HEARTRATE_BPM) {
         _heartRate = value.toInt();
     }
 }
