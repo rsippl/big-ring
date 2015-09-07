@@ -81,11 +81,18 @@ QPixmap Thumbnailer::thumbnailFor(RealLifeVideo &rlv, const qreal distance)
 
 void Thumbnailer::setNewFrame(const RealLifeVideo& rlv, const qreal distance, const QImage &frame)
 {
-    frame.save(cacheFilePathFor(rlv, distance));
-    emit pixmapUpdated(rlv, distance, QPixmap::fromImage(frame));
+    QPixmap asPixmap;
+    if (frame.isNull()) {
+        asPixmap = createInvalidPixmap();
+        asPixmap.save(cacheFilePathFor(rlv, distance));
+    } else {
+        frame.save(cacheFilePathFor(rlv, distance));
+        asPixmap = QPixmap::fromImage(frame);
+    }
+    emit pixmapUpdated(rlv, distance, asPixmap);
 }
 
-QPixmap Thumbnailer::createEmptyPixmap() const
+QPixmap Thumbnailer::createTextPixmap(const QString &text) const
 {
     QPixmap emptyPixmap(DEFAULT_IMAGE_SIZE);
     emptyPixmap.fill(Qt::black);
@@ -98,9 +105,19 @@ QPixmap Thumbnailer::createEmptyPixmap() const
     QTextOption textOption;
     textOption.setAlignment(Qt::AlignCenter);
     p.setPen(Qt::white);
-    p.drawText(emptyPixmap.rect(), QString(tr("Loading screenshot")), textOption);
+    p.drawText(emptyPixmap.rect(), QString(text), textOption);
 
     return emptyPixmap;
+}
+
+QPixmap Thumbnailer::createEmptyPixmap() const
+{
+    return createTextPixmap(tr("Loading screenshot"));
+}
+
+QPixmap Thumbnailer::createInvalidPixmap() const
+{
+    return createTextPixmap(tr("Unable to create screenshot"));
 }
 
 void Thumbnailer::createCacheDirectoryIfNotExists()

@@ -49,7 +49,9 @@ private slots:
     void setNewFrame(const RealLifeVideo &rlv, const qreal distance, const QImage& frame);
 private:
     static QDir thumbnailDirectory();
+    QPixmap createTextPixmap(const QString& text) const;
     QPixmap createEmptyPixmap() const;
+    QPixmap createInvalidPixmap() const;
     QString cacheFilePathFor(const RealLifeVideo& rlv, const qreal distance);
 
     /*!

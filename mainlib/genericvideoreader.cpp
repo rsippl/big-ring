@@ -212,3 +212,8 @@ AVPicture *AVFrameWrapper::asPicture()
     return reinterpret_cast<AVPicture*>(frame);
 }
 
+bool AVFrameWrapper::isEmpty()
+{
+    return frame->width == 0 || frame->height == 0;
+}
+

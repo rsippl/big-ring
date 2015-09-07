@@ -94,6 +94,9 @@ bool ThumbnailCreatingVideoReader::event(QEvent *event)
 
 QImage ThumbnailCreatingVideoReader::createImage()
 {
+    if (frameYuv().isEmpty()) {
+        return QImage();
+    }
     sws_scale(_swsContext, frameYuv().frame->data, frameYuv().frame->linesize, 0, codecContext()->height, _frameRgb->frame->data,
               _frameRgb->frame->linesize);
     QImage image(frameYuv().frame->width, frameYuv().frame->height, QImage::Format_RGB888);

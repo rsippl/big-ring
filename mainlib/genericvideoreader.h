@@ -19,6 +19,8 @@ public:
     /** return the AVFrame as an AVPicture. */
     AVPicture* asPicture();
 
+    bool isEmpty();
+
     AVFrame* frame;
 };
 
