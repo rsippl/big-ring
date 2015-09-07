@@ -33,28 +33,20 @@ class AntChannelHandler : public QObject
 public:
     virtual ~AntChannelHandler();
 
-    /** TODO: move this to a "better location".*/
-    enum AntSportPeriod {
-        ANT_SPORT_UNUSED_PERIOD = 0,
-        ANT_SPORT_HR_PERIOD = 8070,
-        ANT_SPORT_POWER_PERIOD = 8182,
-        ANT_SPORT_SPEED_PERIOD = 8118,
-        ANT_SPORT_CADENCE_PERIOD = 8102,
-        ANT_SPORT_SPEED_AND_CADENCE_PERIOD = 8086
-    };
-    enum ChannelState {
-        CHANNEL_CLOSED,
-        CHANNEL_ASSIGNED,
-        CHANNEL_ID_SET,
-        CHANNEL_FREQUENCY_SET,
-        CHANNEL_PERIOD_SET,
-        CHANNEL_TIMEOUT_SET,
-        CHANNEL_OPENED,
-        CHANNEL_SEARCHING,
-        CHANNEL_SEARCH_TIMEOUT,
-        CHANNEL_TRACKING,
-        CHANNEL_LOST_CONNECTION,
-        CHANNEL_UNASSIGNED
+
+    enum class ChannelState {
+        CLOSED,
+        ASSIGNED,
+        ID_SET,
+        FREQUENCY_SET,
+        PERIOD_SET,
+        TIMEOUT_SET,
+        OPENED,
+        SEARCHING,
+        SEARCH_TIMEOUT,
+        TRACKING,
+        LOST_CONNECTION,
+        UNASSIGNED
     };
 
     ChannelState state() const;

@@ -34,7 +34,7 @@ class SensorItem : public QObject, public QGraphicsItem
     Q_INTERFACES(QGraphicsItem)
 public:
     explicit
-    SensorItem(const enum QuantityPrinter::Quantity, QObject *parent = 0);
+    SensorItem(const QuantityPrinter::Quantity, QObject *parent = 0);
 
     virtual QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

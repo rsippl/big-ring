@@ -44,13 +44,13 @@ std::unique_ptr<AntDevice> AntDeviceFinder::openAntDevice()
 {
     AntDeviceType type = findAntDeviceType();
     switch(type) {
-    case ANT_DEVICE_USB_1:
+    case AntDeviceType::USB_1:
 #ifdef Q_OS_LINUX
         return std::unique_ptr<AntDevice>(new UnixSerialUsbAnt);
 #else
 //        return std::unique_ptr<AntDevice>(new UsbExpressAntDevice);
 #endif
-    case ANT_DEVICE_USB_2:
+    case AntDeviceType::USB_2:
         return std::unique_ptr<AntDevice>(new Usb2AntDevice);
     default:
         return std::unique_ptr<AntDevice>();

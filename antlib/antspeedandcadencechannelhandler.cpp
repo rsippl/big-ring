@@ -69,17 +69,17 @@ AntChannelHandler* AntSpeedAndCadenceChannelHandler::createCombinedSpeedAndCaden
         int channelNumber, QObject* parent)
 {
     return  new AntSpeedAndCadenceChannelHandler(channelNumber, AntSensorType::SPEED_AND_CADENCE,
-                                                     ANT_SPORT_SPEED_AND_CADENCE_PERIOD, parent);
+                                                     AntSportPeriod::SPEED_AND_CADENCE, parent);
 }
 
 AntChannelHandler* AntSpeedAndCadenceChannelHandler::createCadenceChannelHandler(int channelNumber, QObject* parent)
 {
-    return new AntSpeedAndCadenceChannelHandler(channelNumber, AntSensorType::CADENCE, ANT_SPORT_CADENCE_PERIOD, parent);
+    return new AntSpeedAndCadenceChannelHandler(channelNumber, AntSensorType::CADENCE, AntSportPeriod::CADENCE, parent);
 }
 
 AntChannelHandler* AntSpeedAndCadenceChannelHandler::createSpeedChannelHandler(int channelNumber, QObject* parent)
 {
-    return new AntSpeedAndCadenceChannelHandler(channelNumber, AntSensorType::SPEED, ANT_SPORT_SPEED_PERIOD, parent);
+    return new AntSpeedAndCadenceChannelHandler(channelNumber, AntSensorType::SPEED, AntSportPeriod::SPEED, parent);
 }
 
 AntSpeedAndCadenceChannelHandler::AntSpeedAndCadenceChannelHandler(int channelNumber, AntSensorType sensorType, AntSportPeriod period, QObject *parent):

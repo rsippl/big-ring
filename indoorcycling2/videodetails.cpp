@@ -41,7 +41,7 @@ void VideoDetails::setVideo(RealLifeVideo &rlv)
     _currentRlv = rlv;
     ui->nameLabel->setText(rlv.name());
 
-    ui->distanceLabel->setText(QString("%1 %2").arg(_quantityPrinter->printDistance(rlv.totalDistance())).arg(_quantityPrinter->unitString(QuantityPrinter::Distance)));
+    ui->distanceLabel->setText(QString("%1 %2").arg(_quantityPrinter->printDistance(rlv.totalDistance())).arg(_quantityPrinter->unitString(QuantityPrinter::Quantity::Distance)));
     ui->videoScreenshotWidget->setVideo(rlv);
     ui->altitudeProfileWidget->setVideo(rlv);
 

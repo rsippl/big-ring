@@ -29,6 +29,15 @@
 /* forward declarations */
 class AntChannelEventMessage;
 
+/** TODO: move this to a "better location".*/
+enum class AntSportPeriod: quint16 {
+    UNUSED = 0,
+    HR = 8070,
+    POWER = 8182,
+    SPEED = 8118,
+    CADENCE = 8102,
+    SPEED_AND_CADENCE = 8086
+};
 /**
  * Class representing AntMessages.
  * @brief The AntMessage2 class
@@ -88,7 +97,7 @@ public:
      * get the correct period. For the ANT+ Heart Rate Profile, this should be set to 8070, for a rate of 4.06Hz.
      * @return a ANT+ message for setting a channel's messaging period.
      */
-    static AntMessage2 setChannelPeriod(quint8 channelNumber, quint16 messageRate);
+    static AntMessage2 setChannelPeriod(quint8 channelNumber, AntSportPeriod messagePeriod);
     /**
      * @brief Construct the ANT message to set the ant network key.
      * @param networkNumber the network to set the key for.

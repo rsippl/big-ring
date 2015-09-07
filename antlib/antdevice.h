@@ -35,10 +35,10 @@ const int GARMIN_USB1_PRODUCT_ID = 0x1004;
 const int GARMIN_USB2_PRODUCT_ID = 0x1008;
 const int OEM_USB2_PRODUCT_ID = 0x1009;
 
-enum AntDeviceType {
-    ANT_DEVICE_NONE,
-    ANT_DEVICE_USB_1,
-    ANT_DEVICE_USB_2
+enum class AntDeviceType {
+    NONE,
+    USB_1,
+    USB_2
 };
 
 /**

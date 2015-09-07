@@ -63,7 +63,7 @@ quint16 PowerMessage::instantaneousPower() const
 }
 
 AntPowerSlaveChannelHandler::AntPowerSlaveChannelHandler(int channelNumber, QObject *parent) :
-    AntChannelHandler(channelNumber, AntSensorType::POWER, ANT_SPORT_POWER_PERIOD, parent)
+    AntChannelHandler(channelNumber, AntSensorType::POWER, AntSportPeriod::POWER, parent)
 {
 }
 
@@ -86,7 +86,7 @@ void AntPowerSlaveChannelHandler::handleBroadCastMessage(const BroadCastMessage 
 }
 
 AntPowerMasterChannelHandler::AntPowerMasterChannelHandler(int channelNumber, QObject *parent):
-    AntMasterChannelHandler(channelNumber, AntSensorType::POWER, ANT_SPORT_POWER_PERIOD, parent),
+    AntMasterChannelHandler(channelNumber, AntSensorType::POWER, AntSportPeriod::POWER, parent),
     _updateTimer(new QTimer(this)), _eventCount(0u), _accumulatedPower(0u), _cadence(0u)
 {
     setSensorDeviceNumber(1);

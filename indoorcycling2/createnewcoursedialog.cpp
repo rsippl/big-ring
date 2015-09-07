@@ -59,7 +59,7 @@ void CreateNewCourseDialog::on_startDistanceSlider_valueChanged(int value)
 {
     _startDistanceInMeters = value;
     ui->distanceLabel->setText(QString("%1 %2").arg(_quantityPrinter->printDistance(_startDistanceInMeters))
-                               .arg(_quantityPrinter->unitString(QuantityPrinter::Distance)));
+                               .arg(_quantityPrinter->unitString(QuantityPrinter::Quantity::Distance)));
     ui->altitudeProfileWidget->setStartAndEndDistance(_startDistanceInMeters, _rlv.totalDistance());
 }
 

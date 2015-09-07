@@ -44,19 +44,19 @@ Course::Course(const QString &name, const Type type, float start, float end):
 {}
 
 Course::Course(const QString &name, float start, float end):
-    Course(name, Normal, start, end)
+    Course(name, Type::Normal, start, end)
 {
     // empty
 }
 
-Course::Course(): Course("", Invalid, 0, 0)
+Course::Course(): Course("", Type::Invalid, 0, 0)
 {
     // empty
 }
 
 
 Course::Course(float start, float end):
-    Course(QObject::tr("Unfinished Run"), Unfinished, start, end)
+    Course(QObject::tr("Unfinished Run"), Type::Unfinished, start, end)
 {
     // empty
 }
@@ -133,7 +133,7 @@ const std::vector<Course> &RealLifeVideo::courses() const
 
 void RealLifeVideo::setUnfinishedRun(float distance)
 {
-    if (!_d->_courses.empty() && _d->_courses.back().type() == Course::Unfinished) {
+    if (!_d->_courses.empty() && _d->_courses.back().type() == Course::Type::Unfinished) {
         _d->_courses.pop_back();
     }
     Course unfinishedCourse(distance, totalDistance());
@@ -142,7 +142,7 @@ void RealLifeVideo::setUnfinishedRun(float distance)
 
 void RealLifeVideo::addStartPoint(float distance, const QString &name)
 {
-    Course customCourse(name, Course::Custom, distance, totalDistance());
+    Course customCourse(name, Course::Type::Custom, distance, totalDistance());
     _d->_courses.push_back(customCourse);
 }
 

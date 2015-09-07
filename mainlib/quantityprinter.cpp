@@ -37,17 +37,17 @@ QuantityPrinter::QuantityPrinter(QObject *parent) :
 QString QuantityPrinter::unitString(QuantityPrinter::Quantity quantity, QuantityPrinter::Precision precision, QVariant value) const
 {
     switch(quantity) {
-    case Distance:
+    case Quantity::Distance:
         return unitForDistance(precision, value);
-    case Speed:
-        return (system() == ImperialSystem) ? "MPH" : "KM/H";
-    case Cadence:
+    case Quantity::Speed:
+        return (system() == System::Imperial) ? "MPH" : "KM/H";
+    case Quantity::Cadence:
         return tr("RPM");
-    case Power:
+    case Quantity::Power:
         return tr("W");
-    case HeartRate:
+    case Quantity::HeartRate:
         return tr("BPM");
-    case Grade:
+    case Quantity::Grade:
         return "%";
     default:
         return "#";
@@ -56,13 +56,13 @@ QString QuantityPrinter::unitString(QuantityPrinter::Quantity quantity, Quantity
 
 QString QuantityPrinter::unitForDistance(QuantityPrinter::Precision precision, QVariant value) const
 {
-    if (system() == ImperialSystem) {
-        if (precision == Precise && value.toReal() < MILES_PER_METERS) {
+    if (system() == System::Imperial) {
+        if (precision == Precision::Precise && value.toReal() < MILES_PER_METERS) {
             return "Y";
         }
         return "Mi";
     }
-    if (precision == Precise && value.toReal() < 1000) {
+    if (precision == Precision::Precise && value.toReal() < 1000) {
         return "M";
     }
     return "KM";
@@ -71,17 +71,17 @@ QString QuantityPrinter::unitForDistance(QuantityPrinter::Precision precision, Q
 QString QuantityPrinter::print(QVariant value, QuantityPrinter::Quantity quantity, Precision precision, int width) const
 {
     switch(quantity) {
-    case Distance:
+    case Quantity::Distance:
         return printDistance(value.toReal(), precision, width);
-    case Speed:
+    case Quantity::Speed:
         return printSpeed(value.toReal(), width);
-    case Cadence:
+    case Quantity::Cadence:
         return QString("%1").arg(value.toInt(), width);
-    case Power:
+    case Quantity::Power:
         return QString("%1").arg(value.toInt(), width);
-    case HeartRate:
+    case Quantity::HeartRate:
         return QString("%1").arg(value.toInt(), width);
-    case Grade:
+    case Quantity::Grade:
         return QString("%1").arg(value.toReal(), width, 'f', 1);
     default:
         return "Unknown";
@@ -90,13 +90,13 @@ QString QuantityPrinter::print(QVariant value, QuantityPrinter::Quantity quantit
 
 QString QuantityPrinter::printDistance(qreal meters, Precision precision, int width) const
 {
-    if (system() == ImperialSystem) {
-        if (precision == Precise && meters < MILES_PER_METERS) {
+    if (system() == System::Imperial) {
+        if (precision == Precision::Precise && meters < MILES_PER_METERS) {
             return QString("%1").arg(meters * YARDS_PER_METER, width, 'f', 0);
         }
         return QString("%1").arg(meters * MILES_PER_METER, width, 'f', 2);
     }
-    if (precision == Precise && meters < 1000) {
+    if (precision == Precision::Precise && meters < 1000) {
         return QString("%1").arg(meters, width, 'f', 0);
     }
     return QString("%1").arg(meters / 1000, width, 'f', 2);
@@ -104,7 +104,7 @@ QString QuantityPrinter::printDistance(qreal meters, Precision precision, int wi
 
 QString QuantityPrinter::printSpeed(qreal metersPerSecond, int width) const
 {
-    if (system() == ImperialSystem) {
+    if (system() == System::Imperial) {
         return QString("%1").arg(metersPerSecond * MPH_PER_MPS, width, 'f', 1);
     }
     return QString("%1").arg(metersPerSecond * 3.6,  width, 'f', 1);
@@ -114,7 +114,7 @@ QuantityPrinter::System QuantityPrinter::system() const
 {
     QString systemString = _settings.value("units").toString();
     if (systemString == "Imperial") {
-        return ImperialSystem;
+        return System::Imperial;
     }
-    return MetricSystem;
+    return System::Metric;
 }

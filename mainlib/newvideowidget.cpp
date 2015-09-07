@@ -252,17 +252,17 @@ void NewVideoWidget::seekToStart(Course &course)
 
 void NewVideoWidget::addSensorItems(QGraphicsScene *scene)
 {
-    _wattageItem = new SensorItem(QuantityPrinter::Power);
+    _wattageItem = new SensorItem(QuantityPrinter::Quantity::Power);
     scene->addItem(_wattageItem);
-    _heartRateItem = new SensorItem(QuantityPrinter::HeartRate);
+    _heartRateItem = new SensorItem(QuantityPrinter::Quantity::HeartRate);
     scene->addItem(_heartRateItem);
-    _cadenceItem = new SensorItem(QuantityPrinter::Cadence);
+    _cadenceItem = new SensorItem(QuantityPrinter::Quantity::Cadence);
     scene->addItem(_cadenceItem);
-    _speedItem = new SensorItem(QuantityPrinter::Speed);
+    _speedItem = new SensorItem(QuantityPrinter::Quantity::Speed);
     scene->addItem(_speedItem);
-    _distanceItem = new SensorItem(QuantityPrinter::Distance);
+    _distanceItem = new SensorItem(QuantityPrinter::Quantity::Distance);
     scene->addItem(_distanceItem);
-    _gradeItem = new SensorItem(QuantityPrinter::Grade);
+    _gradeItem = new SensorItem(QuantityPrinter::Quantity::Grade);
     scene->addItem(_gradeItem);
 }
 

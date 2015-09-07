@@ -253,10 +253,12 @@ AntMessage2 AntMessage2::setChannelId(quint8 channelNumber, quint16 deviceId, in
     return AntMessage2(AntMessageId::SET_CHANNEL_ID, array);
 }
 
-AntMessage2 AntMessage2::setChannelPeriod(quint8 channelNumber, quint16 messageRate)
+AntMessage2 AntMessage2::setChannelPeriod(quint8 channelNumber, AntSportPeriod messagePeriod)
 {
     QByteArray content;
     content += channelNumber;
+
+    quint16 messageRate = static_cast<quint16>(messagePeriod);
     content += messageRate & 0xFF;
     content += (messageRate >> 8) & 0xFF;
 

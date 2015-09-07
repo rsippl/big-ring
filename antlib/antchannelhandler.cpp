@@ -27,23 +27,23 @@ const int SEARCH_TIMEOUT = 10; //seconds.
 using indoorcycling::AntChannelHandler;
 const QMap<AntChannelHandler::ChannelState,QString> CHANNEL_STATE_STRINGS(
 {
-            {AntChannelHandler::CHANNEL_CLOSED, "CHANNEL_CLOSED"},
-            {AntChannelHandler::CHANNEL_ASSIGNED, "CHANNEL_ASSIGNED"},
-            {AntChannelHandler::CHANNEL_ID_SET, "CHANNEL_ID_SET"},
-            {AntChannelHandler::CHANNEL_FREQUENCY_SET, "CHANNEL_FREQUENCY_SET"},
-            {AntChannelHandler::CHANNEL_PERIOD_SET, "CHANNEL_PERIOD_SET"},
-            {AntChannelHandler::CHANNEL_TIMEOUT_SET, "CHANNEL_SEARCH_TIMEOUT_SET"},
-            {AntChannelHandler::CHANNEL_OPENED, "CHANNEL_OPENED"},
-            {AntChannelHandler::CHANNEL_SEARCHING, "CHANNEL_SEARCHING"},
-            {AntChannelHandler::CHANNEL_TRACKING, "CHANNEL_TRACKING"},
-            {AntChannelHandler::CHANNEL_UNASSIGNED, "CHANNEL_UNASSIGNED"}
+            {AntChannelHandler::ChannelState::CLOSED, "CHANNEL_CLOSED"},
+            {AntChannelHandler::ChannelState::ASSIGNED, "CHANNEL_ASSIGNED"},
+            {AntChannelHandler::ChannelState::ID_SET, "CHANNEL_ID_SET"},
+            {AntChannelHandler::ChannelState::FREQUENCY_SET, "CHANNEL_FREQUENCY_SET"},
+            {AntChannelHandler::ChannelState::PERIOD_SET, "CHANNEL_PERIOD_SET"},
+            {AntChannelHandler::ChannelState::TIMEOUT_SET, "CHANNEL_SEARCH_TIMEOUT_SET"},
+            {AntChannelHandler::ChannelState::OPENED, "CHANNEL_OPENED"},
+            {AntChannelHandler::ChannelState::SEARCHING, "CHANNEL_SEARCHING"},
+            {AntChannelHandler::ChannelState::TRACKING, "CHANNEL_TRACKING"},
+            {AntChannelHandler::ChannelState::UNASSIGNED, "CHANNEL_UNASSIGNED"}
 });
 }
 namespace indoorcycling {
 AntChannelHandler::AntChannelHandler(const int channelNumber, const AntSensorType sensorType,
                                      AntSportPeriod channelPeriod, QObject *parent) :
     QObject(parent), _channelNumber(channelNumber), _deviceNumber(0), _sensorType(sensorType),
-    _channelPeriod(channelPeriod),_state(CHANNEL_CLOSED)
+    _channelPeriod(channelPeriod),_state(ChannelState::CLOSED)
 {
     // empty
 }
@@ -92,13 +92,13 @@ void AntChannelHandler::initialize()
 {
     quint8 channelType = (isMasterNode()) ? 0x10 : 0x0;
     emit antMessageGenerated(AntMessage2::assignChannel(_channelNumber, channelType));
-    setState(CHANNEL_ASSIGNED);
+    setState(ChannelState::ASSIGNED);
 }
 
 void AntChannelHandler::close()
 {
     qDebug() << QString("Closing channel #%1").arg(_channelNumber);
-    setState(CHANNEL_CLOSED);
+    setState(ChannelState::CLOSED);
     emit antMessageGenerated(AntMessage2::closeChannel(_channelNumber));
 }
 
@@ -109,19 +109,19 @@ void AntChannelHandler::handleChannelEvent(const AntChannelEventMessage &message
         advanceState(message.messageId());
         break;
     case AntChannelEventMessage::MessageCode::EVENT_RX_SEARCH_TIMEOUT:
-        setState(CHANNEL_SEARCH_TIMEOUT);
+        setState(ChannelState::SEARCH_TIMEOUT);
         emit searchTimeout(_channelNumber, _sensorType);
         emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
-        setState(CHANNEL_UNASSIGNED);
+        setState(ChannelState::UNASSIGNED);
         break;
     case AntChannelEventMessage::MessageCode::EVENT_RX_FAILED:
         qDebug() << "RX Failure on channel" << _channelNumber;
         break;;
     case AntChannelEventMessage::MessageCode::EVENT_CHANNEL_CLOSED:
         qDebug() << "Channel closed by ANT+ stick.";
-        if (_state != CHANNEL_UNASSIGNED) {
+        if (_state != ChannelState::UNASSIGNED) {
             emit antMessageGenerated(AntMessage2::unassignChannel(_channelNumber));
-            setState(CHANNEL_UNASSIGNED);
+            setState(ChannelState::UNASSIGNED);
         }
         break;
     case AntChannelEventMessage::MessageCode::EVENT_TX:
@@ -134,9 +134,9 @@ void AntChannelHandler::handleChannelEvent(const AntChannelEventMessage &message
 
 void AntChannelHandler::handleBroadcastEvent(const BroadCastMessage &broadcastMessage)
 {
-    if (_state == CHANNEL_SEARCHING) {
+    if (_state == ChannelState::SEARCHING) {
         handleFirstBroadCastMessage(broadcastMessage);
-    } else if (_state == CHANNEL_TRACKING) {
+    } else if (_state == ChannelState::TRACKING) {
         handleBroadCastMessage(broadcastMessage);
     } else {
         qDebug() << "Did not expect a broad cast message in state"
@@ -148,7 +148,7 @@ void AntChannelHandler::handleBroadcastEvent(const BroadCastMessage &broadcastMe
 void AntChannelHandler::handleChannelIdEvent(const SetChannelIdMessage &channelIdMessage)
 {
     _deviceNumber = channelIdMessage.deviceNumber();
-    setState(CHANNEL_TRACKING);
+    setState(ChannelState::TRACKING);
     emit sensorFound(_channelNumber, _sensorType, _deviceNumber);
     emit antMessageGenerated(AntMessage2::setInfiniteSearchTimeout(_channelNumber));
 }
@@ -176,52 +176,52 @@ void AntChannelHandler::assertMessageId(const AntMessage2::AntMessageId expected
 void AntChannelHandler::advanceState(const AntMessage2::AntMessageId messageId)
 {
     switch (_state) {
-    case CHANNEL_ASSIGNED:
+    case ChannelState::ASSIGNED:
         assertMessageId(AntMessage2::AntMessageId::ASSIGN_CHANNEL, messageId);
         emit antMessageGenerated(AntMessage2::setChannelId(_channelNumber,
                                                            _deviceNumber, _sensorType, transmissionType()));
-        setState(CHANNEL_ID_SET);
+        setState(ChannelState::ID_SET);
         break;
-    case CHANNEL_ID_SET:
+    case ChannelState::ID_SET:
         assertMessageId(AntMessage2::AntMessageId::SET_CHANNEL_ID, messageId);
         emit antMessageGenerated(AntMessage2::setChannelFrequency(_channelNumber));
-        setState(CHANNEL_FREQUENCY_SET);
+        setState(ChannelState::FREQUENCY_SET);
         break;
-    case CHANNEL_FREQUENCY_SET:
+    case ChannelState::FREQUENCY_SET:
         assertMessageId(AntMessage2::AntMessageId::SET_CHANNEL_FREQUENCY, messageId);
         emit antMessageGenerated(AntMessage2::setChannelPeriod(_channelNumber, _channelPeriod));
-        setState(CHANNEL_PERIOD_SET);
+        setState(ChannelState::PERIOD_SET);
         break;
-    case CHANNEL_PERIOD_SET:
+    case ChannelState::PERIOD_SET:
         assertMessageId(AntMessage2::AntMessageId::SET_CHANNEL_PERIOD, messageId);
         if (isMasterNode()) {
             emit antMessageGenerated(AntMessage2::openChannel(_channelNumber));
-            setState(CHANNEL_OPENED);
+            setState(ChannelState::OPENED);
         } else {
             emit antMessageGenerated(AntMessage2::setSearchTimeout(_channelNumber, SEARCH_TIMEOUT));
-            setState(CHANNEL_TIMEOUT_SET);
+            setState(ChannelState::TIMEOUT_SET);
         }
         break;
-    case CHANNEL_TIMEOUT_SET:
+    case ChannelState::TIMEOUT_SET:
         assertMessageId(AntMessage2::AntMessageId::SET_SEARCH_TIMEOUT, messageId);
         emit antMessageGenerated(AntMessage2::openChannel(_channelNumber));
-        setState(CHANNEL_OPENED);
+        setState(ChannelState::OPENED);
         break;
-    case CHANNEL_OPENED:
+    case ChannelState::OPENED:
         assertMessageId(AntMessage2::AntMessageId::OPEN_CHANNEL, messageId);
-        setState(CHANNEL_SEARCHING);
+        setState(ChannelState::SEARCHING);
         channelOpened();
         break;
-    case CHANNEL_CLOSED:
+    case ChannelState::CLOSED:
         assertMessageId(AntMessage2::AntMessageId::CLOSE_CHANNEL, messageId);
         // we have to wait for a "channel closed message from the ant+ adapter
         break;
-    case CHANNEL_UNASSIGNED:
+    case ChannelState::UNASSIGNED:
         assertMessageId(AntMessage2::AntMessageId::UNASSIGN_CHANNEL, messageId);
         emit finished(_channelNumber);
         qDebug() << "Channel unassigned. Can be deleted";
         break;
-    case CHANNEL_TRACKING:
+    case ChannelState::TRACKING:
         assertMessageId(AntMessage2::AntMessageId::SET_SEARCH_TIMEOUT, messageId);
         qDebug() << "search timeout set after acquiring sensor.";
         break;
@@ -240,11 +240,11 @@ void AntChannelHandler::handleFirstBroadCastMessage(const BroadCastMessage&)
                 .arg(_channelNumber);
     emit antMessageGenerated(AntMessage2::requestMessage(_channelNumber,
                                                          AntMessage2::AntMessageId::SET_CHANNEL_ID));
-    setState(CHANNEL_TRACKING);
+    setState(ChannelState::TRACKING);
 }
 
 AntMasterChannelHandler::AntMasterChannelHandler(int channelNumber, const AntSensorType sensorType,
-                                                 AntChannelHandler::AntSportPeriod channelPeriod, QObject *parent):
+                                                 AntSportPeriod channelPeriod, QObject *parent):
     AntChannelHandler(channelNumber, sensorType, channelPeriod, parent)
 {
     // empty

@@ -49,13 +49,13 @@ private:
 class Course
 {
 public:
-    enum Type { Invalid, Normal, Unfinished, Custom };
+    enum class Type { Invalid, Normal, Unfinished, Custom };
     explicit Course(const QString& name, const Type type, float start, float end);
     explicit Course(const QString& name, float start, float end);
     explicit Course(float start, float end);
     explicit Course();
 
-    bool isValid() const { return !(_type == Invalid);}
+    bool isValid() const { return !(_type == Type::Invalid);}
     const QString& name() const { return _name; }
     Type type() const { return _type; }
     /*! start distance of course in  meters */
