@@ -1,6 +1,8 @@
 #include "gpxfileparser.h"
 
+#include "distancemappingentry.h"
 #include "videoinforeader.h"
+#include "videoinformation.h"
 
 #include <QtCore/QDateTime>
 #include <QtCore/QtDebug>
@@ -94,7 +96,7 @@ RealLifeVideo GpxFileParser::parseXml(const QFile &inputFile,
     Profile profile(ProfileType::SLOPE, 0.0f, convertProfileEntries(smoothTrack(trackPoints)));
     std::vector<Course> courses = { Course("Complete Distance", 0, profile.totalDistance()) };
     std::vector<DistanceMappingEntry> distanceMappings = convertDistanceMappings(frameRate, trackPoints);
-    RealLifeVideo rlv(name, "GPX", videoInformation, std::move(courses),
+    RealLifeVideo rlv(name, RealLifeVideoFileType::GPX, videoInformation, std::move(courses),
                       std::move(distanceMappings), profile);
     return rlv;
 }

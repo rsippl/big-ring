@@ -54,6 +54,17 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     connect(sensors, &Sensors::powerWattsMeasured, _simulation, &Simulation::setPower);
     connect(sensors, &Sensors::wheelSpeedMpsMeasured, _simulation, &Simulation::setWheelSpeed);
     sensors->initialize();
+
+    _lastInformationMessage = _rlv.informationBoxForDistance(_cyclist->distance());
+    _informationMessageTimer.setInterval(1000);
+    connect(&_informationMessageTimer, &QTimer::timeout, this, [this]() {
+        const InformationBox &informationMessage = _rlv.informationBoxForDistance(_cyclist->distance());
+        if (!(informationMessage == _lastInformationMessage)) {
+            _lastInformationMessage = informationMessage;
+            emit newInformationMessage(informationMessage);
+        }
+    });
+    _informationMessageTimer.start();
 }
 
 Run::~Run()

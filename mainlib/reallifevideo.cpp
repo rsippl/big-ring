@@ -20,8 +20,28 @@
 
 #include "reallifevideo.h"
 
+#include "distancemappingentry.h"
+#include "videoinformation.h"
+
 #include <QtDebug>
 #include <QMapIterator>
+
+namespace
+{
+std::map<RealLifeVideoFileType,const QString> REAL_LIFE_VIDEO_TYPE_NAMES =
+{{RealLifeVideoFileType::GPX, "GPX"},
+ {RealLifeVideoFileType::TACX, "TACX"},
+ {RealLifeVideoFileType::VIRTUAL_TRAINING, "Cycleops Virtual Training"}};
+const QString REAL_LIFE_VIDEO_TYPE_NAMES_UNKNOWN_TYPE;
+}
+
+const QString &realLifeVideoFileTypeName(RealLifeVideoFileType type) {
+    auto it = REAL_LIFE_VIDEO_TYPE_NAMES.find(type);
+    if (it == REAL_LIFE_VIDEO_TYPE_NAMES.end()) {
+        return REAL_LIFE_VIDEO_TYPE_NAMES_UNKNOWN_TYPE;
+    }
+    return (*it).second;
+}
 
 class RealLifeVideoData
 {
@@ -31,11 +51,12 @@ public:
     ~RealLifeVideoData() {}
 
     QString _name;
-    QString _fileType;
+    RealLifeVideoFileType _fileType;
     Profile _profile;
     std::vector<DistanceMappingEntry> _distanceMappings;
     VideoInformation _videoInformation;
     std::vector<Course> _courses;
+    std::vector<InformationBox> _informationBoxes;
     float _videoCorrectionFactor;
 };
 
@@ -61,7 +82,7 @@ Course::Course(float start, float end):
     // empty
 }
 
-RealLifeVideo::RealLifeVideo(const QString& name, const QString& fileType, const VideoInformation& videoInformation,
+RealLifeVideo::RealLifeVideo(const QString& name, RealLifeVideoFileType fileType, const VideoInformation& videoInformation,
                              const QList<Course>& courses, const QList<DistanceMappingEntry>& distanceMappings, Profile profile):
     RealLifeVideo(name, fileType, videoInformation, std::move(std::vector<Course>(courses.begin(), courses.end())),
                   std::move(std::vector<DistanceMappingEntry>(distanceMappings.begin(), distanceMappings.end())), profile)
@@ -69,10 +90,10 @@ RealLifeVideo::RealLifeVideo(const QString& name, const QString& fileType, const
     // empty
 }
 
-RealLifeVideo::RealLifeVideo(const QString &name, const QString &fileType, const VideoInformation &videoInformation,
+RealLifeVideo::RealLifeVideo(const QString &name, RealLifeVideoFileType fileType, const VideoInformation &videoInformation,
                              const std::vector<Course> &&courses,
                              const std::vector<DistanceMappingEntry> &&distanceMappings,
-                             Profile& profile):
+                             Profile& profile, const std::vector<InformationBox> &&informationBoxes):
     _d(new RealLifeVideoData)
 {
     _d->_name = name;
@@ -82,6 +103,14 @@ RealLifeVideo::RealLifeVideo(const QString &name, const QString &fileType, const
     _d->_courses = courses;
     _d->_videoCorrectionFactor = 1.0;
     _d->_distanceMappings = distanceMappings;
+    _d->_informationBoxes = informationBoxes;
+
+    if (!informationBoxes.empty()) {
+        qDebug() << "Information Boxes:";
+        for (const InformationBox &informationBox: informationBoxes) {
+            qDebug() << informationBox.frameNumber() << informationBox.message();
+        }
+    }
 }
 
 RealLifeVideo::RealLifeVideo(const RealLifeVideo &other):
@@ -101,7 +130,7 @@ bool RealLifeVideo::isValid() const
     return (!_d->_name.isEmpty() && !_d->_videoInformation.videoFilename().isEmpty());
 }
 
-const QString &RealLifeVideo::fileType() const
+RealLifeVideoFileType RealLifeVideo::fileType() const
 {
     return _d->_fileType;
 }
@@ -121,9 +150,14 @@ const QString RealLifeVideo::name() const
     return _d->_name;
 }
 
-const VideoInformation &RealLifeVideo::videoInformation() const
+const QString &RealLifeVideo::videoFilename() const
 {
-    return _d->_videoInformation;
+    return _d->_videoInformation.videoFilename();
+}
+
+float RealLifeVideo::videoFrameRate() const
+{
+    return _d->_videoInformation.frameRate();
 }
 
 const std::vector<Course> &RealLifeVideo::courses() const
@@ -179,6 +213,23 @@ float RealLifeVideo::altitudeForDistance(const float distance) const
     return _d->_profile.altitudeForDistance(distance);
 }
 
+const InformationBox RealLifeVideo::informationBoxForDistance(const float distance) const
+{
+    if (fileType() == RealLifeVideoFileType::TACX) {
+        return informationBoxForDistanceTacx(distance);
+    }
+
+    // default implementation.
+    InformationBox informationBoxForDistance;
+    for (const InformationBox &informationBox: _d->_informationBoxes) {
+        if (informationBox.distance() > distance) {
+            break;
+        }
+        informationBoxForDistance = informationBox;
+    }
+    return informationBoxForDistance;
+}
+
 float RealLifeVideo::totalDistance() const
 {
     return _d->_profile.totalDistance();
@@ -187,7 +238,7 @@ float RealLifeVideo::totalDistance() const
 
 void RealLifeVideo::setNumberOfFrames(quint64 numberOfFrames)
 {
-    if (_d->_fileType == "Tacx") {
+    if (_d->_fileType == RealLifeVideoFileType::TACX) {
         calculateVideoCorrectionFactor(numberOfFrames);
         qDebug() << "correction factor" << _d->_videoCorrectionFactor;
     } else {
@@ -267,14 +318,20 @@ const DistanceMappingEntry &RealLifeVideo::findDistanceMappingEntryFor(const flo
     return _d->_distanceMappings[_currentDistanceMappingIndex];
 }
 
-DistanceMappingEntry::DistanceMappingEntry(float distance, quint32 frameNumber, float metersPerFrame):
-    _distance(distance), _frameNumber(frameNumber), _metersPerFrame(metersPerFrame)
+const InformationBox RealLifeVideo::informationBoxForDistanceTacx(const float distance) const
 {
+    quint32 frame = frameForDistance(distance);
+    InformationBox informationBoxForDistance;
+    for (const InformationBox &informationBox: _d->_informationBoxes) {
+        if (informationBox.frameNumber() > frame) {
+            break;
+        }
+        informationBoxForDistance = informationBox;
+    }
+    return informationBoxForDistance;
 }
 
-DistanceMappingEntry::DistanceMappingEntry():
-    _distance(0), _frameNumber(0), _metersPerFrame(0.0f)
+bool operator==(const InformationBox &lhs, const InformationBox &rhs)
 {
+    return lhs.frameNumber() == rhs.frameNumber() && qFuzzyCompare(lhs.distance(), rhs.distance());
 }
-
-

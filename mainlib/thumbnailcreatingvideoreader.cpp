@@ -83,7 +83,7 @@ bool ThumbnailCreatingVideoReader::event(QEvent *event)
         RealLifeVideo& rlv = createImageForFrameEvent->_rlv;
         const qreal distance = createImageForFrameEvent->_distance;
         qDebug() << "creating thumbnail for rlv" << rlv.name();
-        openVideoFileInternal(rlv.videoInformation().videoFilename());
+        openVideoFileInternal(rlv.videoFilename());
 
         rlv.setNumberOfFrames(totalNumberOfFrames());
         createImageForFrameNumber(rlv, distance);

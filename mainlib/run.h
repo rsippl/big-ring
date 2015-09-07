@@ -44,6 +44,7 @@ public:
     bool isRunning() const;
 signals:
     void stopped();
+    void newInformationMessage(const InformationBox &message);
 public slots:
     void start();
     void play();
@@ -57,6 +58,8 @@ private:
     Cyclist* _cyclist;
     Simulation* _simulation;
     bool _running;
+    QTimer _informationMessageTimer;
+    InformationBox _lastInformationMessage;
 };
 
 #endif // RUN_H
