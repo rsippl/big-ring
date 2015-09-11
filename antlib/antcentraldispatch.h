@@ -30,6 +30,7 @@
 #include <QtCore/QVector>
 
 #include "antsensortype.h"
+#include "util.h"
 
 class AntChannelEventMessage;
 class AntMessageGatherer;
@@ -40,12 +41,13 @@ class SetChannelIdMessage;
 
 #include "antdevice.h"
 #include "antsensortype.h"
-
+#include "antchannelhandler.h"
 namespace indoorcycling {
 class AntChannelHandler;
 class AntMasterChannelHandler;
 class AntHeartRateMasterChannelHandler;
 class AntPowerMasterChannelHandler;
+
 /**
  * The Main ANT+ class that manages the connection with the ANT+ usb stick and through that stick, to the ANT+
  * sensors that are found.
@@ -208,7 +210,8 @@ private:
     std::unique_ptr<AntDevice> _antUsbStick;
     bool _initialized;
     AntMessageGatherer* const _antMessageGatherer;
-    QVector<AntChannelHandler*> _channels;
+
+    std::vector<qobject_unique_ptr<AntChannelHandler>> _channels;
     QMap<AntSensorType,QPointer<AntMasterChannelHandler>> _masterChannels;
     QPointer<AntPowerMasterChannelHandler> _powerTransmissionChannelHandler;
     QPointer<AntHeartRateMasterChannelHandler> _heartRateMasterChannelhandler;
@@ -219,7 +222,7 @@ template <class T>
 bool AntCentralDispatch::sendToChannel(const T& message, std::function<void(indoorcycling::AntChannelHandler&,const T&)> sendFunction)
 {
     quint8 channelNumber = message.channelNumber();
-    AntChannelHandler* channelHandlerPtr = _channels[channelNumber];
+    const auto &channelHandlerPtr = _channels[channelNumber];
     if (channelHandlerPtr) {
         sendFunction(*channelHandlerPtr, message);
         return true;

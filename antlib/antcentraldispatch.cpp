@@ -19,6 +19,7 @@
  */
 #include "antcentraldispatch.h"
 
+#include <memory>
 #include "antchannelhandler.h"
 #include "antdevicefinder.h"
 #include "antheartratechannelhandler.h"
@@ -92,7 +93,7 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
     connect(channel, &AntChannelHandler::finished, this, &AntCentralDispatch::handleChannelFinished);
 
     channel->initialize();
-    _channels[channelNumber] = channel;
+    _channels[channelNumber] = make_qobject_unique(channel);
 
     emit searchStarted(channelType, channelNumber);
     return true;
@@ -100,11 +101,9 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
 
 bool AntCentralDispatch::areAllChannelsClosed() const
 {
-    auto channelEmpty = [](AntChannelHandler* channelPtr) {
+    return std::all_of(_channels.begin(), _channels.end(), [](const qobject_unique_ptr<AntChannelHandler> &channelPtr) {
         return channelPtr == nullptr;
-    };
-
-    return std::all_of(_channels.begin(), _channels.end(), channelEmpty);
+    });
 }
 
 void AntCentralDispatch::initialize()
@@ -120,7 +119,6 @@ void AntCentralDispatch::initialize()
         return;
     }
     _initializationTimer->start();
-    _channels.resize(_antUsbStick->numberOfChannels());
     if (_antUsbStick->isReady()) {
         resetAntSystem();
     } else {
@@ -132,7 +130,7 @@ void AntCentralDispatch::initialize()
 void AntCentralDispatch::closeAllChannels()
 {
     qDebug() << "Closing all channels";
-    for(AntChannelHandler* handler: _channels) {
+    for(const auto &handler: _channels) {
         if (handler) {
             handler->close();
         }
@@ -162,7 +160,7 @@ bool AntCentralDispatch::openMasterChannel(AntSensorType sensorType)
     default:
         return false;
     }
-    _channels[channelNumber] = channel;
+    _channels[channelNumber] = make_qobject_unique(static_cast<AntChannelHandler*>(channel));
     _masterChannels[sensorType] = channel;
 
     connect(channel, &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
@@ -278,11 +276,11 @@ void AntCentralDispatch::handleChannelFinished(int channelNumber)
 {
     Q_ASSERT_X(_channels[channelNumber] != nullptr, "AntCentralDispatch::handleChannelFinished",
                "getting channel finished for empty channel number.");
-    AntChannelHandler* handler = _channels[channelNumber];
-    _channels[channelNumber] = nullptr;
+    const auto handler = std::move(_channels[channelNumber]);
+    _channels[channelNumber] = make_qobject_unique<AntChannelHandler>();
 
     emit channelClosed(channelNumber, handler->sensorType());
-    handler->deleteLater();
+
     if (areAllChannelsClosed()) {
         emit allChannelsClosed();
     }

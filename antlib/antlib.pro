@@ -33,7 +33,8 @@ HEADERS += \
     antsensortype.h \
     antheartratechannelhandler.h \
     antpowerchannelhandler.h \
-    antspeedandcadencechannelhandler.h
+    antspeedandcadencechannelhandler.h \
+    util.h
 
 win32 {
 #    HEADERS += usbexpressantdevice.h
