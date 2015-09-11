@@ -27,12 +27,14 @@
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QLabel>
 
-#include "antcentraldispatch.h"
 #include "antsensortype.h"
 #include "bigringsettings.h"
 #include "reallifevideoimporter.h"
 #include "sensorconfiguration.h"
 
+namespace indoorcycling {
+class AntCentralDispatch;
+}
 namespace Ui {
 class SettingsDialog;
 }

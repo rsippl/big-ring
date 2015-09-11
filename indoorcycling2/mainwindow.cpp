@@ -32,6 +32,7 @@
 #include <QtWidgets/QProgressDialog>
 #include <QtWidgets/QVBoxLayout>
 
+#include "antlib/antcentraldispatch.h"
 #include "cyclist.h"
 #include "run.h"
 #include "settingsdialog.h"

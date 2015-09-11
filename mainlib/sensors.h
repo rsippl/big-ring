@@ -21,13 +21,14 @@
 #define SENSORS_H
 
 #include <QtCore/QObject>
+#include <QtCore/QTimer>
 
-#include "antlib/antcentraldispatch.h"
 #include "sensorconfiguration.h"
 #include "virtualpower.h"
 
 namespace indoorcycling
 {
+class AntCentralDispatch;
 class Sensors : public QObject
 {
     Q_OBJECT

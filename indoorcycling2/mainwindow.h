@@ -26,7 +26,6 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QStackedWidget>
 
-#include "antcentraldispatch.h"
 #include "reallifevideo.h"
 #include "reallifevideoimporter.h"
 
@@ -36,6 +35,9 @@ class NewVideoWidget;
 class Run;
 class Simulation;
 
+namespace indoorcycling {
+class AntCentralDispatch;
+}
 namespace Ui {
 class MainWindow;
 }

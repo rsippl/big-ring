@@ -24,10 +24,12 @@
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QDialog>
 
-#include "antcentraldispatch.h"
 #include "antsensortype.h"
 #include "sensorconfiguration.h"
 
+namespace indoorcycling {
+class AntCentralDispatch;
+}
 namespace Ui {
 class AddSensorConfigurationDialog;
 }

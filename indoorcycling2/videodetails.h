@@ -22,7 +22,6 @@
 
 #include <QWidget>
 
-#include "antcentraldispatch.h"
 #include "reallifevideo.h"
 
 class QuantityPrinter;

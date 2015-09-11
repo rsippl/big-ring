@@ -27,7 +27,10 @@
 #include "reallifevideo.h"
 #include "cyclist.h"
 #include "simulation.h"
-#include "antlib/antcentraldispatch.h"
+
+namespace indoorcycling {
+class AntCentralDispatch;
+}
 
 class ANTController;
 class NewVideoWidget;

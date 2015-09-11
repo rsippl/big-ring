@@ -18,6 +18,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#include "antlib/antcentraldispatch.h"
 #include "newvideowidget.h"
 #include "run.h"
 #include "sensorconfiguration.h"
