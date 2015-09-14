@@ -32,7 +32,7 @@ Think of the following things:
     you downloaded. Right-click on the zip-file and choose "Extract files". The
     resulting folder will contain all files needed for running Big Ring.</p>
 
-    <h2>ANT+ USB Stick on Windows</h2>
+    <h2 id="antusb">ANT+ USB Stick on Windows</h2>
 
     <p>To use Big Ring with ANT+ sensors, you will need to use an ANT+ USB stick
     (e.g. <a href="http://www.thisisant.com/developer/components/antusb2">this one</a>.).
@@ -48,11 +48,28 @@ Think of the following things:
     will start to download and install the driver for your device. Wait for this
     to complete before continuing.</p>
 
-    <h2>Installing Real Life Videos</h2>
+    <p>When opening <tt>Control&nbsp;Panel&nbsp;->&nbsp;Device&nbsp;Manager</tt>
+        you will see the device listed.
+        <img src="assets/images/device_manager.png" alt="Device Manager" class="img-responsive center-block" />
+    </p>
 
-    <p>Big Ring supports Tacx Real Life Videos. Unfortunately, the newer videos,
-        with the extension <tt>.tts</tt> are not supported (yet). Only the older
+    <h2 id="installvideos">Installing Real Life Videos</h2>
+
+    <p>Big Ring supports the following kinds of Real Life Videos.
+        <ul>
+            <li>Tacx Fortius (<code>.rlv</code> and <code>.pgmf</code> files).</li>
+            <li><a href="https://www.cycleops.com/virtualtraining/overview">Cycleops Virtual Training</a> (<code>.xml</code> files).</li>
+            <li>GPS Track files (<code>.gpx</code>). This feature is experimental.
+        </ul>
+
+        Unfortunately, the newer Tacx videos,  with the extension <tt>.tts</tt> are not supported (yet). Only the older
         ones, with the <tt>.rlv</tt> can be used with Big Ring for the moment.
+        This is due to the fact that the newer Tacx Trainer Software software uses
+        encrypted files.</p>
+
+    <h3>Installing Tacx RLV</h3>
+
+
     <p>If you already have supported Real Life Videos on your computer, you can
         use these. If you don't have any, but want to try out Big Ring, the easiest
         way to get a video is by getting a demo video from Reallifevideo.de. On
@@ -64,6 +81,15 @@ Think of the following things:
         <tt>C:\Program Files (x86)\TacxFortius\catalyst</tt> (on 64 bit). You can
         use this path later on when configuring the video path in big ring.
     </p>
+
+    <h3>Installing <a href="https://www.cycleops.com/virtualtraining/overview">Cycleops Virtual Training</a></h3>
+
+    The videos for <a href="https://www.cycleops.com/virtualtraining/overview">Cycleops Virtual Training</a> are normally
+    downloaded using the Virtual Training itself. However, the videos from Reallifevideo.de
+    also come with Virtual Training files, so they can be used with Virtual Training, but also
+    with Big Ring. To install the Virtual Training files, just use the installer, like
+    the one that came with the demo RLV from <a href="https://www.reallifevideo.de/rlv.php?rlv=galibier&lang=en">this page</a>
+    and choose to install Virtual Training files. Remember the path you installed the files to.</p>
 
     <h2>Running Big Ring</h2>
 
@@ -79,4 +105,12 @@ Think of the following things:
 </div>
 
 <div class="col-md-4" role="complementary">
+    <nav class="bs-sidebar affix">
+        <ul class="nav bs-sidenav">
+          <li class="active"><a href="#">Instructions</a></li>
+          <li><a href="#antusb">ANT+ USB Stick</a></li>
+          <li><a href="#installvideos">Installing Real Life Videos</a></li>
+          <li><a href="#running">Running Big Ring</a></li>
+        </ul>
+    </nav>
 </div>
