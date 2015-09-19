@@ -44,6 +44,7 @@ const std::array<quint8,8> ANT_PLUS_NETWORK_KEY = { {0xB9, 0xA5, 0x21, 0xFB, 0xB
 }
 namespace indoorcycling {
 
+
 AntCentralDispatch::AntCentralDispatch(QObject *parent) :
     QObject(parent), _initialized(false), _antMessageGatherer(new AntMessageGatherer(this)),
     _powerTransmissionChannelHandler(nullptr), _initializationTimer(new QTimer(this))
@@ -292,6 +293,19 @@ void AntCentralDispatch::sendAntMessage(const AntMessage2 &message)
     if (_antUsbStick) {
         qDebug() << "Sending ANT Message:" << message.toString();
         _antUsbStick->writeAntMessage(message);
+    }
+}
+
+template <class T>
+bool AntCentralDispatch::sendToChannel(const T& message, std::function<void(indoorcycling::AntChannelHandler&,const T&)> sendFunction)
+{
+    quint8 channelNumber = message.channelNumber();
+    const auto &channelHandlerPtr = _channels[channelNumber];
+    if (channelHandlerPtr) {
+        sendFunction(*channelHandlerPtr, message);
+        return true;
+    } else {
+        return false;
     }
 }
 

@@ -41,7 +41,7 @@ class SetChannelIdMessage;
 
 #include "antdevice.h"
 #include "antsensortype.h"
-#include "antchannelhandler.h"
+
 namespace indoorcycling {
 class AntChannelHandler;
 class AntMasterChannelHandler;
@@ -217,20 +217,6 @@ private:
     QPointer<AntHeartRateMasterChannelHandler> _heartRateMasterChannelhandler;
     QTimer* const _initializationTimer;
 };
-
-template <class T>
-bool AntCentralDispatch::sendToChannel(const T& message, std::function<void(indoorcycling::AntChannelHandler&,const T&)> sendFunction)
-{
-    quint8 channelNumber = message.channelNumber();
-    const auto &channelHandlerPtr = _channels[channelNumber];
-    if (channelHandlerPtr) {
-        sendFunction(*channelHandlerPtr, message);
-        return true;
-    } else {
-        return false;
-    }
-}
-
 }
 
 #endif // ANTCENTRALDISPATCH_H
