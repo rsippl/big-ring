@@ -22,45 +22,90 @@
 #include <QtCore/QtMath>
 namespace
 {
+using indoorcycling::VirtualPowerTrainer;
+using indoorcycling::VirtualPowerFunctionType;
+
 const float MILES_PER_METERS = 0.000621371192;
 const float METERS_PER_SECOND_TO_MILES_PER_HOUR = MILES_PER_METERS * 3600;
+const float METERS_PER_SECOND_TO_KILOMETERS_PER_HOUR = 3.6;
 
+enum class SpeedUnit {
+    METERS_PER_SECOND,
+    KILOMETERS_PER_HOUR,
+    MILES_PER_HOUR
+};
+
+struct PowerCoefficients {
+    SpeedUnit speedUnit;
+    float first;
+    float second;
+    float third;
+};
+
+const PowerCoefficients IDENTITY_POWER_CURVE = { SpeedUnit::METERS_PER_SECOND, 1, 0, 0 };
+
+const std::map<VirtualPowerTrainer, PowerCoefficients> powerCurves = {
+    // Kurt Kinetic Road Machine: P = 5.244820 * MPH + 0.019168 * MPH^3
+    { VirtualPowerTrainer::KURT_KINETIC_ROAD_MACHINE, { SpeedUnit::MILES_PER_HOUR, 5.244820, 0, 0.019168 }},
+    // Kurt Kinetic Cyclone: P = 6.481090 * mph + 0.020106 * (mph*mph*mph)
+    { VirtualPowerTrainer::KURT_KINETIC_ROAD_MACHINE, { SpeedUnit::MILES_PER_HOUR, 6.481090, 0, 0.020106 }},
+    // Cycleops Fluid 2: P = 8.9788 * MPH + 0.0137 * MPH^2 + 0.0115 * MPH^3
+    { VirtualPowerTrainer::CYCLEOPS_FLUID_2, { SpeedUnit::MILES_PER_HOUR, 8.9788, 0.0137, 0.0115 }},
+    // ELITE QUBO POWER FLUID f(x) = 4.31746 * kmph -2.59259e-002 * kmph^2 +  9.41799e-003 * kmph^3
+    { VirtualPowerTrainer::ELITE_QUBO_POWER_FLUID, { SpeedUnit::KILOMETERS_PER_HOUR, 4.31746, -2.59259e-002, 9.41799e-003 }}
+};
+/**
+ * Convert meters per second to miles per hour
+ * @param metersPerSecond speed in meters per second
+ * @return speed in miles per hour
+ */
 float metersPerSecondToMilesPerHour(float metersPerSecond) {
     return metersPerSecond * METERS_PER_SECOND_TO_MILES_PER_HOUR;
 }
 
-float kurtKineticRoadMachine(float wheelSpeedMps) {
-    float wheelSpeedMilesPerHour = metersPerSecondToMilesPerHour(wheelSpeedMps);
-    return 5.244820 * wheelSpeedMilesPerHour +
-            0.019168 * qPow(wheelSpeedMilesPerHour, 3);
+/**
+ * Convert meters per second to kilometers per hour
+ * @param metersPerSecond speed in meters per second
+ * @return speed in miles per hour
+ */
+float metersPerSecondToKilometersPerHour(float metersPerSecond) {
+    return metersPerSecond * METERS_PER_SECOND_TO_KILOMETERS_PER_HOUR;
 }
 
-float cycleopsFluid2(float wheelSpeedMps) {
-    float wheelSpeedMilesPerHour = metersPerSecondToMilesPerHour(wheelSpeedMps);
-
-    return 0.0115 * qPow(wheelSpeedMilesPerHour, 3) +
-            0.0137 * qPow(wheelSpeedMilesPerHour, 2) +
-            8.9788 * wheelSpeedMilesPerHour;
+const PowerCoefficients &findPowerCurve(VirtualPowerTrainer trainer)
+{
+    auto it = powerCurves.find(trainer);
+    if (it == powerCurves.end()) {
+        return IDENTITY_POWER_CURVE;
+    }
+    return (*it).second;
 }
-using indoorcycling::VirtualPowerTrainer;
 
-const QMap<VirtualPowerTrainer,std::function<float(float)>> VIRTUAL_POWER_FUNCTIONS = {
-{VirtualPowerTrainer::KURT_KINETIC_ROAD_MACHINE, kurtKineticRoadMachine},
-{VirtualPowerTrainer::CYCLEOPS_FLUID_2, cycleopsFluid2},
-};
+const std::function<float(float)> determineSpeedConversionFunction(VirtualPowerTrainer trainer) {
+    switch (findPowerCurve(trainer).speedUnit) {
+    case SpeedUnit::KILOMETERS_PER_HOUR:
+        return &metersPerSecondToKilometersPerHour;
+    case SpeedUnit::MILES_PER_HOUR:
+        return &metersPerSecondToMilesPerHour;
+    default:
+        return [](float mps) { return mps; };
+    }
 }
+}
+
 namespace indoorcycling
 {
 
 VirtualPowerFunctionType virtualPowerFunctionForTrainer(VirtualPowerTrainer trainer)
 {
-    auto it = VIRTUAL_POWER_FUNCTIONS.find(trainer);
-    if (it == VIRTUAL_POWER_FUNCTIONS.end()) {
-        // return the identity function if nothing's matched.
-        return [](float f) { return f; };
-    } else {
-        return *it;
-    }
-}
+    const PowerCoefficients &coefficients = findPowerCurve(trainer);
+    std::function<float(float)> speedConversionFunction = determineSpeedConversionFunction(trainer);
 
+    return [coefficients, speedConversionFunction](float speedMetersPerSecond) {
+        float convertedSpeed = speedConversionFunction(speedMetersPerSecond);
+        return coefficients.first * convertedSpeed +
+                coefficients.second * qPow(convertedSpeed, 2) +
+                coefficients.third * qPow(convertedSpeed, 3);
+    };
+}
 }

@@ -9,6 +9,7 @@ class VirtualPowerTest : public QObject
 private slots:
     void testKurtKineticRoadMachine();
     void testCycleopsFluid2();
+    void testEliteQuboFluid();
 };
 
 #endif // VIRTUALPOWERTEST_H
