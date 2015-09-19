@@ -29,6 +29,10 @@
 
 namespace indoorcycling {
 
+/**
+ * AntDeviceFinder will find and open an ANT+ USB stick. Use the openAntDevice() method for getting a
+ * unique pointer to the AntDevice.
+ */
 class AntDeviceFinder : public QObject
 {
     Q_OBJECT
