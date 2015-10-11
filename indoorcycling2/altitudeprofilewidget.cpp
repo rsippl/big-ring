@@ -25,7 +25,7 @@
 #include "profilepainter.h"
 
 AltitudeProfileWidget::AltitudeProfileWidget(QWidget *parent) :
-    QWidget(parent),
+    QWidget(parent), _profilePainter(new ProfilePainter(this)),
     _startDistance(-1), _endDistance(-1),
     ui(new Ui::AltitudeProfileWidget)
 {
