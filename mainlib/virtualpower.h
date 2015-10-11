@@ -29,7 +29,8 @@ enum class VirtualPowerTrainer {
     KURT_KINETIC_ROAD_MACHINE = 1,
     KURT_KINETIC_CYCLONE = 2,
     CYCLEOPS_FLUID_2 = 100,
-    ELITE_QUBO_POWER_FLUID = 200
+    ELITE_QUBO_POWER_FLUID = 200,
+    ELITE_TURBO_MUIN_2013
 };
 
 const QMap<VirtualPowerTrainer,QString> VIRTUAL_POWER_TRAINERS =
@@ -37,7 +38,8 @@ const QMap<VirtualPowerTrainer,QString> VIRTUAL_POWER_TRAINERS =
 {{VirtualPowerTrainer::KURT_KINETIC_ROAD_MACHINE, "Kurt Kinetic Road Machine & Rock 'n' Roll"},
  {VirtualPowerTrainer::KURT_KINETIC_CYCLONE, "Kurt Kinetic Cyclone"},
  {VirtualPowerTrainer::CYCLEOPS_FLUID_2, "Saris Cycleops Fluid2"},
- {VirtualPowerTrainer::ELITE_QUBO_POWER_FLUID, "Elite Qubo Power Fluid"}});
+ {VirtualPowerTrainer::ELITE_QUBO_POWER_FLUID, "Elite Qubo Power Fluid"},
+ {VirtualPowerTrainer::ELITE_TURBO_MUIN_2013, "Elite Turbo Muin 2013 Model"}});
 
 typedef std::function<float(float)> VirtualPowerFunctionType;
 VirtualPowerFunctionType virtualPowerFunctionForTrainer(VirtualPowerTrainer trainer);

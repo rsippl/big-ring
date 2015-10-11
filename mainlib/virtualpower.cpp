@@ -52,7 +52,9 @@ const std::map<VirtualPowerTrainer, PowerCoefficients> powerCurves = {
     // Cycleops Fluid 2: P = 8.9788 * MPH + 0.0137 * MPH^2 + 0.0115 * MPH^3
     { VirtualPowerTrainer::CYCLEOPS_FLUID_2, { SpeedUnit::MILES_PER_HOUR, 8.9788, 0.0137, 0.0115 }},
     // ELITE QUBO POWER FLUID f(x) = 4.31746 * kmph -2.59259e-002 * kmph^2 +  9.41799e-003 * kmph^3
-    { VirtualPowerTrainer::ELITE_QUBO_POWER_FLUID, { SpeedUnit::KILOMETERS_PER_HOUR, 4.31746, -2.59259e-002, 9.41799e-003 }}
+    { VirtualPowerTrainer::ELITE_QUBO_POWER_FLUID, { SpeedUnit::KILOMETERS_PER_HOUR, 4.31746, -2.59259e-002, 9.41799e-003 }},
+    // Elite Turbo Muin 2013 model P =  0.00791667 v^3 + 0.125 v^2 - 0.16669 v
+    { VirtualPowerTrainer::ELITE_TURBO_MUIN_2013, { SpeedUnit::KILOMETERS_PER_HOUR, - 0.16669, 0.125, 0.00791667 }}
 };
 /**
  * Convert meters per second to miles per hour
