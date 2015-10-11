@@ -21,9 +21,11 @@
 #define PROFILEPAINTER_H
 
 #include <QtCore/QObject>
+#include <QtCore/QSettings>
 #include <QtGui/QPixmap>
 
 #include "reallifevideo.h"
+#include "quantityprinter.h"
 
 class ProfilePainter : public QObject
 {
@@ -31,15 +33,19 @@ class ProfilePainter : public QObject
 public:
     explicit ProfilePainter(QObject *parent = 0);
 
-    QPixmap paintProfile(const RealLifeVideo& rlv, const QRect& rect) const;
+    QPixmap paintProfile(const RealLifeVideo& rlv, const QRect& rect, bool withMarkers) const;
     QPixmap paintProfileWithHighLight(const RealLifeVideo &rlv, qreal startDistance, qreal endDistance,
                                       const QRect &rect, const QBrush highlightColor) const;
 private:
-    QPixmap drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv) const;
+    QPixmap drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv, bool withMarkers) const;
+    void drawDistanceMarkers(QPainter &painter, const QRect &rect, const RealLifeVideo &rlv) const;
+    float determineDistanceMarkers(const RealLifeVideo &rlv) const;
     qreal distanceToX(const QRect& rect, const RealLifeVideo& rlv, float distance) const;
     float xToDistance(const QRect& rect, const RealLifeVideo& rlv, int x) const;
     int altitudeToHeight(const QRect& rect, float altitudeAboveMinimum, float altitudeDiff) const;
     QColor colorForSlope(const float slope) const;
+
+    QuantityPrinter* _quantityPrinter;
 };
 
 #endif // PROFILEPAINTER_H

@@ -74,7 +74,7 @@ void AltitudeProfileWidget::paintEvent(QPaintEvent *paintEvent)
         profilePixmap = _profilePainter->paintProfileWithHighLight(_currentRlv, _startDistance, _endDistance,
                                                                    this->rect(), palette().highlight());
     } else {
-        profilePixmap = _profilePainter->paintProfile(_currentRlv, this->rect());
+        profilePixmap = _profilePainter->paintProfile(_currentRlv, this->rect(), true);
     }
     painter.drawPixmap(rect(), profilePixmap);
     QWidget::paintEvent(paintEvent);

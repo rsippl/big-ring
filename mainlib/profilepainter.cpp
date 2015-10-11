@@ -23,20 +23,29 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPixmapCache>
 
+#include <array>
 namespace
 {
 const int MAXIMUM_HUE = 240; // dark blue;
 const float MINIMUM_SLOPE = -12.0;
 const float MAXIMUM_SLOPE = 12.0;
 const float INVERSE_SLOPE_RANGE = 1 / (MAXIMUM_SLOPE - MINIMUM_SLOPE);
+const float METERS_PER_MILE = 1609.344;
+
+const std::array<float,6> MARKER_DISTANCES = {1, 2, 5, 10, 20, 50};
 }
 
 ProfilePainter::ProfilePainter(QObject *parent) :
-    QObject(parent)
+    QObject(parent), _quantityPrinter(new QuantityPrinter(this))
 {
+    if (_quantityPrinter == nullptr) {
+        qDebug() << "NULL?";
+    } else {
+        qDebug() << "Quantity printer is not null";
+    }
 }
 
-QPixmap ProfilePainter::paintProfile(const RealLifeVideo &rlv, const QRect &rect) const
+QPixmap ProfilePainter::paintProfile(const RealLifeVideo &rlv, const QRect &rect, bool withMarkers) const
 {
     QPixmap profilePixmap;
     if (rlv.isValid()) {
@@ -45,7 +54,7 @@ QPixmap ProfilePainter::paintProfile(const RealLifeVideo &rlv, const QRect &rect
         const QString pixmapName = QString("%1_%2x%3").arg(rlv.name()).arg(rect.size().width()).arg(rect.size().height());
         if (!QPixmapCache::find(pixmapName, &profilePixmap)) {
             qDebug() << "creating new profile pixmap for" << pixmapName;
-            profilePixmap = drawProfilePixmap(profileRect, rlv);
+            profilePixmap = drawProfilePixmap(profileRect, rlv, withMarkers);
             QPixmapCache::insert(pixmapName, profilePixmap);
         }
     }
@@ -55,7 +64,7 @@ QPixmap ProfilePainter::paintProfile(const RealLifeVideo &rlv, const QRect &rect
 QPixmap ProfilePainter::paintProfileWithHighLight(const RealLifeVideo &rlv, qreal startDistance, qreal endDistance,
                                                   const QRect &rect, const QBrush highlightColor) const
 {
-    QPixmap profilePixmap = paintProfile(rlv, rect);
+    QPixmap profilePixmap = paintProfile(rlv, rect, true);
     if (profilePixmap.isNull()) {
         return profilePixmap;
     }
@@ -75,7 +84,7 @@ QPixmap ProfilePainter::paintProfileWithHighLight(const RealLifeVideo &rlv, qrea
     return copy;
 }
 
-QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv) const
+QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv, bool withMarkers ) const
 {
     if (rect.isEmpty()) {
         return QPixmap();
@@ -103,8 +112,50 @@ QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv)
         QRect  box(x, rect.bottom() - y, 1, rect.bottom());
         painter.drawRect(box);
     }
+    if (withMarkers) {
+        drawDistanceMarkers(painter, rect, rlv);
+    }
     painter.end();
     return pixmap;
+}
+
+void ProfilePainter::drawDistanceMarkers(QPainter &painter, const QRect &rect, const RealLifeVideo &rlv) const
+{
+    QPen pen(Qt::black, 1);
+    painter.setPen(pen);
+    qDebug() << static_cast<int>(_quantityPrinter->system());
+    const float distanceBetweenMarkers = determineDistanceMarkers(rlv);
+
+    for (float distance = distanceBetweenMarkers; distance < rlv.totalDistance(); distance += distanceBetweenMarkers) {
+        int x = distanceToX(rect, rlv, distance);
+        painter.drawLine(x, rect.height () - 20, x, rect.height());
+        QString distanceMarker = QString("%1 %2").arg(_quantityPrinter->printDistance(distance))
+                .arg(_quantityPrinter->unitForDistance(QuantityPrinter::Precision::Precise,
+                                                       QVariant::fromValue(distance)));
+        painter.drawText(x, rect.height(), distanceMarker);
+    }
+}
+
+float ProfilePainter::determineDistanceMarkers(const RealLifeVideo &rlv) const
+{
+    std::array<float, 6> distances;
+    std::transform(MARKER_DISTANCES.begin(), MARKER_DISTANCES.end(), distances.begin(), [this](float distance) {
+        if (_quantityPrinter->system() == QuantityPrinter::System::Metric) {
+            return distance * 1000;
+        } else {
+            return distance * METERS_PER_MILE;
+        }
+    });
+    const float optimalDistanceBetweenMarkers = rlv.totalDistance() / 10;
+    float distanceBetweenMarkers;
+    auto distanceBetweenMarkersIt = std::lower_bound(distances.begin(), distances.end(), optimalDistanceBetweenMarkers);
+    if (distanceBetweenMarkersIt == MARKER_DISTANCES.end()) {
+        distanceBetweenMarkers = 50;
+    } else {
+        distanceBetweenMarkers = *distanceBetweenMarkersIt;
+    }
+    return distanceBetweenMarkers;
+
 }
 
 

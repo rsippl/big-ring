@@ -47,7 +47,7 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
 
     if (_rlv.isValid()) {
         if (_dirty) {
-            _profilePixmap = _profilePainter->paintProfile(_rlv, _internalRect);
+            _profilePixmap = _profilePainter->paintProfile(_rlv, _internalRect, true);
             _dirty = false;
         }
         if (!_profilePixmap.isNull()) {

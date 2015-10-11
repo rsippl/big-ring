@@ -77,7 +77,7 @@ QSize VideoItemDelegate::sizeHint(const QStyleOptionViewItem &, const QModelInde
 
 void VideoItemDelegate::paintProfile(QPainter *painter, QRect &rect, RealLifeVideo &rlv) const
 {
-    QPixmap profilePixmap = _profilePainter->paintProfile(rlv, rect);
+    QPixmap profilePixmap = _profilePainter->paintProfile(rlv, rect, false);
     if (!profilePixmap.isNull()) {
         painter->drawPixmap(rect, profilePixmap);
     }

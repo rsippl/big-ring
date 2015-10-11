@@ -47,17 +47,14 @@ public:
     };
 
     explicit QuantityPrinter(QObject *parent = 0);
-
+    System system() const;
     QString unitString(Quantity quantity, QuantityPrinter::Precision precision = Precision::NonPrecise, QVariant value = QVariant::fromValue(0.0)) const;
     QString unitForDistance(QuantityPrinter::Precision precision, QVariant value) const;
     QString print(QVariant value, Quantity quantity, Precision = Precision::NonPrecise, int width = 5) const;
     QString printDistance(qreal meters, Precision = Precision::NonPrecise, int width = 5) const;
     QString printSpeed(qreal metersPerSecond, int width) const;
 private:
-    System system() const;
-
     QSettings _settings;
-
 };
 
 #endif // QUANTITYPRINTER_H
