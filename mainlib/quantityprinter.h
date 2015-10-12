@@ -24,16 +24,19 @@
 #include <QtCore/QObject>
 #include <QtCore/QSettings>
 
+class UnitConverter;
 class QuantityPrinter : public QObject
 {
     Q_OBJECT
 public:
     enum class Precision {
         NonPrecise,
-        Precise
+        Precise,
+        AlwaysPrecise
     };
 
     enum class Quantity {
+        Altitude,
         Distance,
         Speed,
         Power,
@@ -42,18 +45,16 @@ public:
         Grade
     };
 
-    enum class System {
-        Metric, Imperial
-    };
-
     explicit QuantityPrinter(QObject *parent = 0);
-    System system() const;
     QString unitString(Quantity quantity, QuantityPrinter::Precision precision = Precision::NonPrecise, QVariant value = QVariant::fromValue(0.0)) const;
     QString unitForDistance(QuantityPrinter::Precision precision, QVariant value) const;
+    QString unitForAltitude() const;
     QString print(QVariant value, Quantity quantity, Precision = Precision::NonPrecise, int width = 5) const;
     QString printDistance(qreal meters, Precision = Precision::NonPrecise, int width = 5) const;
     QString printSpeed(qreal metersPerSecond, int width) const;
+    QString printAltitude(qreal meters) const;
 private:
+    UnitConverter *_unitConverter;
     QSettings _settings;
 };
 

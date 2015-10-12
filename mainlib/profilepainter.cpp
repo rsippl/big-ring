@@ -23,7 +23,12 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPixmapCache>
 
+#include "quantityprinter.h"
+#include "reallifevideo.h"
+#include "unitconverter.h"
+
 #include <array>
+
 namespace
 {
 const int MAXIMUM_HUE = 240; // dark blue;
@@ -32,17 +37,14 @@ const float MAXIMUM_SLOPE = 12.0;
 const float INVERSE_SLOPE_RANGE = 1 / (MAXIMUM_SLOPE - MINIMUM_SLOPE);
 const float METERS_PER_MILE = 1609.344;
 
-const std::array<float,6> MARKER_DISTANCES = {1, 2, 5, 10, 20, 50};
+const std::array<double,7> MARKER_DISTANCES = {0.5, 1, 2, 5, 10, 20, 50};
+const std::array<double,7> MARKER_ALTITUDES = {10, 20, 50, 100, 200, 500, 100};
 }
 
 ProfilePainter::ProfilePainter(QObject *parent) :
-    QObject(parent), _quantityPrinter(new QuantityPrinter(this))
+    QObject(parent), _quantityPrinter(new QuantityPrinter(this)), _unitConverter(new UnitConverter(this))
 {
-    if (_quantityPrinter == nullptr) {
-        qDebug() << "NULL?";
-    } else {
-        qDebug() << "Quantity printer is not null";
-    }
+    // empty
 }
 
 QPixmap ProfilePainter::paintProfile(const RealLifeVideo &rlv, const QRect &rect, bool withMarkers) const
@@ -114,6 +116,7 @@ QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv,
     }
     if (withMarkers) {
         drawDistanceMarkers(painter, rect, rlv);
+        drawAltitudeMarkers(painter, rect, rlv);
     }
     painter.end();
     return pixmap;
@@ -123,42 +126,73 @@ void ProfilePainter::drawDistanceMarkers(QPainter &painter, const QRect &rect, c
 {
     QPen pen(Qt::black, 1);
     painter.setPen(pen);
-    qDebug() << static_cast<int>(_quantityPrinter->system());
-    const float distanceBetweenMarkers = determineDistanceMarkers(rlv);
+    const double distanceBetweenMarkers = determineDistanceMarkers(rlv);
 
-    for (float distance = distanceBetweenMarkers; distance < rlv.totalDistance(); distance += distanceBetweenMarkers) {
+    for (double distance = distanceBetweenMarkers; distance < rlv.totalDistance(); distance += distanceBetweenMarkers) {
         int x = distanceToX(rect, rlv, distance);
         painter.drawLine(x, rect.height () - 20, x, rect.height());
         QString distanceMarker = QString("%1 %2").arg(_quantityPrinter->printDistance(distance))
-                .arg(_quantityPrinter->unitForDistance(QuantityPrinter::Precision::Precise,
+                .arg(_quantityPrinter->unitForDistance(QuantityPrinter::Precision::NonPrecise,
                                                        QVariant::fromValue(distance)));
         painter.drawText(x, rect.height(), distanceMarker);
     }
 }
 
-float ProfilePainter::determineDistanceMarkers(const RealLifeVideo &rlv) const
+double ProfilePainter::determineDistanceMarkers(const RealLifeVideo &rlv) const
 {
-    std::array<float, 6> distances;
-    std::transform(MARKER_DISTANCES.begin(), MARKER_DISTANCES.end(), distances.begin(), [this](float distance) {
-        if (_quantityPrinter->system() == QuantityPrinter::System::Metric) {
-            return distance * 1000;
-        } else {
-            return distance * METERS_PER_MILE;
-        }
+    std::vector<double> distances(MARKER_DISTANCES.size());
+    std::transform(MARKER_DISTANCES.begin(), MARKER_DISTANCES.end(), distances.begin(), [this](double distance) {
+        return _unitConverter->convertDistanceFrom(distance);
     });
-    const float optimalDistanceBetweenMarkers = rlv.totalDistance() / 10;
-    float distanceBetweenMarkers;
+    const double optimalDistanceBetweenMarkers = rlv.totalDistance() / 7;
+    double distanceBetweenMarkers;
     auto distanceBetweenMarkersIt = std::lower_bound(distances.begin(), distances.end(), optimalDistanceBetweenMarkers);
-    if (distanceBetweenMarkersIt == MARKER_DISTANCES.end()) {
-        distanceBetweenMarkers = 50;
+    if (distanceBetweenMarkersIt == distances.end()) {
+        distanceBetweenMarkers = distances.back();
     } else {
         distanceBetweenMarkers = *distanceBetweenMarkersIt;
     }
     return distanceBetweenMarkers;
-
 }
 
+void ProfilePainter::drawAltitudeMarkers(QPainter &painter, const QRect &rect, const RealLifeVideo &rlv) const
+{
+    const float altitudeRange = rlv.profile().maximumAltitude() - rlv.profile().minimumAltitude();
+    const double altitudeBetweenMarkers = determineAltitudeMarkers(rlv);
+    QPen pen(Qt::black, 1, Qt::DashLine);
+    painter.setPen(pen);
 
+    float quotient = std::floor(rlv.profile().minimumAltitude() / altitudeBetweenMarkers);
+    float startAltitude = quotient * altitudeBetweenMarkers + altitudeBetweenMarkers;
+
+    for (float altitude = startAltitude; altitude < rlv.profile().maximumAltitude(); altitude += altitudeBetweenMarkers) {
+        int y = altitudeToHeight(rect, altitude - rlv.profile().minimumAltitude(), altitudeRange);
+        painter.drawLine(0, rect.height() - y, rect.width(), rect.height() - y);
+        QString text = QString("%1 %2").arg(_quantityPrinter->printAltitude(altitude))
+                .arg(_quantityPrinter->unitForAltitude());
+        painter.drawText(0, rect.height() - y - 5, text);
+        QFontMetrics fontMetrics(painter.font());
+        int width = fontMetrics.width(text);
+        painter.drawText(rect.width() - width - 10, rect.height() - y - 5, text);
+
+    }
+}
+
+double ProfilePainter::determineAltitudeMarkers(const RealLifeVideo &rlv) const
+{
+    std::vector<double> altitudes(MARKER_ALTITUDES.size());
+    std::transform(MARKER_ALTITUDES.begin(), MARKER_ALTITUDES.end(), altitudes.begin(), [this](double distance) {
+        return _unitConverter->convertDistanceFrom(distance, UnitConverter::altitudeUnitForSystem());
+    });
+    float altitudeRange = rlv.profile().maximumAltitude() - rlv.profile().minimumAltitude();
+    const float optimalAltitudeMarkers = altitudeRange / 10;
+    auto altitudeBetweenMarkersIt = std::lower_bound(altitudes.begin(), altitudes.end(), optimalAltitudeMarkers);
+    if (altitudeBetweenMarkersIt == altitudes.end()) {
+        return altitudes.back();
+    } else {
+        return *altitudeBetweenMarkersIt;
+    }
+}
 
 qreal ProfilePainter::distanceToX(const QRect& rect, const RealLifeVideo& rlv, float distance) const
 {

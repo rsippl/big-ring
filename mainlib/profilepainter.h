@@ -24,8 +24,9 @@
 #include <QtCore/QSettings>
 #include <QtGui/QPixmap>
 
-#include "reallifevideo.h"
-#include "quantityprinter.h"
+class QuantityPrinter;
+class RealLifeVideo;
+class UnitConverter;
 
 class ProfilePainter : public QObject
 {
@@ -39,13 +40,16 @@ public:
 private:
     QPixmap drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv, bool withMarkers) const;
     void drawDistanceMarkers(QPainter &painter, const QRect &rect, const RealLifeVideo &rlv) const;
-    float determineDistanceMarkers(const RealLifeVideo &rlv) const;
+    double determineDistanceMarkers(const RealLifeVideo &rlv) const;
+    void drawAltitudeMarkers(QPainter &painter, const QRect &rect, const RealLifeVideo &rlv) const;
+    double determineAltitudeMarkers(const RealLifeVideo &rlv) const;
     qreal distanceToX(const QRect& rect, const RealLifeVideo& rlv, float distance) const;
     float xToDistance(const QRect& rect, const RealLifeVideo& rlv, int x) const;
     int altitudeToHeight(const QRect& rect, float altitudeAboveMinimum, float altitudeDiff) const;
     QColor colorForSlope(const float slope) const;
 
     QuantityPrinter* _quantityPrinter;
+    UnitConverter* _unitConverter;
 };
 
 #endif // PROFILEPAINTER_H

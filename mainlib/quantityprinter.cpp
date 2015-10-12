@@ -19,17 +19,12 @@
  */
 
 #include "quantityprinter.h"
-#include <QtCore/QtDebug>
-namespace {
-const double MILES_PER_METERS = 1609.344;
-const double MILES_PER_METER = 1.0 / MILES_PER_METERS;
-// meters per second to miles per hour.
-const double MPH_PER_MPS = MILES_PER_METER * 3600;
+#include "unitconverter.h"
 
-const double YARDS_PER_METER = 1.0936;
-}
+#include <QtCore/QtDebug>
+
 QuantityPrinter::QuantityPrinter(QObject *parent) :
-    QObject(parent)
+    QObject(parent), _unitConverter(new UnitConverter(this))
 {
     // empty
 }
@@ -40,7 +35,9 @@ QString QuantityPrinter::unitString(QuantityPrinter::Quantity quantity, Quantity
     case Quantity::Distance:
         return unitForDistance(precision, value);
     case Quantity::Speed:
-        return (system() == System::Imperial) ? "MPH" : "KM/H";
+        return (UnitConverter::system() == UnitConverter::System::Imperial) ? "MPH" : "KM/H";
+    case Quantity::Altitude:
+        return (UnitConverter::system() == UnitConverter::System::Imperial) ? "Ft" : "M";
     case Quantity::Cadence:
         return tr("RPM");
     case Quantity::Power:
@@ -56,16 +53,21 @@ QString QuantityPrinter::unitString(QuantityPrinter::Quantity quantity, Quantity
 
 QString QuantityPrinter::unitForDistance(QuantityPrinter::Precision precision, QVariant value) const
 {
-    if (system() == System::Imperial) {
-        if (precision == Precision::Precise && value.toReal() < MILES_PER_METERS) {
+    if (UnitConverter::system() == UnitConverter::System::Imperial) {
+        if (precision == Precision::AlwaysPrecise || (precision == Precision::Precise && _unitConverter->convertDistanceFrom(1, UnitConverter::DistanceUnit::Mile) > value.toReal())) {
             return "Y";
         }
         return "Mi";
     }
-    if (precision == Precision::Precise && value.toReal() < 1000) {
+    if (precision == Precision::AlwaysPrecise || (precision == Precision::Precise && value.toReal() < 1000)) {
         return "M";
     }
     return "KM";
+}
+
+QString QuantityPrinter::unitForAltitude() const
+{
+    return unitString(Quantity::Altitude);
 }
 
 QString QuantityPrinter::print(QVariant value, QuantityPrinter::Quantity quantity, Precision precision, int width) const
@@ -90,31 +92,24 @@ QString QuantityPrinter::print(QVariant value, QuantityPrinter::Quantity quantit
 
 QString QuantityPrinter::printDistance(qreal meters, Precision precision, int width) const
 {
-    if (system() == System::Imperial) {
-        if (precision == Precision::Precise && meters < MILES_PER_METERS) {
-            return QString("%1").arg(meters * YARDS_PER_METER, width, 'f', 0);
+    if (UnitConverter::system() == UnitConverter::System::Imperial) {
+        if (precision == Precision::AlwaysPrecise || (precision == Precision::Precise && _unitConverter->convertDistanceFrom(1, UnitConverter::DistanceUnit::Mile) > meters)) {
+            return QString("%1").arg(_unitConverter->convertDistanceTo(meters, UnitConverter::DistanceUnit::Yard), width, 'f', 0);
         }
-        return QString("%1").arg(meters * MILES_PER_METER, width, 'f', 2);
+        return QString("%1").arg(_unitConverter->convertDistanceTo(meters, UnitConverter::DistanceUnit::Mile), width, 'f', 2);
     }
-    if (precision == Precision::Precise && meters < 1000) {
+    if (precision == Precision::AlwaysPrecise || (precision == Precision::Precise && meters < 1000)) {
         return QString("%1").arg(meters, width, 'f', 0);
     }
-    return QString("%1").arg(meters / 1000, width, 'f', 2);
+    return QString("%1").arg(_unitConverter->convertDistanceTo(meters, UnitConverter::DistanceUnit::Kilometer), width, 'f', 2);
 }
 
 QString QuantityPrinter::printSpeed(qreal metersPerSecond, int width) const
 {
-    if (system() == System::Imperial) {
-        return QString("%1").arg(metersPerSecond * MPH_PER_MPS, width, 'f', 1);
-    }
-    return QString("%1").arg(metersPerSecond * 3.6,  width, 'f', 1);
+    return QString("%1").arg(_unitConverter->convertSpeedTo(metersPerSecond),  width, 'f', 1);
 }
 
-QuantityPrinter::System QuantityPrinter::system() const
+QString QuantityPrinter::printAltitude(qreal meters) const
 {
-    QString systemString = _settings.value("units").toString();
-    if (systemString == "Imperial") {
-        return System::Imperial;
-    }
-    return System::Metric;
+    return QString("%1").arg(static_cast<int>(qRound(_unitConverter->convertAltitudeTo(meters))));
 }

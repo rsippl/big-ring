@@ -45,7 +45,8 @@ HEADERS += \
     utility.h \
     informationboxgraphicsitem.h \
     distancemappingentry.h \
-    videoinformation.h
+    videoinformation.h \
+    unitconverter.h
 
 SOURCES += \
     cyclist.cpp \
@@ -77,7 +78,8 @@ SOURCES += \
     videoinforeader.cpp \
     informationboxgraphicsitem.cpp \
     distancemappingentry.cpp \
-    videoinformation.cpp
+    videoinformation.cpp \
+    unitconverter.cpp
 
 
 
