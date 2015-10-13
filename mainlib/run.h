@@ -45,6 +45,9 @@ public:
     const Simulation& simulation() const;
     void saveProgress();
     bool isRunning() const;
+
+    /** Time it took from start to current time */
+    QTime time() const;
 signals:
     void stopped();
     void finished();

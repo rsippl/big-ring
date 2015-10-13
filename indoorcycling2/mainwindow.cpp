@@ -221,7 +221,8 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     });
     connect(_run.data(), &Run::finished, _run.data(), [this]() {
         QMessageBox runFinishedMessageBox(this);
-        runFinishedMessageBox.setText(tr("Run Finished"));
+        runFinishedMessageBox.setText(tr("Ride Finished"));
+        runFinishedMessageBox.setInformativeText(tr("Finished in %1").arg(_run->time().toString()));
         runFinishedMessageBox.setIcon(QMessageBox::Information);
         runFinishedMessageBox.setStandardButtons(QMessageBox::Ok);
         runFinishedMessageBox.setDefaultButton(QMessageBox::Ok);
@@ -235,9 +236,9 @@ bool MainWindow::handleStopRun()
     _run->pause();
 
     QMessageBox stopRunMessageBox(this);
-    stopRunMessageBox.setText(tr("Save run before closing?"));
+    stopRunMessageBox.setText(tr("Save ride progress before closing?"));
     stopRunMessageBox.setIcon(QMessageBox::Question);
-    stopRunMessageBox.setInformativeText(tr("If you don't save the run, progress will be lost."));
+    stopRunMessageBox.setInformativeText(tr("If you don't save the ride, progress will be lost."));
     stopRunMessageBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     stopRunMessageBox.setDefaultButton(QMessageBox::Save);
 

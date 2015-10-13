@@ -97,6 +97,11 @@ bool Run::isRunning() const
     return _running;
 }
 
+QTime Run::time() const
+{
+    return _simulation->runTime();
+}
+
 void Run::start()
 {
     _running = true;
