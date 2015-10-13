@@ -117,6 +117,8 @@ public:
     void setUnfinishedRun(float distance);
     /** Add a new custom start point */
     void addStartPoint(float distance, const QString& name);
+    /** Add a new custom course */
+    void addCustomCourse(float startDistance, float endDistance, const QString& name);
 
     void printDistanceMapping();
     /** Get the number or frames per meter for a certain distance */

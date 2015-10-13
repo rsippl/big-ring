@@ -162,8 +162,15 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& video
         settings.beginGroup(QString("%1.custom_courses").arg(rlv.name()));
         QStringList customCourseNames = settings.allKeys();
         for (QString customCourseName: customCourseNames) {
-            int startDistance = settings.value(customCourseName).toInt();
-            rlv.addStartPoint(startDistance, customCourseName);
+            if (!customCourseName.endsWith("_end")) {
+                int startDistance = settings.value(customCourseName).toInt();
+                if (settings.contains(customCourseName + "_end")) {
+                    int endDistance = settings.value(customCourseName + "_end").toInt();
+                    rlv.addCustomCourse(startDistance, endDistance, customCourseName);
+                } else {
+                    rlv.addStartPoint(startDistance, customCourseName);
+                }
+            }
         }
         settings.endGroup();
         settings.beginGroup("unfinished_runs");

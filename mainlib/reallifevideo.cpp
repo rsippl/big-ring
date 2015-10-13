@@ -176,7 +176,12 @@ void RealLifeVideo::setUnfinishedRun(float distance)
 
 void RealLifeVideo::addStartPoint(float distance, const QString &name)
 {
-    Course customCourse(name, Course::Type::Custom, distance, totalDistance());
+    addCustomCourse(distance, totalDistance(), name);
+}
+
+void RealLifeVideo::addCustomCourse(float startDistance, float endDistance, const QString &name)
+{
+    Course customCourse(name, Course::Type::Custom, startDistance, endDistance);
     _d->_courses.push_back(customCourse);
 }
 

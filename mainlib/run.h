@@ -47,6 +47,7 @@ public:
     bool isRunning() const;
 signals:
     void stopped();
+    void finished();
     void newInformationMessage(const InformationBox &message);
 public slots:
     void start();
@@ -55,6 +56,8 @@ public slots:
     void pause();
 
 private:
+    void distanceChanged(float distance);
+
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
     RealLifeVideo _rlv;
     Course _course;

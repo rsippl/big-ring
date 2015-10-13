@@ -199,14 +199,12 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     }
     connect(&_run->simulation().cyclist(), &Cyclist::distanceChanged, _videoWidget.data(), &NewVideoWidget::setDistance);
     connect(_videoWidget.data(), &NewVideoWidget::readyToPlay, this, [this](bool ready) {
-        qDebug() << "run can start?" << ready;
         if (ready) {
             _run->start();
         }
     });
     connect(_run.data(), &Run::newInformationMessage, _videoWidget.data(), &NewVideoWidget::displayInformationBox);
     connect(_run.data(), &Run::stopped, _run.data(), [this]() {
-        qDebug() << "run finished";
         bool maximize = _videoWidget->isFullScreen();
         _run.reset();
         _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
@@ -220,6 +218,15 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
         }
         setGeometry(_savedGeometry);
         raise();
+    });
+    connect(_run.data(), &Run::finished, _run.data(), [this]() {
+        QMessageBox runFinishedMessageBox(this);
+        runFinishedMessageBox.setText(tr("Run Finished"));
+        runFinishedMessageBox.setIcon(QMessageBox::Information);
+        runFinishedMessageBox.setStandardButtons(QMessageBox::Ok);
+        runFinishedMessageBox.setDefaultButton(QMessageBox::Ok);
+        runFinishedMessageBox.exec();
+        _run->stop();
     });
 }
 

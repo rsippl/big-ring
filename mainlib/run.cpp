@@ -38,6 +38,10 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     const int weight = settings.value("cyclist.weight", QVariant::fromValue(82)).toInt();
    _cyclist = new Cyclist(weight, this);
 
+   connect(_cyclist, &Cyclist::distanceChanged, _cyclist, [this](float distance) {
+       distanceChanged(distance);
+   });
+
     NamedSensorConfigurationGroup sensorConfigurationGroup =
             NamedSensorConfigurationGroup::selectedConfigurationGroup();
 
@@ -113,5 +117,13 @@ void Run::stop()
 void Run::pause()
 {
     _simulation->play(false);
+}
+
+void Run::distanceChanged(float distance)
+{
+    if (distance > _course.end()) {
+        _simulation->play(false);
+        emit finished();
+    }
 }
 
