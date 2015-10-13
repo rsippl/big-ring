@@ -38,7 +38,7 @@ const float INVERSE_SLOPE_RANGE = 1 / (MAXIMUM_SLOPE - MINIMUM_SLOPE);
 const float METERS_PER_MILE = 1609.344;
 
 const std::array<double,7> MARKER_DISTANCES = {0.5, 1, 2, 5, 10, 20, 50};
-const std::array<double,7> MARKER_ALTITUDES = {10, 20, 50, 100, 200, 500, 100};
+const std::array<double,7> MARKER_ALTITUDES = {10, 20, 50, 100, 200, 500, 1000};
 }
 
 ProfilePainter::ProfilePainter(QObject *parent) :
@@ -142,9 +142,9 @@ double ProfilePainter::determineDistanceMarkers(const RealLifeVideo &rlv) const
 {
     std::vector<double> distances(MARKER_DISTANCES.size());
     std::transform(MARKER_DISTANCES.begin(), MARKER_DISTANCES.end(), distances.begin(), [this](double distance) {
-        return _unitConverter->convertDistanceFrom(distance);
+        return _unitConverter->convertDistanceFromSystemUnit(distance);
     });
-    const double optimalDistanceBetweenMarkers = rlv.totalDistance() / 7;
+    const double optimalDistanceBetweenMarkers = rlv.totalDistance() / 10;
     double distanceBetweenMarkers;
     auto distanceBetweenMarkersIt = std::lower_bound(distances.begin(), distances.end(), optimalDistanceBetweenMarkers);
     if (distanceBetweenMarkersIt == distances.end()) {
@@ -170,22 +170,21 @@ void ProfilePainter::drawAltitudeMarkers(QPainter &painter, const QRect &rect, c
         painter.drawLine(0, rect.height() - y, rect.width(), rect.height() - y);
         QString text = QString("%1 %2").arg(_quantityPrinter->printAltitude(altitude))
                 .arg(_quantityPrinter->unitForAltitude());
-        painter.drawText(0, rect.height() - y - 5, text);
+        painter.drawText(5, rect.height() - y - 5, text);
         QFontMetrics fontMetrics(painter.font());
         int width = fontMetrics.width(text);
         painter.drawText(rect.width() - width - 10, rect.height() - y - 5, text);
-
     }
 }
 
 double ProfilePainter::determineAltitudeMarkers(const RealLifeVideo &rlv) const
 {
     std::vector<double> altitudes(MARKER_ALTITUDES.size());
-    std::transform(MARKER_ALTITUDES.begin(), MARKER_ALTITUDES.end(), altitudes.begin(), [this](double distance) {
-        return _unitConverter->convertDistanceFrom(distance, UnitConverter::altitudeUnitForSystem());
+    std::transform(MARKER_ALTITUDES.begin(), MARKER_ALTITUDES.end(), altitudes.begin(), [this](double altitude) {
+        return _unitConverter->convertAltitudeFromSystemUnit(altitude);
     });
     float altitudeRange = rlv.profile().maximumAltitude() - rlv.profile().minimumAltitude();
-    const float optimalAltitudeMarkers = altitudeRange / 10;
+    const float optimalAltitudeMarkers = altitudeRange / 7;
     auto altitudeBetweenMarkersIt = std::lower_bound(altitudes.begin(), altitudes.end(), optimalAltitudeMarkers);
     if (altitudeBetweenMarkersIt == altitudes.end()) {
         return altitudes.back();

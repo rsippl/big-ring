@@ -35,9 +35,9 @@ QString QuantityPrinter::unitString(QuantityPrinter::Quantity quantity, Quantity
     case Quantity::Distance:
         return unitForDistance(precision, value);
     case Quantity::Speed:
-        return (UnitConverter::system() == UnitConverter::System::Imperial) ? "MPH" : "KM/H";
+        return (_unitConverter->system() == UnitConverter::System::Imperial) ? "MPH" : "KM/H";
     case Quantity::Altitude:
-        return (UnitConverter::system() == UnitConverter::System::Imperial) ? "Ft" : "M";
+        return (_unitConverter->system() == UnitConverter::System::Imperial) ? "Ft" : "M";
     case Quantity::Cadence:
         return tr("RPM");
     case Quantity::Power:
@@ -53,7 +53,7 @@ QString QuantityPrinter::unitString(QuantityPrinter::Quantity quantity, Quantity
 
 QString QuantityPrinter::unitForDistance(QuantityPrinter::Precision precision, QVariant value) const
 {
-    if (UnitConverter::system() == UnitConverter::System::Imperial) {
+    if (_unitConverter->system() == UnitConverter::System::Imperial) {
         if (precision == Precision::AlwaysPrecise || (precision == Precision::Precise && _unitConverter->convertDistanceFrom(1, UnitConverter::DistanceUnit::Mile) > value.toReal())) {
             return "Y";
         }
@@ -92,7 +92,7 @@ QString QuantityPrinter::print(QVariant value, QuantityPrinter::Quantity quantit
 
 QString QuantityPrinter::printDistance(qreal meters, Precision precision, int width) const
 {
-    if (UnitConverter::system() == UnitConverter::System::Imperial) {
+    if (_unitConverter->system() == UnitConverter::System::Imperial) {
         if (precision == Precision::AlwaysPrecise || (precision == Precision::Precise && _unitConverter->convertDistanceFrom(1, UnitConverter::DistanceUnit::Mile) > meters)) {
             return QString("%1").arg(_unitConverter->convertDistanceTo(meters, UnitConverter::DistanceUnit::Yard), width, 'f', 0);
         }
@@ -106,10 +106,10 @@ QString QuantityPrinter::printDistance(qreal meters, Precision precision, int wi
 
 QString QuantityPrinter::printSpeed(qreal metersPerSecond, int width) const
 {
-    return QString("%1").arg(_unitConverter->convertSpeedTo(metersPerSecond),  width, 'f', 1);
+    return QString("%1").arg(_unitConverter->convertSpeedToSystemUnit(metersPerSecond),  width, 'f', 1);
 }
 
 QString QuantityPrinter::printAltitude(qreal meters) const
 {
-    return QString("%1").arg(static_cast<int>(qRound(_unitConverter->convertAltitudeTo(meters))));
+    return QString("%1").arg(static_cast<int>(qRound(_unitConverter->convertAltitudeToSystemUnit(meters))));
 }

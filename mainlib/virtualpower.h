@@ -42,6 +42,12 @@ const QMap<VirtualPowerTrainer,QString> VIRTUAL_POWER_TRAINERS =
  {VirtualPowerTrainer::ELITE_TURBO_MUIN_2013, "Elite Turbo Muin 2013 Model"}});
 
 typedef std::function<float(float)> VirtualPowerFunctionType;
+
+/**
+ * Get the power function for a trainer.
+ * @param trainer the trainer to get the function for.
+ * @return a function from speed (in mps) to power (W).
+ */
 VirtualPowerFunctionType virtualPowerFunctionForTrainer(VirtualPowerTrainer trainer);
 }
 

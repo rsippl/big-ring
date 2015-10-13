@@ -28,19 +28,22 @@ public:
 
     explicit UnitConverter(QObject *parent);
 
-    static System system();
-    static DistanceUnit distanceUnitForSystem();
-    static DistanceUnit altitudeUnitForSystem();
-    static SpeedUnit speedUnitForSystem();
+    System system();
+    DistanceUnit distanceUnitForSystem();
+    DistanceUnit altitudeUnitForSystem();
+    SpeedUnit speedUnitForSystem();
     /** convert a distance to the distance unit provided */
-    double convertDistanceTo(double distance, DistanceUnit unit = distanceUnitForSystem());
+    double convertDistanceToSystemUnit(double distance);
+    static double convertDistanceTo(double distance, DistanceUnit);
     /** convert a distance from the distance unit provided, returning the distance in SI */
-    double convertDistanceFrom(double distance, DistanceUnit unit = distanceUnitForSystem());
+    static double convertDistanceFrom(double distance, DistanceUnit unit);
+    double convertDistanceFromSystemUnit(double distance);
 
-    double convertSpeedTo(double speedMetersPerSecond, SpeedUnit unit = speedUnitForSystem());
-
-    double convertAltitudeTo(double meters, DistanceUnit unit = altitudeUnitForSystem());
-
+    static double convertSpeedTo(double speedMetersPerSecond, SpeedUnit unit);
+    double convertSpeedToSystemUnit(double speedMetersPerSecond);
+    static double convertAltitudeTo(double meters, DistanceUnit unit);
+    double convertAltitudeToSystemUnit(double meters);
+    double convertAltitudeFromSystemUnit(double altitudeMeters);
 private:
     QSettings _settings;
 };

@@ -18,7 +18,7 @@ UnitConverter::UnitConverter(QObject *parent): QObject(parent)
 
 UnitConverter::System UnitConverter::system()
 {
-    QString systemString = QSettings().value("units").toString();
+    QString systemString = _settings.value("units").toString();
     if (systemString == "Imperial") {
         return System::Imperial;
     }
@@ -87,6 +87,11 @@ double UnitConverter::convertDistanceFrom(double distance, UnitConverter::Distan
     }
 }
 
+double UnitConverter::convertDistanceFromSystemUnit(double distance)
+{
+    return convertDistanceFrom(distance, distanceUnitForSystem());
+}
+
 double UnitConverter::convertSpeedTo(double speedMetersPerSecond, UnitConverter::SpeedUnit unit)
 {
     switch (unit) {
@@ -99,6 +104,11 @@ double UnitConverter::convertSpeedTo(double speedMetersPerSecond, UnitConverter:
     }
 }
 
+double UnitConverter::convertSpeedToSystemUnit(double speedMetersPerSecond)
+{
+    return convertSpeedTo(speedMetersPerSecond, speedUnitForSystem());
+}
+
 double UnitConverter::convertAltitudeTo(double meters, UnitConverter::DistanceUnit unit)
 {
     switch(unit) {
@@ -107,4 +117,14 @@ double UnitConverter::convertAltitudeTo(double meters, UnitConverter::DistanceUn
     default:
         return meters;
     }
+}
+
+double UnitConverter::convertAltitudeToSystemUnit(double meters)
+{
+    return convertAltitudeTo(meters, altitudeUnitForSystem());
+}
+
+double UnitConverter::convertAltitudeFromSystemUnit(double altitudeMeters)
+{
+    return convertDistanceFrom(altitudeMeters, altitudeUnitForSystem());
 }
