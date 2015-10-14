@@ -119,6 +119,7 @@ void AntCentralDispatch::initialize()
         QTimer::singleShot(1000, this, SLOT(initialize()));
         return;
     }
+    _channels.resize(_antUsbStick->numberOfChannels());
     _initializationTimer->start();
     if (_antUsbStick->isReady()) {
         resetAntSystem();
