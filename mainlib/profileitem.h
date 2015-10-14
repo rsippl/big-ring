@@ -41,12 +41,14 @@ signals:
 
 public slots:
     void setRlv(const RealLifeVideo& rlv);
+    void setCourse(const Course &course);
     void setCyclist(const Cyclist* cylist);
 private:
     ProfilePainter* _profilePainter;
     QRect _internalRect;
     bool _dirty;
     RealLifeVideo _rlv;
+    Course _course;
     const Cyclist* _cyclist;
     QPixmap _profilePixmap;
 };

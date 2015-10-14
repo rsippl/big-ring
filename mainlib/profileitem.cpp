@@ -53,17 +53,44 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
         if (!_profilePixmap.isNull()) {
             painter->drawPixmap(_internalRect, _profilePixmap);
 
-            if (_cyclist) {
-                float distanceRatio = _cyclist->distance() / _rlv.totalDistance();
+            if (_course.isValid()) {
                 QBrush brush(Qt::black);
                 QPen pen = QColor(Qt::black);
-                painter->setOpacity(0.4);
+                painter->setOpacity(0.6);
                 pen.setStyle(Qt::SolidLine);
                 pen.setWidth(2);
                 painter->setPen(pen);
                 painter->setBrush(brush);
+                float distanceRatio = _course.start() / _rlv.totalDistance();
                 painter->drawRect(_internalRect.left(), _internalRect.top(), distanceRatio * _internalRect.width(), _internalRect.bottom());
+
+                if (_cyclist) {
+                    float startDistanceRatio = _course.start() / _rlv.totalDistance();
+                    float endDistanceRatio = (_cyclist->distance() - _course.start()) / _rlv.totalDistance();
+                    QBrush brush(Qt::green);
+                    QPen pen = QColor(Qt::green);
+                    painter->setOpacity(0.4);
+                    pen.setStyle(Qt::SolidLine);
+                    pen.setWidth(2);
+                    painter->setPen(pen);
+                    painter->setBrush(brush);
+                    painter->drawRect(_internalRect.left() + startDistanceRatio * _internalRect.width(), _internalRect.top(),
+                                      endDistanceRatio * _internalRect.width(), _internalRect.bottom());
+                }
+
+                brush = Qt::black;
+                pen = QColor(Qt::black);
+                painter->setOpacity(0.6);
+                pen.setStyle(Qt::SolidLine);
+                pen.setWidth(2);
+                painter->setPen(pen);
+                painter->setBrush(brush);
+                float startAfterCourseRatio = _course.end() / _rlv.totalDistance();
+                painter->drawRect(_internalRect.left() + startAfterCourseRatio * _internalRect.width(), _internalRect.top(),
+                                  _internalRect.width() * (1 - startAfterCourseRatio), _internalRect.bottom());
             }
+
+
         }
     }
 
@@ -81,6 +108,13 @@ void ProfileItem::setGeometry(const QRectF &rect)
 void ProfileItem::setRlv(const RealLifeVideo &rlv)
 {
     _rlv = rlv;
+    _dirty = true;
+    update();
+}
+
+void ProfileItem::setCourse(const Course &course)
+{
+    _course = course;
     _dirty = true;
     update();
 }

@@ -145,6 +145,7 @@ void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
 void NewVideoWidget::setCourse(Course &course)
 {
     _course = course;
+    _profileItem->setCourse(course);
     seekToStart(_course);
 }
 
