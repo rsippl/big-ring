@@ -61,6 +61,8 @@ public:
     float start() const { return _start; }
     /*! end distance of course in meters */
     float end() const { return _end; }
+    /*! distance of course in meters */
+    float distance() const { return _end - _start; }
 
 private:
     QString _name;

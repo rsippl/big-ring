@@ -199,7 +199,7 @@ void NewVideoWidget::setSimulation(const Simulation& simulation)
         _heartRateItem->setValue(QVariant::fromValue(heartRate));
     });
     connect(&cyclist, &Cyclist::distanceTravelledChanged, this, [this](float distance) {
-        _distanceItem->setValue(QVariant::fromValue(distance));
+        _distanceItem->setValue(QVariant::fromValue(_course.distance() - distance));
     });
 
 }
