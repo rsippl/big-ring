@@ -40,6 +40,7 @@ public:
     ~CreateNewCourseDialog();
 
     int startDistanceInMeters() const;
+    int endDistanceInMeters() const;
     const QString courseName() const;
 
 private slots:
@@ -49,12 +50,19 @@ private slots:
 
     void on_courseNameEdit_textChanged(const QString &arg1);
 
+    void on_endDistanceSlider_valueChanged(int value);
+
+    void on_endDistanceSlider_sliderReleased();
+
 private:
+    int distanceInMeters() const;
+    void updateUi();
     Ui::CreateNewCourseDIalog *ui;
     Thumbnailer* _thumbnailer;
     QuantityPrinter* _quantityPrinter;
     RealLifeVideo _rlv;
-    int _startDistanceInMeters;
+    int _startDistanceInMeters = 0;
+    int _endDistanceInMeters = static_cast<int>(_rlv.totalDistance());
 
 
 };

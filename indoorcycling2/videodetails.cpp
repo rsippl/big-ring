@@ -70,14 +70,17 @@ void VideoDetails::on_courseListWidget_currentRowChanged(int currentRow)
 void VideoDetails::on_newCourseButton_clicked()
 {
     CreateNewCourseDialog createNewCourseDialog(_currentRlv);
-    int result = createNewCourseDialog.exec();
+    const int result = createNewCourseDialog.exec();
     if (result == QDialog::Accepted) {
-        int startDistanceOfCustomRun = createNewCourseDialog.startDistanceInMeters();
-        _currentRlv.addStartPoint(startDistanceOfCustomRun, createNewCourseDialog.courseName());
+        const int startDistanceOfCustomRun = createNewCourseDialog.startDistanceInMeters();
+        const int endDistanceOfCustomRun = createNewCourseDialog.endDistanceInMeters();
+        const QString courseName = createNewCourseDialog.courseName();
+        _currentRlv.addCustomCourse(startDistanceOfCustomRun, endDistanceOfCustomRun, courseName);
 
         QSettings settings;
         settings.beginGroup(QString("%1.custom_courses").arg(_currentRlv.name()));
-        settings.setValue(createNewCourseDialog.courseName(), QVariant::fromValue(startDistanceOfCustomRun));
+        settings.setValue(courseName, QVariant::fromValue(startDistanceOfCustomRun));
+        settings.setValue(courseName + "_end", QVariant::fromValue(endDistanceOfCustomRun));
         settings.endGroup();
 
         ui->courseListWidget->clear();

@@ -70,7 +70,7 @@ void AltitudeProfileWidget::paintEvent(QPaintEvent *paintEvent)
     QPainter painter(this);
 
     QPixmap profilePixmap;
-    if (_startDistance > 0) {
+    if (_startDistance > 0 || _endDistance < _currentRlv.totalDistance()) {
         profilePixmap = _profilePainter->paintProfileWithHighLight(_currentRlv, _startDistance, _endDistance,
                                                                    this->rect(), palette().highlight());
     } else {
