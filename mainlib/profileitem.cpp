@@ -52,45 +52,15 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
         }
         if (!_profilePixmap.isNull()) {
             painter->drawPixmap(_internalRect, _profilePixmap);
-
             if (_course.isValid()) {
-                QBrush brush(Qt::black);
-                QPen pen = QColor(Qt::black);
-                painter->setOpacity(0.6);
-                pen.setStyle(Qt::SolidLine);
-                pen.setWidth(2);
-                painter->setPen(pen);
-                painter->setBrush(brush);
-                float distanceRatio = _course.start() / _rlv.totalDistance();
-                painter->drawRect(_internalRect.left(), _internalRect.top(), distanceRatio * _internalRect.width(), _internalRect.bottom());
-
-                if (_cyclist) {
-                    float startDistanceRatio = _course.start() / _rlv.totalDistance();
-                    float endDistanceRatio = (_cyclist->distance() - _course.start()) / _rlv.totalDistance();
-                    QBrush brush(Qt::green);
-                    QPen pen = QColor(Qt::green);
-                    painter->setOpacity(0.4);
-                    pen.setStyle(Qt::SolidLine);
-                    pen.setWidth(2);
-                    painter->setPen(pen);
-                    painter->setBrush(brush);
-                    painter->drawRect(_internalRect.left() + startDistanceRatio * _internalRect.width(), _internalRect.top(),
-                                      endDistanceRatio * _internalRect.width(), _internalRect.bottom());
+                if (_course.isValid()) {
+                    paintArea(painter, 0, _course.start(), Qt::black);
+                    paintArea(painter, _course.end(), _rlv.totalDistance(), Qt::black);
                 }
-
-                brush = Qt::black;
-                pen = QColor(Qt::black);
-                painter->setOpacity(0.6);
-                pen.setStyle(Qt::SolidLine);
-                pen.setWidth(2);
-                painter->setPen(pen);
-                painter->setBrush(brush);
-                float startAfterCourseRatio = _course.end() / _rlv.totalDistance();
-                painter->drawRect(_internalRect.left() + startAfterCourseRatio * _internalRect.width(), _internalRect.top(),
-                                  _internalRect.width() * (1 - startAfterCourseRatio), _internalRect.bottom());
             }
-
-
+            if (_cyclist) {
+                paintArea(painter, _course.start(), _cyclist->distance(), Qt::green);
+            }
         }
     }
 
@@ -115,11 +85,24 @@ void ProfileItem::setRlv(const RealLifeVideo &rlv)
 void ProfileItem::setCourse(const Course &course)
 {
     _course = course;
-    _dirty = true;
     update();
 }
 
 void ProfileItem::setCyclist(const Cyclist *cylist)
 {
     _cyclist = cylist;
+}
+
+void ProfileItem::paintArea(QPainter *painter, const float startDistance, const float endDistance, const QColor &color) const
+{
+    QBrush brush(color);
+    QPen pen = color;
+    painter->setOpacity(0.6);
+    pen.setStyle(Qt::SolidLine);
+    pen.setWidth(2);
+    painter->setPen(pen);
+    painter->setBrush(brush);
+    int left = (startDistance / _rlv.totalDistance()) * _internalRect.width();
+    int width = ((endDistance - startDistance) / _rlv.totalDistance()) * _internalRect.width();
+    painter->drawRect(left, _internalRect.top(), width, _internalRect.bottom());
 }

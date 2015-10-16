@@ -44,6 +44,7 @@ public slots:
     void setCourse(const Course &course);
     void setCyclist(const Cyclist* cylist);
 private:
+    void paintArea(QPainter *painter, const float startDistance, const float endDistance, const QColor &color) const;
     ProfilePainter* _profilePainter;
     QRect _internalRect;
     bool _dirty;
