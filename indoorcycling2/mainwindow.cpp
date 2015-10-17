@@ -111,6 +111,11 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
     _listView->setVideos(rlvs);
 }
 
+void MainWindow::removeDisplayMessage()
+{
+    _videoWidget->displayMessage("");
+}
+
 /**
  * Asynchronously load all videos.
  */
@@ -184,7 +189,7 @@ void MainWindow::setupMenuBar()
 void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
 {
     Course course = rlv.courses()[courseNr];
-    _run.reset(new Run(_antCentralDispatch, rlv, course));
+    _run = make_qobject_unique(new Run(_antCentralDispatch, rlv, course));
     _videoWidget.reset(new NewVideoWidget);
     _videoWidget->setRealLifeVideo(rlv);
     _videoWidget->setCourseIndex(courseNr);
@@ -201,10 +206,11 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     connect(_videoWidget.data(), &NewVideoWidget::readyToPlay, this, [this](bool ready) {
         if (ready) {
             _run->start();
+            _videoWidget->displayMessage(tr("Begin cyling to start ride"));
         }
     });
-    connect(_run.data(), &Run::newInformationMessage, _videoWidget.data(), &NewVideoWidget::displayInformationBox);
-    connect(_run.data(), &Run::stopped, _run.data(), [this]() {
+    connect(_run.get(), &Run::newInformationMessage, _videoWidget.data(), &NewVideoWidget::displayInformationBox);
+    connect(_run.get(), &Run::stopped, _run.get(), [this]() {
         bool maximize = _videoWidget->isFullScreen();
         _run.reset();
         _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
@@ -219,15 +225,15 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
         setGeometry(_savedGeometry);
         raise();
     });
-    connect(_run.data(), &Run::finished, _run.data(), [this]() {
-        QMessageBox runFinishedMessageBox(this);
-        runFinishedMessageBox.setText(tr("Ride Finished"));
-        runFinishedMessageBox.setInformativeText(tr("Finished in %1").arg(_run->time().toString()));
-        runFinishedMessageBox.setIcon(QMessageBox::Information);
-        runFinishedMessageBox.setStandardButtons(QMessageBox::Ok);
-        runFinishedMessageBox.setDefaultButton(QMessageBox::Ok);
-        runFinishedMessageBox.exec();
-        _run->stop();
+    connect(_run.get(), &Run::riding, this, &MainWindow::removeDisplayMessage);
+    connect(_run.get(), &Run::finished, _run.get(), [this]() {
+        const QString text = QString("Ride Finished<br>Finished in %1").arg(_run->time().toString());
+        _videoWidget->displayMessage(text);
+        QTimer::singleShot(10000, this, SLOT(removeDisplayMessage()));
+    });
+    connect(_run.get(), &Run::paused, _run.get(), [this]() {
+        const QString text = QString("Paused").arg(_run->time().toString());
+        _videoWidget->displayMessage(text);
     });
 }
 

@@ -33,11 +33,11 @@
 
 #include "clockgraphicsitem.h"
 #include "informationboxgraphicsitem.h"
+#include "messagepanelitem.h"
 #include "profileitem.h"
 #include "sensoritem.h"
 #include "simulation.h"
 #include "screensaverblocker.h"
-//#include "videoinformation.h"
 #include "videoplayer.h"
 
 
@@ -64,6 +64,7 @@ NewVideoWidget::NewVideoWidget(QWidget *parent) :
 
     addClock(scene);
     addInformationBox(scene);
+    addMessagePanel(scene);
     addSensorItems(scene);
 
     _profileItem = new ProfileItem;
@@ -123,6 +124,13 @@ void NewVideoWidget::addInformationBox(QGraphicsScene *scene)
     scene->addItem(_informationBoxItem);
 }
 
+void NewVideoWidget::addMessagePanel(QGraphicsScene *scene)
+{
+    _messagePanelItem = new MessagePanelItem;
+    _messagePanelItem->hide();
+    scene->addItem(_messagePanelItem);
+}
+
 NewVideoWidget::~NewVideoWidget()
 {
     // empty
@@ -161,6 +169,20 @@ void NewVideoWidget::setCourseIndex(int index)
 void NewVideoWidget::setDistance(float distance)
 {
     _videoPlayer->stepToFrame(_rlv.frameForDistance(distance));
+}
+
+void NewVideoWidget::displayMessage(const QString &message)
+{
+    if (message.isEmpty()) {
+        _messagePanelItem->hide();
+    } else {
+        _messagePanelItem->setMessage(message);
+        QRectF rect = _messagePanelItem->boundingRect();
+        rect.moveCenter(QPointF(sceneRect().width() / 2, sceneRect().height() / 2));
+
+        _messagePanelItem->setPos(rect.topLeft());
+        _messagePanelItem->show();
+    }
 }
 
 void NewVideoWidget::displayInformationBox(const InformationBox &informationBox)

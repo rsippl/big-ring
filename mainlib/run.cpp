@@ -32,15 +32,14 @@ using indoorcycling::NamedSensorConfigurationGroup;
 using indoorcycling::Sensors;
 
 Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& rlv, Course& course, QObject* parent) :
-    QObject(parent), _antCentralDispatch(antCentralDispatch), _rlv(rlv), _course(course)
+    QObject(parent), _antCentralDispatch(antCentralDispatch), _rlv(rlv), _course(course), _state(State::BEFORE_START)
 {
     QSettings settings;
     const int weight = settings.value("cyclist.weight", QVariant::fromValue(82)).toInt();
    _cyclist = new Cyclist(weight, this);
 
-   connect(_cyclist, &Cyclist::distanceChanged, _cyclist, [this](float distance) {
-       distanceChanged(distance);
-   });
+   connect(_cyclist, &Cyclist::distanceChanged, this, &Run::distanceChanged);
+   connect(_cyclist, &Cyclist::speedChanged, this, &Run::speedChanged);
 
     NamedSensorConfigurationGroup sensorConfigurationGroup =
             NamedSensorConfigurationGroup::selectedConfigurationGroup();
@@ -92,11 +91,6 @@ void Run::saveProgress()
     settings.endGroup();
 }
 
-bool Run::isRunning() const
-{
-    return _running;
-}
-
 QTime Run::time() const
 {
     return _simulation->runTime();
@@ -104,8 +98,8 @@ QTime Run::time() const
 
 void Run::start()
 {
-    _running = true;
     _simulation->play(true);
+    _state = State::STARTING;
 }
 
 void Run::play()
@@ -126,9 +120,38 @@ void Run::pause()
 
 void Run::distanceChanged(float distance)
 {
-    if (distance > _course.end()) {
-        _simulation->play(false);
-        emit finished();
+    if (_state == State::RIDING && distance > _course.end()) {
+        setState(State::FINISHED);
     }
 }
+
+void Run::speedChanged(float speed)
+{
+    if ((_state == State::STARTING || _state == State::PAUSED) && speed > 0) {
+        setState(State::RIDING);
+    } else if (_state == State::RIDING && speed < 0.01) {
+        setState(State::PAUSED);
+    }
+}
+
+void Run::setState(State newState)
+{
+    _state = newState;
+    switch(_state) {
+    case State::RIDING:
+        emit riding();
+        break;
+    case State::PAUSED:
+        emit paused();
+        break;
+    case State::FINISHED:
+        emit finished();
+        break;
+    default:
+        // NOOP
+        break;
+    }
+}
+
+
 

@@ -44,12 +44,14 @@ public:
 
     const Simulation& simulation() const;
     void saveProgress();
-    bool isRunning() const;
 
     /** Time it took from start to current time */
     QTime time() const;
 signals:
+    void startedRiding();
     void stopped();
+    void riding();
+    void paused();
     void finished();
     void newInformationMessage(const InformationBox &message);
 public slots:
@@ -57,18 +59,25 @@ public slots:
     void play();
     void stop();
     void pause();
-
-private:
+private slots:
     void distanceChanged(float distance);
+    void speedChanged(float speed);
+private:
+    enum State {
+        BEFORE_START, STARTING, RIDING, PAUSED, FINISHED
+    };
+    void setState(State newState);
+
 
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
     RealLifeVideo _rlv;
     Course _course;
     Cyclist* _cyclist;
     Simulation* _simulation;
-    bool _running;
+    State _state;
     QTimer _informationMessageTimer;
     InformationBox _lastInformationMessage;
+
 };
 
 #endif // RUN_H

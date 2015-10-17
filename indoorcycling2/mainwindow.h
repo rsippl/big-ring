@@ -28,6 +28,7 @@
 
 #include "reallifevideo.h"
 #include "reallifevideoimporter.h"
+#include "util.h"
 
 class Cyclist;
 class VideoListView;
@@ -57,6 +58,7 @@ protected:
 private slots:
     void loadVideos();
     void importFinished(RealLifeVideoList rlvs);
+    void removeDisplayMessage();
 private:
     void setupMenuBar();
     void step();
@@ -64,7 +66,8 @@ private:
     bool handleStopRun();
 
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
-    QScopedPointer<Run,QScopedPointerDeleteLater> _run;
+
+    qobject_unique_ptr<Run> _run;
 
     QMenuBar* const _menuBar;
     QStackedWidget* const _stackedWidget;

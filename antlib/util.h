@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <memory>
 template<typename T>
 using qobject_unique_ptr = std::unique_ptr<T, std::function<void(T*)>>;
 

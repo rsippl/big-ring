@@ -37,6 +37,7 @@ class ScreenSaverBlocker;
 }
 
 class InformationBoxGraphicsItem;
+class MessagePanelItem;
 class SensorItem;
 class ClockGraphicsItem;
 
@@ -56,6 +57,7 @@ public slots:
     void setCourse(Course& course);
     void setCourseIndex(int index);
     void setDistance(float distance);
+    void displayMessage(const QString &message);
     void displayInformationBox(const InformationBox &informationBox);
     void setSimulation(const Simulation &cyclist);
 
@@ -78,6 +80,7 @@ private:
 
     void addClock(QGraphicsScene* scene);
     void addInformationBox(QGraphicsScene *scene);
+    void addMessagePanel(QGraphicsScene *scene);
 
 
     RealLifeVideo _rlv;
@@ -85,6 +88,7 @@ private:
     VideoPlayer* _videoPlayer;
 
     ClockGraphicsItem* _clockItem;
+    MessagePanelItem *_messagePanelItem;
     InformationBoxGraphicsItem *_informationBoxItem;
     QTimer *_informationBoxHideTimer;
     SensorItem* _wattageItem;
