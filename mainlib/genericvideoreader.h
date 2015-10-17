@@ -1,7 +1,8 @@
 #ifndef GENERICVIDEOREADER_H
 #define GENERICVIDEOREADER_H
 
-#include <QObject>
+#include <memory>
+#include <QtCore/QObject>
 
 struct AVCodec;
 struct AVCodecContext;
@@ -60,7 +61,7 @@ private:
     AVCodec* _codec = nullptr;
     AVCodecContext* _codecContext = nullptr;
     AVFormatContext* _formatContext = nullptr;
-    QScopedPointer<AVFrameWrapper> _frameYuv;
+    std::unique_ptr<AVFrameWrapper> _frameYuv;
     int _currentVideoStream;
 };
 

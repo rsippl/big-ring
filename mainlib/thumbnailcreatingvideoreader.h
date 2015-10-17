@@ -2,7 +2,7 @@
 #define VIDEOREADER_H
 
 #include "genericvideoreader.h"
-
+#include <memory>
 #include <QtCore/QEvent>
 #include <QtCore/QObject>
 
@@ -31,7 +31,7 @@ private:
 
     bool _initialized;
     // libav specific data
-    QScopedPointer<AVFrameWrapper> _frameRgb;
+    std::unique_ptr<AVFrameWrapper> _frameRgb;
     SwsContext* _swsContext;
     QByteArray _imageBuffer;
 };
