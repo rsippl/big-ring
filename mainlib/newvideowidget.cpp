@@ -21,6 +21,7 @@
 #include "newvideowidget.h"
 
 #include <functional>
+#include <cmath>
 
 #include <QtCore/QtDebug>
 #include <QtCore/QPropertyAnimation>
@@ -221,8 +222,9 @@ void NewVideoWidget::setSimulation(const Simulation& simulation)
     connect(&cyclist, &Cyclist::heartRateChanged, this, [this](int heartRate) {
         _heartRateItem->setValue(QVariant::fromValue(heartRate));
     });
-    connect(&cyclist, &Cyclist::distanceTravelledChanged, this, [this](float distance) {
-        _distanceItem->setValue(QVariant::fromValue(_course.distance() - distance));
+    connect(&cyclist, &Cyclist::distanceChanged, this, [this](float distance) {
+        float distanceDifference = _course.end() - distance;
+        _distanceItem->setValue(QVariant::fromValue(std::fabs(distanceDifference)));
     });
 
 }
