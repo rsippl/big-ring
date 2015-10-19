@@ -55,6 +55,7 @@ void Sensors::initialize()
     }
     if (_sensorConfigurationGroup.simulationSetting() == SimulationSetting::FIXED_POWER) {
         _updateTimer->start();
+        QTimer::singleShot(0, this, SLOT(sendPowerUpdate()));
     }
 }
 
