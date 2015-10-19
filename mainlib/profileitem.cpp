@@ -59,7 +59,7 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
                 }
             }
             if (_cyclist) {
-                paintArea(painter, _course.start(), _cyclist->distance(), Qt::green);
+                paintArea(painter, _course.start(), std::min(_cyclist->distance(), _rlv.totalDistance()), Qt::green);
             }
         }
     }
