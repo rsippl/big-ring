@@ -97,7 +97,7 @@ void ProfileItem::paintArea(QPainter *painter, const float startDistance, const 
 {
     QBrush brush(color);
     QPen pen = color;
-    painter->setOpacity(0.6);
+    painter->setOpacity(0.3);
     pen.setStyle(Qt::SolidLine);
     pen.setWidth(2);
     painter->setPen(pen);
