@@ -242,27 +242,27 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
     clockItemRect.moveTop(0.0);
     _clockItem->setPos(clockItemRect.topLeft());
 
+    qreal bottom = mapToScene(0, height()).y();
+    _cadenceItem->setPos(0, bottom - _cadenceItem->boundingRect().height());
+    _heartRateItem->setPos(0, _cadenceItem->scenePos().y() - _heartRateItem->boundingRect().height());
+    _wattageItem->setPos(0, _heartRateItem->scenePos().y() - _wattageItem->boundingRect().height());
 
-    QPointF scenePosition = mapToScene(width() / 2, 0);
-    scenePosition = mapToScene(0, height() /8);
-    _wattageItem->setPos(scenePosition);
-    scenePosition = mapToScene(0, 2* height() /8);
-    _heartRateItem->setPos(scenePosition);
-    scenePosition = mapToScene(0, 3 * height() /8);
-    _cadenceItem->setPos(scenePosition);
-    scenePosition = mapToScene(width(), 1 * height() / 8);
-    _speedItem->setPos(scenePosition.x() - _speedItem->boundingRect().width(), scenePosition.y());
-    scenePosition = mapToScene(width(), 2 * height() /8);
-    _distanceItem->setPos(scenePosition.x() - _distanceItem->boundingRect().width(), scenePosition.y());
-    scenePosition = mapToScene(width(), 3 * height() / 8);
-    _gradeItem->setPos(scenePosition.x() - _gradeItem->boundingRect().width(), scenePosition.y());
-    resizeEvent->accept();
+    QPointF leftOfRightItems = mapToScene(width(), height());
+    leftOfRightItems = QPointF(leftOfRightItems.x() - _speedItem->boundingRect().width(), leftOfRightItems.y());
+    qreal left = leftOfRightItems.x();
+    _gradeItem->setPos(left, bottom - _gradeItem->boundingRect().height());
+    _distanceItem->setPos(left, _gradeItem->scenePos().y() - _distanceItem->boundingRect().height());
+    _speedItem->setPos(left, _distanceItem->scenePos().y() - _speedItem->boundingRect().height());
 
     QPointF center = mapToScene(viewport()->rect().center());
     _pausedItem->setPos(center);
 
-    _profileItem->setGeometry(QRectF(mapToScene(resizeEvent->size().width() * 1 / 16, resizeEvent->size().height() * 27 / 32), QSizeF(sceneRect().width() * 7 / 8, sceneRect().height() * 1 / 8)));
+    qreal profileItemLeft = _cadenceItem->boundingRect().width();
+    qreal profileItemWidth = scene()->width() - 2 * profileItemLeft;
+    qreal profileItemTop = _wattageItem->scenePos().y();
+    _profileItem->setGeometry(QRectF(profileItemLeft, profileItemTop, profileItemWidth, bottom - profileItemTop));
 
+    resizeEvent->accept();
 }
 
 void NewVideoWidget::enterEvent(QEvent *)
