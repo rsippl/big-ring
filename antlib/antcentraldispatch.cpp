@@ -240,7 +240,7 @@ AntChannelHandler* AntCentralDispatch::createChannel(int channelNumber, AntSenso
     case AntSensorType::SPEED_AND_CADENCE:
         return AntSpeedAndCadenceChannelHandler::createCombinedSpeedAndCadenceChannelHandler(channelNumber, this);
     default:
-        qFatal("Unknown sensor type %d", sensorType);
+        qFatal("Unknown sensor type %d", static_cast<int>(sensorType));
         return nullptr;
     }
 }
