@@ -61,8 +61,11 @@ public:
     float altitudeForDistance(float distance) const;
 
     float minimumAltitude() const;
+    float minimumAltitudeForPart(float start, float end) const;
     float maximumAltitude() const;
+    float maximumAltitudeForPart(float start, float end) const;
 private:
+    const std::pair<std::vector<ProfileEntry>::const_iterator, std::vector<ProfileEntry>::const_iterator> rangeForDistances(float start, float end) const;
     const ProfileEntry &entryForDistance(float distance) const;
 
     ProfileType _type;

@@ -19,6 +19,8 @@
  */
 
 #include "profile.h"
+
+#include <utility>
 #include <QtCore/QtDebug>
 
 ProfileEntry::ProfileEntry(float distance, float slope, float altitude):
@@ -63,19 +65,49 @@ float Profile::altitudeForDistance(float distance) const
 
 float Profile::minimumAltitude() const
 {
-    auto minimumEntry = std::min_element(_entries.begin(), _entries.end(),
+    return minimumAltitudeForPart(0, totalDistance());
+}
+
+float Profile::minimumAltitudeForPart(float start, float end) const
+{
+    auto startAndEnd = rangeForDistances(start, end);
+
+    return (*std::min_element(startAndEnd.first, startAndEnd.second,
             [](const ProfileEntry &entry1, const ProfileEntry &entry2) {
         return (entry1.altitude() < entry2.altitude());
-    });
-    return (*minimumEntry).altitude() + _startAltitude;
+    })).altitude() + _startAltitude;
 }
 
 float Profile::maximumAltitude() const
 {
-    return (*std::max_element(_entries.begin(), _entries.end(),
+    return maximumAltitudeForPart(0, totalDistance());
+}
+
+float Profile::maximumAltitudeForPart(float start, float end) const
+{
+    const auto startAndEnd = rangeForDistances(start, end);
+
+    const float maxKeyAltitude = (*std::max_element(startAndEnd.first, startAndEnd.second,
             [](const ProfileEntry &entry1, const ProfileEntry &entry2) {
         return (entry1.altitude() < entry2.altitude());
     })).altitude() + _startAltitude;
+    const float endAltitude = altitudeForDistance(end);
+
+    return std::max(maxKeyAltitude, endAltitude);
+}
+
+const std::pair<std::vector<ProfileEntry>::const_iterator, std::vector<ProfileEntry>::const_iterator> Profile::rangeForDistances(float start, float end) const
+{
+    auto startIt = std::lower_bound(_entries.begin(), _entries.end(), start, [](const ProfileEntry &entry, float distance2) {
+        return entry.distance() < distance2;
+    });
+    if (startIt != _entries.begin() && (*startIt).distance() > start) {
+        --startIt;
+    }
+    auto endIt = std::lower_bound(_entries.begin(), _entries.end(), end, [](const ProfileEntry &entry, float distance2) {
+        return entry.distance() < distance2;
+    });
+    return std::make_pair(startIt, endIt);
 }
 
 const ProfileEntry &Profile::entryForDistance(float distance) const

@@ -34,17 +34,18 @@ class ProfilePainter : public QObject
 public:
     explicit ProfilePainter(QObject *parent = 0);
 
+    QPixmap paintProfile(const RealLifeVideo &rlv, const QRect &rect, float startDistance, float endDistance, bool withMarkers) const;
     QPixmap paintProfile(const RealLifeVideo& rlv, const QRect& rect, bool withMarkers) const;
     QPixmap paintProfileWithHighLight(const RealLifeVideo &rlv, qreal startDistance, qreal endDistance,
                                       const QRect &rect, const QBrush highlightColor) const;
 private:
-    QPixmap drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv, bool withMarkers) const;
-    void drawDistanceMarkers(QPainter &painter, const QRect &rect, const RealLifeVideo &rlv) const;
-    double determineDistanceMarkers(const RealLifeVideo &rlv) const;
-    void drawAltitudeMarkers(QPainter &painter, const QRect &rect, const RealLifeVideo &rlv) const;
-    double determineAltitudeMarkers(const RealLifeVideo &rlv) const;
-    qreal distanceToX(const QRect& rect, const RealLifeVideo& rlv, float distance) const;
-    float xToDistance(const QRect& rect, const RealLifeVideo& rlv, int x) const;
+    QPixmap drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv, float startDistance, float endDistance, bool withMarkers) const;
+    void drawDistanceMarkers(QPainter &painter, const QRect &rect, float startDistance, float totalDistance) const;
+    double determineDistanceMarkers(float totalDistance) const;
+    void drawAltitudeMarkers(QPainter &painter, const QRect &rect, const RealLifeVideo &rlv, float startDistance, float endDistance) const;
+    double determineAltitudeMarkers(const float altitudeRange) const;
+    qreal distanceToX(const QRect& rect, float startDistance, float totalDistance, float distance) const;
+    float xToDistance(const QRect& rect, float startDistance, float totalDistance, int x) const;
     int altitudeToHeight(const QRect& rect, float altitudeAboveMinimum, float altitudeDiff) const;
     QColor colorForSlope(const float slope) const;
 

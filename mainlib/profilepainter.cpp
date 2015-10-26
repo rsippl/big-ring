@@ -47,20 +47,25 @@ ProfilePainter::ProfilePainter(QObject *parent) :
     // empty
 }
 
-QPixmap ProfilePainter::paintProfile(const RealLifeVideo &rlv, const QRect &rect, bool withMarkers) const
+QPixmap ProfilePainter::paintProfile(const RealLifeVideo &rlv, const QRect &rect, float startDistance, float endDistance, bool withMarkers) const
 {
     QPixmap profilePixmap;
     if (rlv.isValid()) {
         QRect profileRect = QRect(QPoint(0,0),rect.size());
 
-        const QString pixmapName = QString("%1_%2x%3").arg(rlv.name()).arg(rect.size().width()).arg(rect.size().height());
+        const QString pixmapName = QString("%1_%2_%3_%4x%5").arg(rlv.name()).arg(startDistance).arg(endDistance).arg(rect.size().width()).arg(rect.size().height());
         if (!QPixmapCache::find(pixmapName, &profilePixmap)) {
             qDebug() << "creating new profile pixmap for" << pixmapName;
-            profilePixmap = drawProfilePixmap(profileRect, rlv, withMarkers);
+            profilePixmap = drawProfilePixmap(profileRect, rlv, startDistance, endDistance, withMarkers);
             QPixmapCache::insert(pixmapName, profilePixmap);
         }
     }
     return profilePixmap;
+}
+
+QPixmap ProfilePainter::paintProfile(const RealLifeVideo &rlv, const QRect &rect, bool withMarkers) const
+{
+    return paintProfile(rlv, rect, 0, rlv.totalDistance(), withMarkers);
 }
 
 QPixmap ProfilePainter::paintProfileWithHighLight(const RealLifeVideo &rlv, qreal startDistance, qreal endDistance,
@@ -71,8 +76,8 @@ QPixmap ProfilePainter::paintProfileWithHighLight(const RealLifeVideo &rlv, qrea
         return profilePixmap;
     }
 
-    int startX = distanceToX(rect, rlv, startDistance);
-    int endX = distanceToX(rect, rlv, endDistance);
+    int startX = distanceToX(rect, 0, rlv.totalDistance(), startDistance);
+    int endX = distanceToX(rect, 0, rlv.totalDistance(), endDistance);
 
     QPixmap copy(profilePixmap);
     QPainter painter(&copy);
@@ -86,7 +91,7 @@ QPixmap ProfilePainter::paintProfileWithHighLight(const RealLifeVideo &rlv, qrea
     return copy;
 }
 
-QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv, bool withMarkers ) const
+QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv, float startDistance, float endDistance, bool withMarkers ) const
 {
     if (rect.isEmpty()) {
         return QPixmap();
@@ -95,8 +100,8 @@ QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv,
     QPixmap pixmap(rect.size());
     QPainter painter(&pixmap);
 
-    float minimumAltitude = rlv.profile().minimumAltitude();
-    float maximumAltitude = rlv.profile().maximumAltitude();
+    float minimumAltitude = rlv.profile().minimumAltitudeForPart(startDistance, endDistance);
+    float maximumAltitude = rlv.profile().maximumAltitudeForPart(startDistance, endDistance);
 
     float altitudeDiff = maximumAltitude - minimumAltitude;
     painter.setBrush(Qt::gray);
@@ -106,7 +111,7 @@ QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv,
     painter.setRenderHint(QPainter::Antialiasing);
 
     for(int x = 0; x < rect.width(); x += 1) {
-        float distance = xToDistance(rect, rlv, x);
+        float distance = xToDistance(rect, startDistance, endDistance - startDistance, x);
         float altitude = rlv.profile().altitudeForDistance(distance);
         painter.setBrush(colorForSlope(rlv.profile().slopeForDistance(distance)));
 
@@ -115,21 +120,21 @@ QPixmap ProfilePainter::drawProfilePixmap(QRect& rect, const RealLifeVideo& rlv,
         painter.drawRect(box);
     }
     if (withMarkers) {
-        drawDistanceMarkers(painter, rect, rlv);
-        drawAltitudeMarkers(painter, rect, rlv);
+        drawDistanceMarkers(painter, rect, startDistance, endDistance - startDistance);
+        drawAltitudeMarkers(painter, rect, rlv, startDistance, endDistance);
     }
     painter.end();
     return pixmap;
 }
 
-void ProfilePainter::drawDistanceMarkers(QPainter &painter, const QRect &rect, const RealLifeVideo &rlv) const
+void ProfilePainter::drawDistanceMarkers(QPainter &painter, const QRect &rect, float startDistance, float totalDistance) const
 {
     QPen pen(Qt::black, 1);
     painter.setPen(pen);
-    const double distanceBetweenMarkers = determineDistanceMarkers(rlv);
+    const double distanceBetweenMarkers = determineDistanceMarkers(totalDistance);
 
-    for (double distance = distanceBetweenMarkers; distance < rlv.totalDistance(); distance += distanceBetweenMarkers) {
-        int x = distanceToX(rect, rlv, distance);
+    for (double distance = distanceBetweenMarkers; distance < totalDistance; distance += distanceBetweenMarkers) {
+        int x = distanceToX(rect, startDistance, totalDistance, distance);
         painter.drawLine(x, rect.height () - 20, x, rect.height());
         QString distanceMarker = QString("%1 %2").arg(_quantityPrinter->printDistance(distance))
                 .arg(_quantityPrinter->unitForDistance(QuantityPrinter::Precision::NonPrecise,
@@ -138,13 +143,13 @@ void ProfilePainter::drawDistanceMarkers(QPainter &painter, const QRect &rect, c
     }
 }
 
-double ProfilePainter::determineDistanceMarkers(const RealLifeVideo &rlv) const
+double ProfilePainter::determineDistanceMarkers(float totalDistance) const
 {
     std::vector<double> distances(MARKER_DISTANCES.size());
     std::transform(MARKER_DISTANCES.begin(), MARKER_DISTANCES.end(), distances.begin(), [this](double distance) {
         return _unitConverter->convertDistanceFromSystemUnit(distance);
     });
-    const double optimalDistanceBetweenMarkers = rlv.totalDistance() / 10;
+    const double optimalDistanceBetweenMarkers = totalDistance / 10;
     double distanceBetweenMarkers;
     auto distanceBetweenMarkersIt = std::lower_bound(distances.begin(), distances.end(), optimalDistanceBetweenMarkers);
     if (distanceBetweenMarkersIt == distances.end()) {
@@ -155,18 +160,20 @@ double ProfilePainter::determineDistanceMarkers(const RealLifeVideo &rlv) const
     return distanceBetweenMarkers;
 }
 
-void ProfilePainter::drawAltitudeMarkers(QPainter &painter, const QRect &rect, const RealLifeVideo &rlv) const
+void ProfilePainter::drawAltitudeMarkers(QPainter &painter, const QRect &rect, const RealLifeVideo &rlv, float startDistance, float endDistance) const
 {
-    const float altitudeRange = rlv.profile().maximumAltitude() - rlv.profile().minimumAltitude();
-    const double altitudeBetweenMarkers = determineAltitudeMarkers(rlv);
+    const float minimumAltitude = rlv.profile().minimumAltitudeForPart(startDistance, endDistance);
+    const float maximumAltitude = rlv.profile().maximumAltitudeForPart(startDistance, endDistance);
+    const float altitudeRange = maximumAltitude - minimumAltitude;
+    const double altitudeBetweenMarkers = determineAltitudeMarkers(altitudeRange);
     QPen pen(Qt::black, 1, Qt::DashLine);
     painter.setPen(pen);
 
-    float quotient = std::floor(rlv.profile().minimumAltitude() / altitudeBetweenMarkers);
-    float startAltitude = quotient * altitudeBetweenMarkers + altitudeBetweenMarkers;
+    const float quotient = std::floor(rlv.profile().minimumAltitude() / altitudeBetweenMarkers);
+    const float startAltitude = quotient * altitudeBetweenMarkers + altitudeBetweenMarkers;
 
-    for (float altitude = startAltitude; altitude < rlv.profile().maximumAltitude(); altitude += altitudeBetweenMarkers) {
-        int y = altitudeToHeight(rect, altitude - rlv.profile().minimumAltitude(), altitudeRange);
+    for (float altitude = startAltitude; altitude < maximumAltitude; altitude += altitudeBetweenMarkers) {
+        int y = altitudeToHeight(rect, altitude - minimumAltitude, altitudeRange);
         painter.drawLine(0, rect.height() - y, rect.width(), rect.height() - y);
         QString text = QString("%1 %2").arg(_quantityPrinter->printAltitude(altitude))
                 .arg(_quantityPrinter->unitForAltitude());
@@ -177,13 +184,12 @@ void ProfilePainter::drawAltitudeMarkers(QPainter &painter, const QRect &rect, c
     }
 }
 
-double ProfilePainter::determineAltitudeMarkers(const RealLifeVideo &rlv) const
+double ProfilePainter::determineAltitudeMarkers(const float altitudeRange) const
 {
     std::vector<double> altitudes(MARKER_ALTITUDES.size());
     std::transform(MARKER_ALTITUDES.begin(), MARKER_ALTITUDES.end(), altitudes.begin(), [this](double altitude) {
         return _unitConverter->convertAltitudeFromSystemUnit(altitude);
     });
-    float altitudeRange = rlv.profile().maximumAltitude() - rlv.profile().minimumAltitude();
     const float optimalAltitudeMarkers = altitudeRange / 7;
     auto altitudeBetweenMarkersIt = std::lower_bound(altitudes.begin(), altitudes.end(), optimalAltitudeMarkers);
     if (altitudeBetweenMarkersIt == altitudes.end()) {
@@ -193,15 +199,15 @@ double ProfilePainter::determineAltitudeMarkers(const RealLifeVideo &rlv) const
     }
 }
 
-qreal ProfilePainter::distanceToX(const QRect& rect, const RealLifeVideo& rlv, float distance) const
+qreal ProfilePainter::distanceToX(const QRect& rect, float startDistance, float totalDistance, float distance) const
 {
-    return (distance / rlv.totalDistance()) * rect.width() + rect.left();
+    return ((distance - startDistance) / totalDistance) * rect.width() + rect.left();
 }
 
-float ProfilePainter::xToDistance(const QRect& rect, const RealLifeVideo& rlv, int x) const
+float ProfilePainter::xToDistance(const QRect& rect, float startDistance, float totalDistance, int x) const
 {
     float relative = x * 1.0 / rect.width();
-    return rlv.totalDistance() * relative;
+    return totalDistance * relative + startDistance;
 }
 
 int ProfilePainter::altitudeToHeight(const QRect& rect, float altitudeAboveMinimum, float altitudeDiff) const
