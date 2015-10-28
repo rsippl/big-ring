@@ -72,13 +72,6 @@ NewVideoWidget::NewVideoWidget(QWidget *parent) :
 
     setupVideoPlayer(viewPortWidget);
 
-    _pausedItem = new QGraphicsTextItem;
-    QFont bigFont;
-    bigFont.setPointSize(36);
-    _pausedItem->setFont(bigFont);
-    _pausedItem->setDefaultTextColor(Qt::white);
-    _pausedItem->setPlainText("Paused");
-
     _mouseIdleTimer->setInterval(500);
     _mouseIdleTimer->setSingleShot(true);
     connect(_mouseIdleTimer, &QTimer::timeout, _mouseIdleTimer, []() {
@@ -250,9 +243,6 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
     _gradeItem->setPos(left, bottom - _gradeItem->boundingRect().height());
     _distanceItem->setPos(left, _gradeItem->scenePos().y() - _distanceItem->boundingRect().height());
     _speedItem->setPos(left, _distanceItem->scenePos().y() - _speedItem->boundingRect().height());
-
-    QPointF center = mapToScene(viewport()->rect().center());
-    _pausedItem->setPos(center);
 
     qreal profileItemLeft = _cadenceItem->boundingRect().width();
     qreal profileItemWidth = scene()->width() - 2 * profileItemLeft;

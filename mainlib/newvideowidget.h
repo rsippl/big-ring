@@ -94,7 +94,6 @@ private:
     SensorItem* _speedItem;
     SensorItem* _distanceItem;
     SensorItem* _gradeItem;
-    QGraphicsTextItem* _pausedItem;
     ProfileItem* _profileItem;
     indoorcycling::ScreenSaverBlocker* _screenSaverBlocker;
     QTimer* _mouseIdleTimer;
