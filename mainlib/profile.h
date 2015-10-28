@@ -48,7 +48,10 @@ class Profile
 {
 public:
     explicit Profile(ProfileType type, float startAltitude, const std::vector<ProfileEntry> &&entries);
+    Profile(const Profile &other);
     explicit Profile();
+
+    Profile &operator=(const Profile &other);
 
     ProfileType type() const { return _type; }
     float startAltitude() const { return _startAltitude; }
@@ -65,16 +68,20 @@ public:
     float maximumAltitude() const;
     float maximumAltitudeForPart(float start, float end) const;
 private:
-    const std::pair<std::vector<ProfileEntry>::const_iterator, std::vector<ProfileEntry>::const_iterator> rangeForDistances(float start, float end) const;
-    const ProfileEntry &entryForDistance(float distance) const;
+    typedef std::vector<ProfileEntry> ProfileEntryVector;
+    typedef std::vector<ProfileEntry>::const_iterator ProfileEntryVectorIt;
 
     ProfileType _type;
     float _startAltitude;
-    std::vector<ProfileEntry> _entries;
+    ProfileEntryVector _entries;
+    const ProfileEntryVectorIt entryIteratorForDistance(float distance) const;
+    const std::pair<const ProfileEntryVectorIt,
+        const ProfileEntryVectorIt> rangeForDistances(float start, float end) const;
 
-    mutable unsigned int _currentProfileEntryIndex = -1;
-    mutable float _lastKeyDistance = -1;
-    mutable float _nextLastKeyDistance = -1;
+
+
+
+    mutable std::vector<ProfileEntry>::const_iterator _currentProfileEntry;
 };
 
 #endif // PROFILE_H

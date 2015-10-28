@@ -140,7 +140,7 @@ ProfileType RealLifeVideo::type() const
     return _d->_profile.type();
 }
 
-Profile &RealLifeVideo::profile() const
+const Profile &RealLifeVideo::profile() const
 {
     return _d->_profile;
 }

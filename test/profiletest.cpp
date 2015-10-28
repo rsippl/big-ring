@@ -27,6 +27,6 @@ void ProfileTest::testMaximumAltitude()
 
     QCOMPARE(profile.maximumAltitude(), 1158.02f);
     QCOMPARE(profile.maximumAltitudeForPart(0.0f, rlv.totalDistance()), 1158.02f);
-    QCOMPARE(profile.maximumAltitudeForPart(0.0f, 100.0f), 2.57805f);
+    QCOMPARE(profile.maximumAltitudeForPart(0.0f, 100.0f), 3.48141f);
     QCOMPARE(profile.maximumAltitudeForPart(rlv.totalDistance() - 10, rlv.totalDistance()), 739.192f);
 }
