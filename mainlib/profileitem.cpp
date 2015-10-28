@@ -53,6 +53,8 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
     painter->setBrush(Qt::lightGray);
     painter->drawRoundedRect(boundingRect(), 5, 5);
 
+    // make sure we don't paint outside the internal rectangle used for the profile.
+    painter->setClipRect(_internalRect);
     if (_rlv.isValid()) {
         if (_dirty && _course.isValid()) {
             _profilePixmap = _profilePainter->paintProfile(_rlv, _internalRect, _course.start(), _course.end(), true);
