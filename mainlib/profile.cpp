@@ -113,7 +113,7 @@ const std::pair<std::vector<ProfileEntry>::const_iterator, std::vector<ProfileEn
 const ProfileEntry &Profile::entryForDistance(float distance) const
 {
     if (distance < _lastKeyDistance || distance > _nextLastKeyDistance) {
-        unsigned int i = (distance > _nextLastKeyDistance) ? _currentProfileEntryIndex + 1: 0;
+        unsigned int i = (distance > _nextLastKeyDistance && _nextLastKeyDistance > 0) ? _currentProfileEntryIndex + 1: 0;
         for (; i < _entries.size(); ++i) {
             const ProfileEntry &nextEntry = _entries[i];
             if (nextEntry.distance() > distance) {
