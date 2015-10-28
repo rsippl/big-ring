@@ -43,7 +43,7 @@
 
 
 NewVideoWidget::NewVideoWidget(QWidget *parent) :
-    QGraphicsView(parent), _informationBoxHideTimer(new QTimer(this)),
+    QGraphicsView(parent),
     _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this)),
     _mouseIdleTimer(new QTimer(this))
 {
@@ -64,7 +64,6 @@ NewVideoWidget::NewVideoWidget(QWidget *parent) :
     setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
 
     addClock(scene);
-    addInformationBox(scene);
     addMessagePanel(scene);
     addSensorItems(scene);
 
@@ -80,12 +79,6 @@ NewVideoWidget::NewVideoWidget(QWidget *parent) :
     _pausedItem->setDefaultTextColor(Qt::white);
     _pausedItem->setPlainText("Paused");
 
-    _informationBoxHideTimer->setInterval(10000);
-    _informationBoxHideTimer->setSingleShot(true);
-    connect(_informationBoxHideTimer, &QTimer::timeout,
-            _informationBoxItem, [this]() {
-        _informationBoxItem->hide();
-    });
     _mouseIdleTimer->setInterval(500);
     _mouseIdleTimer->setSingleShot(true);
     connect(_mouseIdleTimer, &QTimer::timeout, _mouseIdleTimer, []() {
@@ -116,13 +109,6 @@ void NewVideoWidget::addClock(QGraphicsScene* scene)
 {
     _clockItem = new ClockGraphicsItem;
     scene->addItem(_clockItem);
-}
-
-void NewVideoWidget::addInformationBox(QGraphicsScene *scene)
-{
-    _informationBoxItem = new InformationBoxGraphicsItem;
-    _informationBoxItem->hide();
-    scene->addItem(_informationBoxItem);
 }
 
 void NewVideoWidget::addMessagePanel(QGraphicsScene *scene)
@@ -188,17 +174,28 @@ void NewVideoWidget::displayMessage(const QString &message)
 
 void NewVideoWidget::displayInformationBox(const InformationBox &informationBox)
 {
-    _informationBoxItem->setInformationBox(informationBox);
+    InformationBoxGraphicsItem *informationBoxItem = new InformationBoxGraphicsItem(this);
+    scene()->addItem(informationBoxItem);
+    informationBoxItem->setInformationBox(informationBox);
+    const qreal height = informationBoxItem->boundingRect().height();
+    const qreal width = informationBoxItem->boundingRect().width();
 
-    QRectF rect = _informationBoxItem->boundingRect();
-    rect.moveCenter(QPointF(sceneRect().width() / 2, 3 * sceneRect().height() / 4));
-    rect.moveBottom(sceneRect().height() * 27 / 32);
-    _informationBoxItem->setPos(rect.topLeft());
-    _informationBoxItem->show();
-    // a previous information box was perhaps popped up. By stopping the time, we make sure
-    // it does not hide the new one when the timer times out.
-    _informationBoxHideTimer->stop();
-    _informationBoxHideTimer->start();
+    informationBoxItem->setX(-width);
+    informationBoxItem->setY(sceneRect().height() * 27 / 32 - height);
+
+    QPropertyAnimation* animation = new QPropertyAnimation(informationBoxItem, "x");
+    animation->setDuration(5000);
+    qreal centered = sceneRect().center().x() - (width / 2);
+    animation->setKeyValueAt(0.10, centered);
+    animation->setKeyValueAt(0.9, centered);
+    animation->setKeyValueAt(1.0, sceneRect().width());
+
+    connect(animation, &QPropertyAnimation::finished, this, [this, informationBoxItem]() {
+        scene()->removeItem(informationBoxItem);
+        informationBoxItem->deleteLater();
+    });
+    animation->start(QAbstractAnimation::DeleteWhenStopped);
+    informationBoxItem->show();
 }
 
 void NewVideoWidget::setSimulation(const Simulation& simulation)

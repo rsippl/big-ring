@@ -79,9 +79,7 @@ private:
     void addSensorItems(QGraphicsScene* scene);
 
     void addClock(QGraphicsScene* scene);
-    void addInformationBox(QGraphicsScene *scene);
     void addMessagePanel(QGraphicsScene *scene);
-
 
     RealLifeVideo _rlv;
     Course _course;
@@ -89,8 +87,7 @@ private:
 
     ClockGraphicsItem* _clockItem;
     MessagePanelItem *_messagePanelItem;
-    InformationBoxGraphicsItem *_informationBoxItem;
-    QTimer *_informationBoxHideTimer;
+
     SensorItem* _wattageItem;
     SensorItem* _heartRateItem;
     SensorItem* _cadenceItem;
