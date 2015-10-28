@@ -31,6 +31,7 @@ class MessagePanelItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
+    Q_PROPERTY(qreal opacity READ opacity WRITE setOpacity)
 public:
     explicit MessagePanelItem(QObject *parent = 0);
 

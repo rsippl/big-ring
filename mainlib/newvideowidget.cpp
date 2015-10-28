@@ -154,13 +154,21 @@ void NewVideoWidget::setDistance(float distance)
 void NewVideoWidget::displayMessage(const QString &message)
 {
     if (message.isEmpty()) {
-        _messagePanelItem->hide();
+        QPropertyAnimation *animation = new QPropertyAnimation(_messagePanelItem, "opacity", this);
+        animation->setDuration(1000);
+        animation->setStartValue(1.0);
+        animation->setEndValue(0.0);
+        animation->start(QAbstractAnimation::DeleteWhenStopped);
     } else {
         _messagePanelItem->setMessage(message);
         QRectF rect = _messagePanelItem->boundingRect();
         rect.moveCenter(QPointF(sceneRect().width() / 2, sceneRect().height() / 2));
-
         _messagePanelItem->setPos(rect.topLeft());
+        QPropertyAnimation *animation = new QPropertyAnimation(_messagePanelItem, "opacity", this);
+        animation->setDuration(1000);
+        animation->setStartValue(0.0);
+        animation->setEndValue(1.0);
+        animation->start(QAbstractAnimation::DeleteWhenStopped);
         _messagePanelItem->show();
     }
 }
