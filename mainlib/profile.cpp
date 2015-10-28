@@ -47,7 +47,7 @@ Profile::Profile(ProfileType type, float startAltitude, const std::vector<Profil
 }
 
 Profile::Profile(const Profile &other):
-    _type(other.type()), _startAltitude(other.startAltitude())
+    _type(other._type), _startAltitude(other._startAltitude)
 {
     _entries = other._entries;
     _currentProfileEntry = _entries.begin();
@@ -128,16 +128,22 @@ const std::pair<const Profile::ProfileEntryVectorIt, const Profile::ProfileEntry
     return std::make_pair(startIt, endIt);
 }
 
-const Profile::ProfileEntryVectorIt Profile::entryIteratorForDistance(float distance) const
+const Profile::ProfileEntryVectorIt Profile::entryIteratorForDistance(const float distance) const
 {
-    const bool distanceSmaller = distance < _currentProfileEntry->distance();
     const bool atLastEntry = _currentProfileEntry + 1 == _entries.end();
-    const bool distanceBigger = !atLastEntry && distance > (_currentProfileEntry + 1)->distance();
+    const bool isDistanceSmallerThenCurrent = distance < _currentProfileEntry->distance();
+    const bool isDistanceBiggerThenCurrent = !atLastEntry && distance > (_currentProfileEntry + 1)->distance();
 
-    if (distanceSmaller || (!atLastEntry && distanceBigger)) {
-        auto it = std::lower_bound(_entries.begin(), _entries.end(), distance, [](const ProfileEntry &entry, float distance) {
+    // if the distance we're looking for is smaller than the current entry, or bigger than the
+    // start of the next entry, then we need to search which entry to use. If not, we can
+    // simply use the current entry.
+    if (isDistanceSmallerThenCurrent || (!atLastEntry && isDistanceBiggerThenCurrent)) {
+        auto startIterator = (isDistanceBiggerThenCurrent) ? _currentProfileEntry + 1 : _entries.begin();
+        auto it = std::lower_bound(startIterator, _entries.end(), distance, [](const ProfileEntry &entry, float distance) {
             return entry.distance() < distance;
         });
+        // lower bound gives us the first entry that is not smaller then distance, so we need to
+        // go back one step, unless we're already at the beginning.
         if (it != _entries.begin() && (it == _entries.end() || it->distance() > distance) ) {
             it--;
         }
