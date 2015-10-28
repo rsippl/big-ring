@@ -176,7 +176,7 @@ void NewVideoWidget::displayInformationBox(const InformationBox &informationBox)
     informationBoxItem->setX(-width);
     informationBoxItem->setY(sceneRect().height() * 27 / 32 - height);
 
-    QPropertyAnimation* animation = new QPropertyAnimation(informationBoxItem, "x");
+    QPropertyAnimation* animation = new QPropertyAnimation(informationBoxItem, "x", this);
     animation->setDuration(5000);
     qreal centered = sceneRect().center().x() - (width / 2);
     animation->setKeyValueAt(0.10, centered);
