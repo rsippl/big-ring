@@ -34,6 +34,14 @@ ProfileItem::ProfileItem(QGraphicsItem *parent):
     font.setPointSize(16);
 }
 
+/**
+ * Paint the ProfileItem
+ *
+ * This paints a rounded box with a green border, filled with a half translucent (0.5 alpha) background.
+ * In this rounded box there is a profile. On top of the profile, a box will be drawn, in tranlucent green, which signifies
+ * the position of the cylist.
+ * @param painter the painter to paint with
+ */
 void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
     QPen pen = QColor(Qt::green);
@@ -52,12 +60,6 @@ void ProfileItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWi
         }
         if (!_profilePixmap.isNull()) {
             painter->drawPixmap(_internalRect, _profilePixmap);
-//            if (_course.isValid()) {
-//                if (_course.isValid()) {
-//                    paintArea(painter, 0, _course.start(), Qt::black);
-//                    paintArea(painter, _course.end(), _rlv.totalDistance(), Qt::black);
-//                }
-//            }
             if (_cyclist) {
                 paintArea(painter, _course.start(), std::min(_cyclist->distance(), _course.end()), _course.end() - _course.start(), Qt::green);
             }
@@ -103,7 +105,7 @@ void ProfileItem::paintArea(QPainter *painter, const float startDistance, const 
     pen.setWidth(2);
     painter->setPen(pen);
     painter->setBrush(brush);
-    int left = 0;// (startDistance / totalDistance) * _internalRect.width();
+    int left = 0;
     int width = ((endDistance - startDistance) / totalDistance) * _internalRect.width();
     painter->drawRect(left, _internalRect.top(), width, _internalRect.bottom());
 }
