@@ -43,24 +43,42 @@ Profile::Profile(ProfileType type, float startAltitude, const std::vector<Profil
     _startAltitude(startAltitude),
     _entries(entries)
 {
+    _currentProfileEntry = _entries.begin();
+}
+
+Profile::Profile(const Profile &other):
+    _type(other._type), _startAltitude(other._startAltitude)
+{
+    _entries = other._entries;
+    _currentProfileEntry = _entries.begin();
+}
+
+Profile::Profile():
+    Profile(ProfileType::SLOPE, 0.0f, std::vector<ProfileEntry>())
+{
     // empty
 }
 
-Profile::Profile(): _type(ProfileType::SLOPE), _startAltitude(0.0f)
+Profile &Profile::operator=(const Profile &other)
 {
-    // empty
+    qDebug() << "copy assignment of Profile";
+    _type = other._type;
+    _startAltitude = other._startAltitude;
+    _entries = other._entries;
+    _currentProfileEntry = _entries.begin();
+    return *this;
 }
 
 float Profile::slopeForDistance(float distance) const
 {
-    return entryForDistance(distance).slope();
+    return entryIteratorForDistance(distance)->slope();
 }
 
 float Profile::altitudeForDistance(float distance) const
 {
-    const ProfileEntry& entry = entryForDistance(distance);
+    const auto& it = entryIteratorForDistance(distance);
 
-    return _startAltitude + entry.altitude() + entry.slope() * 0.01 * (distance - entry.distance());
+    return _startAltitude + it->altitude() + it->slope() * 0.01 * (distance - it->distance());
 }
 
 float Profile::minimumAltitude() const
@@ -96,7 +114,7 @@ float Profile::maximumAltitudeForPart(float start, float end) const
     return std::max(maxKeyAltitude, endAltitude);
 }
 
-const std::pair<std::vector<ProfileEntry>::const_iterator, std::vector<ProfileEntry>::const_iterator> Profile::rangeForDistances(float start, float end) const
+const std::pair<const Profile::ProfileEntryVectorIt, const Profile::ProfileEntryVectorIt> Profile::rangeForDistances(float start, float end) const
 {
     auto startIt = std::lower_bound(_entries.begin(), _entries.end(), start, [](const ProfileEntry &entry, float distance2) {
         return entry.distance() < distance2;
@@ -104,33 +122,34 @@ const std::pair<std::vector<ProfileEntry>::const_iterator, std::vector<ProfileEn
     if (startIt != _entries.begin() && (*startIt).distance() > start) {
         --startIt;
     }
-    auto endIt = std::lower_bound(_entries.begin(), _entries.end(), end, [](const ProfileEntry &entry, float distance2) {
+    auto endIt = std::lower_bound(startIt, _entries.end(), end, [](const ProfileEntry &entry, float distance2) {
         return entry.distance() < distance2;
     });
     return std::make_pair(startIt, endIt);
 }
 
-const ProfileEntry &Profile::entryForDistance(float distance) const
+const Profile::ProfileEntryVectorIt Profile::entryIteratorForDistance(const float distance) const
 {
-    if (distance < _lastKeyDistance || distance > _nextLastKeyDistance) {
-        unsigned int i = (distance > _nextLastKeyDistance) ? _currentProfileEntryIndex + 1: 0;
-        for (; i < _entries.size(); ++i) {
-            const ProfileEntry &nextEntry = _entries[i];
-            if (nextEntry.distance() > distance) {
-                break;
-            } else {
-                _currentProfileEntryIndex = i;
-            }
-        }
+    const bool atLastEntry = _currentProfileEntry + 1 == _entries.end();
+    const bool isDistanceSmallerThenCurrent = distance < _currentProfileEntry->distance();
+    const bool isDistanceBiggerThenCurrent = !atLastEntry && distance > (_currentProfileEntry + 1)->distance();
 
-        _lastKeyDistance = _entries[_currentProfileEntryIndex].distance();
-        if (_currentProfileEntryIndex + 1 < _entries.size()) {
-            _nextLastKeyDistance = _entries[_currentProfileEntryIndex + 1].distance();
-        } else {
-            _nextLastKeyDistance = 0;
+    // if the distance we're looking for is smaller than the current entry, or bigger than the
+    // start of the next entry, then we need to search which entry to use. If not, we can
+    // simply use the current entry.
+    if (isDistanceSmallerThenCurrent || (!atLastEntry && isDistanceBiggerThenCurrent)) {
+        auto startIterator = (isDistanceBiggerThenCurrent) ? _currentProfileEntry + 1 : _entries.begin();
+        auto it = std::lower_bound(startIterator, _entries.end(), distance, [](const ProfileEntry &entry, float distance) {
+            return entry.distance() < distance;
+        });
+        // lower bound gives us the first entry that is not smaller then distance, so we need to
+        // go back one step, unless we're already at the beginning.
+        if (it != _entries.begin() && (it == _entries.end() || it->distance() > distance) ) {
+            it--;
         }
+        _currentProfileEntry = it;
     }
-    return _entries[_currentProfileEntryIndex];
+    return _currentProfileEntry;
 }
 
 float Profile::totalDistance() const {

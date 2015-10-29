@@ -11,6 +11,7 @@ class InformationBoxGraphicsItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
+    Q_PROPERTY(qreal x READ x WRITE setX)
 public:
     explicit InformationBoxGraphicsItem(QObject *parent = 0);
 

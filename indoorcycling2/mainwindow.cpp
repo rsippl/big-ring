@@ -113,7 +113,9 @@ void MainWindow::importFinished(RealLifeVideoList rlvs)
 
 void MainWindow::removeDisplayMessage()
 {
-    _videoWidget->displayMessage("");
+    if (_videoWidget) {
+        _videoWidget->displayMessage("");
+    }
 }
 
 /**

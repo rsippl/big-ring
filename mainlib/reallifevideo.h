@@ -109,7 +109,7 @@ public:
     bool isValid() const;
     RealLifeVideoFileType fileType() const;
     ProfileType type() const;
-    Profile& profile() const;
+    const Profile &profile() const;
     const QString name() const;
     const QString &videoFilename() const;
     float videoFrameRate() const;
