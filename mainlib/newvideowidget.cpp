@@ -253,7 +253,7 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
     _speedItem->setPos(left, _distanceItem->scenePos().y() - _speedItem->boundingRect().height());
 
     qreal profileItemLeft = _cadenceItem->boundingRect().width();
-    qreal profileItemWidth = scene()->width() - 2 * profileItemLeft;
+    qreal profileItemWidth = sceneRect().width() - 2 * profileItemLeft;
     qreal profileItemTop = _wattageItem->scenePos().y();
     _profileItem->setGeometry(QRectF(profileItemLeft, profileItemTop, profileItemWidth, bottom - profileItemTop));
 
