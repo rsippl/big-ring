@@ -39,7 +39,7 @@ public:
     virtual QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 public slots:
-    void setValue(QVariant value);
+    virtual void setValue(const QVariant &value);
 private:
     const QuantityPrinter* _quantityPrinter;
     const QuantityPrinter::Quantity _quantity;

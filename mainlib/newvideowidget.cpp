@@ -35,6 +35,7 @@
 #include "clockgraphicsitem.h"
 #include "informationboxgraphicsitem.h"
 #include "messagepanelitem.h"
+#include "powersensoritem.h"
 #include "profileitem.h"
 #include "sensoritem.h"
 #include "simulation.h"
@@ -208,7 +209,7 @@ void NewVideoWidget::setSimulation(const Simulation& simulation)
     const Cyclist& cyclist = simulation.cyclist();
     _profileItem->setCyclist(&cyclist);
     connect(&cyclist, &Cyclist::powerChanged, this, [this](int power) {
-        _wattageItem->setValue(QVariant::fromValue(power));
+        _powerItem->setValue(QVariant::fromValue(power));
     });
     connect(&cyclist, &Cyclist::cadenceChanged, this, [this](int cadence) {
         _cadenceItem->setValue(QVariant::fromValue(cadence));
@@ -245,7 +246,7 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 
     QPointF scenePosition = mapToScene(width() / 2, 0);
     scenePosition = mapToScene(0, height() /8);
-    _wattageItem->setPos(scenePosition);
+    _powerItem->setPos(scenePosition);
     scenePosition = mapToScene(0, 2* height() /8);
     _heartRateItem->setPos(scenePosition);
     scenePosition = mapToScene(0, 3 * height() /8);
@@ -311,8 +312,8 @@ void NewVideoWidget::seekToStart(Course &course)
 
 void NewVideoWidget::addSensorItems(QGraphicsScene *scene)
 {
-    _wattageItem = new SensorItem(QuantityPrinter::Quantity::Power);
-    scene->addItem(_wattageItem);
+    _powerItem = new PowerSensorItem;
+    scene->addItem(_powerItem);
     _heartRateItem = new SensorItem(QuantityPrinter::Quantity::HeartRate);
     scene->addItem(_heartRateItem);
     _cadenceItem = new SensorItem(QuantityPrinter::Quantity::Cadence);
