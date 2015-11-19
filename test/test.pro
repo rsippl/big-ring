@@ -8,14 +8,16 @@ SOURCES += \
     antmessage2test.cpp \
     main.cpp \
     virtualpowertest.cpp \
-    virtualtrainingfileparsertest.cpp
+    virtualtrainingfileparsertest.cpp \
+    rollingaveragecalculatortest.cpp
 
 
 HEADERS += \
     antmessage2test.h \
     common.h \
     virtualpowertest.h \
-    virtualtrainingfileparsertest.h
+    virtualtrainingfileparsertest.h \
+    rollingaveragecalculatortest.h
 
 
 RESOURCES += \

@@ -1,4 +1,8 @@
-# 1.0.4
+# 1.2.0
+
+- Average power values over 0, 1, 3 or 10 seconds. #42 
+
+# 1.1.0
 
 - A course can now be finished. A ride is not recorded yet. #11
 - Support information messages displayed at certain distances during a course. #26

@@ -19,6 +19,12 @@
  */
 #include "bigringsettings.h"
 
+namespace
+{
+// By default we'll average power over 3 seconds.
+const int POWER_AVERAGING_MILLISECONDS_DEFAULT = 3000;
+}
+
 BigRingSettings::BigRingSettings()
 {
     // empty
@@ -32,4 +38,21 @@ QString BigRingSettings::videoFolder() const
 void BigRingSettings::setVideoFolder(const QString folder)
 {
     _settings.setValue("videoFolder", QVariant::fromValue(folder));
+}
+
+int BigRingSettings::powerAveragingForDisplayMilliseconds() const
+{
+    QSettings settings;
+    settings.beginGroup("display");
+    const int milliseconds = settings.value("powerAveragingMilliseconds", POWER_AVERAGING_MILLISECONDS_DEFAULT).toInt();
+    settings.endGroup();
+    return milliseconds;
+}
+
+void BigRingSettings::setPowerAveragingForDisplayMilliseconds(const int averagingMilliseconds)
+{
+    QSettings settings;
+    settings.beginGroup("display");
+    settings.setValue("powerAveragingMilliseconds", averagingMilliseconds);
+    settings.endGroup();
 }
