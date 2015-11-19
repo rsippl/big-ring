@@ -38,7 +38,7 @@ class ScreenSaverBlocker;
 
 class InformationBoxGraphicsItem;
 class MessagePanelItem;
-class PowerSensorItem;
+class RollingAverageSensorItem;
 class SensorItem;
 class ClockGraphicsItem;
 
@@ -92,10 +92,10 @@ private:
     MessagePanelItem *_messagePanelItem;
     InformationBoxGraphicsItem *_informationBoxItem;
     QTimer *_informationBoxHideTimer;
-    PowerSensorItem* _powerItem;
+    RollingAverageSensorItem* _powerItem;
     SensorItem* _heartRateItem;
-    SensorItem* _cadenceItem;
-    SensorItem* _speedItem;
+    RollingAverageSensorItem* _cadenceItem;
+    RollingAverageSensorItem* _speedItem;
     SensorItem* _distanceItem;
     SensorItem* _gradeItem;
     QGraphicsTextItem* _pausedItem;

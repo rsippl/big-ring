@@ -35,8 +35,8 @@
 #include "clockgraphicsitem.h"
 #include "informationboxgraphicsitem.h"
 #include "messagepanelitem.h"
-#include "powersensoritem.h"
 #include "profileitem.h"
+#include "rollingaveragesensoritem.h"
 #include "sensoritem.h"
 #include "simulation.h"
 #include "screensaverblocker.h"
@@ -312,13 +312,13 @@ void NewVideoWidget::seekToStart(Course &course)
 
 void NewVideoWidget::addSensorItems(QGraphicsScene *scene)
 {
-    _powerItem = new PowerSensorItem;
+    _powerItem = new RollingAverageSensorItem(QuantityPrinter::Quantity::Power, 3000, 1000);
     scene->addItem(_powerItem);
     _heartRateItem = new SensorItem(QuantityPrinter::Quantity::HeartRate);
     scene->addItem(_heartRateItem);
-    _cadenceItem = new SensorItem(QuantityPrinter::Quantity::Cadence);
+    _cadenceItem = new RollingAverageSensorItem(QuantityPrinter::Quantity::Cadence, 1000, 1000);
     scene->addItem(_cadenceItem);
-    _speedItem = new SensorItem(QuantityPrinter::Quantity::Speed);
+    _speedItem = new RollingAverageSensorItem(QuantityPrinter::Quantity::Speed, 1000, 1000);
     scene->addItem(_speedItem);
     _distanceItem = new SensorItem(QuantityPrinter::Quantity::Distance);
     scene->addItem(_distanceItem);

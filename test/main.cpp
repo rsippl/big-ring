@@ -1,6 +1,8 @@
 #include "antmessage2test.h"
+#include "rollingaveragecalculatortest.h"
 #include "virtualtrainingfileparsertest.h"
 #include "virtualpowertest.h"
+
 #include <QTest>
 int main(int, char**) {
     AntMessage2Test antMessage2Test;
@@ -9,4 +11,6 @@ int main(int, char**) {
     QTest::qExec(&virtualTrainingFileParserTest);
     VirtualPowerTest vpTest;
     QTest::qExec(&vpTest);
+    RollingAverageCalculatorTest racTest;
+    QTest::qExec(&racTest);
 }
