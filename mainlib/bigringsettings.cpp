@@ -19,6 +19,12 @@
  */
 #include "bigringsettings.h"
 
+namespace
+{
+// By default we'll average power over 3 seconds.
+const int POWER_AVERAGING_MILLISECONDS_DEFAULT = 3000;
+}
+
 BigRingSettings::BigRingSettings()
 {
     // empty
@@ -38,7 +44,7 @@ int BigRingSettings::powerAveragingForDisplayMilliseconds() const
 {
     QSettings settings;
     settings.beginGroup("display");
-    const int milliseconds = settings.value("powerAveragingMilliseconds", 1000).toInt();
+    const int milliseconds = settings.value("powerAveragingMilliseconds", POWER_AVERAGING_MILLISECONDS_DEFAULT).toInt();
     settings.endGroup();
     return milliseconds;
 }

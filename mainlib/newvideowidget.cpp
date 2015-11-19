@@ -32,6 +32,7 @@
 #include <QtGui/QResizeEvent>
 
 
+#include "bigringsettings.h"
 #include "clockgraphicsitem.h"
 #include "informationboxgraphicsitem.h"
 #include "messagepanelitem.h"
@@ -312,7 +313,9 @@ void NewVideoWidget::seekToStart(Course &course)
 
 void NewVideoWidget::addSensorItems(QGraphicsScene *scene)
 {
-    _powerItem = new RollingAverageSensorItem(QuantityPrinter::Quantity::Power, 3000, 1000);
+    const int powerAveragingMilliseconds = BigRingSettings().powerAveragingForDisplayMilliseconds();
+    const int powerUpdateInterval = (powerAveragingMilliseconds == 0) ? 0 : 1000;
+    _powerItem = new RollingAverageSensorItem(QuantityPrinter::Quantity::Power, powerAveragingMilliseconds, powerUpdateInterval);
     scene->addItem(_powerItem);
     _heartRateItem = new SensorItem(QuantityPrinter::Quantity::HeartRate);
     scene->addItem(_heartRateItem);

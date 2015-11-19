@@ -17,6 +17,8 @@ public:
     void addValue(const QDateTime &measurementTime, const float value);
     float currentAverage() const;
 private:
+    /** remove old values and return the sum of the removed values. */
+    float removeOldValues(const QDateTime &lastAddedTimestamp);
     const int _durationInMilliseconds;
     float _sum = 0.0f;
     std::deque<std::pair<QDateTime,float>> _measurements;

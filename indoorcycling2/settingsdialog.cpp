@@ -177,6 +177,7 @@ void SettingsDialog::fillPowerAveragingComboBox()
 {
     _ui->powerAveragingCombobox->blockSignals(true);
 
+    _ui->powerAveragingCombobox->addItem(tr("No Averaging"), 0);
     _ui->powerAveragingCombobox->addItem(tr("1 Second"), 1000);
     _ui->powerAveragingCombobox->addItem(tr("3 Seconds"), 3000);
     _ui->powerAveragingCombobox->addItem(tr("10 Seconds"), 10000);
