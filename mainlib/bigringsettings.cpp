@@ -33,3 +33,20 @@ void BigRingSettings::setVideoFolder(const QString folder)
 {
     _settings.setValue("videoFolder", QVariant::fromValue(folder));
 }
+
+int BigRingSettings::powerAveragingForDisplayMilliseconds() const
+{
+    QSettings settings;
+    settings.beginGroup("display");
+    const int milliseconds = settings.value("powerAveragingMilliseconds", 1000).toInt();
+    settings.endGroup();
+    return milliseconds;
+}
+
+void BigRingSettings::setPowerAveragingForDisplayMilliseconds(const int averagingMilliseconds)
+{
+    QSettings settings;
+    settings.beginGroup("display");
+    settings.setValue("powerAveragingMilliseconds", averagingMilliseconds);
+    settings.endGroup();
+}

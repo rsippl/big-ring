@@ -173,6 +173,29 @@ void SettingsDialog::fillVideoFolderList()
     _ui->videoFolderLineEdit->setText(_settings.videoFolder());
 }
 
+void SettingsDialog::fillPowerAveragingComboBox()
+{
+    _ui->powerAveragingCombobox->blockSignals(true);
+
+    _ui->powerAveragingCombobox->addItem(tr("1 Second"), 1000);
+    _ui->powerAveragingCombobox->addItem(tr("3 Seconds"), 3000);
+    _ui->powerAveragingCombobox->addItem(tr("10 Seconds"), 10000);
+
+    bool found = false;
+
+    int value = _settings.powerAveragingForDisplayMilliseconds();
+    for (int i = 0; i < _ui->powerAveragingCombobox->count(); ++i) {
+        if (_ui->powerAveragingCombobox->itemData(i).toInt() == value) {
+            _ui->powerAveragingCombobox->setCurrentIndex(i);
+            found = true;
+        }
+    }
+    _ui->powerAveragingCombobox->blockSignals(false);
+    if (!found) {
+        _ui->powerAveragingCombobox->setCurrentIndex(0);
+    }
+}
+
 void SettingsDialog::saveVideoFolder(const QString& folder)
 {
     BigRingSettings().setVideoFolder(folder);
@@ -193,6 +216,7 @@ void SettingsDialog::reset()
     fillSensorLabels();
     fillSimulationSettingLabel();
     fillVideoFolderList();
+    fillPowerAveragingComboBox();
 }
 
 void SettingsDialog::on_deleteConfigurationButton_clicked()
@@ -219,4 +243,12 @@ void SettingsDialog::on_changeFolderButton_clicked()
 
     saveVideoFolder(dir);
     fillVideoFolderList();
+}
+
+void SettingsDialog::on_powerAveragingCombobox_currentIndexChanged(int index)
+{
+    QVariant data = _ui->powerAveragingCombobox->itemData(index);
+    // values are 1, 3 and 10 seconds.
+    _settings.setPowerAveragingForDisplayMilliseconds(data.toInt());
+
 }
