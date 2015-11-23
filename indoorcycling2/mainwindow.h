@@ -26,7 +26,7 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QStackedWidget>
 
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 #include "reallifevideoimporter.h"
 #include "util/util.h"
 

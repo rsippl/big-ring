@@ -26,7 +26,7 @@
 #include <QtOpenGL/QGLWidget>
 #include <QtWidgets/QGraphicsView>
 
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 #include "profileitem.h"
 
 class Simulation;

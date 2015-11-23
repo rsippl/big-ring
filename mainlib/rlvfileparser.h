@@ -27,7 +27,7 @@
 #include <QtCore/QtDebug>
 #include <QtCore/QStringList>
 
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 namespace tacxfile {
 struct headerBlock;

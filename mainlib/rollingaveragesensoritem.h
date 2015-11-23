@@ -6,7 +6,7 @@
 #include <memory>
 #include <QtCore/QDateTime>
 
-#include "rollingaveragecalculator.h"
+#include "model/rollingaveragecalculator.h"
 
 /**
  * A Sensor item that displays it's value using a rolling average.

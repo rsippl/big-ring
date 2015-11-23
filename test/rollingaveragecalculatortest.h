@@ -3,7 +3,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QScopedPointer>
-#include "rollingaveragecalculator.h"
+#include "model/rollingaveragecalculator.h"
 
 class RollingAverageCalculatorTest : public QObject
 {

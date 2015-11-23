@@ -33,12 +33,12 @@
 #include <QtWidgets/QVBoxLayout>
 
 #include "ant/antcentraldispatch.h"
-#include "cyclist.h"
+#include "model/cyclist.h"
 #include "run.h"
 #include "settingsdialog.h"
 #include "videolistview.h"
 #include "newvideowidget.h"
-#include "simulation.h"
+#include "model/simulation.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent, Qt::Window),

@@ -22,7 +22,7 @@
 
 #include <QWidget>
 
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 class ProfilePainter;
 
@@ -33,7 +33,6 @@ class AltitudeProfileWidget;
 class AltitudeProfileWidget : public QWidget
 {
     Q_OBJECT
-
 public:
     explicit AltitudeProfileWidget(QWidget *parent = 0);
     ~AltitudeProfileWidget();

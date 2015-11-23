@@ -19,7 +19,7 @@
  */
 
 #include "quantityprinter.h"
-#include "unitconverter.h"
+#include "model/unitconverter.h"
 
 #include <QtCore/QtDebug>
 

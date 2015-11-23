@@ -24,8 +24,8 @@
 #include <QtGui/QPixmapCache>
 
 #include "quantityprinter.h"
-#include "reallifevideo.h"
-#include "unitconverter.h"
+#include "model/reallifevideo.h"
+#include "model/unitconverter.h"
 
 #include <array>
 

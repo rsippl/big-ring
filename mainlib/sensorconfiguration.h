@@ -24,7 +24,7 @@
 #include <QtCore/QSettings>
 
 #include "ant/antsensortype.h"
-#include "virtualpower.h"
+#include "model/virtualpower.h"
 namespace indoorcycling {
 
 enum class SimulationSetting {

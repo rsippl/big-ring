@@ -1,7 +1,7 @@
 #include "virtualpowertest.h"
 
 #include "common.h"
-#include "mainlib/virtualpower.h"
+#include "model/virtualpower.h"
 
 #include <array>
 #include <memory>

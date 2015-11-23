@@ -22,7 +22,7 @@
 
 
 #include <QtWidgets/QDialog>
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 class QuantityPrinter;
 class Thumbnailer;

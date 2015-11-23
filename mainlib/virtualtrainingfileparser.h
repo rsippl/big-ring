@@ -1,7 +1,7 @@
 #ifndef VIRTUALTRAININGFILEPARSER_H
 #define VIRTUALTRAININGFILEPARSER_H
 
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 #include <memory>
 #include <QtCore/QObject>
 #include <QtCore/QFile>

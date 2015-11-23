@@ -21,7 +21,7 @@
 #include "ui_addsensorconfigurationdialog.h"
 
 #include "ant/antcentraldispatch.h"
-#include "virtualpower.h"
+#include "model/virtualpower.h"
 
 #include <QtCore/QMap>
 #include <QtCore/QtDebug>

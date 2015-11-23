@@ -24,7 +24,7 @@
 #include <QtCore/QObject>
 #include <QtWidgets/QGraphicsWidget>
 
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 class Cyclist;
 class ProfilePainter;

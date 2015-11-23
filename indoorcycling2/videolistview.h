@@ -32,7 +32,7 @@ class VideoDetails;
 namespace indoorcycling {
 class AntCentralDispatch;
 }
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 class VideoListView : public QWidget
 {

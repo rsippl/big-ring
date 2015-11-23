@@ -2,7 +2,7 @@
 
 #include <QtCore/QtDebug>
 
-#include "rollingaveragecalculator.h"
+#include "model/rollingaveragecalculator.h"
 
 RollingAverageSensorItem::RollingAverageSensorItem(const QuantityPrinter::Quantity quantity, const int averageTimeMilliseconds, const int displayUpdateTimeMilliseconds, QObject *parent):
     SensorItem(quantity, parent), _displayUpdateTimeMilliseconds(displayUpdateTimeMilliseconds), _lastDisplayedTime(QDateTime::fromMSecsSinceEpoch(0))

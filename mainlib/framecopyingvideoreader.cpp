@@ -13,7 +13,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 namespace {
 QEvent::Type OpenVideoFileEventType = static_cast<QEvent::Type>(QEvent::User + 103);

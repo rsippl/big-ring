@@ -39,7 +39,7 @@
 #include "profileitem.h"
 #include "rollingaveragesensoritem.h"
 #include "sensoritem.h"
-#include "simulation.h"
+#include "model/simulation.h"
 #include "screensaverblocker.h"
 #include "videoplayer.h"
 

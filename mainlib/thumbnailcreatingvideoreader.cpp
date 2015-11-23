@@ -13,7 +13,7 @@ extern "C" {
 #include "libswscale/swscale.h"
 }
 
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 namespace {
 QEvent::Type CreateImageForFrameEventType = static_cast<QEvent::Type>(QEvent::User + 102);

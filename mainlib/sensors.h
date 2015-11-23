@@ -24,7 +24,7 @@
 #include <QtCore/QTimer>
 
 #include "sensorconfiguration.h"
-#include "virtualpower.h"
+#include "model/virtualpower.h"
 
 namespace indoorcycling
 {

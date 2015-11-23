@@ -25,7 +25,7 @@
 #include <QtCore/QObject>
 #include <QtWidgets/QGraphicsItem>
 
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 class MessagePanelItem : public QObject, public QGraphicsItem
 {

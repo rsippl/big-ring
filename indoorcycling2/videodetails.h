@@ -22,7 +22,7 @@
 
 #include <QWidget>
 
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 class QuantityPrinter;
 

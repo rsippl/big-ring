@@ -18,7 +18,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "cyclist.h"
+#include "model/cyclist.h"
 #include "profileitem.h"
 #include "profilepainter.h"
 

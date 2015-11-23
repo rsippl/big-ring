@@ -48,15 +48,30 @@ linux {
     ANT_SOURCES += ant/unixserialusbant.cpp
 }
 
+MODEL_HEADERS += \
+    model/cyclist.h \
+    model/profile.h \
+    model/reallifevideo.h \
+    model/rollingaveragecalculator.h \
+    model/simulation.h \
+    model/unitconverter.h \
+    model/virtualpower.h
+
+MODEL_SOURCES += \
+    model/cyclist.cpp \
+    model/profile.cpp \
+    model/reallifevideo.cpp \
+    model/rollingaveragecalculator.cpp \
+    model/simulation.cpp \
+    model/unitconverter.cpp \
+    model/virtualpower.cpp
+
 HEADERS += \
     $$ANT_HEADERS \
-    cyclist.h \
+    $$MODEL_HEADERS \
     framebuffer.h \
-    profile.h \
     reallifevideoimporter.h \
-    reallifevideo.h \
     rlvfileparser.h \
-    simulation.h \
     thumbnailer.h \
     newvideowidget.h \
     clockgraphicsitem.h \
@@ -67,10 +82,8 @@ HEADERS += \
     run.h \
     screensaverblocker.h \
     profilepainter.h \
-    quantityprinter.h \
     sensorconfiguration.h \
     sensors.h \
-    virtualpower.h \
     bigringsettings.h \
     genericvideoreader.h \
     thumbnailcreatingvideoreader.h \
@@ -79,22 +92,18 @@ HEADERS += \
     gpxfileparser.h \
     videoinforeader.h \
     utility.h \
+    quantityprinter.h \
     informationboxgraphicsitem.h \
     distancemappingentry.h \
     videoinformation.h \
-    unitconverter.h \
     messagepanelitem.h \
-    rollingaveragesensoritem.h \
-    rollingaveragecalculator.h
+    rollingaveragesensoritem.h
 
 SOURCES += \
     $$ANT_SOURCES \
-    cyclist.cpp \
-    profile.cpp \
+    $$MODEL_SOURCES \
     reallifevideoimporter.cpp \
-    reallifevideo.cpp \
     rlvfileparser.cpp \
-    simulation.cpp \
     thumbnailer.cpp \
     newvideowidget.cpp \
     clockgraphicsitem.cpp \
@@ -108,7 +117,6 @@ SOURCES += \
     quantityprinter.cpp \
     sensorconfiguration.cpp \
     sensors.cpp \
-    virtualpower.cpp \
     bigringsettings.cpp \
     genericvideoreader.cpp \
     thumbnailcreatingvideoreader.cpp \
@@ -119,10 +127,8 @@ SOURCES += \
     informationboxgraphicsitem.cpp \
     distancemappingentry.cpp \
     videoinformation.cpp \
-    unitconverter.cpp \
     messagepanelitem.cpp \
     rollingaveragesensoritem.cpp \
-    rollingaveragecalculator.cpp
 
 LIBS +=  -lusb-1.0
 

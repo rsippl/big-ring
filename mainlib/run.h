@@ -24,9 +24,9 @@
 #include <QtCore/QObject>
 #include <QtCore/QSettings>
 
-#include "reallifevideo.h"
-#include "cyclist.h"
-#include "simulation.h"
+#include "model/reallifevideo.h"
+#include "model/cyclist.h"
+#include "model/simulation.h"
 
 namespace indoorcycling {
 class AntCentralDispatch;

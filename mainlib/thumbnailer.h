@@ -25,7 +25,7 @@
 #include <QtCore/QFuture>
 #include <QtCore/QFutureWatcher>
 #include <QtGui/QPixmap>
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 class ThumbnailCreatingVideoReader;
 /**

@@ -26,7 +26,7 @@
 #include <QtWidgets/QGraphicsItem>
 
 #include "quantityprinter.h"
-#include "simulation.h"
+#include "model/simulation.h"
 
 class SensorItem : public QObject, public QGraphicsItem
 {

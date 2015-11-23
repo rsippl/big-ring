@@ -21,7 +21,7 @@
 #define VIDEOLISTMODEL_H
 
 #include <QtCore/QAbstractListModel>
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 const int VideoDataRole = Qt::UserRole + 1;
 class VideoListModel : public QAbstractListModel

@@ -7,7 +7,7 @@
 
 #include <QtPositioning/QGeoPositionInfo>
 
-#include "reallifevideo.h"
+#include "model/reallifevideo.h"
 
 namespace indoorcycling {
 

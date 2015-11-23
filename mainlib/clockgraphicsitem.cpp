@@ -24,7 +24,7 @@
 #include <QtCore/QTime>
 #include <QtGui/QPainter>
 #include <QtDebug>
-#include "simulation.h"
+#include "model/simulation.h"
 
 ClockGraphicsItem::ClockGraphicsItem(QObject *parent) :
     QObject(parent)
