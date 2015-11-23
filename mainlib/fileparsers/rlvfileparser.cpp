@@ -26,8 +26,8 @@
 #include <QtDebug>
 #include <utility>
 
-#include "distancemappingentry.h"
-#include "videoinformation.h"
+#include "model/distancemappingentry.h"
+#include "model/videoinformation.h"
 
 namespace
 {

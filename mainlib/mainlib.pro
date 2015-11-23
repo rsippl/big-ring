@@ -3,8 +3,7 @@ TEMPLATE = lib
 include(../config.pri)
 
 RESOURCES += \
-    $$IN_PWD/shaders.qrc \
-    $$IN_PWD/flags.qrc
+    $$IN_PWD/shaders.qrc
 
 target = mainlib
 target.path = ../lib
@@ -61,20 +60,24 @@ FILEPARSER_SOURCES += \
 
 MODEL_HEADERS += \
     model/cyclist.h \
+    model/distancemappingentry.h \
     model/profile.h \
     model/reallifevideo.h \
     model/rollingaveragecalculator.h \
     model/simulation.h \
     model/unitconverter.h \
+    model/videoinformation.h \
     model/virtualpower.h
 
 MODEL_SOURCES += \
     model/cyclist.cpp \
+    model/distancemappingentry.cpp \
     model/profile.cpp \
     model/reallifevideo.cpp \
     model/rollingaveragecalculator.cpp \
     model/simulation.cpp \
     model/unitconverter.cpp \
+    model/videoinformation.cpp \
     model/virtualpower.cpp
 
 VIDEO_HEADERS += \
@@ -117,8 +120,6 @@ HEADERS += \
     utility.h \
     quantityprinter.h \
     informationboxgraphicsitem.h \
-    distancemappingentry.h \
-    videoinformation.h \
     messagepanelitem.h \
     rollingaveragesensoritem.h
 
@@ -140,8 +141,6 @@ SOURCES += \
     sensors.cpp \
     bigringsettings.cpp \
     informationboxgraphicsitem.cpp \
-    distancemappingentry.cpp \
-    videoinformation.cpp \
     messagepanelitem.cpp \
     rollingaveragesensoritem.cpp
 

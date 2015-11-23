@@ -1,7 +1,7 @@
 #include "virtualtrainingfileparser.h"
 
-#include "distancemappingentry.h"
-#include "videoinformation.h"
+#include "model/distancemappingentry.h"
+#include "model/videoinformation.h"
 
 #include <QtCore/QtDebug>
 #include <QtCore/QXmlStreamReader>
