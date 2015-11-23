@@ -1,6 +1,6 @@
 #include "profiletest.h"
 
-#include "rlvfileparser.h"
+#include "fileparsers/rlvfileparser.h"
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtTest/QTest>

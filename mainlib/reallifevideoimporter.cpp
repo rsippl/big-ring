@@ -18,10 +18,12 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "gpxfileparser.h"
+#include "fileparsers/gpxfileparser.h"
+#include "fileparsers/rlvfileparser.h"
+#include "fileparsers/virtualtrainingfileparser.h"
 #include "reallifevideoimporter.h"
-#include "rlvfileparser.h"
-#include "virtualtrainingfileparser.h"
+
+
 #include "bigringsettings.h"
 
 #include <functional>

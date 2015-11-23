@@ -48,6 +48,17 @@ linux {
     ANT_SOURCES += ant/unixserialusbant.cpp
 }
 
+FILEPARSER_HEADERS += \
+    fileparsers/gpxfileparser.h \
+    fileparsers/virtualtrainingfileparser.h \
+    fileparsers/rlvfileparser.h
+
+FILEPARSER_SOURCES += \
+    fileparsers/gpxfileparser.cpp \
+    fileparsers/virtualtrainingfileparser.cpp \
+    fileparsers/rlvfileparser.cpp
+
+
 MODEL_HEADERS += \
     model/cyclist.h \
     model/profile.h \
@@ -68,10 +79,10 @@ MODEL_SOURCES += \
 
 HEADERS += \
     $$ANT_HEADERS \
+    $$FILEPARSER_HEADERS \
     $$MODEL_HEADERS \
     framebuffer.h \
     reallifevideoimporter.h \
-    rlvfileparser.h \
     thumbnailer.h \
     newvideowidget.h \
     clockgraphicsitem.h \
@@ -88,8 +99,6 @@ HEADERS += \
     genericvideoreader.h \
     thumbnailcreatingvideoreader.h \
     framecopyingvideoreader.h \
-    virtualtrainingfileparser.h \
-    gpxfileparser.h \
     videoinforeader.h \
     utility.h \
     quantityprinter.h \
@@ -101,9 +110,9 @@ HEADERS += \
 
 SOURCES += \
     $$ANT_SOURCES \
+    $$FILEPARSER_SOURCES \
     $$MODEL_SOURCES \
     reallifevideoimporter.cpp \
-    rlvfileparser.cpp \
     thumbnailer.cpp \
     newvideowidget.cpp \
     clockgraphicsitem.cpp \
@@ -121,8 +130,6 @@ SOURCES += \
     genericvideoreader.cpp \
     thumbnailcreatingvideoreader.cpp \
     framecopyingvideoreader.cpp \
-    virtualtrainingfileparser.cpp \
-    gpxfileparser.cpp \
     videoinforeader.cpp \
     informationboxgraphicsitem.cpp \
     distancemappingentry.cpp \
