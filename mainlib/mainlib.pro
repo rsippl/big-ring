@@ -77,29 +77,43 @@ MODEL_SOURCES += \
     model/unitconverter.cpp \
     model/virtualpower.cpp
 
+VIDEO_HEADERS += \
+    video/framebuffer.h \
+    video/genericvideoreader.h \
+    video/openglpainter2.h \
+    video/thumbnailcreatingvideoreader.h \
+    video/framecopyingvideoreader.h \
+    video/thumbnailer.h \
+    video/videoinforeader.h \
+    video/videoplayer.h
+
+
+VIDEO_SOURCES += \
+    video/genericvideoreader.cpp \
+    video/openglpainter2.cpp \
+    video/thumbnailcreatingvideoreader.cpp \
+    video/framecopyingvideoreader.cpp \
+    video/thumbnailer.cpp \
+    video/videoinforeader.cpp \
+    video/videoplayer.cpp
+
+
 HEADERS += \
     $$ANT_HEADERS \
     $$FILEPARSER_HEADERS \
     $$MODEL_HEADERS \
-    framebuffer.h \
+    $$VIDEO_HEADERS \
     reallifevideoimporter.h \
-    thumbnailer.h \
     newvideowidget.h \
     clockgraphicsitem.h \
     sensoritem.h \
     profileitem.h \
-    videoplayer.h \
-    openglpainter2.h \
     run.h \
     screensaverblocker.h \
     profilepainter.h \
     sensorconfiguration.h \
     sensors.h \
     bigringsettings.h \
-    genericvideoreader.h \
-    thumbnailcreatingvideoreader.h \
-    framecopyingvideoreader.h \
-    videoinforeader.h \
     utility.h \
     quantityprinter.h \
     informationboxgraphicsitem.h \
@@ -112,14 +126,12 @@ SOURCES += \
     $$ANT_SOURCES \
     $$FILEPARSER_SOURCES \
     $$MODEL_SOURCES \
+    $$VIDEO_SOURCES \
     reallifevideoimporter.cpp \
-    thumbnailer.cpp \
     newvideowidget.cpp \
     clockgraphicsitem.cpp \
     sensoritem.cpp \
     profileitem.cpp \
-    videoplayer.cpp \
-    openglpainter2.cpp \
     run.cpp \
     screensaverblocker.cpp \
     profilepainter.cpp \
@@ -127,15 +139,11 @@ SOURCES += \
     sensorconfiguration.cpp \
     sensors.cpp \
     bigringsettings.cpp \
-    genericvideoreader.cpp \
-    thumbnailcreatingvideoreader.cpp \
-    framecopyingvideoreader.cpp \
-    videoinforeader.cpp \
     informationboxgraphicsitem.cpp \
     distancemappingentry.cpp \
     videoinformation.cpp \
     messagepanelitem.cpp \
-    rollingaveragesensoritem.cpp \
+    rollingaveragesensoritem.cpp
 
 LIBS +=  -lusb-1.0
 

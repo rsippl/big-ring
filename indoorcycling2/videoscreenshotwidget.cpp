@@ -22,7 +22,7 @@
 
 #include <QtGui/QPainter>
 
-#include "thumbnailer.h"
+#include "video/thumbnailer.h"
 VideoScreenshotWidget::VideoScreenshotWidget(QWidget *parent) :
     QWidget(parent), _thumbnailer(new Thumbnailer(this)), _distance(0),
     ui(new Ui::VideoScreenshotWidget)

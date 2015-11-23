@@ -1,7 +1,7 @@
 #include "gpxfileparser.h"
 
 #include "distancemappingentry.h"
-#include "videoinforeader.h"
+#include "video/videoinforeader.h"
 #include "videoinformation.h"
 
 #include <QtCore/QDateTime>

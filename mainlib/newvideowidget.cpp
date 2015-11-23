@@ -41,7 +41,7 @@
 #include "sensoritem.h"
 #include "model/simulation.h"
 #include "screensaverblocker.h"
-#include "videoplayer.h"
+#include "video/videoplayer.h"
 
 
 NewVideoWidget::NewVideoWidget(QWidget *parent) :
