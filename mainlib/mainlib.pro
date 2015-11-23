@@ -117,11 +117,11 @@ HEADERS += \
     sensorconfiguration.h \
     sensors.h \
     bigringsettings.h \
-    utility.h \
     quantityprinter.h \
     informationboxgraphicsitem.h \
     messagepanelitem.h \
-    rollingaveragesensoritem.h
+    rollingaveragesensoritem.h \
+    util/util.h
 
 SOURCES += \
     $$ANT_SOURCES \

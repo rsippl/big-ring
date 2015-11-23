@@ -19,7 +19,7 @@
  */
 
 #include "rlvfileparser.h"
-#include "utility.h"
+#include "util/util.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QtGui/QImage>
