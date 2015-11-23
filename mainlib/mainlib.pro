@@ -47,7 +47,9 @@ HEADERS += \
     distancemappingentry.h \
     videoinformation.h \
     unitconverter.h \
-    messagepanelitem.h
+    messagepanelitem.h \
+    rollingaveragesensoritem.h \
+    rollingaveragecalculator.h
 
 SOURCES += \
     cyclist.cpp \
@@ -81,7 +83,9 @@ SOURCES += \
     distancemappingentry.cpp \
     videoinformation.cpp \
     unitconverter.cpp \
-    messagepanelitem.cpp
+    messagepanelitem.cpp \
+    rollingaveragesensoritem.cpp \
+    rollingaveragecalculator.cpp
 
 
 

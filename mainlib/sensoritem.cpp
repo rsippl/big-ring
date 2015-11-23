@@ -69,7 +69,7 @@ void SensorItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWid
 }
 
 
-void SensorItem::setValue(QVariant value)
+void SensorItem::setValue(const QVariant &value)
 {
     _unitItem->setPlainText(_quantityPrinter->unitString(_quantity, QuantityPrinter::Precision::Precise, value));
     _textItem->setPlainText(_quantityPrinter->print(value, _quantity, QuantityPrinter::Precision::Precise));

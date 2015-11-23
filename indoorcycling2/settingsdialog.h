@@ -61,6 +61,8 @@ private slots:
     void on_deleteConfigurationButton_clicked();
 
     void on_changeFolderButton_clicked();
+    void on_powerAveragingCombobox_currentIndexChanged(int index);
+
 private:
     void reset();
     void fillSensorSettingsComboBox();
@@ -70,6 +72,7 @@ private:
                          const indoorcycling::AntSensorType type);
     void fillSimulationSettingLabel();
     void fillVideoFolderList();
+    void fillPowerAveragingComboBox();
     void saveVideoFolder(const QString &folder);
 
     Ui::SettingsDialog *_ui;

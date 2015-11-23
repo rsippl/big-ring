@@ -26,7 +26,7 @@
 #include <QtCore/QVariant>
 
 namespace {
-const int FIXED_POWER_UPDATE_INTERVAL = 3000; // ms
+const int FIXED_POWER_UPDATE_INTERVAL = 250; // ms
 }
 namespace indoorcycling {
 
@@ -81,7 +81,9 @@ void Sensors::sensorValue(const SensorValueType sensorValueType,
 void Sensors::sendPowerUpdate()
 {
     if (_sensorConfigurationGroup.simulationSetting() == SimulationSetting::FIXED_POWER) {
-        emit powerWattsMeasured(_sensorConfigurationGroup.fixedPower());
+        const int fixedPower = _sensorConfigurationGroup.fixedPower();
+        const int withRandomPower = fixedPower + (qrand() % 40) - 20;
+        emit powerWattsMeasured(withRandomPower);
     } else if (_sensorConfigurationGroup.simulationSetting() == SimulationSetting::VIRTUAL_POWER) {
         qDebug() << "no speed/power input, setting power to 0W.";
         _powerWatts = 0;

@@ -32,10 +32,12 @@
 #include <QtGui/QResizeEvent>
 
 
+#include "bigringsettings.h"
 #include "clockgraphicsitem.h"
 #include "informationboxgraphicsitem.h"
 #include "messagepanelitem.h"
 #include "profileitem.h"
+#include "rollingaveragesensoritem.h"
 #include "sensoritem.h"
 #include "simulation.h"
 #include "screensaverblocker.h"
@@ -206,7 +208,7 @@ void NewVideoWidget::setSimulation(const Simulation& simulation)
     const Cyclist& cyclist = simulation.cyclist();
     _profileItem->setCyclist(&cyclist);
     connect(&cyclist, &Cyclist::powerChanged, this, [this](int power) {
-        _wattageItem->setValue(QVariant::fromValue(power));
+        _powerItem->setValue(QVariant::fromValue(power));
     });
     connect(&cyclist, &Cyclist::cadenceChanged, this, [this](int cadence) {
         _cadenceItem->setValue(QVariant::fromValue(cadence));
@@ -243,7 +245,7 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
     qreal bottom = mapToScene(0, height()).y();
     _cadenceItem->setPos(0, bottom - _cadenceItem->boundingRect().height());
     _heartRateItem->setPos(0, _cadenceItem->scenePos().y() - _heartRateItem->boundingRect().height());
-    _wattageItem->setPos(0, _heartRateItem->scenePos().y() - _wattageItem->boundingRect().height());
+    _powerItem->setPos(0, _heartRateItem->scenePos().y() - _powerItem->boundingRect().height());
 
     QPointF leftOfRightItems = mapToScene(width(), height());
     leftOfRightItems = QPointF(leftOfRightItems.x() - _speedItem->boundingRect().width(), leftOfRightItems.y());
@@ -254,7 +256,7 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
 
     qreal profileItemLeft = _cadenceItem->boundingRect().width();
     qreal profileItemWidth = sceneRect().width() - 2 * profileItemLeft;
-    qreal profileItemTop = _wattageItem->scenePos().y();
+    qreal profileItemTop = _powerItem->scenePos().y();
     _profileItem->setGeometry(QRectF(profileItemLeft, profileItemTop, profileItemWidth, bottom - profileItemTop));
 
     resizeEvent->accept();
@@ -306,13 +308,15 @@ void NewVideoWidget::seekToStart(Course &course)
 
 void NewVideoWidget::addSensorItems(QGraphicsScene *scene)
 {
-    _wattageItem = new SensorItem(QuantityPrinter::Quantity::Power);
-    scene->addItem(_wattageItem);
+    const int powerAveragingMilliseconds = BigRingSettings().powerAveragingForDisplayMilliseconds();
+    const int powerUpdateInterval = (powerAveragingMilliseconds == 0) ? 0 : 1000;
+    _powerItem = new RollingAverageSensorItem(QuantityPrinter::Quantity::Power, powerAveragingMilliseconds, powerUpdateInterval);
+    scene->addItem(_powerItem);
     _heartRateItem = new SensorItem(QuantityPrinter::Quantity::HeartRate);
     scene->addItem(_heartRateItem);
-    _cadenceItem = new SensorItem(QuantityPrinter::Quantity::Cadence);
+    _cadenceItem = new RollingAverageSensorItem(QuantityPrinter::Quantity::Cadence, 1000, 1000);
     scene->addItem(_cadenceItem);
-    _speedItem = new SensorItem(QuantityPrinter::Quantity::Speed);
+    _speedItem = new RollingAverageSensorItem(QuantityPrinter::Quantity::Speed, 1000, 1000);
     scene->addItem(_speedItem);
     _distanceItem = new SensorItem(QuantityPrinter::Quantity::Distance);
     scene->addItem(_distanceItem);

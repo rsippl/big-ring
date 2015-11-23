@@ -75,10 +75,10 @@ void AntPowerSlaveChannelHandler::handleBroadCastMessage(const BroadCastMessage 
             if (_lastPowerMessage.eventCount() != powerMessage.eventCount()) {
                 emit sensorValue(SensorValueType::POWER_WATT, AntSensorType::POWER,
                                  QVariant::fromValue(powerMessage.instantaneousPower()));
-                emit sensorValue(SensorValueType::CADENCE_RPM, AntSensorType::POWER,
-                                 QVariant::fromValue(powerMessage.instantaneousCadence()));
-                qDebug() << QTime::currentTime().toString()
-                         << "power" << powerMessage.instantaneousPower() << "cadence" << powerMessage.instantaneousCadence();
+                if (powerMessage.hasCadence()) {
+                    emit sensorValue(SensorValueType::CADENCE_RPM, AntSensorType::POWER,
+                                     QVariant::fromValue(powerMessage.instantaneousCadence()));
+                }
             }
         }
         _lastPowerMessage = powerMessage;

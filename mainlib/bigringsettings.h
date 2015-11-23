@@ -34,6 +34,9 @@ public:
 
     QString videoFolder() const;
     void setVideoFolder(const QString folder);
+
+    int powerAveragingForDisplayMilliseconds() const;
+    void setPowerAveragingForDisplayMilliseconds(const int averagingMilliseconds);
 private:
     QSettings _settings;
 };
