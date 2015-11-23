@@ -1,8 +1,8 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QStyleFactory>
 #include <QtCore/QtDebug>
-#include "antsensortype.h"
-#include "antcentraldispatch.h"
+#include "ant/antsensortype.h"
+#include "ant/antcentraldispatch.h"
 #include "anttestappmainwindow.h"
 
 using indoorcycling::AntCentralDispatch;

@@ -13,7 +13,43 @@ INCLUDEPATH += thirdparty/include
 
 FORMS +=
 
+ANT_HEADERS += \
+    ant/antdevice.h \
+    ant/antdevicefinder.h \
+    ant/antmessagegatherer.h \
+    ant/usb2antdevice.h \
+    ant/antmessage2.h \
+    ant/antcentraldispatch.h \
+    ant/antchannelhandler.h \
+    ant/antsensortype.h \
+    ant/antheartratechannelhandler.h \
+    ant/antpowerchannelhandler.h \
+    ant/antspeedandcadencechannelhandler.h \
+
+ANT_SOURCES += \
+    ant/antdevice.cpp \
+    ant/antdevicefinder.cpp \
+    ant/antmessagegatherer.cpp \
+    ant/usb2antdevice.cpp \
+    ant/antmessage2.cpp \
+    ant/antcentraldispatch.cpp \
+    ant/antchannelhandler.cpp \
+    ant/antheartratechannelhandler.cpp \
+    ant/antpowerchannelhandler.cpp \
+    ant/antspeedandcadencechannelhandler.cpp
+
+linux {
+    ANT_SOURCES += ant/thirdparty/core.c
+    ANT_HEADERS += ant/thirdparty/usb.h \
+                   ant/thirdparty/usbi.h
+}
+!win32 {
+    ANT_HEADERS += ant/unixserialusbant.h
+    ANT_SOURCES += ant/unixserialusbant.cpp
+}
+
 HEADERS += \
+    $$ANT_HEADERS \
     cyclist.h \
     framebuffer.h \
     profile.h \
@@ -52,6 +88,7 @@ HEADERS += \
     rollingaveragecalculator.h
 
 SOURCES += \
+    $$ANT_SOURCES \
     cyclist.cpp \
     profile.cpp \
     reallifevideoimporter.cpp \
@@ -87,10 +124,5 @@ SOURCES += \
     rollingaveragesensoritem.cpp \
     rollingaveragecalculator.cpp
 
-
-
 LIBS +=  -lusb-1.0
-
-
-
 

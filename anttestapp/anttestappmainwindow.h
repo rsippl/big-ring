@@ -3,7 +3,7 @@
 
 #include <QtWidgets/QMainWindow>
 
-#include "antsensortype.h"
+#include "ant/antsensortype.h"
 
 namespace Ui {
 class AntTestAppMainWindow;

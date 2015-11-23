@@ -27,7 +27,7 @@
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QLabel>
 
-#include "antsensortype.h"
+#include "ant/antsensortype.h"
 #include "bigringsettings.h"
 #include "reallifevideoimporter.h"
 #include "sensorconfiguration.h"

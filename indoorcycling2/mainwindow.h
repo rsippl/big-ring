@@ -28,7 +28,7 @@
 
 #include "reallifevideo.h"
 #include "reallifevideoimporter.h"
-#include "util.h"
+#include "util/util.h"
 
 class Cyclist;
 class VideoListView;

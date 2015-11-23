@@ -20,7 +20,7 @@
 #include "addsensorconfigurationdialog.h"
 #include "ui_addsensorconfigurationdialog.h"
 
-#include "antcentraldispatch.h"
+#include "ant/antcentraldispatch.h"
 #include "virtualpower.h"
 
 #include <QtCore/QMap>

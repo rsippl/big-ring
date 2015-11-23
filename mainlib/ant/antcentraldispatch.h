@@ -30,7 +30,7 @@
 #include <QtCore/QVector>
 
 #include "antsensortype.h"
-#include "util.h"
+#include "util/util.h"
 
 class AntChannelEventMessage;
 class AntMessageGatherer;

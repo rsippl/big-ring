@@ -25,7 +25,7 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QVBoxLayout>
 
-#include "antcentraldispatch.h"
+#include "ant/antcentraldispatch.h"
 #include "videolistmodel.h"
 #include "videoitemdelegate.h"
 #include "videodetails.h"

@@ -19,7 +19,7 @@
  */
 #include "sensors.h"
 
-#include "antlib/antcentraldispatch.h"
+#include "ant/antcentraldispatch.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QtMath>

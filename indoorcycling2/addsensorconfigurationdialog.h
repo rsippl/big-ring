@@ -24,7 +24,7 @@
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QDialog>
 
-#include "antsensortype.h"
+#include "ant/antsensortype.h"
 #include "sensorconfiguration.h"
 
 namespace indoorcycling {

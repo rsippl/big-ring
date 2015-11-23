@@ -3,7 +3,7 @@
 
 #include <QtCore/QObject>
 
-#include "antlib/antmessage2.h"
+#include "ant/antmessage2.h"
 class AntMessage2Test : public QObject
 {
     Q_OBJECT
