@@ -51,23 +51,27 @@ ScreenSaverBlocker::~ScreenSaverBlocker()
 // When unblocking, we call xdg-screensaver again, with the 'resume' command.
 void ScreenSaverBlocker::blockScreenSaver()
 {
-    QProcess* process = new QProcess;
+    qDebug() << "Blocking screensaver.";
+    QProcess* const process = new QProcess;
 
-    quintptr windowId = _window->winId();
-    QString command = QString("xdg-screensaver suspend %1").arg(windowId);
+    const quintptr windowId = _window->winId();
+    const QString command = QString("xdg-screensaver suspend %1").arg(windowId);
+
     connect(process, SIGNAL(error(QProcess::ProcessError)), this,
             SLOT(handleError(QProcess::ProcessError)));
+    // delete process when it's finished.
     connect(process, SIGNAL(finished(int)), process, SLOT(deleteLater()));
+
     process->start(command);
 }
 
 void ScreenSaverBlocker::unblockScreenSaver()
 {
-    qDebug() << "allowing screensaver to work again";
-    QProcess* process = new QProcess;
+    qDebug() << "Allowing screensaver to work again";
+    QProcess* const process = new QProcess;
 
-    quintptr windowId = _window->winId();
-    QString command = QString("xdg-screensaver resume %1").arg(windowId);
+    const quintptr windowId = _window->winId();
+    const QString command = QString("xdg-screensaver resume %1").arg(windowId);
     connect(process, SIGNAL(finished(int)), process, SLOT(deleteLater()));
     process->start(command);
 }
@@ -93,10 +97,13 @@ void ScreenSaverBlocker::unblockScreenSaver()
 #endif
 #endif
 
-#ifdef Q_OS_LINUX
+
+// this method will only be called on Linux, so we wont implement
+// anything for Windows.
 void ScreenSaverBlocker::handleError(QProcess::ProcessError error)
 {
-    QObject* process = sender();
+#ifdef Q_OS_LINUX
+    QObject* const process = sender();
     switch(error) {
     case QProcess::FailedToStart:
         qDebug() << "screensaver blocker could not be started.";
@@ -105,6 +112,6 @@ void ScreenSaverBlocker::handleError(QProcess::ProcessError error)
         qDebug() << "screensaver blocker error.";
     }
     process->deleteLater();
-}
 #endif
+}
 }
