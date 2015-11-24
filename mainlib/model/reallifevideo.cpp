@@ -257,14 +257,6 @@ bool RealLifeVideo::operator==(const RealLifeVideo &other) const
             && _d->_fileType == other._d->_fileType;
 }
 
-VideoInformation::VideoInformation(const QString &videoFilename, float frameRate):
-    _videoFilename(videoFilename), _frameRate(frameRate)
-{
-}
-
-VideoInformation::VideoInformation():
-    _frameRate(0.0) {}
-
 bool RealLifeVideo::compareByName(const RealLifeVideo &rlv1, const RealLifeVideo &rlv2)
 {
     return rlv1.name().toLower() < rlv2.name().toLower();
