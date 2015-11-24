@@ -3,7 +3,7 @@ TEMPLATE = lib
 include(../config.pri)
 
 RESOURCES += \
-    $$IN_PWD/shaders.qrc
+    $$IN_PWD/video/shaders.qrc
 
 target = mainlib
 target.path = ../lib

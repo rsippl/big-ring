@@ -259,10 +259,10 @@ void OpenGLPainter2::initializeOpenGL()
     }
     _glFunctions->initializeOpenGLFunctions();
     QOpenGLFunctions functions(QOpenGLContext::currentContext());
-    if (!_program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":///shaders/vertexshader.glsl")) {
+    if (!_program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":///vertexshader.glsl")) {
         qFatal("Unable to add vertex shader: %s", qPrintable(_program.log()));
     }
-    if (!_program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/fragmentshader.glsl")) {
+    if (!_program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":///fragmentshader.glsl")) {
         qFatal("Unable to add fragment shader: %s", qPrintable(_program.log()));
     }
     if (!_program.link()) {
