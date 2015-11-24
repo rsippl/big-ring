@@ -24,15 +24,22 @@
 #include <QtCore/QObject>
 #include <QtCore/QTime>
 #include <QtCore/QTimer>
+
 #include "cyclist.h"
 #include "reallifevideo.h"
-#include "sensorconfiguration.h"
+
+enum class SimulationSetting {
+    FIXED_POWER,
+    DIRECT_POWER,
+    VIRTUAL_POWER,
+    DIRECT_SPEED
+};
 
 class Simulation : public QObject
 {
     Q_OBJECT
 public:
-    explicit Simulation(indoorcycling::SimulationSetting simulationSetting, Cyclist& cyclist,
+    explicit Simulation(SimulationSetting simulationSetting, Cyclist& cyclist,
                         QObject *parent = 0);
     virtual ~Simulation();
 
@@ -62,7 +69,7 @@ private:
     float calculateSpeed(quint64 timeDelta);
     void reset();
 
-    const indoorcycling::SimulationSetting _simulationSetting;
+    const SimulationSetting _simulationSetting;
     /** in case of indoorcycling::SimulationSetting::DIRECT_SPEED, we store the
      * wheel speed and use it directly, without calculating it from power */
     float _wheelSpeedMetersPerSecond;

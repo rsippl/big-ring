@@ -28,9 +28,10 @@
 #include <QtWidgets/QLabel>
 
 #include "ant/antsensortype.h"
-#include "bigringsettings.h"
+#include "config/bigringsettings.h"
+#include "config/sensorconfiguration.h"
 #include "importer/reallifevideoimporter.h"
-#include "sensorconfiguration.h"
+
 
 namespace indoorcycling {
 class AntCentralDispatch;

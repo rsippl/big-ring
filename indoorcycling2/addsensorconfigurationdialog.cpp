@@ -33,7 +33,6 @@
 using indoorcycling::AntCentralDispatch;
 using indoorcycling::AntSensorType;
 using indoorcycling::NamedSensorConfigurationGroup;
-using indoorcycling::SimulationSetting;
 
 namespace
 {

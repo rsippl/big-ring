@@ -25,7 +25,7 @@
 #include <QtWidgets/QDialog>
 
 #include "ant/antsensortype.h"
-#include "sensorconfiguration.h"
+#include "config/sensorconfiguration.h"
 
 namespace indoorcycling {
 class AntCentralDispatch;
@@ -86,7 +86,7 @@ private:
     QSet<indoorcycling::AntSensorType> _currentSearches;
     QString _configurationName;
     QMap<indoorcycling::AntSensorType,indoorcycling::SensorConfiguration> _configurations;
-    indoorcycling::SimulationSetting _simulationSetting;
+    SimulationSetting _simulationSetting;
 };
 
 #endif // ADDSENSORCDIALOG_H

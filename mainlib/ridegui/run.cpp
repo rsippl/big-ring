@@ -21,7 +21,7 @@
 #include "ant/antcentraldispatch.h"
 #include "ridegui/newvideowidget.h"
 #include "run.h"
-#include "sensorconfiguration.h"
+#include "config/sensorconfiguration.h"
 #include "sensors.h"
 
 #include <QtCore/QTimer>

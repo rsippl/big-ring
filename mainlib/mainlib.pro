@@ -47,6 +47,14 @@ linux {
     ANT_SOURCES += ant/unixserialusbant.cpp
 }
 
+CONFIG_HEADERS += \
+    config/bigringsettings.h \
+    config/sensorconfiguration.h
+
+CONFIG_SOURCES += \
+    config/bigringsettings.cpp \
+    config/sensorconfiguration.cpp
+
 IMPORTER_HEADERS += \
     importer/gpxfileparser.h \
     importer/virtualtrainingfileparser.h \
@@ -131,20 +139,20 @@ VIDEO_SOURCES += \
 
 HEADERS += \
     $$ANT_HEADERS \
+    $$CONFIG_HEADERS \
     $$IMPORTER_HEADERS \
     $$MODEL_HEADERS \
     $$RIDEGUI_HEADERS \
     $$UTIL_HEADERS \
     $$VIDEO_HEADERS \
     profilepainter.h \
-    sensorconfiguration.h \
     sensors.h \
-    bigringsettings.h \
     quantityprinter.h \
     util/util.h
 
 SOURCES += \
     $$ANT_SOURCES \
+    $$CONFIG_SOURCES \
     $$IMPORTER_SOURCES \
     $$MODEL_SOURCES \
     $$RIDEGUI_SOURCES \
@@ -152,9 +160,7 @@ SOURCES += \
     $$VIDEO_SOURCES \
     profilepainter.cpp \
     quantityprinter.cpp \
-    sensorconfiguration.cpp \
     sensors.cpp \
-    bigringsettings.cpp
 
 LIBS +=  -lusb-1.0
 

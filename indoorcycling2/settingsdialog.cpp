@@ -18,7 +18,6 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "bigringsettings.h"
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
 
@@ -34,7 +33,6 @@
 #include <QtWidgets/QMessageBox>
 
 using indoorcycling::AntCentralDispatch;
-using indoorcycling::SimulationSetting;
 
 namespace {
 

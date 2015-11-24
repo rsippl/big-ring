@@ -32,7 +32,7 @@
 #include <QtGui/QResizeEvent>
 
 
-#include "bigringsettings.h"
+#include "config/bigringsettings.h"
 #include "clockgraphicsitem.h"
 #include "informationboxgraphicsitem.h"
 #include "messagepanelitem.h"

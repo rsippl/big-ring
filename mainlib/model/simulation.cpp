@@ -57,7 +57,7 @@ float calculateGravityForce(const Cyclist& cyclist, float grade)
 
 
 
-Simulation::Simulation(indoorcycling::SimulationSetting simulationSetting, Cyclist &cyclist, QObject *parent) :
+Simulation::Simulation(SimulationSetting simulationSetting, Cyclist &cyclist, QObject *parent) :
     QObject(parent), _simulationSetting(simulationSetting),
     _lastElapsed(0), _simulationTime(0,0,0), _idleTime(),_cyclist(cyclist)
 {
@@ -169,7 +169,7 @@ void Simulation::setHeartRate(int heartRate)
 
 float Simulation::calculateSpeed(quint64 timeDelta)
 {
-    if (_simulationSetting == indoorcycling::SimulationSetting::DIRECT_SPEED) {
+    if (_simulationSetting == SimulationSetting::DIRECT_SPEED) {
         return _wheelSpeedMetersPerSecond;
     }
 

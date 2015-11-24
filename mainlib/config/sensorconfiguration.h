@@ -24,15 +24,11 @@
 #include <QtCore/QSettings>
 
 #include "ant/antsensortype.h"
+#include "model/simulation.h"
 #include "model/virtualpower.h"
 namespace indoorcycling {
 
-enum class SimulationSetting {
-    FIXED_POWER,
-    DIRECT_POWER,
-    VIRTUAL_POWER,
-    DIRECT_SPEED
-};
+
 
 class SensorConfiguration
 {
