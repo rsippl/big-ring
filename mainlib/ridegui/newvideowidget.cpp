@@ -40,7 +40,7 @@
 #include "rollingaveragesensoritem.h"
 #include "sensoritem.h"
 #include "model/simulation.h"
-#include "screensaverblocker.h"
+#include "util/screensaverblocker.h"
 #include "video/videoplayer.h"
 
 

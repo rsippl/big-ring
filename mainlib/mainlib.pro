@@ -50,7 +50,7 @@ linux {
 IMPORTER_HEADERS += \
     importer/gpxfileparser.h \
     importer/virtualtrainingfileparser.h \
-    importer/reallifevideoimporter.cpp \
+    importer/reallifevideoimporter.h \
     importer/rlvfileparser.h
 
 IMPORTER_SOURCES += \
@@ -100,7 +100,12 @@ RIDEGUI_SOURCES += \
     ridegui/rollingaveragesensoritem.cpp \
     ridegui/sensoritem.cpp
 
+UTIL_HEADERS += \
+    util/screensaverblocker.h \
+    util/util.h
 
+UTIL_SOURCES += \
+    util/screensaverblocker.cpp
 
 VIDEO_HEADERS += \
     video/framebuffer.h \
@@ -127,9 +132,9 @@ HEADERS += \
     $$IMPORTER_HEADERS \
     $$MODEL_HEADERS \
     $$RIDEGUI_HEADERS \
+    $$UTIL_HEADERS \
     $$VIDEO_HEADERS \
     run.h \
-    screensaverblocker.h \
     profilepainter.h \
     sensorconfiguration.h \
     sensors.h \
@@ -142,9 +147,9 @@ SOURCES += \
     $$IMPORTER_SOURCES \
     $$MODEL_SOURCES \
     $$RIDEGUI_SOURCES \
+    $$UTIL_SOURCES \
     $$VIDEO_SOURCES \
     run.cpp \
-    screensaverblocker.cpp \
     profilepainter.cpp \
     quantityprinter.cpp \
     sensorconfiguration.cpp \
