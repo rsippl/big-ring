@@ -61,7 +61,6 @@ Limitations
 -----------
 
 * No recording of data.
-* No way to finish a course. You can start at different points, but it will only finish when you stop (not pause) or when the video reaches the end.
 
 Building
 --------
