@@ -47,15 +47,17 @@ linux {
     ANT_SOURCES += ant/unixserialusbant.cpp
 }
 
-FILEPARSER_HEADERS += \
-    fileparsers/gpxfileparser.h \
-    fileparsers/virtualtrainingfileparser.h \
-    fileparsers/rlvfileparser.h
+IMPORTER_HEADERS += \
+    importer/gpxfileparser.h \
+    importer/virtualtrainingfileparser.h \
+    importer/reallifevideoimporter.cpp \
+    importer/rlvfileparser.h
 
-FILEPARSER_SOURCES += \
-    fileparsers/gpxfileparser.cpp \
-    fileparsers/virtualtrainingfileparser.cpp \
-    fileparsers/rlvfileparser.cpp
+IMPORTER_SOURCES += \
+    importer/gpxfileparser.cpp \
+    importer/virtualtrainingfileparser.cpp \
+    importer/reallifevideoimporter.cpp \
+    importer/rlvfileparser.cpp
 
 
 MODEL_HEADERS += \
@@ -122,11 +124,10 @@ VIDEO_SOURCES += \
 
 HEADERS += \
     $$ANT_HEADERS \
-    $$FILEPARSER_HEADERS \
+    $$IMPORTER_HEADERS \
     $$MODEL_HEADERS \
     $$RIDEGUI_HEADERS \
     $$VIDEO_HEADERS \
-    reallifevideoimporter.h \
     run.h \
     screensaverblocker.h \
     profilepainter.h \
@@ -138,11 +139,10 @@ HEADERS += \
 
 SOURCES += \
     $$ANT_SOURCES \
-    $$FILEPARSER_SOURCES \
+    $$IMPORTER_SOURCES \
     $$MODEL_SOURCES \
     $$RIDEGUI_SOURCES \
     $$VIDEO_SOURCES \
-    reallifevideoimporter.cpp \
     run.cpp \
     screensaverblocker.cpp \
     profilepainter.cpp \

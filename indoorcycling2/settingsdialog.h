@@ -29,7 +29,7 @@
 
 #include "ant/antsensortype.h"
 #include "bigringsettings.h"
-#include "reallifevideoimporter.h"
+#include "importer/reallifevideoimporter.h"
 #include "sensorconfiguration.h"
 
 namespace indoorcycling {

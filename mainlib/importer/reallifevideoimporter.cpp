@@ -18,9 +18,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "fileparsers/gpxfileparser.h"
-#include "fileparsers/rlvfileparser.h"
-#include "fileparsers/virtualtrainingfileparser.h"
+#include "importer/gpxfileparser.h"
+#include "importer/rlvfileparser.h"
+#include "importer/virtualtrainingfileparser.h"
 #include "reallifevideoimporter.h"
 
 

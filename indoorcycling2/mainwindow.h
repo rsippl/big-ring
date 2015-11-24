@@ -27,7 +27,7 @@
 #include <QtWidgets/QStackedWidget>
 
 #include "model/reallifevideo.h"
-#include "reallifevideoimporter.h"
+#include "importer/reallifevideoimporter.h"
 #include "util/util.h"
 
 class Cyclist;

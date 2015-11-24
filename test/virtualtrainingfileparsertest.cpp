@@ -1,7 +1,7 @@
 #include "virtualtrainingfileparsertest.h"
 
-#include "fileparsers/rlvfileparser.h"
-#include "fileparsers/virtualtrainingfileparser.h"
+#include "importer/rlvfileparser.h"
+#include "importer/virtualtrainingfileparser.h"
 #include <QtCore/QFile>
 #include <QtTest/QTest>
 
