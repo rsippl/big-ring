@@ -80,6 +80,26 @@ MODEL_SOURCES += \
     model/videoinformation.cpp \
     model/virtualpower.cpp
 
+RIDEGUI_HEADERS += \
+    ridegui/clockgraphicsitem.h \
+    ridegui/informationboxgraphicsitem.h \
+    ridegui/messagepanelitem.h \
+    ridegui/newvideowidget.h \
+    ridegui/profileitem.h \
+    ridegui/rollingaveragesensoritem.h \
+    ridegui/sensoritem.h
+
+RIDEGUI_SOURCES += \
+    ridegui/clockgraphicsitem.cpp \
+    ridegui/informationboxgraphicsitem.cpp \
+    ridegui/messagepanelitem.cpp \
+    ridegui/newvideowidget.cpp \
+    ridegui/profileitem.cpp \
+    ridegui/rollingaveragesensoritem.cpp \
+    ridegui/sensoritem.cpp
+
+
+
 VIDEO_HEADERS += \
     video/framebuffer.h \
     video/genericvideoreader.h \
@@ -89,7 +109,6 @@ VIDEO_HEADERS += \
     video/thumbnailer.h \
     video/videoinforeader.h \
     video/videoplayer.h
-
 
 VIDEO_SOURCES += \
     video/genericvideoreader.cpp \
@@ -105,12 +124,9 @@ HEADERS += \
     $$ANT_HEADERS \
     $$FILEPARSER_HEADERS \
     $$MODEL_HEADERS \
+    $$RIDEGUI_HEADERS \
     $$VIDEO_HEADERS \
     reallifevideoimporter.h \
-    newvideowidget.h \
-    clockgraphicsitem.h \
-    sensoritem.h \
-    profileitem.h \
     run.h \
     screensaverblocker.h \
     profilepainter.h \
@@ -118,31 +134,22 @@ HEADERS += \
     sensors.h \
     bigringsettings.h \
     quantityprinter.h \
-    informationboxgraphicsitem.h \
-    messagepanelitem.h \
-    rollingaveragesensoritem.h \
     util/util.h
 
 SOURCES += \
     $$ANT_SOURCES \
     $$FILEPARSER_SOURCES \
     $$MODEL_SOURCES \
+    $$RIDEGUI_SOURCES \
     $$VIDEO_SOURCES \
     reallifevideoimporter.cpp \
-    newvideowidget.cpp \
-    clockgraphicsitem.cpp \
-    sensoritem.cpp \
-    profileitem.cpp \
     run.cpp \
     screensaverblocker.cpp \
     profilepainter.cpp \
     quantityprinter.cpp \
     sensorconfiguration.cpp \
     sensors.cpp \
-    bigringsettings.cpp \
-    informationboxgraphicsitem.cpp \
-    messagepanelitem.cpp \
-    rollingaveragesensoritem.cpp
+    bigringsettings.cpp
 
 LIBS +=  -lusb-1.0
 

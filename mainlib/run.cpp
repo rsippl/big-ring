@@ -19,7 +19,7 @@
  */
 
 #include "ant/antcentraldispatch.h"
-#include "newvideowidget.h"
+#include "ridegui/newvideowidget.h"
 #include "run.h"
 #include "sensorconfiguration.h"
 #include "sensors.h"

@@ -37,7 +37,7 @@
 #include "run.h"
 #include "settingsdialog.h"
 #include "videolistview.h"
-#include "newvideowidget.h"
+#include "ridegui/newvideowidget.h"
 #include "model/simulation.h"
 
 MainWindow::MainWindow(QWidget *parent) :
