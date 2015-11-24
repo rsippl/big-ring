@@ -89,6 +89,7 @@ RIDEGUI_HEADERS += \
     ridegui/newvideowidget.h \
     ridegui/profileitem.h \
     ridegui/rollingaveragesensoritem.h \
+    ridegui/run.h \
     ridegui/sensoritem.h
 
 RIDEGUI_SOURCES += \
@@ -98,6 +99,7 @@ RIDEGUI_SOURCES += \
     ridegui/newvideowidget.cpp \
     ridegui/profileitem.cpp \
     ridegui/rollingaveragesensoritem.cpp \
+    ridegui/run.cpp \
     ridegui/sensoritem.cpp
 
 UTIL_HEADERS += \
@@ -134,7 +136,6 @@ HEADERS += \
     $$RIDEGUI_HEADERS \
     $$UTIL_HEADERS \
     $$VIDEO_HEADERS \
-    run.h \
     profilepainter.h \
     sensorconfiguration.h \
     sensors.h \
@@ -149,7 +150,6 @@ SOURCES += \
     $$RIDEGUI_SOURCES \
     $$UTIL_SOURCES \
     $$VIDEO_SOURCES \
-    run.cpp \
     profilepainter.cpp \
     quantityprinter.cpp \
     sensorconfiguration.cpp \

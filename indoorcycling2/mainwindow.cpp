@@ -34,9 +34,9 @@
 
 #include "ant/antcentraldispatch.h"
 #include "model/cyclist.h"
-#include "run.h"
 #include "settingsdialog.h"
 #include "videolistview.h"
+#include "ridegui/run.h"
 #include "ridegui/newvideowidget.h"
 #include "model/simulation.h"
 
