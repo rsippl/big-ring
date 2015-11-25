@@ -7,8 +7,8 @@
 TARGET = ../bin/big-ring
 TEMPLATE = app
 
-win32:VERSION = 1.0.3.0
-linux:VERSION = 1.0.3.0
+win32:VERSION = 1.2.0.0
+linux:VERSION = 1.2.0.0
 
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
