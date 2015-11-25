@@ -18,22 +18,22 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REALLIFEVIDEOSAVEANDLOADTEST_H
-#define REALLIFEVIDEOSAVEANDLOADTEST_H
+#ifndef REALLIFEVIDEOCACHETEST_H
+#define REALLIFEVIDEOCACHETEST_H
 
 #include <QtCore/QObject>
-#include "reallifevideosaverandloader.h"
+#include "reallifevideocache.h"
 
-class RealLifeVideoSaveAndLoadTest : public QObject
+class RealLifeVideoCacheTest : public QObject
 {
     Q_OBJECT
 public:
-    explicit RealLifeVideoSaveAndLoadTest(QObject *parent = 0);
+    explicit RealLifeVideoCacheTest(QObject *parent = 0);
 
 private slots:
     void testSaveAndLoad();
 private:
-    RealLifeVideoSaverAndLoader _saverAndLoader;
+    RealLifeVideoCache _cache;
 };
 
-#endif // REALLIFEVIDEOSAVEANDLOADTEST_H
+#endif // REALLIFEVIDEOCACHETEST_H

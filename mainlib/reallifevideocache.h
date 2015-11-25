@@ -17,22 +17,22 @@
  * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-#ifndef REALLIFEVIDEOSAVERANDLOADER_H
-#define REALLIFEVIDEOSAVERANDLOADER_H
+#ifndef REALLIFEVIDEOCACHE_H
+#define REALLIFEVIDEOCACHE_H
 
 #include <QtCore/QObject>
 #include <memory>
 #include "reallifevideo.h"
 
-class RealLifeVideoSaverAndLoader : public QObject
+class RealLifeVideoCache : public QObject
 {
     Q_OBJECT
 public:
-    explicit RealLifeVideoSaverAndLoader(QObject *parent = 0);
+    explicit RealLifeVideoCache(QObject *parent = 0);
 
-    std::unique_ptr<RealLifeVideo> load(const QString &fileName);
+    std::unique_ptr<RealLifeVideo> load(const QFile &rlvFile);
 public slots:
-    void saveRlv(const QString &filename, const RealLifeVideo &rlv);
+    void saveRlv(const QFile &rlvFile, const RealLifeVideo &rlv);
 
 private:
     QString absoluteFilenameForRlv(const QString &name) const;
@@ -52,4 +52,4 @@ private:
     std::vector<InformationBox> readInformationBoxes(QDataStream &in) const;
 };
 
-#endif // REALLIFEVIDEOSAVERANDLOADER_H
+#endif // REALLIFEVIDEOCACHE_H

@@ -18,7 +18,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "reallifevideosaveandloadtest.h"
+#include "reallifevideocachetest.h"
 
 #include "distancemappingentry.h"
 #include "rlvfileparser.h"
@@ -30,20 +30,20 @@ QList<QFileInfo> videoFiles = { BAVELLA_VIDEO_FILE };
 }
 
 #include <QtTest/QTest>
-RealLifeVideoSaveAndLoadTest::RealLifeVideoSaveAndLoadTest(QObject *parent) :
+RealLifeVideoCacheTest::RealLifeVideoCacheTest(QObject *parent) :
     QObject(parent)
 {
 }
 
-void RealLifeVideoSaveAndLoadTest::testSaveAndLoad()
+void RealLifeVideoCacheTest::testSaveAndLoad()
 {
     QFile fTacx(":///resources/FR_Bavella.rlv");
     RlvFileParser rlvFileParser({BAVELLA_PGMF_FILE}, videoFiles);
     RealLifeVideo tacxRlv = rlvFileParser.parseRlvFile(fTacx);
 
-    _saverAndLoader.saveRlv(QFileInfo(fTacx).fileName(), tacxRlv);
+    _cache.saveRlv(fTacx, tacxRlv);
 
-    std::unique_ptr<RealLifeVideo> rlvPtr = _saverAndLoader.load(QFileInfo(fTacx).fileName());
+    std::unique_ptr<RealLifeVideo> rlvPtr = _cache.load(fTacx);
     QVERIFY(rlvPtr.get() != nullptr);
     RealLifeVideo &rlv = *rlvPtr;
 

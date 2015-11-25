@@ -1,6 +1,6 @@
 #include "antmessage2test.h"
 #include "profiletest.h"
-#include "reallifevideosaveandloadtest.h"
+#include "reallifevideocachetest.h"
 #include "rollingaveragecalculatortest.h"
 #include "virtualtrainingfileparsertest.h"
 #include "virtualpowertest.h"
@@ -18,6 +18,6 @@ int main(int, char**) {
     QTest::qExec(&profileTest);
     RollingAverageCalculatorTest racTest;
     QTest::qExec(&racTest);
-    RealLifeVideoSaveAndLoadTest saveAndLoadTest;
+    RealLifeVideoCache saveAndLoadTest;
     QTest::qExec(&saveAndLoadTest);
 }

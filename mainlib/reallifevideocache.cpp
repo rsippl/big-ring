@@ -18,27 +18,36 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "reallifevideosaverandloader.h"
+#include "reallifevideocache.h"
 #include "distancemappingentry.h"
 #include "videoinformation.h"
 
 #include <QtCore/QDataStream>
+#include <QtCore/QDateTime>
 #include <QtCore/QDir>
 #include <QtCore/QStandardPaths>
 
-RealLifeVideoSaverAndLoader::RealLifeVideoSaverAndLoader(QObject *parent) :
+RealLifeVideoCache::RealLifeVideoCache(QObject *parent) :
     QObject(parent)
 {
+    //empty
 }
 
-std::unique_ptr<RealLifeVideo> RealLifeVideoSaverAndLoader::load(const QString &fileName)
+std::unique_ptr<RealLifeVideo> RealLifeVideoCache::load(const QFile &rlvFile)
 {
-    QFile file(absoluteFilenameForRlv(fileName));
-    if (!file.exists()) {
+    QFileInfo rlvFileInfo(rlvFile);
+    QFile cacheFile(absoluteFilenameForRlv(rlvFileInfo.fileName()));
+    if (!cacheFile.exists()) {
         return std::unique_ptr<RealLifeVideo>();
     }
-    file.open(QIODevice::ReadOnly);
-    QDataStream in(&file);
+    QFileInfo cacheFileInfo(cacheFile);
+    if (rlvFileInfo.lastModified() > cacheFileInfo.lastModified()) {
+        return std::unique_ptr<RealLifeVideo>();
+    }
+
+
+    cacheFile.open(QIODevice::ReadOnly);
+    QDataStream in(&cacheFile);
 
     quint32 magic;
     in >> magic;
@@ -66,8 +75,9 @@ std::unique_ptr<RealLifeVideo> RealLifeVideoSaverAndLoader::load(const QString &
                                                             std::move(distanceMappings), profile, std::move(informationBoxes)));
 }
 
-void RealLifeVideoSaverAndLoader::saveRlv(const QString &filename, const RealLifeVideo &rlv)
+void RealLifeVideoCache::saveRlv(const QFile &rlvFile, const RealLifeVideo &rlv)
 {
+    const QString filename = QFileInfo(rlvFile).fileName();
     QFile file(absoluteFilenameForRlv(filename));
     file.open(QIODevice::WriteOnly);
     QDataStream out(&file);
@@ -88,7 +98,7 @@ void RealLifeVideoSaverAndLoader::saveRlv(const QString &filename, const RealLif
     saveInformationBoxes(out, rlv.informationBoxes());
 }
 
-QString RealLifeVideoSaverAndLoader::absoluteFilenameForRlv(const QString &name) const
+QString RealLifeVideoCache::absoluteFilenameForRlv(const QString &name) const
 {
     QString path = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
     if (path.isEmpty()) {
@@ -101,7 +111,7 @@ QString RealLifeVideoSaverAndLoader::absoluteFilenameForRlv(const QString &name)
     return rlvCacheDir.filePath(QString("%1.rlvdat").arg(name));
 }
 
-void RealLifeVideoSaverAndLoader::saveCourses(QDataStream &out, const std::vector<Course> &courses) const
+void RealLifeVideoCache::saveCourses(QDataStream &out, const std::vector<Course> &courses) const
 {
     out << static_cast<quint32>(courses.size());
     for (const Course &course: courses) {
@@ -112,7 +122,7 @@ void RealLifeVideoSaverAndLoader::saveCourses(QDataStream &out, const std::vecto
     }
 }
 
-std::vector<Course> RealLifeVideoSaverAndLoader::readCourses(QDataStream &in) const
+std::vector<Course> RealLifeVideoCache::readCourses(QDataStream &in) const
 {
     std::vector<Course> courses;
     quint32 numberOfCourses;
@@ -132,7 +142,7 @@ std::vector<Course> RealLifeVideoSaverAndLoader::readCourses(QDataStream &in) co
     return courses;
 }
 
-void RealLifeVideoSaverAndLoader::saveDistanceMappings(QDataStream &out, const std::vector<DistanceMappingEntry> &distanceMappings) const
+void RealLifeVideoCache::saveDistanceMappings(QDataStream &out, const std::vector<DistanceMappingEntry> &distanceMappings) const
 {
     out << static_cast<quint32>(distanceMappings.size());
     for (const DistanceMappingEntry &entry: distanceMappings) {
@@ -142,7 +152,7 @@ void RealLifeVideoSaverAndLoader::saveDistanceMappings(QDataStream &out, const s
     }
 }
 
-std::vector<DistanceMappingEntry> RealLifeVideoSaverAndLoader::readDistanceMappings(QDataStream &in) const
+std::vector<DistanceMappingEntry> RealLifeVideoCache::readDistanceMappings(QDataStream &in) const
 {
     std::vector<DistanceMappingEntry> distanceMappings;
     quint32 numberOfDistanceMappings;
@@ -160,14 +170,14 @@ std::vector<DistanceMappingEntry> RealLifeVideoSaverAndLoader::readDistanceMappi
     return distanceMappings;
 }
 
-void RealLifeVideoSaverAndLoader::saveProfile(QDataStream &out, const Profile &profile) const
+void RealLifeVideoCache::saveProfile(QDataStream &out, const Profile &profile) const
 {
     out << static_cast<quint32>(profile.type());
     out << profile.startAltitude();
     saveProfileEntries(out, profile.entries());
 }
 
-Profile RealLifeVideoSaverAndLoader::readProfile(QDataStream &in)
+Profile RealLifeVideoCache::readProfile(QDataStream &in)
 {
     quint32 profileTypeAsInt;
     in >> profileTypeAsInt;
@@ -177,7 +187,7 @@ Profile RealLifeVideoSaverAndLoader::readProfile(QDataStream &in)
     return Profile(static_cast<ProfileType>(profileTypeAsInt), startAltitude, std::move(entries));
 }
 
-void RealLifeVideoSaverAndLoader::saveProfileEntries(QDataStream &out, const std::vector<ProfileEntry> &entries) const
+void RealLifeVideoCache::saveProfileEntries(QDataStream &out, const std::vector<ProfileEntry> &entries) const
 {
     out << static_cast<quint32>(entries.size());
     for (const ProfileEntry &entry: entries) {
@@ -187,7 +197,7 @@ void RealLifeVideoSaverAndLoader::saveProfileEntries(QDataStream &out, const std
     }
 }
 
-std::vector<ProfileEntry> RealLifeVideoSaverAndLoader::readProfileEntries(QDataStream &in) const
+std::vector<ProfileEntry> RealLifeVideoCache::readProfileEntries(QDataStream &in) const
 {
     quint32 numberOfEntries;
     in >> numberOfEntries;
@@ -202,7 +212,7 @@ std::vector<ProfileEntry> RealLifeVideoSaverAndLoader::readProfileEntries(QDataS
     return entries;
 }
 
-void RealLifeVideoSaverAndLoader::saveInformationBoxes(QDataStream &out, const std::vector<InformationBox> &entries) const
+void RealLifeVideoCache::saveInformationBoxes(QDataStream &out, const std::vector<InformationBox> &entries) const
 {
     out << static_cast<quint32>(entries.size());
     for (const InformationBox &entry: entries) {
@@ -213,7 +223,7 @@ void RealLifeVideoSaverAndLoader::saveInformationBoxes(QDataStream &out, const s
     }
 }
 
-std::vector<InformationBox> RealLifeVideoSaverAndLoader::readInformationBoxes(QDataStream &in) const
+std::vector<InformationBox> RealLifeVideoCache::readInformationBoxes(QDataStream &in) const
 {
     quint32 numberOfEntries;
     in >> numberOfEntries;
