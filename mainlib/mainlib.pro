@@ -160,7 +160,7 @@ SOURCES += \
     $$VIDEO_SOURCES \
     profilepainter.cpp \
     quantityprinter.cpp \
-    sensors.cpp \
+    sensors.cpp
 
 LIBS +=  -lusb-1.0
 
