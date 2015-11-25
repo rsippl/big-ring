@@ -61,7 +61,6 @@ Profile::Profile():
 
 Profile &Profile::operator=(const Profile &other)
 {
-    qDebug() << "copy assignment of Profile";
     _type = other._type;
     _startAltitude = other._startAltitude;
     _entries = other._entries;
@@ -157,5 +156,15 @@ float Profile::totalDistance() const {
         return 0;
     }
     return _entries.back().distance();
+}
+
+float Profile::startAltitude() const
+{
+    return _startAltitude;
+}
+
+const std::vector<ProfileEntry> &Profile::entries() const
+{
+    return _entries;
 }
 

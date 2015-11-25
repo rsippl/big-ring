@@ -20,6 +20,7 @@
 
 #include "gpxfileparser.h"
 #include "reallifevideoimporter.h"
+#include "reallifevideosaverandloader.h"
 #include "rlvfileparser.h"
 #include "virtualtrainingfileparser.h"
 #include "bigringsettings.h"
@@ -38,6 +39,7 @@
 
 namespace
 {
+std::unique_ptr<RealLifeVideo> readFromCache(const QString &fileName);
 RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString> &videoFilePaths, const QList<QString> &pgmfFilePaths);
 QSet<QString> findFiles(const QString& root, const QStringList &patterns);
 QSet<QString> findRlvFiles(const QString &root);
@@ -145,8 +147,17 @@ QList<QFileInfo> fromPaths(const QList<QString>& filePaths) {
 RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& videoFilePaths,
                                      const QList<QString>& pgmfFilePaths)
 {
+    QDateTime start = QDateTime::currentDateTime();
     QList<QFileInfo> videoFiles = fromPaths(videoFilePaths);
     QList<QFileInfo> pgmfFiles = fromPaths(pgmfFilePaths);
+
+    QString filename = QFileInfo(rlvFile).fileName();
+    const auto fromCache = readFromCache(filename);
+    if (fromCache) {
+        QDateTime end = QDateTime::currentDateTime();
+        qDebug() << "import of" << rlvFile.fileName() << "took" << start.msecsTo(end) << "ms";
+        return *fromCache;
+    }
 
     RealLifeVideo rlv;
     if (rlvFile.fileName().endsWith(".rlv")) {
@@ -158,6 +169,8 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& video
         rlv = indoorcycling::GpxFileParser(videoFiles).parseGpxFile(rlvFile);
     }
     if (rlv.isValid()) {
+        RealLifeVideoSaverAndLoader().saveRlv(filename, rlv);
+
         QSettings settings;
         settings.beginGroup(QString("%1.custom_courses").arg(rlv.name()));
         QStringList customCourseNames = settings.allKeys();
@@ -181,7 +194,15 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& video
         }
         settings.endGroup();
     }
+    QDateTime end = QDateTime::currentDateTime();
+    qDebug() << "import of" << rlvFile.fileName() << "took" << start.msecsTo(end) << "ms";
     return rlv;
+}
+
+std::unique_ptr<RealLifeVideo> readFromCache(const QString &fileName)
+{
+    RealLifeVideoSaverAndLoader loader;
+    return loader.load(fileName);
 }
 
 QSet<QString> findFiles(const QString& root, const QStringList& patterns)

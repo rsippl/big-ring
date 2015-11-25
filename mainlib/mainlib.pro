@@ -49,7 +49,8 @@ HEADERS += \
     unitconverter.h \
     messagepanelitem.h \
     rollingaveragesensoritem.h \
-    rollingaveragecalculator.h
+    rollingaveragecalculator.h \
+    reallifevideosaverandloader.h
 
 SOURCES += \
     cyclist.cpp \
@@ -85,7 +86,8 @@ SOURCES += \
     unitconverter.cpp \
     messagepanelitem.cpp \
     rollingaveragesensoritem.cpp \
-    rollingaveragecalculator.cpp
+    rollingaveragecalculator.cpp \
+    reallifevideosaverandloader.cpp
 
 
 
