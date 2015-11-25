@@ -2,6 +2,7 @@
 
 - Ride GUI: Dials are at the bottom now.
 - Ride GUI: Only show profile for the current course.
+- RLV import: Use a cache to speed up import of xml and gpx files.
 
 # 1.2.0
 
