@@ -264,7 +264,7 @@ RlvFileParser::RlvFileParser(const QList<QFileInfo> &pgmfFiles, const QList<QFil
 
 QString RlvFileParser::findVideoFilename(const QList<QFileInfo>& videoFiles, const QString& rlvVideoFilename)
 {
-    return findVideoFileInfo(videoFiles, rlvVideoFilename).canonicalFilePath();
+    return findVideoFileInfo(videoFiles, rlvVideoFilename).filePath();
 }
 
 QFileInfo RlvFileParser::findVideoFileInfo(const QList<QFileInfo> &videoFiles, const QString &rlvVideoFilename)

@@ -20,6 +20,7 @@
 
 #include "gpxfileparser.h"
 #include "reallifevideoimporter.h"
+#include "reallifevideocache.h"
 #include "rlvfileparser.h"
 #include "virtualtrainingfileparser.h"
 #include "bigringsettings.h"
@@ -145,19 +146,27 @@ QList<QFileInfo> fromPaths(const QList<QString>& filePaths) {
 RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& videoFilePaths,
                                      const QList<QString>& pgmfFilePaths)
 {
+    QDateTime start = QDateTime::currentDateTime();
     QList<QFileInfo> videoFiles = fromPaths(videoFilePaths);
     QList<QFileInfo> pgmfFiles = fromPaths(pgmfFilePaths);
 
     RealLifeVideo rlv;
-    if (rlvFile.fileName().endsWith(".rlv")) {
-        RlvFileParser parser(pgmfFiles, videoFiles);
-        rlv = parser.parseRlvFile(rlvFile);
+    const auto fromCache = RealLifeVideoCache().load(rlvFile);
+    if (fromCache) {
+        rlv = *fromCache;
+    } else if (rlvFile.fileName().endsWith(".rlv")) {
+        rlv = RlvFileParser(pgmfFiles, videoFiles).parseRlvFile(rlvFile);
     } else if (rlvFile.fileName().endsWith(".xml")) {
         rlv = indoorcycling::VirtualTrainingFileParser(videoFiles).parseVirtualTrainingFile(rlvFile);
     } else if (rlvFile.fileName().endsWith(".gpx")) {
         rlv = indoorcycling::GpxFileParser(videoFiles).parseGpxFile(rlvFile);
     }
     if (rlv.isValid()) {
+        // if there was no cache file, create it now.
+        if (!fromCache) {
+            RealLifeVideoCache().saveRlv(rlvFile, rlv);
+        }
+
         QSettings settings;
         settings.beginGroup(QString("%1.custom_courses").arg(rlv.name()));
         QStringList customCourseNames = settings.allKeys();
@@ -181,6 +190,8 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& video
         }
         settings.endGroup();
     }
+    QDateTime end = QDateTime::currentDateTime();
+    qDebug() << "import of" << rlvFile.fileName() << "took" << start.msecsTo(end) << "ms";
     return rlv;
 }
 

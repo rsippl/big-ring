@@ -104,13 +104,6 @@ RealLifeVideo::RealLifeVideo(const QString &name, RealLifeVideoFileType fileType
     _d->_videoCorrectionFactor = 1.0;
     _d->_distanceMappings = distanceMappings;
     _d->_informationBoxes = informationBoxes;
-
-    if (!informationBoxes.empty()) {
-        qDebug() << "Information Boxes:";
-        for (const InformationBox &informationBox: informationBoxes) {
-            qDebug() << informationBox.frameNumber() << informationBox.message();
-        }
-    }
 }
 
 RealLifeVideo::RealLifeVideo(const RealLifeVideo &other):
@@ -163,6 +156,16 @@ float RealLifeVideo::videoFrameRate() const
 const std::vector<Course> &RealLifeVideo::courses() const
 {
     return _d->_courses;
+}
+
+const std::vector<DistanceMappingEntry> &RealLifeVideo::distanceMappings() const
+{
+    return _d->_distanceMappings;
+}
+
+const std::vector<InformationBox> &RealLifeVideo::informationBoxes() const
+{
+    return _d->_informationBoxes;
 }
 
 void RealLifeVideo::setUnfinishedRun(float distance)

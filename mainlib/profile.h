@@ -59,6 +59,10 @@ public:
     //! total distance of the profile
     float totalDistance() const;
 
+    float startAltitude() const;
+
+    const std::vector<ProfileEntry> &entries() const;
+
     //! get the altitude for a particular distance. The profile always starts at altitude 0.0f
     float altitudeForDistance(float distance) const;
 
