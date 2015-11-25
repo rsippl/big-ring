@@ -1,7 +1,8 @@
 # 1.3.0
 
-- Changed ride GUI. Dials are at the bottom now.
-:
+- Ride GUI: Dials are at the bottom now.
+- Ride GUI: Only show profile for the current course.
+
 # 1.2.0
 
 - Average power values over 0, 1, 3 or 10 seconds. #42 
