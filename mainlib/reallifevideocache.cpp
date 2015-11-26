@@ -26,6 +26,13 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QDir>
 #include <QtCore/QStandardPaths>
+#include <QtCore/QtDebug>
+
+namespace
+{
+const quint32 CACHE_FILE_MAGIC = 0xC4C1FA51;
+const int CACHE_FILE_QDATASTREAM_VERSION = QDataStream::Qt_5_4;
+}
 
 RealLifeVideoCache::RealLifeVideoCache(QObject *parent) :
     QObject(parent)
@@ -38,21 +45,36 @@ std::unique_ptr<RealLifeVideo> RealLifeVideoCache::load(const QFile &rlvFile)
     QFileInfo rlvFileInfo(rlvFile);
     QFile cacheFile(absoluteFilenameForRlv(rlvFileInfo.fileName()));
     if (!cacheFile.exists()) {
-        return std::unique_ptr<RealLifeVideo>();
+        qDebug() << "No cache file for" << rlvFileInfo.fileName();
+        return nullptr;
     }
     QFileInfo cacheFileInfo(cacheFile);
     if (rlvFileInfo.lastModified() > cacheFileInfo.lastModified()) {
-        return std::unique_ptr<RealLifeVideo>();
+        qDebug() << "Cache file is stale for" << rlvFileInfo.fileName();
+        return nullptr;
     }
-
 
     cacheFile.open(QIODevice::ReadOnly);
     QDataStream in(&cacheFile);
 
     quint32 magic;
     in >> magic;
-    quint32 version;
+    if (magic != CACHE_FILE_MAGIC) {
+        qDebug() << cacheFileInfo.filePath() << "is not a valid Big-Ring cache file";
+        return nullptr;
+    }
+    QString version;
     in >> version;
+
+    if (version != QString(APP_VERSION)) {
+        qDebug() << cacheFileInfo.filePath() << "is not a cache file for version " << QString(APP_VERSION) << "but for version" << version;
+        return nullptr;
+    }
+
+    if (in.version() != CACHE_FILE_QDATASTREAM_VERSION) {
+        qDebug() << cacheFileInfo.filePath() << "does not have correct QDataStream version";
+        return nullptr;
+    }
 
     QString rlvName;
     in >> rlvName;
@@ -82,10 +104,10 @@ void RealLifeVideoCache::saveRlv(const QFile &rlvFile, const RealLifeVideo &rlv)
     file.open(QIODevice::WriteOnly);
     QDataStream out(&file);
 
-    out << (quint32) 0xAABBCCDD;
-    out << (quint32) 1;
+    out << CACHE_FILE_MAGIC;
+    out << QString(APP_VERSION);
 
-    out.setVersion(QDataStream::Qt_5_4);
+    out.setVersion(CACHE_FILE_QDATASTREAM_VERSION);
 
     out << rlv.name();
     out << static_cast<quint32>(rlv.fileType());
