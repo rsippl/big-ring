@@ -98,11 +98,11 @@ void ScreenSaverBlocker::unblockScreenSaver()
 #endif
 
 
+#ifndef Q_OS_WIN
 // this method will only be called on Linux, so we wont implement
 // anything for Windows.
 void ScreenSaverBlocker::handleError(QProcess::ProcessError error)
 {
-#ifdef Q_OS_LINUX
     QObject* const process = sender();
     switch(error) {
     case QProcess::FailedToStart:
@@ -112,6 +112,6 @@ void ScreenSaverBlocker::handleError(QProcess::ProcessError error)
         qDebug() << "screensaver blocker error.";
     }
     process->deleteLater();
-#endif
 }
+#endif
 }
