@@ -18,6 +18,6 @@ int main(int, char**) {
     QTest::qExec(&profileTest);
     RollingAverageCalculatorTest racTest;
     QTest::qExec(&racTest);
-    RealLifeVideoCache saveAndLoadTest;
+    RealLifeVideoCacheTest saveAndLoadTest;
     QTest::qExec(&saveAndLoadTest);
 }

@@ -164,7 +164,7 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& video
     if (rlv.isValid()) {
         // if there was no cache file, create it now.
         if (!fromCache) {
-            RealLifeVideoCache().saveRlv(rlvFile, rlv);
+            RealLifeVideoCache().save(rlvFile, rlv);
         }
 
         QSettings settings;

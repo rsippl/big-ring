@@ -24,15 +24,29 @@
 #include <memory>
 #include "reallifevideo.h"
 
-class RealLifeVideoCache : public QObject
+/**
+ * A File Cache for RealLifeVideos. Objects of this class are used to save and load RealLifeVideos to and from a format
+ * that can be loaded very quickly. We use this because loading a RealLifeVideo from a .gpx or .xml (VirtualTraining) can
+ * be pretty slow. It can take several seconds, especially on slower hardware with spinning disks. This cache can be used
+ * to trim that time to several milliseconds (on SSD) or tens of milliseconds on spinning disks, greatly improving
+ * startup time of the application.
+ *
+ * This cache uses QDataStream to save and load the cache files.
+ */
+class RealLifeVideoCache
 {
-    Q_OBJECT
 public:
-    explicit RealLifeVideoCache(QObject *parent = 0);
-
+    /** Load an rlv from the cache. \param rlvFile is used to determine the cache file. If there is a cache file
+     * and it's younger that \param rlvFile, and it is of the current application version, the RealLifeVideo is read
+     * and returned. Otherwise, an empty unique_ptr is returned.
+     */
     std::unique_ptr<RealLifeVideo> load(const QFile &rlvFile);
-public slots:
-    void saveRlv(const QFile &rlvFile, const RealLifeVideo &rlv);
+    /**
+     * Saves the rlv to a cache file.
+     * @param rlvFile used to determine the name of the cache file.
+     * @param rlv the rlv to save.
+     */
+    void save(const QFile &rlvFile, const RealLifeVideo &rlv);
 
 private:
     QString absoluteFilenameForRlv(const QString &name) const;

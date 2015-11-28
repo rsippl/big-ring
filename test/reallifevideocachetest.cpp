@@ -41,7 +41,7 @@ void RealLifeVideoCacheTest::testSaveAndLoad()
     RlvFileParser rlvFileParser({BAVELLA_PGMF_FILE}, videoFiles);
     RealLifeVideo tacxRlv = rlvFileParser.parseRlvFile(fTacx);
 
-    _cache.saveRlv(fTacx, tacxRlv);
+    _cache.save(fTacx, tacxRlv);
 
     std::unique_ptr<RealLifeVideo> rlvPtr = _cache.load(fTacx);
     QVERIFY(rlvPtr.get() != nullptr);

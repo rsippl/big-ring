@@ -34,12 +34,6 @@ const quint32 CACHE_FILE_MAGIC = 0xC4C1FA51;
 const int CACHE_FILE_QDATASTREAM_VERSION = QDataStream::Qt_5_4;
 }
 
-RealLifeVideoCache::RealLifeVideoCache(QObject *parent) :
-    QObject(parent)
-{
-    //empty
-}
-
 std::unique_ptr<RealLifeVideo> RealLifeVideoCache::load(const QFile &rlvFile)
 {
     QFileInfo rlvFileInfo(rlvFile);
@@ -97,7 +91,7 @@ std::unique_ptr<RealLifeVideo> RealLifeVideoCache::load(const QFile &rlvFile)
                                                             std::move(distanceMappings), profile, std::move(informationBoxes)));
 }
 
-void RealLifeVideoCache::saveRlv(const QFile &rlvFile, const RealLifeVideo &rlv)
+void RealLifeVideoCache::save(const QFile &rlvFile, const RealLifeVideo &rlv)
 {
     const QString filename = QFileInfo(rlvFile).fileName();
     QFile file(absoluteFilenameForRlv(filename));
