@@ -26,6 +26,7 @@
 #include "antmessage2.h"
 #include "antmessagegatherer.h"
 #include "antpowerchannelhandler.h"
+#include "antsmarttrainerchannelhandler.h"
 #include "antspeedandcadencechannelhandler.h"
 
 #include <QtCore/QtDebug>
@@ -235,6 +236,8 @@ AntChannelHandler* AntCentralDispatch::createChannel(int channelNumber, AntSenso
         return new AntHeartRateChannelHandler(channelNumber, this);
     case AntSensorType::POWER:
         return new AntPowerSlaveChannelHandler(channelNumber, this);
+    case AntSensorType::SMART_TRAINER:
+        return new AntSmartTrainerChannelHandler(channelNumber, this);
     case AntSensorType::SPEED:
         return AntSpeedAndCadenceChannelHandler::createSpeedChannelHandler(channelNumber, this);
     case AntSensorType::SPEED_AND_CADENCE:

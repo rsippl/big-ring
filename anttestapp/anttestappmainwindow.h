@@ -22,7 +22,7 @@ public slots:
     void initializationFinished(bool success);
     void searchTimedOut(AntSensorType channelType);
     void setSensor(AntSensorType channelType, int deviceNumber);
-    void setSensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType,
+    void setSensorValue(const SensorValueType valueType, const AntSensorType,
                      const QVariant& sensorValue);
     void searchStarted(AntSensorType channelType, int deviceNumber);
     void setHeartRate(int bpm);
@@ -41,6 +41,8 @@ private slots:
     void on_hrSpinBox_valueChanged(int arg1);
 
     void on_cadenceSpinBox_valueChanged(int arg1);
+
+    void on_pushButton_4_clicked();
 
 private:
     Ui::AntTestAppMainWindow *ui;

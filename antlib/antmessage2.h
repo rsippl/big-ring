@@ -34,6 +34,7 @@ enum class AntSportPeriod: quint16 {
     UNUSED = 0,
     HR = 8070,
     POWER = 8182,
+    SMART_TRAINER = 8192,
     SPEED = 8118,
     CADENCE = 8102,
     SPEED_AND_CADENCE = 8086

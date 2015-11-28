@@ -59,11 +59,22 @@ void AntTestAppMainWindow::setSensor(AntSensorType channelType, int deviceNumber
     }
 }
 
-void AntTestAppMainWindow::setSensorValue(const SensorValueType, const AntSensorType sensorType, const QVariant &sensorValue)
+void AntTestAppMainWindow::setSensorValue(const SensorValueType valueType, const AntSensorType, const QVariant &sensorValue)
 {
-    if (sensorType == AntSensorType::HEART_RATE) {
+    switch(valueType) {
+    case SensorValueType::HEARTRATE_BPM:
         ui->currentHrLabel->setText(QString::number(sensorValue.toInt()));
+        break;
+    case SensorValueType::CADENCE_RPM:
+        ui->cadenceLabel->setText(QString::number(sensorValue.toInt()));
+        break;
+    case SensorValueType::POWER_WATT:
+        ui->powerLabel->setText(QString::number(sensorValue.toInt()));
+        break;
+    default:
+        ;// noop
     }
+
 }
 
 void AntTestAppMainWindow::searchStarted(AntSensorType channelType, int)
@@ -109,4 +120,9 @@ void indoorcycling::AntTestAppMainWindow::on_hrSpinBox_valueChanged(int hr)
 void indoorcycling::AntTestAppMainWindow::on_cadenceSpinBox_valueChanged(int arg1)
 {
     emit sensorValue(SensorValueType::CADENCE_RPM, AntSensorType::POWER, QVariant::fromValue(arg1));
+}
+
+void indoorcycling::AntTestAppMainWindow::on_pushButton_4_clicked()
+{
+    emit startSearch(AntSensorType::SMART_TRAINER);
 }
