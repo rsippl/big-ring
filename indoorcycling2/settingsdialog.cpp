@@ -128,6 +128,8 @@ void SettingsDialog::fillSensorLabels()
                     indoorcycling::AntSensorType::SPEED_AND_CADENCE);
     fillSensorLabel(_ui->powerSensorLabel, configurations,
                     indoorcycling::AntSensorType::POWER);
+    fillSensorLabel(_ui->smartTrainerLabel, configurations,
+                    indoorcycling::AntSensorType::SMART_TRAINER);
 
 }
 
