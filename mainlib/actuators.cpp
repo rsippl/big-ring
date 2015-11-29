@@ -31,6 +31,6 @@ void Actuators::setSlope(qreal slopeInPercent)
 
 void Actuators::configureWeight()
 {
-    _antCentralDispatch->setWeight(_cyclist->weight(), 10.0);
+    _antCentralDispatch->setWeight(_cyclist->userWeight(), _cyclist->bikeWeight());
 }
 }

@@ -44,13 +44,13 @@ const float ROLLING_RESISTANCE_COEFFICIENT = 0.004;
 
 float calculateGroundResistance(const Cyclist& cylist)
 {
-    return cylist.weight() * GRAVITY_CONSTANT * ROLLING_RESISTANCE_COEFFICIENT;
+    return cylist.totalWeight() * GRAVITY_CONSTANT * ROLLING_RESISTANCE_COEFFICIENT;
 }
 
 
 float calculateGravityForce(const Cyclist& cyclist, float grade)
 {
-    return GRAVITY_CONSTANT * grade * 0.01 * cyclist.weight();
+    return GRAVITY_CONSTANT * grade * 0.01 * cyclist.totalWeight();
 }
 
 }
@@ -190,14 +190,14 @@ float Simulation::calculateSpeed(quint64 timeDelta)
 
     // if speed is very low, use cyclist weight, otherwise force gets very high. Is there
     // a better way to do this?
-    float force = (_cyclist.speed() > (MINIMUM_SPEED - 0.1)) ? _cyclist.power() / _cyclist.speed() : _cyclist.weight();
+    float force = (_cyclist.speed() > (MINIMUM_SPEED - 0.1)) ? _cyclist.power() / _cyclist.speed() : _cyclist.totalWeight();
 
     float resistantForce = calculateAeroDrag(_cyclist) +
             calculateGravityForce(_cyclist, _currentRlv.slopeForDistance(_cyclist.distance())) +
             calculateGroundResistance(_cyclist);
     float resultingForce = force - resistantForce;
 
-    float accelaration = resultingForce / _cyclist.weight();
+    float accelaration = resultingForce / _cyclist.totalWeight();
     float speedChange = accelaration * timeDelta * 0.001;
     float speed = _cyclist.speed() + speedChange;
 

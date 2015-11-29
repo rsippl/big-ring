@@ -20,6 +20,7 @@
 
 #include "actuators.h"
 #include "antlib/antcentraldispatch.h"
+#include "bigringsettings.h"
 #include "newvideowidget.h"
 #include "run.h"
 #include "sensorconfiguration.h"
@@ -36,9 +37,8 @@ using indoorcycling::Sensors;
 Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& rlv, Course& course, QObject* parent) :
     QObject(parent), _antCentralDispatch(antCentralDispatch), _rlv(rlv), _course(course), _state(State::BEFORE_START)
 {
-    QSettings settings;
-    const int weight = settings.value("cyclist.weight", QVariant::fromValue(82)).toInt();
-   _cyclist = new Cyclist(weight, this);
+    BigRingSettings settings;
+   _cyclist = new Cyclist(settings.userWeight(), settings.bikeWeight(), this);
 
    connect(_cyclist, &Cyclist::distanceChanged, this, &Run::distanceChanged);
    connect(_cyclist, &Cyclist::speedChanged, this, &Run::speedChanged);

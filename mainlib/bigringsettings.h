@@ -35,6 +35,12 @@ public:
     QString videoFolder() const;
     void setVideoFolder(const QString folder);
 
+    qreal userWeight() const;
+    void setUserWeight(const qreal userWeight);
+
+    qreal bikeWeight() const;
+    void setBikeWeight(const qreal bikeWeight);
+
     int powerAveragingForDisplayMilliseconds() const;
     void setPowerAveragingForDisplayMilliseconds(const int averagingMilliseconds);
 private:
