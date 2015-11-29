@@ -117,8 +117,10 @@ AntMessage2 AntSmartTrainerChannelHandler::createUserConfigurationMessage()
 
     quint8 leastSignificantWeightNibble = bikeWeight & 0xF;
 
-    content += (leastSignificantWeightNibble | 0xF0);
-    content += ((bikeWeight >> 4) & 0xFF);
+    content += ((leastSignificantWeightNibble << 4) | 0x0F);
+
+    quint8 bikeWeightMsb = ((bikeWeight >> 4) & 0xFF);
+    content += bikeWeightMsb;
 
     content += 0xFF; // invalid wheel size (do  we need it?)
     quint8 invalidGearRatio = 0x0;
