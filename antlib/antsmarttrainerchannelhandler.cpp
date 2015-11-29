@@ -27,9 +27,22 @@ void AntSmartTrainerChannelHandler::handleBroadCastMessage(const BroadCastMessag
         return;
     case DataPage::SPECIFIC_TRAINER_DATA:
         handleSpecificTrainerDataMessage(SpecificTrainerDataMessage(message.antMessage()));
+        break;
     default:
         qWarning("Unknown message %d", message.dataPage());
     }
+}
+
+void AntSmartTrainerChannelHandler::setSlope(const qreal slopeInPercent)
+{
+    _slope = slopeInPercent;
+    queueAcknowledgedMessage(createTrackResistanceMessage());
+}
+
+void AntSmartTrainerChannelHandler::channelOpened()
+{
+    queueAcknowledgedMessage(createWindResistenceMessage());
+    queueAcknowledgedMessage(createTrackResistanceMessage());
 }
 
 void AntSmartTrainerChannelHandler::handleGeneralFitnessEquipmentMessage(const GeneralFitnessEquipmentMessage &message)
@@ -42,6 +55,42 @@ void AntSmartTrainerChannelHandler::handleSpecificTrainerDataMessage(const Speci
     qDebug() << "Trainer Data event count:" << message.eventCount() << "cadence" << message.cadence() << "power" << message.instantaneousPower();
     emit sensorValue(SensorValueType::POWER_WATT, AntSensorType::SMART_TRAINER, QVariant::fromValue(message.instantaneousPower()));
     emit sensorValue(SensorValueType::CADENCE_RPM, AntSensorType::CADENCE, QVariant::fromValue(message.cadence()));
+}
+
+AntMessage2 AntSmartTrainerChannelHandler::createWindResistenceMessage()
+{
+    QByteArray content;
+    content += channelNumber();
+    content += static_cast<quint8>(0x32);
+    content += 0xFF; // reserved
+    content += 0xFF; // reserved
+    content += 0xFF; // reserved
+    content += 0xFF; // reserved
+    content += static_cast<quint8>(0xFF); // default value
+    content += static_cast<quint8>(0xFF); // default value
+    content += static_cast<quint8>(0xFF); // default value
+
+    return AntMessage2(AntMessage2::AntMessageId::ACKNOWLEDGED_MESSAGE, content);
+}
+
+AntMessage2 AntSmartTrainerChannelHandler::createTrackResistanceMessage()
+{
+    QByteArray content;
+    content += channelNumber();
+    content += static_cast<quint8>(0x33);
+    content += 0xFF; // reserved
+    content += 0xFF; // reserved
+    content += 0xFF; // reserved
+    content += 0xFF; // reserved
+
+    qint16 slopeAsInt = static_cast<qint16>(std::round((_slope + 200) * 100));
+    quint8 lsb = slopeAsInt & 0xFF;
+    quint8 msb = (slopeAsInt >> 8) & 0xFF;
+    content += lsb;
+    content += msb;
+    content += 0xFF; // default value;
+
+    return AntMessage2(AntMessage2::AntMessageId::ACKNOWLEDGED_MESSAGE, content);
 }
 
 GeneralFitnessEquipmentMessage::GeneralFitnessEquipmentMessage(const AntMessage2 &antMessage)

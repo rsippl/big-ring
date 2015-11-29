@@ -88,6 +88,10 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
         channel->setSensorDeviceNumber(deviceNumber);
     }
 
+    if (channelType == AntSensorType::SMART_TRAINER) {
+        _smartTrainerChannelHandler = dynamic_cast<AntSmartTrainerChannelHandler*>(channel);
+    }
+
     connect(channel, &AntChannelHandler::sensorFound, this, &AntCentralDispatch::setChannelInfo);
     connect(channel, &AntChannelHandler::sensorValue, this, &AntCentralDispatch::handleSensorValue);
     connect(channel, &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
@@ -183,6 +187,13 @@ bool AntCentralDispatch::sendSensorValue(const SensorValueType sensorValueType, 
     AntMasterChannelHandler* channel = _masterChannels[sensorType];
     channel->sendSensorValue(sensorValueType, sensorValue);
     return true;
+}
+
+void AntCentralDispatch::setSlope(const qreal slopeInPercent)
+{
+    if (_smartTrainerChannelHandler) {
+        _smartTrainerChannelHandler->setSlope(slopeInPercent);
+    }
 }
 
 void AntCentralDispatch::messageFromAntUsbStick(const QByteArray &bytes)

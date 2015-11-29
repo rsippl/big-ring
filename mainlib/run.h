@@ -68,7 +68,6 @@ private:
     };
     void setState(State newState);
 
-
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
     RealLifeVideo _rlv;
     Course _course;

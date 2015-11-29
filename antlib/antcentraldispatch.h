@@ -47,6 +47,7 @@ class AntChannelHandler;
 class AntMasterChannelHandler;
 class AntHeartRateMasterChannelHandler;
 class AntPowerMasterChannelHandler;
+class AntSmartTrainerChannelHandler;
 
 /**
  * The Main ANT+ class that manages the connection with the ANT+ usb stick and through that stick, to the ANT+
@@ -142,6 +143,11 @@ public slots:
      */
     bool sendSensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType,
                          const QVariant& sensorValue);
+
+    /**
+     * Set the slope in grades. This will only have an effect if a Smart Trainer (FE-C) channel is open.
+     */
+    void setSlope(const qreal slopeInPercent);
 private slots:
     void messageFromAntUsbStick(const QByteArray& bytes);
     /**
@@ -213,6 +219,7 @@ private:
 
     std::vector<qobject_unique_ptr<AntChannelHandler>> _channels;
     QMap<AntSensorType,QPointer<AntMasterChannelHandler>> _masterChannels;
+    QPointer<AntSmartTrainerChannelHandler> _smartTrainerChannelHandler;
     QPointer<AntPowerMasterChannelHandler> _powerTransmissionChannelHandler;
     QPointer<AntHeartRateMasterChannelHandler> _heartRateMasterChannelhandler;
     QTimer* const _initializationTimer;

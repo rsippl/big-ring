@@ -18,6 +18,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#include "actuators.h"
 #include "antlib/antcentraldispatch.h"
 #include "newvideowidget.h"
 #include "run.h"
@@ -27,6 +28,7 @@
 #include <QtCore/QTimer>
 #include <QtCore/QtDebug>
 
+using indoorcycling::Actuators;
 using indoorcycling::AntCentralDispatch;
 using indoorcycling::NamedSensorConfigurationGroup;
 using indoorcycling::Sensors;
@@ -58,6 +60,10 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     connect(sensors, &Sensors::powerWattsMeasured, _simulation, &Simulation::setPower);
     connect(sensors, &Sensors::wheelSpeedMpsMeasured, _simulation, &Simulation::setWheelSpeed);
     sensors->initialize();
+
+    indoorcycling::Actuators *actuators = new indoorcycling::Actuators(_antCentralDispatch, sensorConfigurationGroup, this);
+    connect(_simulation, &Simulation::slopeChanged, actuators, &Actuators::setSlope);
+    actuators->initialize();
 
     _lastInformationMessage = _rlv.informationBoxForDistance(_cyclist->distance());
     _informationMessageTimer.setInterval(1000);

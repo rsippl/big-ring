@@ -126,3 +126,8 @@ void indoorcycling::AntTestAppMainWindow::on_pushButton_4_clicked()
 {
     emit startSearch(AntSensorType::SMART_TRAINER);
 }
+
+void indoorcycling::AntTestAppMainWindow::on_doubleSpinBox_valueChanged(double slopeInPercent)
+{
+    emit slopeChanged(slopeInPercent);
+}

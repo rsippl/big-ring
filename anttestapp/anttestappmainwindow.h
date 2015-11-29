@@ -30,6 +30,7 @@ signals:
     void startSearch(AntSensorType channelType);
     void openMasterChannel(AntSensorType sensorType);
     void sensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType, const QVariant& value);
+    void slopeChanged(qreal slopeInPercent);
 private slots:
     void on_pushButton_clicked();
     void on_pushButton_2_clicked();
@@ -43,6 +44,8 @@ private slots:
     void on_cadenceSpinBox_valueChanged(int arg1);
 
     void on_pushButton_4_clicked();
+
+    void on_doubleSpinBox_valueChanged(double arg1);
 
 private:
     Ui::AntTestAppMainWindow *ui;

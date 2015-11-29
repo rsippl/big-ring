@@ -96,9 +96,18 @@ public:
     explicit AntSmartTrainerChannelHandler(int channelNumber, QObject *parent = nullptr);
 
     virtual void handleBroadCastMessage(const BroadCastMessage &message) override;
+
+    void setSlope(const qreal slopeInPercent);
+protected:
+    virtual void channelOpened() override final;
 private:
     void handleGeneralFitnessEquipmentMessage(const GeneralFitnessEquipmentMessage& message);
     void handleSpecificTrainerDataMessage(const SpecificTrainerDataMessage &message);
+
+    AntMessage2 createWindResistenceMessage();
+    AntMessage2 createTrackResistanceMessage();
+
+    qreal _slope = 0.0; // TODO: remove random value.
 };
 }
 #endif // ANTSMARTTRAINERCHANNELHANDLER_H
