@@ -145,6 +145,10 @@ public slots:
                          const QVariant& sensorValue);
 
     /**
+     * Set the weight of the cyclist
+     */
+    void setWeight(const qreal cyclistWeightInKilograms, const qreal bikeWeightInKilograms);
+    /**
      * Set the slope in grades. This will only have an effect if a Smart Trainer (FE-C) channel is open.
      */
     void setSlope(const qreal slopeInPercent);

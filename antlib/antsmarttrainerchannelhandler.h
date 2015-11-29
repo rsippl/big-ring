@@ -97,6 +97,7 @@ public:
 
     virtual void handleBroadCastMessage(const BroadCastMessage &message) override;
 
+    void setWeight(const qreal userWeightInKilograms, const qreal bikeWeightInKilograms);
     void setSlope(const qreal slopeInPercent);
 protected:
     virtual void channelOpened() override final;
@@ -106,8 +107,11 @@ private:
 
     AntMessage2 createWindResistenceMessage();
     AntMessage2 createTrackResistanceMessage();
+    AntMessage2 createUserConfigurationMessage();
 
     qreal _slope = 0.0; // TODO: remove random value.
+    qreal _bikeWeight = 10.0;
+    qreal _userWeight = 75.0;
 };
 }
 #endif // ANTSMARTTRAINERCHANNELHANDLER_H

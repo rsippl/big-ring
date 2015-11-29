@@ -189,6 +189,13 @@ bool AntCentralDispatch::sendSensorValue(const SensorValueType sensorValueType, 
     return true;
 }
 
+void AntCentralDispatch::setWeight(const qreal cyclistWeightInKilograms, const qreal bikeWeightInKilograms)
+{
+    if (_smartTrainerChannelHandler) {
+        _smartTrainerChannelHandler->setWeight(cyclistWeightInKilograms, bikeWeightInKilograms);
+    }
+}
+
 void AntCentralDispatch::setSlope(const qreal slopeInPercent)
 {
     if (_smartTrainerChannelHandler) {

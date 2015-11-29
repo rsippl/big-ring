@@ -4,6 +4,7 @@
 #include <QObject>
 #include "sensorconfiguration.h"
 
+class Cyclist;
 namespace indoorcycling {
 
 class AntCentralDispatch;
@@ -11,11 +12,16 @@ class Actuators : public QObject
 {
     Q_OBJECT
 public:
-    explicit Actuators(AntCentralDispatch *antCentralDispatch, const NamedSensorConfigurationGroup &sensorConfigurationGroup, QObject *parent = nullptr);
+    explicit Actuators(const Cyclist* cyclist, AntCentralDispatch *antCentralDispatch, const NamedSensorConfigurationGroup &sensorConfigurationGroup, QObject *parent = nullptr);
 public slots:
     void initialize();
+    void setSensorFound(AntSensorType channelType, int deviceNumber);
     void setSlope(qreal slopeInPercent);
+
 private:
+    void configureWeight();
+
+    const Cyclist *const _cyclist;
     AntCentralDispatch* const _antCentralDispatch;
     const NamedSensorConfigurationGroup _sensorConfigurationGroup;
 };

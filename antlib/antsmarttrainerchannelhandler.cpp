@@ -33,6 +33,13 @@ void AntSmartTrainerChannelHandler::handleBroadCastMessage(const BroadCastMessag
     }
 }
 
+void AntSmartTrainerChannelHandler::setWeight(const qreal userWeightInKilograms, const qreal bikeWeightInKilograms)
+{
+    _userWeight = userWeightInKilograms;
+    _bikeWeight = bikeWeightInKilograms;
+    queueAcknowledgedMessage(createUserConfigurationMessage());
+}
+
 void AntSmartTrainerChannelHandler::setSlope(const qreal slopeInPercent)
 {
     _slope = slopeInPercent;
@@ -89,6 +96,33 @@ AntMessage2 AntSmartTrainerChannelHandler::createTrackResistanceMessage()
     content += lsb;
     content += msb;
     content += 0xFF; // default value;
+
+    return AntMessage2(AntMessage2::AntMessageId::ACKNOWLEDGED_MESSAGE, content);
+}
+
+AntMessage2 AntSmartTrainerChannelHandler::createUserConfigurationMessage()
+{
+    QByteArray content;
+    content += channelNumber();
+    content += static_cast<quint8>(0x37);
+    // user's weight in dekagrams (100g), in two bytes.
+    quint16 userWeightAsInDekaGram = static_cast<quint16>(std::round(_userWeight * 100));
+    content += (userWeightAsInDekaGram & 0xFF);
+    content += ((userWeightAsInDekaGram >> 8) & 0xFF);
+
+    content += 0xFF; // reserved
+
+    // first nibble 0xF, followed by 1.5 bytes of bike weight. Bike weight is in multiples of 50g (0.05kg).
+    quint16 bikeWeight = static_cast<quint16>(std::round(_bikeWeight * 20)); // 20 = 1 / 0.05
+
+    quint8 leastSignificantWeightNibble = bikeWeight & 0xF;
+
+    content += (leastSignificantWeightNibble | 0xF0);
+    content += ((bikeWeight >> 4) & 0xFF);
+
+    content += 0xFF; // invalid wheel size (do  we need it?)
+    quint8 invalidGearRatio = 0x0;
+    content.append(invalidGearRatio); // invalid gear ratio. Not needed.
 
     return AntMessage2(AntMessage2::AntMessageId::ACKNOWLEDGED_MESSAGE, content);
 }
