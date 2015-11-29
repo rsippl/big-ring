@@ -14,7 +14,7 @@ indoorcycling::Actuators::Actuators(const Cyclist *cyclist, indoorcycling::AntCe
 
 void Actuators::initialize()
 {
-
+    // empty
 }
 
 void Actuators::setSensorFound(AntSensorType channelType, int)
@@ -26,7 +26,10 @@ void Actuators::setSensorFound(AntSensorType channelType, int)
 
 void Actuators::setSlope(qreal slopeInPercent)
 {
-    _antCentralDispatch->setSlope(slopeInPercent);
+    if (!qFuzzyCompare(slopeInPercent, _currentSlope)) {
+        _currentSlope = slopeInPercent;
+        _antCentralDispatch->setSlope(slopeInPercent);
+    }
 }
 
 void Actuators::configureWeight()

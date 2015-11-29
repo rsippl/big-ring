@@ -24,6 +24,8 @@ private:
     const Cyclist *const _cyclist;
     AntCentralDispatch* const _antCentralDispatch;
     const NamedSensorConfigurationGroup _sensorConfigurationGroup;
+
+    qreal _currentSlope = 0.0;
 };
 }
 #endif // ACTUATORS_H
