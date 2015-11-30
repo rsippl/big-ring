@@ -64,7 +64,7 @@ void AntSmartTrainerChannelHandler::handleSpecificTrainerDataMessage(const Speci
 {
     qDebug() << "Trainer Data event count:" << message.eventCount() << "cadence" << message.cadence() << "power" << message.instantaneousPower();
     emit sensorValue(SensorValueType::POWER_WATT, AntSensorType::SMART_TRAINER, QVariant::fromValue(message.instantaneousPower()));
-    emit sensorValue(SensorValueType::CADENCE_RPM, AntSensorType::CADENCE, QVariant::fromValue(message.cadence()));
+    emit sensorValue(SensorValueType::CADENCE_RPM, AntSensorType::SMART_TRAINER, QVariant::fromValue(message.cadence()));
 }
 
 /**
