@@ -138,7 +138,7 @@ struct InformationBoxCommand {
 struct generalProfileBlock {
     quint32 checksum;
     char _courseName[34];
-    qint32 powerSlopeOrHr;
+    qint32 powerSlopeOrHr = 1;
     qint32 _timeOrDistance;
     double _totalTimeOrDistance;
     double energyCons;
@@ -516,7 +516,7 @@ Profile PgmfFileParser::readProfile(QFile &pgmfFile)
             currentAltitude += entry.powerSlopeHeartRate * .01f * entry.durationDistance;
         }
     }
-    ProfileType type = (ProfileType) generalBlock.powerSlopeOrHr;
+    ProfileType type = static_cast<ProfileType>(generalBlock.powerSlopeOrHr);
 
     return Profile(type, generalBlock.startAltitude, std::move(profile));
 }
