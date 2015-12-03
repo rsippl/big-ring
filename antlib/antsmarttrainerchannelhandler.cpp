@@ -2,22 +2,76 @@
 
 #include <QtCore/QtDebug>
 namespace {
-enum class DataPage {
-    GENERAL_FITNESS_EQUIPMENT = 0x10,
-    SPECIFIC_TRAINER_DATA = 0x19,
-    WIND_RESISTANCE = 0x32,
-    TRACK_RESISTANCE = 0x33,
-    USER_CONFIGURATION = 0x37
-};
-
+const quint8 ZERO_BYTE = 0x0;
 const quint8 TRAINER_EQUIPMENT_TYPE = 25;
 
+const int CONFIGURATION_CHECK_INTERVAL = 5000;
 }
 namespace indoorcycling {
-AntSmartTrainerChannelHandler::AntSmartTrainerChannelHandler(int channelNumber, QObject *parent) :
-    AntChannelHandler(channelNumber, AntSensorType::SMART_TRAINER, AntSportPeriod::SMART_TRAINER, parent)
+/**
+ * CommandStatusReplyMessage is an ANT+ Broadcast message.
+ *
+ * There are several data pages in the ANT+ FE-C profile.
+ * All Data Pages hold 8 bytes of content.
+ */
+class CommandStatusReplyMessage: public BroadCastMessage
 {
-    // empty
+public:
+    enum class Status: quint8 {
+        PASS, FAIL, NOT_SUPPORTED, REJECTED, PENDING
+    };
+
+    /**
+     * Create a CommandStatusReplyMessage from an AntMessage2.
+     * @param antMessage the ANT+ broadcast message.
+     * @return a CommandStatusReplyMessage
+     */
+    CommandStatusReplyMessage(const AntMessage2& antMessage = AntMessage2());
+
+    AntSmartTrainerChannelHandler::DataPage dataPage() const { return _dataPage; }
+    quint8 sequenceNr() const { return _sequenceNr; }
+    bool received() const { return _sequenceNr != 0xFF; }
+    Status status() const { return _status; }
+
+private:
+    AntSmartTrainerChannelHandler::DataPage _dataPage;
+    quint8 _sequenceNr;
+    Status _status;
+};
+
+/**
+ * CommandStatusReplyMessage is an ANT+ Broadcast message.
+ *
+ * There are several data pages in the ANT+ FE-C profile.
+ * All Data Pages hold 8 bytes of content.
+ */
+class UserConfigurationMessage: public BroadCastMessage
+{
+public:
+    enum class Status: quint8 {
+        PASS, FAIL, NOT_SUPPORTED, REJECTED, PENDING
+    };
+
+    /**
+     * Create a UserConfigurationMessage from an AntMessage2.
+     * @param antMessage the ANT+ broadcast message.
+     * @return a UserConfigurationMessage
+     */
+    UserConfigurationMessage(const AntMessage2& antMessage = AntMessage2());
+
+    qreal userWeight() const { return _userWeight; }
+
+private:
+    qreal _userWeight;
+};
+
+AntSmartTrainerChannelHandler::AntSmartTrainerChannelHandler(int channelNumber, QObject *parent) :
+    AntChannelHandler(channelNumber, AntSensorType::SMART_TRAINER, AntSportPeriod::SMART_TRAINER, parent),
+    _configurationCheckerTimer(new QTimer(this))
+{
+    connect(_configurationCheckerTimer, &QTimer::timeout, this, &AntSmartTrainerChannelHandler::checkConfiguration);
+    _configurationCheckerTimer->setInterval(CONFIGURATION_CHECK_INTERVAL);
+    _configurationCheckerTimer->start();
 }
 
 
@@ -31,9 +85,21 @@ void AntSmartTrainerChannelHandler::handleBroadCastMessage(const BroadCastMessag
     case DataPage::SPECIFIC_TRAINER_DATA:
         handleSpecificTrainerDataMessage(SpecificTrainerDataMessage(message.antMessage()));
         break;
+//    case DataPage::TRACK_RESISTANCE:
+//        handleTrackResistanceMessage(TrackResistanceMessage(message.antMessage()));
+//        break;
+    case DataPage::COMMAND_STATUS:
+        qDebug() << "Command status reply received";
+        handleCommandStatusReplyMessage(CommandStatusReplyMessage(message.antMessage()));
+        break;
     default:
         qWarning("Unknown message %d", message.dataPage());
     }
+}
+
+void AntSmartTrainerChannelHandler::checkConfiguration()
+{
+    queueAcknowledgedMessage(createRequestMessage(DataPage::COMMAND_STATUS));
 }
 
 void AntSmartTrainerChannelHandler::setWeight(const qreal userWeightInKilograms, const qreal bikeWeightInKilograms)
@@ -65,6 +131,29 @@ void AntSmartTrainerChannelHandler::handleSpecificTrainerDataMessage(const Speci
     qDebug() << "Trainer Data event count:" << message.eventCount() << "cadence" << message.cadence() << "power" << message.instantaneousPower();
     emit sensorValue(SensorValueType::POWER_WATT, AntSensorType::SMART_TRAINER, QVariant::fromValue(message.instantaneousPower()));
     emit sensorValue(SensorValueType::CADENCE_RPM, AntSensorType::SMART_TRAINER, QVariant::fromValue(message.cadence()));
+
+    if (message.userConfigurationNeeded()) {
+        queueAcknowledgedMessage(createUserConfigurationMessage());
+    }
+}
+
+void AntSmartTrainerChannelHandler::handleCommandStatusReplyMessage(const CommandStatusReplyMessage &message)
+{
+    if (message.received() && (message.dataPage() == DataPage::TRACK_RESISTANCE || message.dataPage() == DataPage::WIND_RESISTANCE)) {
+        qDebug() << "We're in simulation mode!";
+    } else {
+        qWarning("Something is wrong, we're not in simulation mode");
+        queueAcknowledgedMessage(createRequestMessage(DataPage::WIND_RESISTANCE));
+    }
+}
+
+void AntSmartTrainerChannelHandler::handleUserConfigurationMessage(const UserConfigurationMessage &message)
+{
+    if (qFuzzyCompare(message.userWeight(), _userWeight)) {
+        qDebug() << "User weight correctly configured";
+    } else {
+        qWarning("User weight not correctly configured on device!");
+    }
 }
 
 /**
@@ -165,6 +254,22 @@ AntMessage2 AntSmartTrainerChannelHandler::createUserConfigurationMessage()
     return AntMessage2(AntMessage2::AntMessageId::ACKNOWLEDGED_MESSAGE, content);
 }
 
+AntMessage2 AntSmartTrainerChannelHandler::createRequestMessage(DataPage dataPage)
+{
+    QByteArray content;
+    content += channelNumber();
+    content += static_cast<quint8>(DataPage::DATA_PAGE_REQUEST);
+    content += 0xFF; // reserved
+    content += 0xFF; // reserved
+    content += 0xFF; // no descriptor
+    content += 0xFF; // no descriptor
+    content += 0x01; // transmit the page once.
+    content += static_cast<quint8>(dataPage);
+    content += static_cast<quint8>(0x1);
+
+    return AntMessage2(AntMessage2::AntMessageId::ACKNOWLEDGED_MESSAGE, content);
+}
+
 GeneralFitnessEquipmentMessage::GeneralFitnessEquipmentMessage(const AntMessage2 &antMessage)
 {
     quint8 equipmentTypeField = antMessage.contentByte(2) & 0x1F;
@@ -201,6 +306,11 @@ SpecificTrainerDataMessage::SpecificTrainerDataMessage(const AntMessage2 &antMes
 
     quint16 powerBytes = antMessage.contentShort(6);
     _instantaneousPower = powerBytes & 0x0FFF;
+
+    quint8 statusByte = (antMessage.contentByte(7) & 0xF0) >> 4;
+    _bicyclePowerCalibrationNeeded = statusByte & 0x1;
+    _resistanceCalibrationNeeded = statusByte & 0x2;
+    _userConfigurationNeeded = statusByte & 0x4;
 }
 
 quint8 SpecificTrainerDataMessage::eventCount() const
@@ -216,6 +326,34 @@ quint8 SpecificTrainerDataMessage::cadence() const
 quint16 SpecificTrainerDataMessage::instantaneousPower() const
 {
     return _instantaneousPower;
+}
+
+bool SpecificTrainerDataMessage::bicyclePowerCalibrationNeeded() const
+{
+    return _bicyclePowerCalibrationNeeded;
+}
+
+bool SpecificTrainerDataMessage::resistanceCalibrationNeeded() const
+{
+    return _resistanceCalibrationNeeded;
+}
+
+bool SpecificTrainerDataMessage::userConfigurationNeeded() const
+{
+    return _userConfigurationNeeded;
+}
+
+CommandStatusReplyMessage::CommandStatusReplyMessage(const AntMessage2 &antMessage)
+{
+    _dataPage = static_cast<AntSmartTrainerChannelHandler::DataPage>(antMessage.contentByte(2));
+    _sequenceNr = antMessage.contentByte(3);
+    _status = static_cast<Status>(antMessage.contentByte(4));
+}
+
+UserConfigurationMessage::UserConfigurationMessage(const AntMessage2 &antMessage)
+{
+    quint16 userWeightDekaGrams = antMessage.contentShort(2);
+    _userWeight = userWeightDekaGrams * 0.01;
 }
 
 }
