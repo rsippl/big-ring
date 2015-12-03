@@ -148,7 +148,14 @@ void Sensors::handleCadence(const QVariant &sensorValue, const AntSensorType sen
  */
 void Sensors::handlePower(const QVariant &sensorValue, const AntSensorType sensorType)
 {
-    if (_powerSensorPresent && sensorType == AntSensorType::POWER) {
+    bool useValue;
+    if (_powerSensorPresent) {
+        useValue = sensorType == AntSensorType::POWER;
+    } else {
+        useValue = true;
+    }
+
+    if (useValue) {
         _powerWatts = sensorValue.toInt();
         emit powerWattsMeasured(_powerWatts);
     }
