@@ -61,9 +61,9 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     connect(sensors, &Sensors::wheelSpeedMpsMeasured, _simulation, &Simulation::setWheelSpeed);
     sensors->initialize();
 
-    indoorcycling::Actuators *actuators = new indoorcycling::Actuators(_cyclist, _antCentralDispatch, sensorConfigurationGroup, this);
-    connect(_simulation, &Simulation::slopeChanged, actuators, &Actuators::setSlope);
-    actuators->initialize();
+    _actuators = new indoorcycling::Actuators(_cyclist, _antCentralDispatch, sensorConfigurationGroup, this);
+    connect(_simulation, &Simulation::slopeChanged, _actuators, &Actuators::setSlope);
+    _actuators->initialize();
 
     _lastInformationMessage = _rlv.informationBoxForDistance(_cyclist->distance());
     _informationMessageTimer.setInterval(1000);
@@ -104,7 +104,9 @@ QTime Run::time() const
 
 void Run::start()
 {
+
     _simulation->play(true);
+    _actuators->setSlope(_rlv.slopeForDistance(_cyclist->distance()));
     _state = State::STARTING;
 }
 
@@ -116,6 +118,7 @@ void Run::play()
 void Run::stop()
 {
     _simulation->play(false);
+    _actuators->setSlope(0.0);
     emit stopped();
 }
 

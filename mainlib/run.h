@@ -29,6 +29,7 @@
 #include "simulation.h"
 
 namespace indoorcycling {
+class Actuators;
 class AntCentralDispatch;
 }
 
@@ -74,6 +75,7 @@ private:
     Cyclist* _cyclist;
     Simulation* _simulation;
     State _state;
+    indoorcycling::Actuators *_actuators;
     QTimer _informationMessageTimer;
     InformationBox _lastInformationMessage;
 
