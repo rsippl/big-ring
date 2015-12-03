@@ -116,7 +116,9 @@ AntMessage2 AntSmartTrainerChannelHandler::createTrackResistanceMessage()
     content += 0xFF; // reserved
     content += 0xFF; // reserved
 
-    qint16 slopeAsInt = static_cast<qint16>(std::round((_slope + 200) * 100));
+    // slope in 1/100 of percent. Range -200% to +200%, so first add 200 (%) to the slope.
+    qreal boundedSlope = qBound(-200.0, _slope, 200.0);
+    qint16 slopeAsInt = static_cast<qint16>(std::round((boundedSlope + 200) * 100));
     content += slopeAsInt & 0xFF;
     content += ((slopeAsInt >> 8) & 0xFF);
     content += 0xFF; // default value;
