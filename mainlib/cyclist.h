@@ -27,7 +27,7 @@ class Cyclist : public QObject
 {
     Q_OBJECT
 public:
-    explicit Cyclist(int weight, QObject *parent = 0);
+    explicit Cyclist(const qreal userWeight, const qreal bikeWeight, QObject *parent = 0);
     void setDistance(float distance);
     void setDistanceTravelled(float distanceTravelled);
     void setSpeed(float speed);
@@ -38,7 +38,10 @@ public:
     int heartRate() const;
     int cadence() const;
     int power() const;
-    int weight() const;
+
+    qreal userWeight() const;
+    qreal bikeWeight() const;
+    qreal totalWeight() const;
 
 public slots:
     void setHeartRate(int heartRate);
@@ -57,7 +60,8 @@ signals:
     void distanceTravelledChanged(float distanceTravelled);
 
 private:
-    const int _weight;
+    const qreal _userWeight;
+    const qreal _bikeWeight;
     int _heartRate;
     int _cadence;
     int _power;

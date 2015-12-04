@@ -21,6 +21,7 @@
 #define ANTCHANNELHANDLER_H
 
 #include <memory>
+#include <deque>
 #include <QtCore/QObject>
 
 #include "antmessage2.h"
@@ -32,7 +33,6 @@ class AntChannelHandler : public QObject
     Q_OBJECT
 public:
     virtual ~AntChannelHandler();
-
 
     enum class ChannelState {
         CLOSED,
@@ -75,9 +75,12 @@ public slots:
     void handleChannelEvent(const AntChannelEventMessage& message);
     void handleBroadcastEvent(const BroadCastMessage& broadcastMessage);
     void handleChannelIdEvent(const SetChannelIdMessage& channelIdMessage);
+
 protected:
     explicit AntChannelHandler(const int channelNumber, const AntSensorType sensorType,
                                AntSportPeriod channelPeriod, QObject* parent);
+
+    void queueAcknowledgedMessage(const AntMessage2 &message);
 
     quint8 channelNumber() const;
 
@@ -100,17 +103,23 @@ protected:
      * The default implementation is empty.
      */
     virtual void channelOpened();
+
 private:
     void setState(ChannelState state);
     void advanceState(const AntMessage2::AntMessageId messageId);
     void handleFirstBroadCastMessage(const BroadCastMessage&);
     void assertMessageId(const AntMessage2::AntMessageId expected, const AntMessage2::AntMessageId actual);
+    void sendNextAcknowledgedMessage();
+    void transferTxCompleted();
+    void transferTxFailed();
 
     const int _channelNumber;
     int _deviceNumber;
     const AntSensorType _sensorType;
     const AntSportPeriod _channelPeriod;
     ChannelState _state;
+    AntMessage2 _currentAcknowledgedMessage;
+    std::deque<AntMessage2> _acknowledgedMessagesToSend;
 };
 
 class AntMasterChannelHandler: public AntChannelHandler

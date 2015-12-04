@@ -18,7 +18,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#include "actuators.h"
 #include "antlib/antcentraldispatch.h"
+#include "bigringsettings.h"
 #include "newvideowidget.h"
 #include "run.h"
 #include "sensorconfiguration.h"
@@ -27,6 +29,7 @@
 #include <QtCore/QTimer>
 #include <QtCore/QtDebug>
 
+using indoorcycling::Actuators;
 using indoorcycling::AntCentralDispatch;
 using indoorcycling::NamedSensorConfigurationGroup;
 using indoorcycling::Sensors;
@@ -34,9 +37,8 @@ using indoorcycling::Sensors;
 Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& rlv, Course& course, QObject* parent) :
     QObject(parent), _antCentralDispatch(antCentralDispatch), _rlv(rlv), _course(course), _state(State::BEFORE_START)
 {
-    QSettings settings;
-    const int weight = settings.value("cyclist.weight", QVariant::fromValue(82)).toInt();
-   _cyclist = new Cyclist(weight, this);
+    BigRingSettings settings;
+   _cyclist = new Cyclist(settings.userWeight(), settings.bikeWeight(), this);
 
    connect(_cyclist, &Cyclist::distanceChanged, this, &Run::distanceChanged);
    connect(_cyclist, &Cyclist::speedChanged, this, &Run::speedChanged);
@@ -58,6 +60,10 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     connect(sensors, &Sensors::powerWattsMeasured, _simulation, &Simulation::setPower);
     connect(sensors, &Sensors::wheelSpeedMpsMeasured, _simulation, &Simulation::setWheelSpeed);
     sensors->initialize();
+
+    _actuators = new indoorcycling::Actuators(_cyclist, _antCentralDispatch, sensorConfigurationGroup, this);
+    connect(_simulation, &Simulation::slopeChanged, _actuators, &Actuators::setSlope);
+    _actuators->initialize();
 
     _lastInformationMessage = _rlv.informationBoxForDistance(_cyclist->distance());
     _informationMessageTimer.setInterval(1000);
@@ -98,7 +104,9 @@ QTime Run::time() const
 
 void Run::start()
 {
+
     _simulation->play(true);
+    _actuators->setSlope(_rlv.slopeForDistance(_cyclist->distance()));
     _state = State::STARTING;
 }
 
@@ -110,6 +118,7 @@ void Run::play()
 void Run::stop()
 {
     _simulation->play(false);
+    _actuators->setSlope(0.0);
     emit stopped();
 }
 

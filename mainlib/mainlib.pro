@@ -50,7 +50,8 @@ HEADERS += \
     messagepanelitem.h \
     rollingaveragesensoritem.h \
     rollingaveragecalculator.h \
-    reallifevideocache.h
+    reallifevideocache.h \
+    actuators.h
 
 SOURCES += \
     cyclist.cpp \
@@ -87,7 +88,8 @@ SOURCES += \
     messagepanelitem.cpp \
     rollingaveragesensoritem.cpp \
     rollingaveragecalculator.cpp \
-    reallifevideocache.cpp
+    reallifevideocache.cpp \
+    actuators.cpp
 
 
 

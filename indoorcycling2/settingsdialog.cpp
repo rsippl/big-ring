@@ -62,7 +62,9 @@ SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDisp
     _ui->setupUi(this);
     QSettings settings;
     _ui->unitChooser->setCurrentText(settings.value("units").toString());
-    _ui->weightSpinBox->setValue(settings.value("cyclist.weight", QVariant::fromValue(82)).toInt());
+    BigRingSettings bigRingSettings;
+    _ui->userWeightSpinBox->setValue(bigRingSettings.userWeight());
+    _ui->bikeWeightSpinBox->setValue(bigRingSettings.bikeWeight());
 
     reset();
 }
@@ -76,12 +78,6 @@ void SettingsDialog::on_unitChooser_currentTextChanged(const QString &choice)
 {
     QSettings settings;
     settings.setValue("units", choice);
-}
-
-void SettingsDialog::on_weightSpinBox_valueChanged(int cyclistWeight)
-{
-    QSettings settings;
-    settings.setValue("cyclist.weight", QVariant::fromValue(cyclistWeight));
 }
 
 void SettingsDialog::on_pushButton_clicked()
@@ -132,6 +128,8 @@ void SettingsDialog::fillSensorLabels()
                     indoorcycling::AntSensorType::SPEED_AND_CADENCE);
     fillSensorLabel(_ui->powerSensorLabel, configurations,
                     indoorcycling::AntSensorType::POWER);
+    fillSensorLabel(_ui->smartTrainerLabel, configurations,
+                    indoorcycling::AntSensorType::SMART_TRAINER);
 
 }
 
@@ -252,4 +250,14 @@ void SettingsDialog::on_powerAveragingCombobox_currentIndexChanged(int index)
     // values are 1, 3 and 10 seconds.
     _settings.setPowerAveragingForDisplayMilliseconds(data.toInt());
 
+}
+
+void SettingsDialog::on_userWeightSpinBox_valueChanged(double userWeight)
+{
+    BigRingSettings().setUserWeight(userWeight);
+}
+
+void SettingsDialog::on_bikeWeightSpinBox_valueChanged(double bikeWeight)
+{
+    BigRingSettings().setBikeWeight(bikeWeight);
 }
