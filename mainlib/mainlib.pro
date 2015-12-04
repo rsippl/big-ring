@@ -23,6 +23,7 @@ ANT_HEADERS += \
     ant/antsensortype.h \
     ant/antheartratechannelhandler.h \
     ant/antpowerchannelhandler.h \
+    ant/antsmarttrainerchannelhandler.h \
     ant/antspeedandcadencechannelhandler.h \
 
 ANT_SOURCES += \
@@ -35,6 +36,7 @@ ANT_SOURCES += \
     ant/antchannelhandler.cpp \
     ant/antheartratechannelhandler.cpp \
     ant/antpowerchannelhandler.cpp \
+    ant/antsmarttrainerchannelhandler.cpp \
     ant/antspeedandcadencechannelhandler.cpp
 
 linux {
@@ -58,12 +60,14 @@ CONFIG_SOURCES += \
 IMPORTER_HEADERS += \
     importer/gpxfileparser.h \
     importer/virtualtrainingfileparser.h \
+    importer/reallifevideocache.h \
     importer/reallifevideoimporter.h \
     importer/rlvfileparser.h
 
 IMPORTER_SOURCES += \
     importer/gpxfileparser.cpp \
     importer/virtualtrainingfileparser.cpp \
+    importer/reallifevideocache.cpp \
     importer/reallifevideoimporter.cpp \
     importer/rlvfileparser.cpp
 
@@ -145,6 +149,7 @@ HEADERS += \
     $$RIDEGUI_HEADERS \
     $$UTIL_HEADERS \
     $$VIDEO_HEADERS \
+    actuators.h \
     profilepainter.h \
     sensors.h \
     quantityprinter.h \
@@ -158,9 +163,13 @@ SOURCES += \
     $$RIDEGUI_SOURCES \
     $$UTIL_SOURCES \
     $$VIDEO_SOURCES \
+    actuators.cpp \
     profilepainter.cpp \
     quantityprinter.cpp \
     sensors.cpp
 
 LIBS +=  -lusb-1.0
+
+
+
 

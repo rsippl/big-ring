@@ -17,34 +17,23 @@
  * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-#ifndef BIGRINGSETTINGS_H
-#define BIGRINGSETTINGS_H
 
-#include <QtCore/QSettings>
+#ifndef REALLIFEVIDEOCACHETEST_H
+#define REALLIFEVIDEOCACHETEST_H
 
-/**
- * Wrapper around QSettings, used for application specific settings.
- * Just create a BigRingSettings object on the stack and load and
- * save settings.
- */
-class BigRingSettings
+#include <QtCore/QObject>
+#include "importer/reallifevideocache.h"
+
+class RealLifeVideoCacheTest : public QObject
 {
+    Q_OBJECT
 public:
-    BigRingSettings();
+    explicit RealLifeVideoCacheTest(QObject *parent = 0);
 
-    QString videoFolder() const;
-    void setVideoFolder(const QString folder);
-
-    qreal userWeight() const;
-    void setUserWeight(const qreal userWeight);
-
-    qreal bikeWeight() const;
-    void setBikeWeight(const qreal bikeWeight);
-
-    int powerAveragingForDisplayMilliseconds() const;
-    void setPowerAveragingForDisplayMilliseconds(const int averagingMilliseconds);
+private slots:
+    void testSaveAndLoad();
 private:
-    QSettings _settings;
+    RealLifeVideoCache _cache;
 };
 
-#endif // BIGRINGSETTINGS_H
+#endif // REALLIFEVIDEOCACHETEST_H

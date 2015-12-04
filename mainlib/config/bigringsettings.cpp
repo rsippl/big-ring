@@ -23,6 +23,9 @@ namespace
 {
 // By default we'll average power over 3 seconds.
 const int POWER_AVERAGING_MILLISECONDS_DEFAULT = 3000;
+
+const qreal USER_WEIGHT_KILOGRAMS_DEFAULT = 75.0;
+const qreal BIKE_WEIGHT_KILOGRAMS_DEFAULT = 10.0;
 }
 
 BigRingSettings::BigRingSettings()
@@ -38,6 +41,26 @@ QString BigRingSettings::videoFolder() const
 void BigRingSettings::setVideoFolder(const QString folder)
 {
     _settings.setValue("videoFolder", QVariant::fromValue(folder));
+}
+
+qreal BigRingSettings::userWeight() const
+{
+    return _settings.value("user.weight", QVariant::fromValue(USER_WEIGHT_KILOGRAMS_DEFAULT)).toDouble();
+}
+
+void BigRingSettings::setUserWeight(const qreal userWeight)
+{
+    _settings.setValue("user.weight", QVariant::fromValue(userWeight));
+}
+
+qreal BigRingSettings::bikeWeight() const
+{
+    return _settings.value("bike.weight", QVariant::fromValue(BIKE_WEIGHT_KILOGRAMS_DEFAULT)).toDouble();
+}
+
+void BigRingSettings::setBikeWeight(const qreal bikeWeight)
+{
+    _settings.setValue("bike.weight", QVariant::fromValue(bikeWeight));
 }
 
 int BigRingSettings::powerAveragingForDisplayMilliseconds() const

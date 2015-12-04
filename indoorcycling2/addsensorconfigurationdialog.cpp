@@ -78,6 +78,7 @@ AddSensorConfigurationDialog::AddSensorConfigurationDialog(
     fillSensorTypeRow(indoorcycling::AntSensorType::SPEED_AND_CADENCE);
     fillSensorTypeRow(indoorcycling::AntSensorType::CADENCE);
     fillSensorTypeRow(indoorcycling::AntSensorType::SPEED);
+    fillSensorTypeRow(indoorcycling::AntSensorType::SMART_TRAINER);
 
     connect(_antCentralDispatch, &AntCentralDispatch::sensorFound, this,
             &AddSensorConfigurationDialog::sensorFound);
@@ -175,7 +176,7 @@ void AddSensorConfigurationDialog::saveConfiguration()
 
 void AddSensorConfigurationDialog::updateSimulationSettings()
 {
-    bool powerSensorPresent = _configurations.contains(AntSensorType::POWER);
+    bool powerSensorPresent = _configurations.contains(AntSensorType::POWER)|| _configurations.contains(AntSensorType::SMART_TRAINER);
     bool speedSensorPresent = _configurations.contains(AntSensorType::SPEED) ||
             _configurations.contains(AntSensorType::SPEED_AND_CADENCE);
     _ui->directPowerButton->setEnabled(powerSensorPresent);

@@ -48,6 +48,12 @@ AntChannelHandler::AntChannelHandler(const int channelNumber, const AntSensorTyp
     // empty
 }
 
+void AntChannelHandler::queueAcknowledgedMessage(const AntMessage2 &message)
+{
+    _acknowledgedMessagesToSend.push_back(message);
+    sendNextAcknowledgedMessage();
+}
+
 quint8 AntChannelHandler::channelNumber() const
 {
     return _channelNumber;
@@ -66,6 +72,20 @@ quint8 AntChannelHandler::transmissionType() const
 void AntChannelHandler::channelOpened()
 {
     // empty.
+}
+
+void AntChannelHandler::transferTxCompleted()
+{
+    _currentAcknowledgedMessage = AntMessage2();
+    _acknowledgedMessagesToSend.pop_front();
+    sendNextAcknowledgedMessage();
+}
+
+void AntChannelHandler::transferTxFailed()
+{
+    qDebug() << "An acknowledged message failed. Trying it again";
+    _currentAcknowledgedMessage = AntMessage2();
+    sendNextAcknowledgedMessage();
 }
 
 AntChannelHandler::~AntChannelHandler()
@@ -127,6 +147,12 @@ void AntChannelHandler::handleChannelEvent(const AntChannelEventMessage &message
     case AntChannelEventMessage::MessageCode::EVENT_TX:
         // message has been sent.
         break;
+    case AntChannelEventMessage::MessageCode::EVENT_TRANSFER_TX_COMPLETED:
+        transferTxCompleted();
+        break;
+    case AntChannelEventMessage::MessageCode::EVENT_TRANSFER_TX_FAILED:
+        transferTxFailed();
+        break;
     default:
         qDebug() << "unhandled message" << message.toString();
     }
@@ -170,6 +196,14 @@ void AntChannelHandler::assertMessageId(const AntMessage2::AntMessageId expected
                 .arg(CHANNEL_STATE_STRINGS[_state]).arg(antMessageIdToString(expected))
                 .arg(antMessageIdToString(actual));
         qWarning("%s", qPrintable(message));
+    }
+}
+
+void AntChannelHandler::sendNextAcknowledgedMessage()
+{
+    if (_currentAcknowledgedMessage.isNull() && !_acknowledgedMessagesToSend.empty()) {
+        _currentAcknowledgedMessage = _acknowledgedMessagesToSend.front();
+        emit antMessageGenerated(_currentAcknowledgedMessage);
     }
 }
 

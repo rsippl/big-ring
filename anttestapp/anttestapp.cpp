@@ -27,6 +27,7 @@ int main(int argc, char** argv)
     QObject::connect(&mainWindow, &AntTestAppMainWindow::startSearch, &acd, &AntCentralDispatch::searchForSensorType);
     QObject::connect(&mainWindow, &AntTestAppMainWindow::openMasterChannel, &acd, &AntCentralDispatch::openMasterChannel);
     QObject::connect(&mainWindow, &AntTestAppMainWindow::sensorValue, &acd, &AntCentralDispatch::sendSensorValue);
+    QObject::connect(&mainWindow, &AntTestAppMainWindow::slopeChanged, &acd, &AntCentralDispatch::setSlope);
 
     QObject::connect(&acd, &AntCentralDispatch::searchStarted, &mainWindow, &AntTestAppMainWindow::searchStarted);
     QObject::connect(&acd, &AntCentralDispatch::sensorNotFound, &mainWindow,

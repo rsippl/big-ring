@@ -18,12 +18,19 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "config/bigringsettings.h"
 #include "importer/gpxfileparser.h"
 #include "importer/rlvfileparser.h"
 #include "importer/virtualtrainingfileparser.h"
 #include "reallifevideoimporter.h"
+<<<<<<< HEAD:mainlib/importer/reallifevideoimporter.cpp
+
+
+=======
 #include "reallifevideocache.h"
+#include "rlvfileparser.h"
+#include "virtualtrainingfileparser.h"
+>>>>>>> develop:mainlib/reallifevideoimporter.cpp
+#include "bigringsettings.h"
 
 #include <functional>
 

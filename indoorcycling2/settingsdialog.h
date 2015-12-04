@@ -53,8 +53,6 @@ public:
 private slots:
     void on_unitChooser_currentTextChanged(const QString &arg1);
 
-    void on_weightSpinBox_valueChanged(int arg1);
-
     void on_pushButton_clicked();
 
     void on_antConfigurationChooser_currentIndexChanged(const QString &selectedConfiguration);
@@ -63,6 +61,10 @@ private slots:
 
     void on_changeFolderButton_clicked();
     void on_powerAveragingCombobox_currentIndexChanged(int index);
+
+    void on_userWeightSpinBox_valueChanged(double userWeight);
+
+    void on_bikeWeightSpinBox_valueChanged(double arg1);
 
 private:
     void reset();

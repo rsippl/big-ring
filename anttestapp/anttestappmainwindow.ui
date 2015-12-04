@@ -100,14 +100,24 @@
       </property>
      </widget>
     </item>
-    <item row="7" column="0">
+    <item row="6" column="1">
+     <widget class="QSpinBox" name="cadenceSpinBox">
+      <property name="maximum">
+       <number>150</number>
+      </property>
+      <property name="value">
+       <number>90</number>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0">
      <widget class="QPushButton" name="hrMasterPushButton">
       <property name="text">
        <string>Open Heart Rate Master Channel</string>
       </property>
      </widget>
     </item>
-    <item row="7" column="1">
+    <item row="8" column="1">
      <widget class="QSpinBox" name="hrSpinBox">
       <property name="maximum">
        <number>200</number>
@@ -117,13 +127,68 @@
       </property>
      </widget>
     </item>
-    <item row="6" column="1">
-     <widget class="QSpinBox" name="cadenceSpinBox">
-      <property name="maximum">
-       <number>150</number>
+    <item row="9" column="0">
+     <widget class="QPushButton" name="pushButton_4">
+      <property name="text">
+       <string>Search Smart Trainer</string>
       </property>
-      <property name="value">
-       <number>90</number>
+     </widget>
+    </item>
+    <item row="9" column="1">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Not Found</string>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="1">
+     <widget class="QLabel" name="cadenceLabel">
+      <property name="text">
+       <string>0 rpm</string>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Cadence</string>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Power</string>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="1">
+     <widget class="QLabel" name="powerLabel">
+      <property name="text">
+       <string>0 W</string>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox">
+      <property name="decimals">
+       <number>1</number>
+      </property>
+      <property name="minimum">
+       <double>-20.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>20.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Slope (in percent)</string>
       </property>
      </widget>
     </item>
