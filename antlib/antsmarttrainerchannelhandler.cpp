@@ -125,14 +125,13 @@ void AntSmartTrainerChannelHandler::channelOpened()
     queueAcknowledgedMessage(createTrackResistanceMessage());
 }
 
-void AntSmartTrainerChannelHandler::handleGeneralFitnessEquipmentMessage(const GeneralFitnessEquipmentMessage &message)
+void AntSmartTrainerChannelHandler::handleGeneralFitnessEquipmentMessage(const GeneralFitnessEquipmentMessage&)
 {
-    qDebug() << "elapsed time:" << message.elapsedTime() << "distance:" << message.distanceTravelled() << "speed" << message.instantaneousSpeedMmps();
+    // nothing interesting here for now. We don't use speed measurements from the trainer.
 }
 
 void AntSmartTrainerChannelHandler::handleSpecificTrainerDataMessage(const SpecificTrainerDataMessage &message)
 {
-    qDebug() << "Trainer Data event count:" << message.eventCount() << "cadence" << message.cadence() << "power" << message.instantaneousPower();
     emit sensorValue(SensorValueType::POWER_WATT, AntSensorType::SMART_TRAINER, QVariant::fromValue(message.instantaneousPower()));
     emit sensorValue(SensorValueType::CADENCE_RPM, AntSensorType::SMART_TRAINER, QVariant::fromValue(message.cadence()));
 
