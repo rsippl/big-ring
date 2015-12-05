@@ -58,7 +58,9 @@ void AntChannelHandler::queueAcknowledgedMessage(const AntMessage2 &message)
         _acknowledgedMessagesToSend.pop();
     }
     _acknowledgedMessagesToSend.push(message);
-    qDebug() << "Queued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
+    if (_acknowledgedMessagesToSend.size() > 1) {
+        qDebug() << "Queued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
+    }
 }
 
 quint8 AntChannelHandler::channelNumber() const
