@@ -133,7 +133,7 @@ private:
     AntMessage2 createUserConfigurationMessage();
     AntMessage2 createRequestMessage(const DataPage dataPage);
 
-    qreal _slope = 0.0; // TODO: remove random value.
+    qreal _slope = 0.0;
     qreal _bikeWeight = 10.0;
     qreal _userWeight = 75.0;
 

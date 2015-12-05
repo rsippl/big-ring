@@ -106,13 +106,17 @@ void AntSmartTrainerChannelHandler::setWeight(const qreal userWeightInKilograms,
 {
     _userWeight = userWeightInKilograms;
     _bikeWeight = bikeWeightInKilograms;
-    queueAcknowledgedMessage(createUserConfigurationMessage());
+    if (!queueAcknowledgedMessage(createUserConfigurationMessage())) {
+        qWarning("Unable to send UserConfiguration message, queue full");
+    }
 }
 
 void AntSmartTrainerChannelHandler::setSlope(const qreal slopeInPercent)
 {
     _slope = slopeInPercent;
-    queueAcknowledgedMessage(createTrackResistanceMessage());
+    if (!queueAcknowledgedMessage(createTrackResistanceMessage())) {
+        qWarning("Unable to send Track Resistance message, queue full");
+    }
 }
 
 void AntSmartTrainerChannelHandler::channelOpened()

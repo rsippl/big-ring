@@ -21,9 +21,12 @@
 
 #include <QtCore/QMap>
 #include <QtCore/QtDebug>
+#include <QtCore/QTimer>
 
 namespace {
 const int SEARCH_TIMEOUT = 10; //seconds.
+const int ACKNOWLEDGED_MESSAGE_INTERVAL = 250; // milliseconds
+
 using indoorcycling::AntChannelHandler;
 const QMap<AntChannelHandler::ChannelState,QString> CHANNEL_STATE_STRINGS(
 {
@@ -48,10 +51,13 @@ AntChannelHandler::AntChannelHandler(const int channelNumber, const AntSensorTyp
     // empty
 }
 
-void AntChannelHandler::queueAcknowledgedMessage(const AntMessage2 &message)
+bool AntChannelHandler::queueAcknowledgedMessage(const AntMessage2 &message)
 {
-    _acknowledgedMessagesToSend.push_back(message);
-    sendNextAcknowledgedMessage();
+    if (_acknowledgedMessagesToSend.size() < ACKNOWLEDGED_MESSAGE_QUEUE_CAPACITY) {
+        _acknowledgedMessagesToSend.push_back(message);
+        return true;
+    }
+    return false;
 }
 
 quint8 AntChannelHandler::channelNumber() const
@@ -74,17 +80,23 @@ void AntChannelHandler::channelOpened()
     // empty.
 }
 
+/**
+ * An acknowledged message transfer has been completed. Remove the message from the queue. If there are any more
+ * messages on the queue, they will be sent after the next broadcast message has been received.
+ */
 void AntChannelHandler::transferTxCompleted()
 {
-    _currentAcknowledgedMessage = AntMessage2();
+    _acknowledgedMessageInFlight = false;
     _acknowledgedMessagesToSend.pop_front();
-    sendNextAcknowledgedMessage();
 }
 
+/**
+ * An acknowledged message transfer has failed. The message will be kept on front of the queue and will be sent after
+ * the next broadcast message has been received.
+ */
 void AntChannelHandler::transferTxFailed()
 {
     qDebug() << "An acknowledged message failed. Trying it again";
-    _currentAcknowledgedMessage = AntMessage2();
     sendNextAcknowledgedMessage();
 }
 
@@ -169,6 +181,8 @@ void AntChannelHandler::handleBroadcastEvent(const BroadCastMessage &broadcastMe
                  << CHANNEL_STATE_STRINGS[_state]
                     << QString("data page = %1").arg(QString::number(broadcastMessage.dataPage()));
     }
+    // we'll check if there are any acknowledged message to send. If so we'll send one now.
+    sendNextAcknowledgedMessage();
 }
 
 void AntChannelHandler::handleChannelIdEvent(const SetChannelIdMessage &channelIdMessage)
@@ -199,11 +213,15 @@ void AntChannelHandler::assertMessageId(const AntMessage2::AntMessageId expected
     }
 }
 
+/**
+ * Send thee next Acknowledged message, if there's any to send. This should only be called after a broadcastmessage
+ * has been received.
+ */
 void AntChannelHandler::sendNextAcknowledgedMessage()
 {
-    if (_currentAcknowledgedMessage.isNull() && !_acknowledgedMessagesToSend.empty()) {
-        _currentAcknowledgedMessage = _acknowledgedMessagesToSend.front();
-        emit antMessageGenerated(_currentAcknowledgedMessage);
+    if (!_acknowledgedMessageInFlight && !_acknowledgedMessagesToSend.empty()) {
+        _acknowledgedMessageInFlight = true;
+        emit antMessageGenerated(_acknowledgedMessagesToSend.front());
     }
 }
 
