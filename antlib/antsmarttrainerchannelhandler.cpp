@@ -106,17 +106,13 @@ void AntSmartTrainerChannelHandler::setWeight(const qreal userWeightInKilograms,
 {
     _userWeight = userWeightInKilograms;
     _bikeWeight = bikeWeightInKilograms;
-    if (!queueAcknowledgedMessage(createUserConfigurationMessage())) {
-        qWarning("Unable to send UserConfiguration message, queue full");
-    }
+    queueAcknowledgedMessage(createUserConfigurationMessage());
 }
 
 void AntSmartTrainerChannelHandler::setSlope(const qreal slopeInPercent)
 {
     _slope = slopeInPercent;
-    if (!queueAcknowledgedMessage(createTrackResistanceMessage())) {
-        qWarning("Unable to send Track Resistance message, queue full");
-    }
+    queueAcknowledgedMessage(createTrackResistanceMessage());
 }
 
 void AntSmartTrainerChannelHandler::channelOpened()
@@ -145,7 +141,7 @@ void AntSmartTrainerChannelHandler::handleCommandStatusReplyMessage(const Comman
     if (message.received() && (message.dataPage() == DataPage::TRACK_RESISTANCE || message.dataPage() == DataPage::WIND_RESISTANCE)) {
         qDebug() << "We're in simulation mode!";
     } else {
-        qWarning("Something is wrong, we're not in simulation mode");
+        qWarning("Something is wrong, we're not in simulation mode, %d",  static_cast<quint8>(message.dataPage()));
         queueAcknowledgedMessage(createRequestMessage(DataPage::WIND_RESISTANCE));
     }
 }

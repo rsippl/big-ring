@@ -51,13 +51,14 @@ AntChannelHandler::AntChannelHandler(const int channelNumber, const AntSensorTyp
     // empty
 }
 
-bool AntChannelHandler::queueAcknowledgedMessage(const AntMessage2 &message)
+void AntChannelHandler::queueAcknowledgedMessage(const AntMessage2 &message)
 {
-    if (_acknowledgedMessagesToSend.size() < ACKNOWLEDGED_MESSAGE_QUEUE_CAPACITY) {
-        _acknowledgedMessagesToSend.push_back(message);
-        return true;
+    if (_acknowledgedMessagesToSend.size()) {
+        qDebug() << "Queueing Acknowledged message, queue is full. Removing oldest message from queue";
+        _acknowledgedMessagesToSend.pop();
     }
-    return false;
+    _acknowledgedMessagesToSend.push(message);
+    qDebug() << "Queued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
 }
 
 quint8 AntChannelHandler::channelNumber() const
@@ -87,7 +88,8 @@ void AntChannelHandler::channelOpened()
 void AntChannelHandler::transferTxCompleted()
 {
     _acknowledgedMessageInFlight = false;
-    _acknowledgedMessagesToSend.pop_front();
+    _acknowledgedMessagesToSend.pop();
+    qDebug() << "dequeued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
 }
 
 /**
@@ -97,6 +99,7 @@ void AntChannelHandler::transferTxCompleted()
 void AntChannelHandler::transferTxFailed()
 {
     qDebug() << "An acknowledged message failed. Trying it again";
+    _acknowledgedMessageInFlight = false;
     sendNextAcknowledgedMessage();
 }
 
@@ -172,6 +175,8 @@ void AntChannelHandler::handleChannelEvent(const AntChannelEventMessage &message
 
 void AntChannelHandler::handleBroadcastEvent(const BroadCastMessage &broadcastMessage)
 {
+    // we'll check if there are any acknowledged message to send. If so we'll send one now.
+    sendNextAcknowledgedMessage();
     if (_state == ChannelState::SEARCHING) {
         handleFirstBroadCastMessage(broadcastMessage);
     } else if (_state == ChannelState::TRACKING) {
@@ -181,8 +186,6 @@ void AntChannelHandler::handleBroadcastEvent(const BroadCastMessage &broadcastMe
                  << CHANNEL_STATE_STRINGS[_state]
                     << QString("data page = %1").arg(QString::number(broadcastMessage.dataPage()));
     }
-    // we'll check if there are any acknowledged message to send. If so we'll send one now.
-    sendNextAcknowledgedMessage();
 }
 
 void AntChannelHandler::handleChannelIdEvent(const SetChannelIdMessage &channelIdMessage)
@@ -220,6 +223,7 @@ void AntChannelHandler::assertMessageId(const AntMessage2::AntMessageId expected
 void AntChannelHandler::sendNextAcknowledgedMessage()
 {
     if (!_acknowledgedMessageInFlight && !_acknowledgedMessagesToSend.empty()) {
+        qDebug() << "sending acknowledged message";
         _acknowledgedMessageInFlight = true;
         emit antMessageGenerated(_acknowledgedMessagesToSend.front());
     }
