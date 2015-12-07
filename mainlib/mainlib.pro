@@ -51,7 +51,10 @@ HEADERS += \
     rollingaveragesensoritem.h \
     rollingaveragecalculator.h \
     reallifevideocache.h \
-    actuators.h
+    actuators.h \
+    ridefilewriter.h \
+    ridesampler.h \
+    ridefile.h
 
 SOURCES += \
     cyclist.cpp \
@@ -89,8 +92,10 @@ SOURCES += \
     rollingaveragesensoritem.cpp \
     rollingaveragecalculator.cpp \
     reallifevideocache.cpp \
-    actuators.cpp
-
+    actuators.cpp \
+    ridefilewriter.cpp \
+    ridesampler.cpp \
+    ridefile.cpp
 
 
 LIBS +=  -lusb-1.0
