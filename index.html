@@ -49,7 +49,7 @@ layout: default
     <p>To use Big Ring Indoor Cycling, you need a couple of attributes:
         <ul>
             <li>A Bicycle</li>
-            <li>An Indoor Bike Trainer</li>
+            <li>An Indoor Bike Trainer, possibly an ANT+ FE-C smart trainer.</li>
             <li>A PC (Windows or Linux)</li>
             <li>One or more <a href="#reallifevideos">Real Life Videos</a></li>
         </ul>
@@ -59,9 +59,10 @@ layout: default
         road, cyclist's weight, wind resistance and rolling resistance.
     </p>
     <p>
-        To make things more interesting, you either need an ANT+ power meter or
+        To make things more interesting, you either need an ANT+ FE-C Smart Trainer, power meter or
         an ANT+ speed sensor. To be able to use these with Big Ring, you will
-        also need an ANT+ USB Stick (e.g. <a href="http://www.thisisant.com/developer/components/antusb2">this one</a>.) If you are using a power meter, Big Ring will again
+        also need an ANT+ USB Stick (e.g. <a href="http://www.thisisant.com/developer/components/antusb2">this one</a>).
+        If you are using a power meter, Big Ring will again
         determine speed from grade of the
         road, cyclist's weight, wind resistance and rolling resistance, but now
         using the cyclist's real power as input.
@@ -72,13 +73,25 @@ layout: default
         and <strong>Kurt Kinetic Fluid</strong> trainers are supported), you can
         use what is known as <em>Virtual Power</em>. Using Virtual Power, Big Ring
         determines the power output of the cyclist by calculating it using the
-        speed of the back wheel.
+        speed of the back wheel. Currently the following trainers are supported:
+        <ul>
+            <li>Cycleops Fluid 2</li>
+            <li>Elite Turbo Muin (2013)</li>
+            <li>Kurt Kinetic Fluid (Road Machine and Rock &amp; Roll)</li>
+            <li>Kurt Kinetic Cyclone</li>
+        </ul>
     </p>
     <p>
         If you have a speed sensor, but no supported trainer, Big Ring can use
         the speed of the back wheel directly. When cycling, you will have to
         adjust the resistance setting of the trainer yourself.
     </p>
+    <p>
+        You get the best experience when using a Smart Trainer. Then you will really
+        feel the slopes your riding up and down. Support for Smart Trainers is
+        currently in ALPHA state. No calibration is possible at this moment. It has
+        only been tested with an Elite Real Turbo Muin B+. If you have another
+        type of Smart Trainer, please test and share the results!
 </div>
 
 <div class="col-md-4" role="complementary">
