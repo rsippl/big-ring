@@ -26,6 +26,7 @@
 #include "antmessage2.h"
 #include "antmessagegatherer.h"
 #include "antpowerchannelhandler.h"
+#include "antsmarttrainerchannelhandler.h"
 #include "antspeedandcadencechannelhandler.h"
 
 #include <QtCore/QtDebug>
@@ -85,6 +86,10 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
     AntChannelHandler* channel = createChannel(channelNumber, channelType);
     if (deviceNumber != 0) {
         channel->setSensorDeviceNumber(deviceNumber);
+    }
+
+    if (channelType == AntSensorType::SMART_TRAINER) {
+        _smartTrainerChannelHandler = dynamic_cast<AntSmartTrainerChannelHandler*>(channel);
     }
 
     connect(channel, &AntChannelHandler::sensorFound, this, &AntCentralDispatch::setChannelInfo);
@@ -184,6 +189,20 @@ bool AntCentralDispatch::sendSensorValue(const SensorValueType sensorValueType, 
     return true;
 }
 
+void AntCentralDispatch::setWeight(const qreal cyclistWeightInKilograms, const qreal bikeWeightInKilograms)
+{
+    if (_smartTrainerChannelHandler) {
+        _smartTrainerChannelHandler->setWeight(cyclistWeightInKilograms, bikeWeightInKilograms);
+    }
+}
+
+void AntCentralDispatch::setSlope(const qreal slopeInPercent)
+{
+    if (_smartTrainerChannelHandler) {
+        _smartTrainerChannelHandler->setSlope(slopeInPercent);
+    }
+}
+
 void AntCentralDispatch::messageFromAntUsbStick(const QByteArray &bytes)
 {
     std::unique_ptr<AntMessage2> antMessage = AntMessage2::createMessageFromBytes(bytes);
@@ -235,12 +254,14 @@ AntChannelHandler* AntCentralDispatch::createChannel(int channelNumber, AntSenso
         return new AntHeartRateChannelHandler(channelNumber, this);
     case AntSensorType::POWER:
         return new AntPowerSlaveChannelHandler(channelNumber, this);
+    case AntSensorType::SMART_TRAINER:
+        return new AntSmartTrainerChannelHandler(channelNumber, this);
     case AntSensorType::SPEED:
         return AntSpeedAndCadenceChannelHandler::createSpeedChannelHandler(channelNumber, this);
     case AntSensorType::SPEED_AND_CADENCE:
         return AntSpeedAndCadenceChannelHandler::createCombinedSpeedAndCadenceChannelHandler(channelNumber, this);
     default:
-        qFatal("Unknown sensor type %d", sensorType);
+        qFatal("Unknown sensor type %d", static_cast<int>(sensorType));
         return nullptr;
     }
 }

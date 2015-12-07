@@ -21,6 +21,7 @@
 #define ANTCHANNELHANDLER_H
 
 #include <memory>
+#include <queue>
 #include <QtCore/QObject>
 
 #include "antmessage2.h"
@@ -32,7 +33,6 @@ class AntChannelHandler : public QObject
     Q_OBJECT
 public:
     virtual ~AntChannelHandler();
-
 
     enum class ChannelState {
         CLOSED,
@@ -75,9 +75,17 @@ public slots:
     void handleChannelEvent(const AntChannelEventMessage& message);
     void handleBroadcastEvent(const BroadCastMessage& broadcastMessage);
     void handleChannelIdEvent(const SetChannelIdMessage& channelIdMessage);
+
 protected:
     explicit AntChannelHandler(const int channelNumber, const AntSensorType sensorType,
                                AntSportPeriod channelPeriod, QObject* parent);
+
+    static const int ACKNOWLEDGED_MESSAGE_QUEUE_CAPACITY = 10;
+    /**
+     * Queue an Acknowledged message. The message will be sent after all other messages on the queue have been sent.
+     * If the queue is filled up to ACKNOWLEDGED_MESSAGE_QUEUE_CAPACITY, the message will be dropped and false will be returned.
+     */
+    void queueAcknowledgedMessage(const AntMessage2 &message);
 
     quint8 channelNumber() const;
 
@@ -105,12 +113,20 @@ private:
     void advanceState(const AntMessage2::AntMessageId messageId);
     void handleFirstBroadCastMessage(const BroadCastMessage&);
     void assertMessageId(const AntMessage2::AntMessageId expected, const AntMessage2::AntMessageId actual);
+    void transferTxCompleted();
+    void transferTxFailed();
+    void sendNextAcknowledgedMessage();
 
     const int _channelNumber;
     int _deviceNumber;
     const AntSensorType _sensorType;
     const AntSportPeriod _channelPeriod;
     ChannelState _state;
+
+    /** A queue of acknowledged messages that must be sent. */
+    std::queue<AntMessage2> _acknowledgedMessagesToSend;
+    /** If this is true, there is an acknowledged message in flight and we cannot send a new one. */
+    bool _acknowledgedMessageInFlight = false;
 };
 
 class AntMasterChannelHandler: public AntChannelHandler

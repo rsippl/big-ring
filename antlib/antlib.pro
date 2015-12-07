@@ -15,7 +15,8 @@ SOURCES += \
     antchannelhandler.cpp \
     antheartratechannelhandler.cpp \
     antpowerchannelhandler.cpp \
-    antspeedandcadencechannelhandler.cpp
+    antspeedandcadencechannelhandler.cpp \
+    antsmarttrainerchannelhandler.cpp
 
 linux {
     SOURCES += thirdparty/core.c
@@ -34,7 +35,8 @@ HEADERS += \
     antheartratechannelhandler.h \
     antpowerchannelhandler.h \
     antspeedandcadencechannelhandler.h \
-    util.h
+    util.h \
+    antsmarttrainerchannelhandler.h
 
 win32 {
 #    HEADERS += usbexpressantdevice.h

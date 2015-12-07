@@ -46,13 +46,14 @@ signals:
 public slots:
     void initialize();
 private slots:
+    void setSensorFound(AntSensorType channelType, int deviceNumber);
     void sensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType,
                      const QVariant& sensorValue);
     void sendPowerUpdate();
 private:
     void handleHeartRate(const QVariant& sensorValue);
-    void handleCadence(const QVariant& sensorValue);
-    void handlePower(const QVariant& sensorValue);
+    void handleCadence(const QVariant& sensorValue, const AntSensorType sensorType);
+    void handlePower(const QVariant& sensorValue, const AntSensorType sensorType);
     void handleWheelSpeed(const QVariant& sensorValue);
     int calculatePower(const float wheelSpeedRpm) const;
 
@@ -65,6 +66,9 @@ private:
     int _powerWatts;
     float _cadenceRpm;
     float _wheelSpeedRpm;
+
+    bool _cadenceSensorPresent = false;
+    bool _powerSensorPresent = false;
 };
 }
 #endif // SENSORS_H

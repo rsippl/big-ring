@@ -37,15 +37,17 @@ namespace indoorcycling {
    </trkpt>
  *
  * of this information, we use only the trkpt element. We take latitude (lat attribute),
- * longitude (lon attribute), altitude/elevation (<ele> element) and time (<time> element).
+ * longitude (lon attribute), altitude/elevation (<ele> element) time (<time> element) and
+ * speed (<speed> element).
  *
  * It is assumed that the time of the first track point is at the same time as the start of
  * the video. We could also use the mediatime extension, if present.
  *
- * The <speed> element is not used currently. We calculate the number of meters per frame
- * by calculating the distance between two consecutive points and dividing that by the
- * frame rate of the video. To do this we have to open the video file and read the framerate
- * from it.
+ * If the <speed> element is present for a track point (<trkpt>), we use the speed and timestamps
+ * to determine the distance between consecutive track points. If the the speed is not known,
+ * we'll use the QGeoPositionInfo::distanceTo() method, which uses the haversine formula to
+ * determine the distance. The meters per frame is determined using the resulting distance
+ * and the framerate of the video.
  *
  * Before reading information from the video file, the parser checks if there is a video
  * file present that has the same base name as the gpx file. For instance, for a gpx file
@@ -84,6 +86,8 @@ private:
             const QGeoPositionInfo &previousPoint,
             const QGeoPositionInfo &point,
             const QGeoPositionInfo &nextPoint) const;
+
+    qreal distanceBetweenPoints(const QGeoPositionInfo &start, const QGeoPositionInfo &end) const;
 
     std::vector<DistanceMappingEntry> convertDistanceMappings(float frameRate,
                                                               const std::vector<QGeoPositionInfo> &trackPoints) const;

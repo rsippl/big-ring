@@ -109,11 +109,13 @@ public:
     bool isValid() const;
     RealLifeVideoFileType fileType() const;
     ProfileType type() const;
-    Profile& profile() const;
+    const Profile &profile() const;
     const QString name() const;
     const QString &videoFilename() const;
     float videoFrameRate() const;
     const std::vector<Course>& courses() const;
+    const std::vector<DistanceMappingEntry> &distanceMappings() const;
+    const std::vector<InformationBox> &informationBoxes() const;
 
     /** Set the distance for the current unfinished run */
     void setUnfinishedRun(float distance);

@@ -19,6 +19,8 @@
  */
 
 #include "profile.h"
+
+#include <utility>
 #include <QtCore/QtDebug>
 
 ProfileEntry::ProfileEntry(float distance, float slope, float altitude):
@@ -41,64 +43,112 @@ Profile::Profile(ProfileType type, float startAltitude, const std::vector<Profil
     _startAltitude(startAltitude),
     _entries(entries)
 {
+    _currentProfileEntry = _entries.begin();
+}
+
+Profile::Profile(const Profile &other):
+    _type(other._type), _startAltitude(other._startAltitude)
+{
+    _entries = other._entries;
+    _currentProfileEntry = _entries.begin();
+}
+
+Profile::Profile():
+    Profile(ProfileType::SLOPE, 0.0f, std::vector<ProfileEntry>())
+{
     // empty
 }
 
-Profile::Profile(): _type(ProfileType::SLOPE), _startAltitude(0.0f)
+Profile &Profile::operator=(const Profile &other)
 {
-    // empty
+    _type = other._type;
+    _startAltitude = other._startAltitude;
+    _entries = other._entries;
+    _currentProfileEntry = _entries.begin();
+    return *this;
 }
 
 float Profile::slopeForDistance(float distance) const
 {
-    return entryForDistance(distance).slope();
+    return entryIteratorForDistance(distance)->slope();
 }
 
 float Profile::altitudeForDistance(float distance) const
 {
-    const ProfileEntry& entry = entryForDistance(distance);
+    const auto& it = entryIteratorForDistance(distance);
 
-    return _startAltitude + entry.altitude() + entry.slope() * 0.01 * (distance - entry.distance());
+    return _startAltitude + it->altitude() + it->slope() * 0.01 * (distance - it->distance());
 }
 
 float Profile::minimumAltitude() const
 {
-    auto minimumEntry = std::min_element(_entries.begin(), _entries.end(),
-            [](const ProfileEntry &entry1, const ProfileEntry &entry2) {
-        return (entry1.altitude() < entry2.altitude());
-    });
-    return (*minimumEntry).altitude() + _startAltitude;
+    return minimumAltitudeForPart(0, totalDistance());
 }
 
-float Profile::maximumAltitude() const
+float Profile::minimumAltitudeForPart(float start, float end) const
 {
-    return (*std::max_element(_entries.begin(), _entries.end(),
+    auto startAndEnd = rangeForDistances(start, end);
+
+    return (*std::min_element(startAndEnd.first, startAndEnd.second,
             [](const ProfileEntry &entry1, const ProfileEntry &entry2) {
         return (entry1.altitude() < entry2.altitude());
     })).altitude() + _startAltitude;
 }
 
-const ProfileEntry &Profile::entryForDistance(float distance) const
+float Profile::maximumAltitude() const
 {
-    if (distance < _lastKeyDistance || distance > _nextLastKeyDistance) {
-        unsigned int i = (distance > _nextLastKeyDistance) ? _currentProfileEntryIndex + 1: 0;
-        for (; i < _entries.size(); ++i) {
-            const ProfileEntry &nextEntry = _entries[i];
-            if (nextEntry.distance() > distance) {
-                break;
-            } else {
-                _currentProfileEntryIndex = i;
-            }
-        }
+    return maximumAltitudeForPart(0, totalDistance());
+}
 
-        _lastKeyDistance = _entries[_currentProfileEntryIndex].distance();
-        if (_currentProfileEntryIndex + 1 < _entries.size()) {
-            _nextLastKeyDistance = _entries[_currentProfileEntryIndex + 1].distance();
-        } else {
-            _nextLastKeyDistance = 0;
-        }
+float Profile::maximumAltitudeForPart(float start, float end) const
+{
+    const auto startAndEnd = rangeForDistances(start, end);
+
+    const float maxKeyAltitude = (*std::max_element(startAndEnd.first, startAndEnd.second,
+            [](const ProfileEntry &entry1, const ProfileEntry &entry2) {
+        return (entry1.altitude() < entry2.altitude());
+    })).altitude() + _startAltitude;
+    const float endAltitude = altitudeForDistance(end);
+
+    return std::max(maxKeyAltitude, endAltitude);
+}
+
+const std::pair<const Profile::ProfileEntryVectorIt, const Profile::ProfileEntryVectorIt> Profile::rangeForDistances(float start, float end) const
+{
+    auto startIt = std::lower_bound(_entries.begin(), _entries.end(), start, [](const ProfileEntry &entry, float distance2) {
+        return entry.distance() < distance2;
+    });
+    if (startIt != _entries.begin() && (*startIt).distance() > start) {
+        --startIt;
     }
-    return _entries[_currentProfileEntryIndex];
+    auto endIt = std::lower_bound(startIt, _entries.end(), end, [](const ProfileEntry &entry, float distance2) {
+        return entry.distance() < distance2;
+    });
+    return std::make_pair(startIt, endIt);
+}
+
+const Profile::ProfileEntryVectorIt Profile::entryIteratorForDistance(const float distance) const
+{
+    const bool atLastEntry = _currentProfileEntry + 1 == _entries.end();
+    const bool isDistanceSmallerThenCurrent = distance < _currentProfileEntry->distance();
+    const bool isDistanceBiggerThenCurrent = !atLastEntry && distance > (_currentProfileEntry + 1)->distance();
+
+    // if the distance we're looking for is smaller than the current entry, or bigger than the
+    // start of the next entry, then we need to search which entry to use. If not, we can
+    // simply use the current entry.
+    if (isDistanceSmallerThenCurrent || (!atLastEntry && isDistanceBiggerThenCurrent)) {
+        auto startIterator = (isDistanceBiggerThenCurrent) ? _currentProfileEntry + 1 : _entries.begin();
+        auto it = std::lower_bound(startIterator, _entries.end(), distance, [](const ProfileEntry &entry, float distance) {
+            return entry.distance() < distance;
+        });
+        // lower bound gives us the first entry that is not smaller then distance, so we need to
+        // go back one step, unless we're already at the beginning.
+        if (it != _entries.begin() && (it == _entries.end() || it->distance() > distance) ) {
+            it--;
+        }
+        _currentProfileEntry = it;
+    }
+    return _currentProfileEntry;
 }
 
 float Profile::totalDistance() const {
@@ -106,5 +156,15 @@ float Profile::totalDistance() const {
         return 0;
     }
     return _entries.back().distance();
+}
+
+float Profile::startAltitude() const
+{
+    return _startAltitude;
+}
+
+const std::vector<ProfileEntry> &Profile::entries() const
+{
+    return _entries;
 }
 

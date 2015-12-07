@@ -48,30 +48,45 @@ class Profile
 {
 public:
     explicit Profile(ProfileType type, float startAltitude, const std::vector<ProfileEntry> &&entries);
+    Profile(const Profile &other);
     explicit Profile();
 
+    Profile &operator=(const Profile &other);
+
     ProfileType type() const { return _type; }
-    float startAltitude() const { return _startAltitude; }
     //! get the slope for a particular distance
     float slopeForDistance(float distance) const;
     //! total distance of the profile
     float totalDistance() const;
 
+    float startAltitude() const;
+
+    const std::vector<ProfileEntry> &entries() const;
+
     //! get the altitude for a particular distance. The profile always starts at altitude 0.0f
     float altitudeForDistance(float distance) const;
 
     float minimumAltitude() const;
+    float minimumAltitudeForPart(float start, float end) const;
     float maximumAltitude() const;
+    float maximumAltitudeForPart(float start, float end) const;
 private:
-    const ProfileEntry &entryForDistance(float distance) const;
+    typedef std::vector<ProfileEntry> ProfileEntryVector;
+    typedef std::vector<ProfileEntry>::const_iterator ProfileEntryVectorIt;
 
     ProfileType _type;
     float _startAltitude;
-    std::vector<ProfileEntry> _entries;
+    ProfileEntryVector _entries;
+    /** Get an iterator the the ProfileEntry we need for a specific distance */
+    const ProfileEntryVectorIt entryIteratorForDistance(const float distance) const;
+    const std::pair<const ProfileEntryVectorIt,
+        const ProfileEntryVectorIt> rangeForDistances(float start, float end) const;
 
-    mutable unsigned int _currentProfileEntryIndex = -1;
-    mutable float _lastKeyDistance = -1;
-    mutable float _nextLastKeyDistance = -1;
+    /** mutable iterator that we use for memoryzing the current profile entry. This helps
+     * us to find the entry for a distance quickly, because most often the same entry
+     * will be reused many (100s of) times.
+     */
+    mutable std::vector<ProfileEntry>::const_iterator _currentProfileEntry;
 };
 
 #endif // PROFILE_H

@@ -28,6 +28,7 @@ namespace indoorcycling
 enum class AntSensorType: quint8 {
     HEART_RATE = 0x78,
     POWER = 0x0B,
+    SMART_TRAINER = 0x11,
     SPEED = 0x7B,
     CADENCE = 0x7A,
     SPEED_AND_CADENCE = 0x79
@@ -43,6 +44,7 @@ const QMap<AntSensorType,QString> ANT_SENSOR_TYPE_STRINGS(
             {AntSensorType::CADENCE, "Cadence"},
             {AntSensorType::HEART_RATE, "HeartRate"},
             {AntSensorType::POWER, "Power"},
+            {AntSensorType::SMART_TRAINER, "ANT+ Smart Trainer"},
             {AntSensorType::SPEED, "Speed"},
             {AntSensorType::SPEED_AND_CADENCE,"Speed And Cadence"}
         });

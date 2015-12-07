@@ -20,8 +20,8 @@
 
 #include "cyclist.h"
 
-Cyclist::Cyclist(const int weight, QObject *parent) :
-    QObject(parent), _weight(weight), _heartRate(0), _cadence(0), _power(0), _speed(0), _distance(0), _distanceTravelled(0)
+Cyclist::Cyclist(const qreal userWeight, const qreal bikeWeight, QObject *parent) :
+    QObject(parent), _userWeight(userWeight), _bikeWeight(bikeWeight), _heartRate(0), _cadence(0), _power(0), _speed(0), _distance(0), _distanceTravelled(0)
 {
 }
 
@@ -72,9 +72,19 @@ int Cyclist::cadence() const
     return _cadence;
 }
 
-int Cyclist::weight() const
+qreal Cyclist::userWeight() const
 {
-    return _weight;
+    return _userWeight;
+}
+
+qreal Cyclist::bikeWeight() const
+{
+    return _bikeWeight;
+}
+
+qreal Cyclist::totalWeight() const
+{
+    return _userWeight + _bikeWeight;
 }
 
 void Cyclist::setHeartRate(int heartRate)

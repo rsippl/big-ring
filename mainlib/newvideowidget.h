@@ -80,9 +80,7 @@ private:
     void addSensorItems(QGraphicsScene* scene);
 
     void addClock(QGraphicsScene* scene);
-    void addInformationBox(QGraphicsScene *scene);
     void addMessagePanel(QGraphicsScene *scene);
-
 
     RealLifeVideo _rlv;
     Course _course;
@@ -98,7 +96,6 @@ private:
     RollingAverageSensorItem* _speedItem;
     SensorItem* _distanceItem;
     SensorItem* _gradeItem;
-    QGraphicsTextItem* _pausedItem;
     ProfileItem* _profileItem;
     indoorcycling::ScreenSaverBlocker* _screenSaverBlocker;
     QTimer* _mouseIdleTimer;

@@ -138,7 +138,7 @@ struct InformationBoxCommand {
 struct generalProfileBlock {
     quint32 checksum;
     char _courseName[34];
-    qint32 powerSlopeOrHr;
+    qint32 powerSlopeOrHr = 1;
     qint32 _timeOrDistance;
     double _totalTimeOrDistance;
     double energyCons;
@@ -264,7 +264,7 @@ RlvFileParser::RlvFileParser(const QList<QFileInfo> &pgmfFiles, const QList<QFil
 
 QString RlvFileParser::findVideoFilename(const QList<QFileInfo>& videoFiles, const QString& rlvVideoFilename)
 {
-    return findVideoFileInfo(videoFiles, rlvVideoFilename).canonicalFilePath();
+    return findVideoFileInfo(videoFiles, rlvVideoFilename).filePath();
 }
 
 QFileInfo RlvFileParser::findVideoFileInfo(const QList<QFileInfo> &videoFiles, const QString &rlvVideoFilename)
@@ -516,7 +516,7 @@ Profile PgmfFileParser::readProfile(QFile &pgmfFile)
             currentAltitude += entry.powerSlopeHeartRate * .01f * entry.durationDistance;
         }
     }
-    ProfileType type = (ProfileType) generalBlock.powerSlopeOrHr;
+    ProfileType type = static_cast<ProfileType>(generalBlock.powerSlopeOrHr);
 
     return Profile(type, generalBlock.startAltitude, std::move(profile));
 }

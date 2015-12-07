@@ -45,6 +45,7 @@ Sensors::Sensors(AntCentralDispatch* antCentralDispatch,
         _updateTimer->setInterval(FIXED_POWER_UPDATE_INTERVAL);
         connect(_updateTimer, &QTimer::timeout, this, &Sensors::sendPowerUpdate);
     }
+    connect(_antCentralDispatch, &AntCentralDispatch::sensorFound, this, &Sensors::setSensorFound);
     connect(_antCentralDispatch, &AntCentralDispatch::sensorValue, this, &Sensors::sensorValue);
 }
 
@@ -59,18 +60,33 @@ void Sensors::initialize()
     }
 }
 
+void Sensors::setSensorFound(AntSensorType sensorType, int)
+{
+    switch(sensorType) {
+    case AntSensorType::CADENCE:
+    case AntSensorType::SPEED_AND_CADENCE:
+        _cadenceSensorPresent = true;
+        break;
+    case AntSensorType::POWER:
+        _powerSensorPresent = true;
+        break;
+    default:
+        ; // noop
+    }
+}
+
 void Sensors::sensorValue(const SensorValueType sensorValueType,
-                          const AntSensorType, const QVariant &sensorValue)
+                          const AntSensorType sensorType, const QVariant &sensorValue)
 {
     switch (sensorValueType) {
     case SensorValueType::HEARTRATE_BPM:
         handleHeartRate(sensorValue);
         break;
     case SensorValueType::CADENCE_RPM:
-        handleCadence(sensorValue);
+        handleCadence(sensorValue, sensorType);
         break;
     case SensorValueType::POWER_WATT:
-        handlePower(sensorValue);
+        handlePower(sensorValue, sensorType);
         break;
     case SensorValueType::WHEEL_SPEED_RPM:
         handleWheelSpeed(sensorValue);
@@ -97,16 +113,52 @@ void Sensors::handleHeartRate(const QVariant &sensorValue)
     emit heartRateBpmMeasured(_heartRateBpm);
 }
 
-void Sensors::handleCadence(const QVariant &sensorValue)
+/**
+ * handle the receival of a cadence value. If we are connected to a cadence or speed/cadence sensor, we will
+ * only consider cadence messages from those kind of sensors, as we deem them more reliable then the values from
+ * power sensors or smart trainers. If we don't have a cadence sensor, but do have a power sensor, we'll only consider
+ * values from the power sensor. If we don't have cadence or power sensors, we'll just use the value from the Smart Trainer.
+ * @param sensorValue the value
+ * @param sensorType the sensor type used for measuring the value.
+ */
+void Sensors::handleCadence(const QVariant &sensorValue, const AntSensorType sensorType)
 {
-    _cadenceRpm = sensorValue.toFloat();
-    emit cadenceRpmMeasured(_cadenceRpm);
+    bool useValue;
+    if (_cadenceSensorPresent) {
+        useValue = (sensorType == AntSensorType::CADENCE || sensorType == AntSensorType::SPEED_AND_CADENCE);
+    } else if (_powerSensorPresent) {
+        useValue = sensorType == AntSensorType::POWER;
+    } else { // this must be a value from a smart trainer.
+        useValue = true;
+    }
+    if (useValue) {
+        _cadenceRpm = sensorValue.toFloat();
+        emit cadenceRpmMeasured(_cadenceRpm);
+    }
 }
 
-void Sensors::handlePower(const QVariant &sensorValue)
+/**
+ * Handle the receival of a power value.
+ *
+ * If we have a power sensor we will only consider value from power sensors as power sensors are more accurate and
+ * reliable then Smart Trainers.
+ *
+ * @param sensorValue the power value.
+ * @param sensorType the sensor type used for measuring the value.
+ */
+void Sensors::handlePower(const QVariant &sensorValue, const AntSensorType sensorType)
 {
-    _powerWatts = sensorValue.toInt();
-    emit powerWattsMeasured(_powerWatts);
+    bool useValue;
+    if (_powerSensorPresent) {
+        useValue = sensorType == AntSensorType::POWER;
+    } else {
+        useValue = true;
+    }
+
+    if (useValue) {
+        _powerWatts = sensorValue.toInt();
+        emit powerWattsMeasured(_powerWatts);
+    }
 }
 
 void Sensors::handleWheelSpeed(const QVariant &sensorValue)

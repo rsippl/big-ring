@@ -9,15 +9,18 @@ SOURCES += \
     main.cpp \
     virtualpowertest.cpp \
     virtualtrainingfileparsertest.cpp \
-    rollingaveragecalculatortest.cpp
-
+    profiletest.cpp \
+    rollingaveragecalculatortest.cpp \
+    reallifevideocachetest.cpp
 
 HEADERS += \
     antmessage2test.h \
     common.h \
     virtualpowertest.h \
     virtualtrainingfileparsertest.h \
-    rollingaveragecalculatortest.h
+    profiletest.h \
+    rollingaveragecalculatortest.h \
+    reallifevideocachetest.h
 
 
 RESOURCES += \

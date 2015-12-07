@@ -34,6 +34,7 @@ enum class AntSportPeriod: quint16 {
     UNUSED = 0,
     HR = 8070,
     POWER = 8182,
+    SMART_TRAINER = 8192,
     SPEED = 8118,
     CADENCE = 8102,
     SPEED_AND_CADENCE = 8086
@@ -55,6 +56,7 @@ public:
     /** message ids (in alphabetic order) */
     enum class AntMessageId: quint8 {
         INVALID = 0x0,
+        ACKNOWLEDGED_MESSAGE = 0x4F,
         ASSIGN_CHANNEL = 0x42,
         BROADCAST_EVENT = 0x4e,
         CHANNEL_EVENT = 0x40,
@@ -151,6 +153,8 @@ public:
         RESPONSE_NO_ERROR = 0x00,
         EVENT_RX_FAILED = 0x02,
         EVENT_RX_SEARCH_TIMEOUT = 0x01,
+        EVENT_TRANSFER_TX_COMPLETED = 0x05,
+        EVENT_TRANSFER_TX_FAILED = 0x06,
         EVENT_TX = 0x03
     };
     static const QString antMessageCodeToString(const MessageCode messageCode);

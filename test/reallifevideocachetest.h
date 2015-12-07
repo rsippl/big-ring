@@ -18,30 +18,22 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESSAGEPANELITEM_H
-#define MESSAGEPANELITEM_H
+#ifndef REALLIFEVIDEOCACHETEST_H
+#define REALLIFEVIDEOCACHETEST_H
 
-#include <QtCore/QFileInfo>
 #include <QtCore/QObject>
-#include <QtWidgets/QGraphicsItem>
+#include "reallifevideocache.h"
 
-#include "reallifevideo.h"
-
-class MessagePanelItem : public QObject, public QGraphicsItem
+class RealLifeVideoCacheTest : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(QGraphicsItem)
-    Q_PROPERTY(qreal opacity READ opacity WRITE setOpacity)
 public:
-    explicit MessagePanelItem(QObject *parent = 0);
+    explicit RealLifeVideoCacheTest(QObject *parent = 0);
 
-    virtual QRectF boundingRect() const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-public slots:
-    void setMessage(const QString &text);
+private slots:
+    void testSaveAndLoad();
 private:
-    QGraphicsTextItem *_textItem;
-
+    RealLifeVideoCache _cache;
 };
 
-#endif // MESSAGEPANELITEM_H
+#endif // REALLIFEVIDEOCACHETEST_H

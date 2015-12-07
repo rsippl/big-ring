@@ -38,7 +38,7 @@ ClockGraphicsItem::ClockGraphicsItem(QObject *parent) :
     _textItem->setDefaultTextColor(Qt::white);
 
     _textItem->setPlainText("00:00:00");
-    _textItem->hide();
+
     _textItem->setPos(10, 5);
     _textItem->setOpacity(0.65);
 }

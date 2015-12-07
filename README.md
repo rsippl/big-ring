@@ -15,18 +15,18 @@ The goal for this program is to be an almost complete replacement for the
 "real life video" cycling programs that are offered by
 [Tacx](http://www.tacx.com), [Elite](http://www.elite-it.com/) and
 [CompuTrainer](http://www.racermateinc.com/computrainer.asp).
-Of course, without a way to provide feedback to the back wheel,
-this program can not give users the same experience as those programs.
-However, it also prevents users from having to buy an expensive piece
-of equipment.
+Using an ANT+ FE-C Smart Trainer, slope feedback is provided. Without an smart
+trainer, no feedback can be provided. In that case, the cyclist will have to
+change power by gearing up or down and cycling faster or slower.
 
 Current Status
 --------------
 
 Indoor Cycling currently does the following:
 
-* Works on Linux & Windows 
+* Works on Linux & Windows
 * Get information from ANT+ Sensors
+    - ANT+ FE-C Smart Trainers.
     - Power meters
     - Cadence sensors (including cadence from power meters)
     - Speed sensors
@@ -38,7 +38,7 @@ Indoor Cycling currently does the following:
     - Heart Rate
 * Play a Real Life Video with video frames mapped to the distance
   the cyclist has travelled. The distance is determined by calculating
-  (approximating) the speed of the cyclist several times per second, 
+  (approximating) the speed of the cyclist several times per second,
   and changing the travelled distance according to the speed.
 
 Dependencies
@@ -47,9 +47,9 @@ Dependencies
 Indoor Cycling uses the following components to work:
 
 * ANT+ Sensors. I use a [Power2Max](http://www.power2max.com/) power meter
-and [O-Synce](http://www.o-synce.com/en/) and [Garmin](http://www.garmin.com/garmin/cms/site/us) heart rate straps.
+and [O-Synce](http://www.o-synce.com/en/) and [Garmin](http://www.garmin.com/garmin/cms/site/us) heart rate straps. Also, I use an Elite Real Turbo Muin B+ Smart Trainer.
 * An [ANT+ USB stick](https://buy.garmin.com/shop/shop.do?pID=10997).
-I have the USB 1 variant from Garmin and a USB 2 from Suunto, the MoveStick Mini. The Suunto MoveStick Mini is internally just a Garmin USB 2 Stick, so that one should also work. 
+I have the USB 1 variant from Garmin and a USB 2 from Suunto, the MoveStick Mini. The Suunto MoveStick Mini is internally just a Garmin USB 2 Stick, so that one should also work. In fact, I also have an Elite ANT+ stick, which again is just a Garmin USB2 stick in disguise.
 * [Qt](http://qt.digia.com) 5.3. This library is used throughout the program.
 * [libav](https://libav.org/) for video decoding and displaying.
 * [G++](http://gcc.gnu.org), the compiler.
@@ -60,8 +60,9 @@ for ANT+ is libusb-win32, which is based on libusb-0.1. Because of this, interna
 Limitations
 -----------
 
-* No recording of data.
-* No way to finish a course. You can start at different points, but it will only finish when you stop (not pause) or when the video reaches the end.
+* No recording of data. This is in the works. Version 1.4 (End December 2015). probably
+* For ANT+ FE-C, no calibration support.
+* No opponents or riding against earlier rides.
 
 Building
 --------
@@ -74,7 +75,7 @@ Building
 File/Device Permissions
 -----------------------
 
-To be able to send data to the ANT+ USB sticks, the user needs permissions. On Linux systems with *udev*, this can established by putting the following rules in the udev configuration. 
+To be able to send data to the ANT+ USB sticks, the user needs permissions. On Linux systems with *udev*, this can established by putting the following rules in the udev configuration.
 
 	SUBSYSTEM=="tty", ATTRS{idVendor}=="0fcf", ATTRS{idProduct}=="1004", SYMLINK+="garmin-usb1", MODE="666"
 	SUBSYSTEMS=="usb" ATTR{idVendor}=="0fcf", ATTR{idProduct}=="1008", MODE="666"
@@ -98,4 +99,3 @@ License
 -------
 
 Big Ring Indoor Video Cycling is distributed under the GNU General Public License, version 3 or later. See LICENSE.txt for details.
-
