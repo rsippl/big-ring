@@ -70,7 +70,6 @@ AntSmartTrainerChannelHandler::AntSmartTrainerChannelHandler(int channelNumber, 
 {
     connect(_configurationCheckerTimer, &QTimer::timeout, this, &AntSmartTrainerChannelHandler::checkConfiguration);
     _configurationCheckerTimer->setInterval(CONFIGURATION_CHECK_INTERVAL);
-    _configurationCheckerTimer->start();
 }
 
 
@@ -118,6 +117,7 @@ void AntSmartTrainerChannelHandler::channelOpened()
 {
     queueAcknowledgedMessage(createWindResistenceMessage());
     queueAcknowledgedMessage(createTrackResistanceMessage());
+    _configurationCheckerTimer->start();
 }
 
 void AntSmartTrainerChannelHandler::handleGeneralFitnessEquipmentMessage(const GeneralFitnessEquipmentMessage&)
