@@ -250,9 +250,13 @@ void AddSensorConfigurationDialog::handleSensorValue(const indoorcycling::Sensor
 
 void AddSensorConfigurationDialog::performSearch(indoorcycling::AntSensorType sensorType)
 {
-    _ui->simulationSettingsGroupBox->setEnabled(false);
     int row = rowForSensorType(sensorType);
     if (row >= 0) {
+        if (!_antCentralDispatch->searchForSensorType(sensorType)) {
+            return;
+        }
+        _ui->simulationSettingsGroupBox->setEnabled(false);
+
         _configurations.remove(sensorType);
         // disable push button
         _ui->searchTableWidget->cellWidget(row, columnNumber(SearchTableColumn::BUTTON))
