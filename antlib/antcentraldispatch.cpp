@@ -285,7 +285,10 @@ void AntCentralDispatch::setChannelInfo(int, AntSensorType sensorType, int senso
 void AntCentralDispatch::searchTimedOut(int channelNumber, AntSensorType)
 {
     qDebug() << "Search timed out for channel" << channelNumber;
-    emit sensorNotFound(_channels[channelNumber]->sensorType());
+    const AntSensorType sensorType = _channels[channelNumber]->sensorType();
+    const int deviceNumber = _channels[channelNumber]->sensorDeviceNumber();
+
+    emit sensorNotFound(sensorType, deviceNumber);
 }
 
 void AntCentralDispatch::handleSensorValue(const SensorValueType sensorValueType,
