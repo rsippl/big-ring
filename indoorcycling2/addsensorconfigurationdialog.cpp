@@ -100,6 +100,7 @@ AddSensorConfigurationDialog::AddSensorConfigurationDialog(
 
 AddSensorConfigurationDialog::~AddSensorConfigurationDialog()
 {
+    _antCentralDispatch->closeAllChannels();
     delete _ui;
 }
 
