@@ -22,7 +22,7 @@ signals:
     void newFrameReady(const RealLifeVideo& rlv, qreal distance, const QImage& frame);
 
 protected:
-    virtual bool event(QEvent *);
+    virtual bool event(QEvent *) override;
 private:
     virtual void openVideoFileInternal(const QString& videoFilename) override;
 

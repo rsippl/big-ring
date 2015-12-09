@@ -2,7 +2,6 @@
 
 #include <QtCore/QtDebug>
 namespace {
-const quint8 ZERO_BYTE = 0x0;
 const quint8 TRAINER_EQUIPMENT_TYPE = 25;
 
 const int CONFIGURATION_CHECK_INTERVAL = 5000;

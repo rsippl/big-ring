@@ -25,7 +25,6 @@
 
 namespace {
 const int SEARCH_TIMEOUT = 10; //seconds.
-const int ACKNOWLEDGED_MESSAGE_INTERVAL = 250; // milliseconds
 const int ACKNOWLEDGED_MESSAGE_QUEUE_SIZE = 4; // 1 acknowledged messages.
 
 using indoorcycling::AntChannelHandler;
