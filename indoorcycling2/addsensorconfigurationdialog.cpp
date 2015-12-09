@@ -270,7 +270,6 @@ void AddSensorConfigurationDialog::performSearch(indoorcycling::AntSensorType se
         bar->setValue(0);
 
         _currentSearches.insert(sensorType);
-        _antCentralDispatch->searchForSensorType(sensorType);
     }
 }
 
