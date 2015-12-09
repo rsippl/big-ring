@@ -77,6 +77,12 @@ bool AntCentralDispatch::searchForSensorType(AntSensorType channelType)
 bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNumber)
 {
     Q_ASSERT_X((_antUsbStick), "AntCentralDispatch::searchForSensor", "usb stick not initialized");
+    if (findChannelForSensorType(channelType)) {
+        qDebug() << "There's already a channel open for sensor type" << ANT_SENSOR_TYPE_STRINGS[channelType]
+                    << ", not opening a new one";
+        return false;
+    }
+
     int channelNumber = findFreeChannel();
     if (channelNumber == _antUsbStick->numberOfChannels()) {
         return false;
@@ -234,6 +240,16 @@ void AntCentralDispatch::scanForAntUsbStick()
 
 }
 
+AntChannelHandler *AntCentralDispatch::findChannelForSensorType(const AntSensorType &sensorType)
+{
+    for(const auto &handler: _channels) {
+        if (handler && handler->sensorType() == sensorType) {
+            return handler.get();
+        }
+    }
+    return nullptr;
+}
+
 int AntCentralDispatch::findFreeChannel()
 {
     int channelNumber;
@@ -248,7 +264,8 @@ int AntCentralDispatch::findFreeChannel()
 
 AntChannelHandler* AntCentralDispatch::createChannel(int channelNumber, AntSensorType &sensorType)
 {
-    switch (sensorType) {
+    qDebug() << "creating new channel, # =" << channelNumber << "type =" << ANT_SENSOR_TYPE_STRINGS[sensorType];
+     switch (sensorType) {
     case AntSensorType::CADENCE:
         return AntSpeedAndCadenceChannelHandler::createCadenceChannelHandler(channelNumber, this);
     case AntSensorType::HEART_RATE:

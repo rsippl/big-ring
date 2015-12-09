@@ -189,6 +189,12 @@ private:
     void scanForAntUsbStick();
 
     /**
+     * find a channel for an AntSensorType. If no channel is configured for the type, this returns
+     * a nullptr.
+     */
+    AntChannelHandler *findChannelForSensorType(const AntSensorType &sensorType);
+
+    /**
      * find free channel
      */
     int findFreeChannel();
