@@ -143,6 +143,7 @@ void AntCentralDispatch::closeAllChannels()
         }
     }
     _powerTransmissionChannelHandler = nullptr;
+    _smartTrainerChannelHandler = nullptr;
 }
 
 bool AntCentralDispatch::openMasterChannel(AntSensorType sensorType)

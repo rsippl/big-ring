@@ -36,6 +36,7 @@ public:
     explicit Sensors(AntCentralDispatch* antCentralDispatch,
                      const NamedSensorConfigurationGroup& sensorConfigurationGroup,
                      QObject *parent = 0);
+    virtual ~Sensors();
 
 signals:
     void heartRateBpmMeasured(int heartRate);

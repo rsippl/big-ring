@@ -50,6 +50,11 @@ Sensors::Sensors(AntCentralDispatch* antCentralDispatch,
     connect(_antCentralDispatch, &AntCentralDispatch::sensorValue, this, &Sensors::sensorValue);
 }
 
+Sensors::~Sensors()
+{
+    _antCentralDispatch->closeAllChannels();
+}
+
 void Sensors::initialize()
 {
     if (_antCentralDispatch->antAdapterPresent()) {
