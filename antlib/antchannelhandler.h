@@ -80,7 +80,6 @@ protected:
     explicit AntChannelHandler(const int channelNumber, const AntSensorType sensorType,
                                AntSportPeriod channelPeriod, QObject* parent);
 
-    static const int ACKNOWLEDGED_MESSAGE_QUEUE_CAPACITY = 10;
     /**
      * Queue an Acknowledged message. The message will be sent after all other messages on the queue have been sent.
      * If the queue is filled up to ACKNOWLEDGED_MESSAGE_QUEUE_CAPACITY, the message will be dropped and false will be returned.

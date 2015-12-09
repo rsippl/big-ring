@@ -26,6 +26,7 @@
 namespace {
 const int SEARCH_TIMEOUT = 10; //seconds.
 const int ACKNOWLEDGED_MESSAGE_INTERVAL = 250; // milliseconds
+const int ACKNOWLEDGED_MESSAGE_QUEUE_SIZE = 4; // 1 acknowledged messages.
 
 using indoorcycling::AntChannelHandler;
 const QMap<AntChannelHandler::ChannelState,QString> CHANNEL_STATE_STRINGS(
@@ -53,7 +54,7 @@ AntChannelHandler::AntChannelHandler(const int channelNumber, const AntSensorTyp
 
 void AntChannelHandler::queueAcknowledgedMessage(const AntMessage2 &message)
 {
-    if (_acknowledgedMessagesToSend.size()) {
+    if (_acknowledgedMessagesToSend.size() > ACKNOWLEDGED_MESSAGE_QUEUE_SIZE) {
         qDebug() << "Queueing Acknowledged message, queue is full. Removing oldest message from queue";
         _acknowledgedMessagesToSend.pop();
     }
@@ -107,7 +108,7 @@ void AntChannelHandler::transferTxFailed()
 
 AntChannelHandler::~AntChannelHandler()
 {
-    qDebug() << "Deleting AntChannelHandler for channel type" << static_cast<int>(_sensorType);
+    qDebug() << "Deleting AntChannelHandler for channel type" << ANT_SENSOR_TYPE_STRINGS[_sensorType] << static_cast<int>(_sensorType);
 }
 
 AntSensorType AntChannelHandler::sensorType() const
