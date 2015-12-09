@@ -211,6 +211,7 @@ void AddSensorConfigurationDialog::on_searchSensorsButton_clicked()
     performSearch(indoorcycling::AntSensorType::SPEED_AND_CADENCE);
     performSearch(indoorcycling::AntSensorType::CADENCE);
     performSearch(indoorcycling::AntSensorType::SPEED);
+    performSearch(indoorcycling::AntSensorType::SMART_TRAINER);
 }
 
 void AddSensorConfigurationDialog::fillUsbStickPresentLabel(bool present)
