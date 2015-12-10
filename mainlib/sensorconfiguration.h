@@ -28,10 +28,10 @@
 namespace indoorcycling {
 
 enum class SimulationSetting {
-    FIXED_POWER,
-    DIRECT_POWER,
-    VIRTUAL_POWER,
-    DIRECT_SPEED
+    FIXED_POWER,   // Use a fixed value for power
+    DIRECT_POWER,  // Take power value from power meter or smart trainer.
+    VIRTUAL_POWER, // Use speed and power curve to determine power.
+    DIRECT_SPEED   // Don't use power, use wheel speed directly.
 };
 
 class SensorConfiguration

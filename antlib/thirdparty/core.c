@@ -938,5 +938,5 @@ API_EXPORTED int usb_detach_kernel_driver_np(usb_dev_handle *dev, int interface)
         return -ENOSYS;
     }
 }
-#pragma GCC diagnostic pop
+
 

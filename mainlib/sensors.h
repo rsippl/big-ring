@@ -36,6 +36,7 @@ public:
     explicit Sensors(AntCentralDispatch* antCentralDispatch,
                      const NamedSensorConfigurationGroup& sensorConfigurationGroup,
                      QObject *parent = 0);
+    virtual ~Sensors();
 
 signals:
     void heartRateBpmMeasured(int heartRate);
@@ -47,6 +48,7 @@ public slots:
     void initialize();
 private slots:
     void setSensorFound(AntSensorType channelType, int deviceNumber);
+    void setSensorNotFound(AntSensorType channelType, int deviceNumber);
     void sensorValue(const SensorValueType sensorValueType, const AntSensorType sensorType,
                      const QVariant& sensorValue);
     void sendPowerUpdate();
