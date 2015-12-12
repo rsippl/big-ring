@@ -11,7 +11,8 @@ SOURCES += \
     virtualtrainingfileparsertest.cpp \
     profiletest.cpp \
     rollingaveragecalculatortest.cpp \
-    reallifevideocachetest.cpp
+    reallifevideocachetest.cpp \
+    ridefilewritertest.cpp
 
 HEADERS += \
     antmessage2test.h \
@@ -20,7 +21,8 @@ HEADERS += \
     virtualtrainingfileparsertest.h \
     profiletest.h \
     rollingaveragecalculatortest.h \
-    reallifevideocachetest.h
+    reallifevideocachetest.h \
+    ridefilewritertest.h
 
 
 RESOURCES += \

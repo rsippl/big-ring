@@ -28,22 +28,28 @@
 
 #include "ridefile.h"
 
+class Course;
+class Cyclist;
 class RideFileWriter;
-class Run;
+class RealLifeVideo;
+class Simulation;
 
 class RideSampler : public QObject
 {
     Q_OBJECT
 public:
-    explicit RideSampler(Run *run, RideFile &rideFile, QObject *parent = 0);
+    explicit RideSampler(const QString &rlvName, const QString &courseName, const Simulation &simulation, QObject *parent = 0);
 
+public slots:
+    void start();
+    void stop();
+    void saveRideFile();
 private slots:
     void takeSample();
-    void saveRideFile();
 private:
-    QPointer<Run> _run;
+    const Simulation &_simulation;
     QTimer _sampleTimer;
-    RideFile &_rideFile;
+    RideFile _rideFile;
     RideFileWriter * const _writer;
 };
 

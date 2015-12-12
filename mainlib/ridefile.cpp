@@ -3,11 +3,13 @@
 #include <QtCore/QtDebug>
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonDocument>
+#include <functional>
 #include <utility>
 
 namespace {
 const QString ISO_WITH_MILLISECONDS_FORMAT("hh:mm:ss.zzz");
 }
+
 RideFile::RideFile():
     RideFile(QDateTime(), "", "")
 {
@@ -54,6 +56,40 @@ const QString &RideFile::rlvName() const
 const QString &RideFile::courseName() const
 {
     return _courseName;
+}
+
+int RideFile::durationInMilliSeconds() const
+{
+    if (_samples.empty()) {
+        return 0;
+    }
+    return _samples.rbegin()->first.msecsSinceStartOfDay();
+}
+
+float RideFile::totalDistance() const
+{
+    if (_samples.empty()) {
+        return 0;
+    }
+    return _samples.rbegin()->second.distance;
+}
+
+float RideFile::maximumSpeedInMps() const
+{
+    float max = 0;
+    for (const SampleMapElement &sampleElement: _samples) {
+        max = std::max(max, sampleElement.second.speed);
+    }
+    return max;
+}
+
+int RideFile::maximumHeartRate() const
+{
+    int max = 0;
+    for (const SampleMapElement &sampleElement: _samples) {
+        max = std::max(max, sampleElement.second.heartRate);
+    }
+    return max;
 }
 
 const RideFile::SampleMap &RideFile::samples() const

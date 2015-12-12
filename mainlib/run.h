@@ -33,8 +33,8 @@ class Actuators;
 class AntCentralDispatch;
 }
 
-class ANTController;
 class NewVideoWidget;
+class RideSampler;
 
 class Run : public QObject
 {
@@ -48,6 +48,8 @@ public:
 
     /** Time it took from start to current time */
     QTime time() const;
+
+    const Cyclist &cyclist() const;
 signals:
     void startedRiding();
     void stopped();
@@ -78,7 +80,7 @@ private:
     indoorcycling::Actuators *_actuators;
     QTimer _informationMessageTimer;
     InformationBox _lastInformationMessage;
-
+    RideSampler *_rideFileSampler;
 };
 
 #endif // RUN_H

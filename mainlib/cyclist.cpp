@@ -21,7 +21,7 @@
 #include "cyclist.h"
 
 Cyclist::Cyclist(const qreal userWeight, const qreal bikeWeight, QObject *parent) :
-    QObject(parent), _userWeight(userWeight), _bikeWeight(bikeWeight), _heartRate(0), _cadence(0), _power(0), _speed(0), _distance(0), _distanceTravelled(0)
+    QObject(parent), _userWeight(userWeight), _bikeWeight(bikeWeight)
 {
 }
 
@@ -41,6 +41,12 @@ void Cyclist::setDistanceTravelled(float distanceTravelled)
     emit distanceTravelledChanged(distanceTravelled);
 }
 
+void Cyclist::setAltitude(float altitude)
+{
+    _altitude = altitude;
+    emit altitudeChanged(altitude);
+}
+
 
 float Cyclist::distance() const
 {
@@ -50,6 +56,11 @@ float Cyclist::distance() const
 float Cyclist::distanceTravelled() const
 {
     return _distanceTravelled;
+}
+
+float Cyclist::altitude() const
+{
+    return _altitude;
 }
 
 float Cyclist::speed() const

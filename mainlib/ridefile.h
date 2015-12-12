@@ -30,6 +30,7 @@ public:
         static Sample fromJson(const QJsonObject &json);
     };
     typedef std::map<QTime,Sample> SampleMap;
+    typedef std::pair<QTime,Sample> SampleMapElement;
 
     explicit RideFile();
     explicit RideFile(const QDateTime &startTime, const QString &rlvName, const QString &courseName, const SampleMap &&samples);
@@ -43,6 +44,11 @@ public:
     const QString &rlvName() const;
     const QString &courseName() const;
     const SampleMap &samples() const;
+
+    int durationInMilliSeconds() const;
+    float totalDistance() const;
+    float maximumSpeedInMps() const;
+    int maximumHeartRate() const;
 
     void addSample(const Sample &sample);
 

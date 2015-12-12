@@ -34,40 +34,40 @@ namespace {
 const int SAMPLE_INTERVAL_MS = 250;
 }
 
-RideSampler::RideSampler(Run *run, RideFile &rideFile, QObject *parent):
-    QObject(parent), _run(run), _rideFile(rideFile),
+RideSampler::RideSampler(const QString &rlvName, const QString &courseName, const Simulation &simulation, QObject *parent):
+    QObject(parent), _simulation(simulation), _rideFile(QDateTime::currentDateTime(), rlvName, courseName),
     _writer(new RideFileWriter(this))
 {
-    // make sure we don't reference _run when it's been destroyed.
-    connect(_run, &QObject::destroyed, &_sampleTimer, &QTimer::stop);
     _sampleTimer.setInterval(SAMPLE_INTERVAL_MS);
     connect(&_sampleTimer, &QTimer::timeout, this, &RideSampler::takeSample);
+}
 
-    connect(_run, &Run::riding, this, [this]() {
-        _sampleTimer.start();
-        takeSample();
-    });
-    connect(_run, &Run::paused, &_sampleTimer, &QTimer::stop);
-    connect(_run, &Run::stopped, this, &RideSampler::saveRideFile);
+void RideSampler::start()
+{
+    _sampleTimer.start();
+}
+
+void RideSampler::stop()
+{
+    _sampleTimer.stop();
 }
 
 void RideSampler::takeSample()
 {
-    if (_run) {
-        const Cyclist &cyclist = _run->cyclist();
-        RideFile::Sample sample = { _run->time(),
-                                    cyclist.altitude(),
-                                    cyclist.cadence(),
-                                    cyclist.distanceTravelled(),
-                                    cyclist.heartRate(),
-                                    cyclist.power(),
-                                    cyclist.speed()};
-        _rideFile.addSample(sample);
-    }
+    const Cyclist &cyclist = _simulation.cyclist();
+    RideFile::Sample sample = { _simulation.runTime(),
+                                cyclist.altitude(),
+                                cyclist.cadence(),
+                                cyclist.distanceTravelled(),
+                                cyclist.heartRate(),
+                                cyclist.power(),
+                                cyclist.speed()};
+    _rideFile.addSample(sample);
 }
 
 void RideSampler::saveRideFile()
 {
+    Q_ASSERT(!_sampleTimer.isActive());
     _sampleTimer.stop();
     _writer->writeRideFile(_rideFile);
 }

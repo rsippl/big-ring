@@ -22,6 +22,7 @@
 #include "antlib/antcentraldispatch.h"
 #include "bigringsettings.h"
 #include "newvideowidget.h"
+#include "ridesampler.h"
 #include "run.h"
 #include "sensorconfiguration.h"
 #include "sensors.h"
@@ -75,6 +76,8 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
         }
     });
     _informationMessageTimer.start();
+
+    _rideFileSampler = new RideSampler(_rlv.name(), _course.name(), *_simulation, this);
 }
 
 Run::~Run()
@@ -107,6 +110,7 @@ void Run::start()
 
     _simulation->play(true);
     _actuators->setSlope(_rlv.slopeForDistance(_cyclist->distance()));
+    _rideFileSampler->start();
     _state = State::STARTING;
 }
 
@@ -119,6 +123,8 @@ void Run::stop()
 {
     _simulation->play(false);
     _actuators->setSlope(0.0);
+    _rideFileSampler->stop();
+    _rideFileSampler->saveRideFile();
     emit stopped();
 }
 
