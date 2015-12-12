@@ -70,7 +70,7 @@ private slots:
     void distanceChanged(float distance);
     void speedChanged(float speed);
 private:
-    QString saveRideFile();
+    QString saveRideFile(QWidget *parent);
     enum State {
         BEFORE_START, STARTING, RIDING, PAUSED, FINISHED
     };

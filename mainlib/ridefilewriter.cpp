@@ -13,14 +13,15 @@ RideFileWriter::RideFileWriter(QObject *parent): QObject(parent)
     // empty
 }
 
-const QString RideFileWriter::writeRideFile(const RideFile &rideFile)
+const QString RideFileWriter::writeRideFile(const RideFile &rideFile, std::function<void(int)> progressFunction)
 {
+    progressFunction(0);
     const QString filePath = determineFilePath(rideFile);
 
     QFile outputFile(filePath);
     outputFile.open(QFile::WriteOnly);
 
-    writeXml(rideFile, outputFile);
+    writeTcx(rideFile, outputFile, progressFunction);
 
     return filePath;
 }
@@ -47,7 +48,7 @@ QString RideFileWriter::determineFilePath(const RideFile &rideFile) const
     return appDir.filePath(filename);
 }
 
-void RideFileWriter::writeXml(const RideFile &rideFile, QFile &outputFile)
+void RideFileWriter::writeTcx(const RideFile &rideFile, QFile &outputFile, std::function<void(int)> &progressFunction)
 {
     QXmlStreamWriter writer(&outputFile);
 
@@ -65,8 +66,11 @@ void RideFileWriter::writeXml(const RideFile &rideFile, QFile &outputFile)
     writeLapSummary(writer, rideFile);
 
     writer.writeStartElement("Track");
+    int nrOfSamples = rideFile.samples().size();
+    int i = 0;
     for (const RideFile::Sample &sample: rideFile.samples()) {
         writeTrackPoint(writer, rideFile.startTime(), sample);
+        progressFunction(i++ * 100 / nrOfSamples);
     }
     writer.writeEndElement(); // Track
     writer.writeEndElement(); // Lap

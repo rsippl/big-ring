@@ -31,6 +31,7 @@
 #include <QtCore/QTimer>
 #include <QtCore/QtDebug>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QProgressDialog>
 
 using indoorcycling::Actuators;
 using indoorcycling::AntCentralDispatch;
@@ -138,7 +139,7 @@ bool Run::handleStopRun(QWidget *parent)
 
     switch(stopRunMessageBox.exec()) {
     case QMessageBox::Save:
-        saveRideFile();
+        saveRideFile(parent);
         // fallthrough
     case QMessageBox::Discard:
         stop();
@@ -165,11 +166,18 @@ void Run::speedChanged(float speed)
     }
 }
 
-QString Run::saveRideFile()
+QString Run::saveRideFile(QWidget *parent)
 {
     RideFileWriter writer;
 
-    return writer.writeRideFile(_rideFileSampler->rideFile());
+    QProgressDialog progressDialog("Saving...", QString(), 0, 100, parent);
+    progressDialog.setWindowModality(Qt::WindowModal);
+
+    // write the file. We'll use a lambda function to let the progress dialog update it's progress bar if there's
+    // a need for it (if the operation takes too long.
+    return writer.writeRideFile(_rideFileSampler->rideFile(), [&progressDialog](int percent) {
+        progressDialog.setValue(percent);
+    });
 }
 
 void Run::setState(State newState)
