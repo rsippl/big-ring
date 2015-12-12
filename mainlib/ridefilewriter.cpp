@@ -65,8 +65,8 @@ void RideFileWriter::writeXml(const RideFile &rideFile, QFile &outputFile)
     writeLapSummary(writer, rideFile);
 
     writer.writeStartElement("Track");
-    for (const RideFile::SampleMapElement &element: rideFile.samples()) {
-        writeTrackPoint(writer, rideFile.startTime(), element.second);
+    for (const RideFile::Sample &sample: rideFile.samples()) {
+        writeTrackPoint(writer, rideFile.startTime(), sample);
     }
     writer.writeEndElement(); // Track
     writer.writeEndElement(); // Lap
