@@ -19,7 +19,6 @@
  */
 #include "ridesampler.h"
 
-#include "ridefilewriter.h"
 #include "run.h"
 
 #include <QtCore/QtDebug>
@@ -35,11 +34,15 @@ const int SAMPLE_INTERVAL_MS = 250;
 }
 
 RideSampler::RideSampler(const QString &rlvName, const QString &courseName, const Simulation &simulation, QObject *parent):
-    QObject(parent), _simulation(simulation), _rideFile(QDateTime::currentDateTime(), rlvName, courseName),
-    _writer(new RideFileWriter(this))
+    QObject(parent), _simulation(simulation), _rideFile(QDateTime::currentDateTime(), rlvName, courseName)
 {
     _sampleTimer.setInterval(SAMPLE_INTERVAL_MS);
     connect(&_sampleTimer, &QTimer::timeout, this, &RideSampler::takeSample);
+}
+
+const RideFile &RideSampler::rideFile() const
+{
+    return _rideFile;
 }
 
 void RideSampler::start()
@@ -65,9 +68,3 @@ void RideSampler::takeSample()
     _rideFile.addSample(sample);
 }
 
-void RideSampler::saveRideFile()
-{
-    Q_ASSERT(!_sampleTimer.isActive());
-    _sampleTimer.stop();
-    _writer->writeRideFile(_rideFile);
-}

@@ -22,6 +22,7 @@
 #include "antlib/antcentraldispatch.h"
 #include "bigringsettings.h"
 #include "newvideowidget.h"
+#include "ridefilewriter.h"
 #include "ridesampler.h"
 #include "run.h"
 #include "sensorconfiguration.h"
@@ -29,6 +30,7 @@
 
 #include <QtCore/QTimer>
 #include <QtCore/QtDebug>
+#include <QtWidgets/QMessageBox>
 
 using indoorcycling::Actuators;
 using indoorcycling::AntCentralDispatch;
@@ -90,16 +92,6 @@ const Simulation &Run::simulation() const
     return *_simulation;
 }
 
-void Run::saveProgress()
-{
-    _rlv.setUnfinishedRun(_cyclist->distance());
-    QSettings settings;
-    settings.beginGroup("unfinished_runs");
-    const QString key = _rlv.name();
-    settings.setValue(key, QVariant::fromValue(_cyclist->distance()));
-    settings.endGroup();
-}
-
 QTime Run::time() const
 {
     return _simulation->runTime();
@@ -107,30 +99,54 @@ QTime Run::time() const
 
 void Run::start()
 {
-
-    _simulation->play(true);
+    play();
     _actuators->setSlope(_rlv.slopeForDistance(_cyclist->distance()));
-    _rideFileSampler->start();
     _state = State::STARTING;
 }
 
 void Run::play()
 {
     _simulation->play(true);
+    _rideFileSampler->start();
 }
 
 void Run::stop()
 {
     _simulation->play(false);
     _actuators->setSlope(0.0);
-    _rideFileSampler->stop();
-    _rideFileSampler->saveRideFile();
     emit stopped();
 }
 
 void Run::pause()
 {
     _simulation->play(false);
+    _rideFileSampler->stop();
+}
+
+bool Run::handleStopRun(QWidget *parent)
+{
+    pause();
+
+    const QString savePath = RideFileWriter().determineFilePath(_rideFileSampler->rideFile());
+
+    QMessageBox stopRunMessageBox(parent);
+    stopRunMessageBox.setText(tr("Save ride?"));
+    stopRunMessageBox.setIcon(QMessageBox::Question);
+    stopRunMessageBox.setInformativeText(tr("Ride file will be written to %1.").arg(savePath));
+    stopRunMessageBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    stopRunMessageBox.setDefaultButton(QMessageBox::Save);
+
+    switch(stopRunMessageBox.exec()) {
+    case QMessageBox::Save:
+        saveRideFile();
+        // fallthrough
+    case QMessageBox::Discard:
+        stop();
+        return true;
+    default:
+        play();
+        return false;
+    }
 }
 
 void Run::distanceChanged(float distance)
@@ -147,6 +163,13 @@ void Run::speedChanged(float speed)
     } else if (_state == State::RIDING && speed < 0.01) {
         setState(State::PAUSED);
     }
+}
+
+QString Run::saveRideFile()
+{
+    RideFileWriter writer;
+
+    return writer.writeRideFile(_rideFileSampler->rideFile());
 }
 
 void Run::setState(State newState)

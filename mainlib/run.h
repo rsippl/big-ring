@@ -44,7 +44,6 @@ public:
     virtual ~Run();
 
     const Simulation& simulation() const;
-    void saveProgress();
 
     /** Time it took from start to current time */
     QTime time() const;
@@ -62,10 +61,16 @@ public slots:
     void play();
     void stop();
     void pause();
+
+    /**
+     * Handler for stopping run
+     */
+    bool handleStopRun(QWidget* parent);
 private slots:
     void distanceChanged(float distance);
     void speedChanged(float speed);
 private:
+    QString saveRideFile();
     enum State {
         BEFORE_START, STARTING, RIDING, PAUSED, FINISHED
     };

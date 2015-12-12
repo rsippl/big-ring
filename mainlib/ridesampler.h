@@ -20,37 +20,33 @@
 #ifndef RIDESAMPLER_H
 #define RIDESAMPLER_H
 
-#include <QtCore/QFile>
 #include <QtCore/QObject>
-#include <QtCore/QPointer>
 #include <QtCore/QTimer>
-#include <memory>
 
 #include "ridefile.h"
 
-class Course;
-class Cyclist;
-class RideFileWriter;
-class RealLifeVideo;
 class Simulation;
 
+/**
+ * Sample the simulation continously and keeps a record of all values (altitude, speed, power etc) in the ride.
+ */
 class RideSampler : public QObject
 {
     Q_OBJECT
 public:
     explicit RideSampler(const QString &rlvName, const QString &courseName, const Simulation &simulation, QObject *parent = 0);
 
+    /** Get the ride file, with all values. This method can be called multiple times to get updates */
+    const RideFile &rideFile() const;
 public slots:
     void start();
     void stop();
-    void saveRideFile();
 private slots:
     void takeSample();
 private:
     const Simulation &_simulation;
     QTimer _sampleTimer;
     RideFile _rideFile;
-    RideFileWriter * const _writer;
 };
 
 #endif // RIDESAMPLER_H

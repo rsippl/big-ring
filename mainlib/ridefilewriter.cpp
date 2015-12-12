@@ -13,7 +13,7 @@ RideFileWriter::RideFileWriter(QObject *parent): QObject(parent)
     // empty
 }
 
-bool RideFileWriter::writeRideFile(const RideFile &rideFile)
+const QString RideFileWriter::writeRideFile(const RideFile &rideFile)
 {
     const QString filePath = determineFilePath(rideFile);
 
@@ -22,7 +22,7 @@ bool RideFileWriter::writeRideFile(const RideFile &rideFile)
 
     writeXml(rideFile, outputFile);
 
-    return true;
+    return filePath;
 }
 
 QString RideFileWriter::dateTimeString(const QDateTime dateTime, bool withMillis) const
