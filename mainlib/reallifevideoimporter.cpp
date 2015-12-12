@@ -182,13 +182,6 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& video
             }
         }
         settings.endGroup();
-        settings.beginGroup("unfinished_runs");
-        const QString key = rlv.name();
-        if (settings.contains(key)) {
-            float distance = settings.value(key).toFloat();
-            rlv.setUnfinishedRun(distance);
-        }
-        settings.endGroup();
     }
     QDateTime end = QDateTime::currentDateTime();
     qDebug() << "import of" << rlvFile.fileName() << "took" << start.msecsTo(end) << "ms";

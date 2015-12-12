@@ -48,7 +48,7 @@ class VideoInformation;
 class Course
 {
 public:
-    enum class Type { Invalid, Normal, Unfinished, Custom };
+    enum class Type { Invalid, Normal, Custom };
     explicit Course(const QString& name, const Type type, float start, float end);
     explicit Course(const QString& name, float start, float end);
     explicit Course(float start, float end);
@@ -117,8 +117,6 @@ public:
     const std::vector<DistanceMappingEntry> &distanceMappings() const;
     const std::vector<InformationBox> &informationBoxes() const;
 
-    /** Set the distance for the current unfinished run */
-    void setUnfinishedRun(float distance);
     /** Add a new custom start point */
     void addStartPoint(float distance, const QString& name);
     /** Add a new custom course */

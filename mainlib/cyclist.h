@@ -30,10 +30,12 @@ public:
     explicit Cyclist(const qreal userWeight, const qreal bikeWeight, QObject *parent = 0);
     void setDistance(float distance);
     void setDistanceTravelled(float distanceTravelled);
+    void setAltitude(float altitude);
     void setSpeed(float speed);
 
     float distance() const;
     float distanceTravelled() const;
+    float altitude() const;
     float speed() const;
     int heartRate() const;
     int cadence() const;
@@ -58,17 +60,20 @@ signals:
     void distanceChanged(float distance);
     /** distance travelled from start of course */
     void distanceTravelledChanged(float distanceTravelled);
+    /** altitude changed */
+    void altitudeChanged(float altitude);
 
 private:
     const qreal _userWeight;
     const qreal _bikeWeight;
-    int _heartRate;
-    int _cadence;
-    int _power;
+    int _heartRate = 0;
+    int _cadence = 0;
+    int _power = 0;
 
-    float _speed;
-    float _distance;
-    float _distanceTravelled;
+    float _speed = 0;
+    float _distance = 0;
+    float _distanceTravelled = 0;
+    float _altitude = 0;
 };
 
 #endif // CYCLIST_H
