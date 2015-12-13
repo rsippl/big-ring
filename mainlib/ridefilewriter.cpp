@@ -56,6 +56,9 @@ void RideFileWriter::writeTcx(const RideFile &rideFile, QFile &outputFile, std::
     writer.writeStartDocument();
 
     writer.writeStartElement("TrainingCenterDatabase");
+    writer.writeAttribute("xmlns", "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2");
+    writer.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+    writer.writeAttribute("xsi:schemaLocation", "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd");
     writer.writeStartElement("Activities");
     writer.writeStartElement("Activity");
     writer.writeAttribute("Sport", "Biking");
