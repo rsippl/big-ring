@@ -141,6 +141,7 @@ void AntSmartTrainerChannelHandler::handleCommandStatusReplyMessage(const Comman
         qDebug() << "We're in simulation mode!";
     } else {
         qWarning("Something is wrong, we're not in simulation mode, %d",  static_cast<quint8>(message.dataPage()));
+        qWarning("Sequence # = %d, Status = %d", message.sequenceNr(), static_cast<quint8>(message.status()));
         queueAcknowledgedMessage(createRequestMessage(DataPage::WIND_RESISTANCE));
     }
 }
