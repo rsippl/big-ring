@@ -29,11 +29,13 @@ public:
 
     AntSmartTrainerChannelHandler::DataPage dataPage() const { return _dataPage; }
     quint8 sequenceNr() const { return _sequenceNr; }
+    bool lastCommand() const { return _lastCommand; }
     bool received() const { return _sequenceNr != 0xFF; }
     Status status() const { return _status; }
 
 private:
     AntSmartTrainerChannelHandler::DataPage _dataPage;
+    quint8 _lastCommand;
     quint8 _sequenceNr;
     Status _status;
 };
@@ -141,7 +143,7 @@ void AntSmartTrainerChannelHandler::handleCommandStatusReplyMessage(const Comman
         qDebug() << "We're in simulation mode!";
     } else {
         qWarning("Something is wrong, we're not in simulation mode, %d",  static_cast<quint8>(message.dataPage()));
-        qWarning("Sequence # = %d, Status = %d", message.sequenceNr(), static_cast<quint8>(message.status()));
+        qWarning("Last received command id = %d, Sequence # = %d, Status = %d", message.received(), message.sequenceNr(), static_cast<quint8>(message.status()));
         queueAcknowledgedMessage(createRequestMessage(DataPage::WIND_RESISTANCE));
     }
 }
@@ -344,7 +346,8 @@ bool SpecificTrainerDataMessage::userConfigurationNeeded() const
 
 CommandStatusReplyMessage::CommandStatusReplyMessage(const AntMessage2 &antMessage)
 {
-    _dataPage = static_cast<AntSmartTrainerChannelHandler::DataPage>(antMessage.contentByte(2));
+    _dataPage = static_cast<AntSmartTrainerChannelHandler::DataPage>(antMessage.contentByte(1));
+    _lastCommand = antMessage.contentByte(2);
     _sequenceNr = antMessage.contentByte(3);
     _status = static_cast<Status>(antMessage.contentByte(4));
 }
