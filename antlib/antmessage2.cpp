@@ -346,6 +346,16 @@ const AntMessage2 &BroadCastMessage::antMessage() const
     return _antMessage;
 }
 
+quint8 BroadCastMessage::contentByte(int byte) const
+{
+    return _antMessage.contentByte(byte + 1);
+}
+
+quint16 BroadCastMessage::contentShort(int startByteIndex) const
+{
+    return _antMessage.contentShort(startByteIndex + 1);
+}
+
 SetChannelIdMessage::SetChannelIdMessage(const AntMessage2& antMessage):
     _antMessage(antMessage)
 {

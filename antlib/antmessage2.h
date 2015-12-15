@@ -152,6 +152,7 @@ public:
         EVENT_CHANNEL_COLLISION = 0x09,
         RESPONSE_NO_ERROR = 0x00,
         EVENT_RX_FAILED = 0x02,
+        EVENT_RX_FAIL_GO_TO_SEARCH = 0x08,
         EVENT_RX_SEARCH_TIMEOUT = 0x01,
         EVENT_TRANSFER_TX_COMPLETED = 0x05,
         EVENT_TRANSFER_TX_FAILED = 0x06,
@@ -226,6 +227,14 @@ public:
      * the actual ant message that was used to construct the broadcast message.
      */
     const AntMessage2 &antMessage() const;
+    /**
+     * a single byte from the content. Starts at 0 for the data page of a broad cast message.
+     */
+    quint8 contentByte(int byte) const;
+    /**
+     * a short (two bytes) from the content. Starts at 0 for the data page of a broad cast message.
+     */
+    quint16 contentShort(int startByteIndex) const;
 protected:
     AntMessage2 _antMessage;
 private:

@@ -153,7 +153,11 @@ void AntChannelHandler::handleChannelEvent(const AntChannelEventMessage &message
         break;
     case AntChannelEventMessage::MessageCode::EVENT_RX_FAILED:
         qDebug() << "RX Failure on channel" << _channelNumber;
-        break;;
+        break;
+    case AntChannelEventMessage::MessageCode::EVENT_RX_FAIL_GO_TO_SEARCH:
+        qDebug() << _channelNumber << "Too many messages missed, going to search mode";
+        setState(ChannelState::SEARCHING);
+        break;
     case AntChannelEventMessage::MessageCode::EVENT_CHANNEL_CLOSED:
         qDebug() << "Channel closed by ANT+ stick.";
         if (_state != ChannelState::UNASSIGNED) {
