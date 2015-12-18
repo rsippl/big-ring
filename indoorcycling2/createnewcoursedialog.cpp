@@ -23,7 +23,7 @@
 #include <QtWidgets/QPushButton>
 
 #include "video/thumbnailer.h"
-#include "quantityprinter.h"
+#include "generalgui/quantityprinter.h"
 
 CreateNewCourseDialog::CreateNewCourseDialog(RealLifeVideo &rlv, QWidget *parent) :
     QDialog(parent), ui(new Ui::CreateNewCourseDIalog),

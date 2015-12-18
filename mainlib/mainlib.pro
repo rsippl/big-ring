@@ -85,6 +85,8 @@ MODEL_HEADERS += \
     model/distancemappingentry.h \
     model/profile.h \
     model/reallifevideo.h \
+    model/ridefile.h \
+    model/ridesampler.h \
     model/rollingaveragecalculator.h \
     model/simulation.h \
     model/unitconverter.h \
@@ -96,11 +98,23 @@ MODEL_SOURCES += \
     model/distancemappingentry.cpp \
     model/profile.cpp \
     model/reallifevideo.cpp \
+    model/ridefile.cpp \
+    model/ridesampler.cpp \
     model/rollingaveragecalculator.cpp \
     model/simulation.cpp \
     model/unitconverter.cpp \
     model/videoinformation.cpp \
     model/virtualpower.cpp
+
+RIDE_HEADERS += \
+    ride/actuators.h \
+    ride/ridefilewriter.h \
+    ride/sensors.h
+
+RIDE_SOURCES += \
+    ride/actuators.cpp \
+    ride/ridefilewriter.cpp \
+    ride/sensors.cpp
 
 RIDEGUI_HEADERS += \
     ridegui/clockgraphicsitem.h \
@@ -155,14 +169,10 @@ HEADERS += \
     $$GENERALGUI_HEADERS \
     $$IMPORTER_HEADERS \
     $$MODEL_HEADERS \
+    $$RIDE_HEADERS \
     $$RIDEGUI_HEADERS \
     $$UTIL_HEADERS \
     $$VIDEO_HEADERS \
-    actuators.h \
-    ridefile.h \
-    ridefilewriter.h \
-    ridesampler.h \
-    sensors.h \
     util/util.h
 
 SOURCES += \
@@ -171,14 +181,10 @@ SOURCES += \
     $$GENERALGUI_SOURCES \
     $$IMPORTER_SOURCES \
     $$MODEL_SOURCES \
+    $$RIDE_SOURCES \
     $$RIDEGUI_SOURCES \
     $$UTIL_SOURCES \
-    $$VIDEO_SOURCES \
-    actuators.cpp \
-    ridefile.cpp \
-    ridefilewriter.cpp \
-    ridesampler.cpp \
-    sensors.cpp
+    $$VIDEO_SOURCES
 
 LIBS +=  -lusb-1.0
 

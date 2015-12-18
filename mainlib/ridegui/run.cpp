@@ -18,15 +18,15 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "actuators.h"
-#include "ant/antcentraldispatch.h"
-#include "newvideowidget.h"
-#include "ridefilewriter.h"
-#include "ridesampler.h"
 #include "run.h"
+#include "newvideowidget.h"
+#include "ant/antcentraldispatch.h"
 #include "config/bigringsettings.h"
 #include "config/sensorconfiguration.h"
-#include "sensors.h"
+#include "model/ridesampler.h"
+#include "ride/actuators.h"
+#include "ride/ridefilewriter.h"
+#include "ride/sensors.h"
 
 #include <QtCore/QTimer>
 #include <QtCore/QtDebug>

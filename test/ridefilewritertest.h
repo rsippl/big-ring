@@ -11,7 +11,6 @@ public:
 
 private slots:
     void testWriteSimpleRideFile();
-
 };
 
 #endif // RIDEFILEWRITERTEST_H

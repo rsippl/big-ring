@@ -21,7 +21,7 @@
 #include "ui_videodetails.h"
 #include <QtCore/QtDebug>
 #include "createnewcoursedialog.h"
-#include "quantityprinter.h"
+#include "generalgui/quantityprinter.h"
 
 VideoDetails::VideoDetails(QWidget *parent) :
     QWidget(parent),

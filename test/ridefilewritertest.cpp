@@ -2,8 +2,8 @@
 
 #include <QtCore/QDateTime>
 
-#include "ridefile.h"
-#include "ridefilewriter.h"
+#include "model/ridefile.h"
+#include "ride/ridefilewriter.h"
 
 RideFileWriterTest::RideFileWriterTest(QObject *parent) :
     QObject(parent)

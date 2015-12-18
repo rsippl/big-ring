@@ -6,7 +6,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QXmlStreamWriter>
 
-#include "ridefile.h"
+#include "model/ridefile.h"
 
 /**
  * @brief The RideFileWriter class, used for writing a RideFile to a TCX file.
