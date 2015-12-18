@@ -5,7 +5,20 @@ layout: default
 
 <div class="col-md-8" role="main">
 
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title"><a href="news.html">Latest News</a></h3>
+        </div>
+        <div class="panel-body">
+            {% for post in site.posts limit:1 %}
+            <h3>{{ post.title }}</h3>
+            <p>{{ post.content }}</p>
+            {% endfor %}
+        </div>
+    </div>
+    
     <h1>Big Ring Indoor Video Cycling</h1>
+
     <h2>Cycle through amazing scenery, inside</h2>
 
     <p>Use Big Ring Indoor Video Cycling to make your indoor cycling training more
