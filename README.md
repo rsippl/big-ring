@@ -60,7 +60,6 @@ for ANT+ is libusb-win32, which is based on libusb-0.1. Because of this, interna
 Limitations
 -----------
 
-* No recording of data. This is in the works. Version 1.4 (End December 2015). probably
 * For ANT+ FE-C, no calibration support.
 * No opponents or riding against earlier rides.
 
@@ -91,7 +90,6 @@ Roadmap
 -------
 
 * Support OS/X.
-* Record data to files (FIT/Powertap CSV/.. ?)
 * Improve user management.
 * Many more.
 
