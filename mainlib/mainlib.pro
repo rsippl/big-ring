@@ -57,6 +57,14 @@ CONFIG_SOURCES += \
     config/bigringsettings.cpp \
     config/sensorconfiguration.cpp
 
+GENERALGUI_HEADERS += \
+    generalgui/profilepainter.h \
+    generalgui/quantityprinter.h
+
+GENERALGUI_SOURCES += \
+    generalgui/profilepainter.cpp \
+    generalgui/quantityprinter.cpp
+
 IMPORTER_HEADERS += \
     importer/gpxfileparser.h \
     importer/virtualtrainingfileparser.h \
@@ -144,34 +152,32 @@ VIDEO_SOURCES += \
 HEADERS += \
     $$ANT_HEADERS \
     $$CONFIG_HEADERS \
+    $$GENERALGUI_HEADERS \
     $$IMPORTER_HEADERS \
     $$MODEL_HEADERS \
     $$RIDEGUI_HEADERS \
     $$UTIL_HEADERS \
     $$VIDEO_HEADERS \
     actuators.h \
-    profilepainter.h \
     ridefile.h \
     ridefilewriter.h \
     ridesampler.h \
     sensors.h \
-    quantityprinter.h \
     util/util.h
 
 SOURCES += \
     $$ANT_SOURCES \
     $$CONFIG_SOURCES \
+    $$GENERALGUI_SOURCES \
     $$IMPORTER_SOURCES \
     $$MODEL_SOURCES \
     $$RIDEGUI_SOURCES \
     $$UTIL_SOURCES \
     $$VIDEO_SOURCES \
     actuators.cpp \
-    profilepainter.cpp \
     ridefile.cpp \
     ridefilewriter.cpp \
     ridesampler.cpp \
-    quantityprinter.cpp \
     sensors.cpp
 
 LIBS +=  -lusb-1.0

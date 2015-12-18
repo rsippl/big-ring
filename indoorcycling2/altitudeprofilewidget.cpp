@@ -22,7 +22,7 @@
 
 #include <QtGui/QPainter>
 
-#include "profilepainter.h"
+#include "generalgui/profilepainter.h"
 
 AltitudeProfileWidget::AltitudeProfileWidget(QWidget *parent) :
     QWidget(parent), _profilePainter(new ProfilePainter(this)),

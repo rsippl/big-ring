@@ -18,9 +18,10 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#include "generalgui/profilepainter.h"
 #include "model/cyclist.h"
 #include "profileitem.h"
-#include "profilepainter.h"
+
 
 #include <QtCore/QtDebug>
 #include <QtGui/QPainter>
