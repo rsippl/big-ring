@@ -13,7 +13,7 @@ public:
 
     float distance() const;
     quint32 frameNumber() const;
-    float metersPerFrame() const { return _metersPerFrame; }
+    float metersPerFrame() const;
 
 private:
     float _distance;

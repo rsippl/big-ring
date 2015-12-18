@@ -102,9 +102,12 @@ signals:
      */
     void sensorFound(AntSensorType channelType, int deviceNumber);
     /**
-     *  emitted when a search for sensor has timed out.
+     * Emitted when a search for sensor has timed out.
+     * @param channelType type of the channel that was not found
+     * @param deviceNumber, if not 0 (zero), number of the device that was not found.
      */
-    void sensorNotFound(AntSensorType channelType);
+    void sensorNotFound(AntSensorType channelType, int deviceNumber);
+
     /** emitted when a sensor value if measured by one of the sensors
      * @param sensorValueType type of sensor value
      * @param sensorValueType type of sensor
@@ -184,6 +187,12 @@ private:
      * Start scanning for an ANT+ usb stick. When scanning is finished, antUsbStickScanningFinished(AntDeviceType) is emitted.
      */
     void scanForAntUsbStick();
+
+    /**
+     * find a channel for an AntSensorType. If no channel is configured for the type, this returns
+     * a nullptr.
+     */
+    AntChannelHandler *findChannelForSensorType(const AntSensorType &sensorType);
 
     /**
      * find free channel

@@ -35,10 +35,9 @@ const int MAXIMUM_HUE = 240; // dark blue;
 const float MINIMUM_SLOPE = -12.0;
 const float MAXIMUM_SLOPE = 12.0;
 const float INVERSE_SLOPE_RANGE = 1 / (MAXIMUM_SLOPE - MINIMUM_SLOPE);
-const float METERS_PER_MILE = 1609.344;
 
-const std::array<double,7> MARKER_DISTANCES = {0.5, 1, 2, 5, 10, 20, 50};
-const std::array<double,7> MARKER_ALTITUDES = {10, 20, 50, 100, 200, 500, 1000};
+const std::array<double,7> MARKER_DISTANCES = {{0.5, 1, 2, 5, 10, 20, 50}};
+const std::array<double,7> MARKER_ALTITUDES = {{10, 20, 50, 100, 200, 500, 1000}};
 }
 
 ProfilePainter::ProfilePainter(QObject *parent) :

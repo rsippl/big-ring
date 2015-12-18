@@ -33,8 +33,8 @@ class Actuators;
 class AntCentralDispatch;
 }
 
-class ANTController;
 class NewVideoWidget;
+class RideSampler;
 
 class Run : public QObject
 {
@@ -44,10 +44,11 @@ public:
     virtual ~Run();
 
     const Simulation& simulation() const;
-    void saveProgress();
 
     /** Time it took from start to current time */
     QTime time() const;
+
+    const Cyclist &cyclist() const;
 signals:
     void startedRiding();
     void stopped();
@@ -60,10 +61,16 @@ public slots:
     void play();
     void stop();
     void pause();
+
+    /**
+     * Handler for stopping run
+     */
+    bool handleStopRun(QWidget* parent);
 private slots:
     void distanceChanged(float distance);
     void speedChanged(float speed);
 private:
+    QString saveRideFile(QWidget *parent);
     enum State {
         BEFORE_START, STARTING, RIDING, PAUSED, FINISHED
     };
@@ -78,7 +85,7 @@ private:
     indoorcycling::Actuators *_actuators;
     QTimer _informationMessageTimer;
     InformationBox _lastInformationMessage;
-
+    RideSampler *_rideFileSampler;
 };
 
 #endif // RUN_H

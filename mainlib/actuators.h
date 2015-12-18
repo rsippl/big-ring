@@ -1,7 +1,7 @@
 #ifndef ACTUATORS_H
 #define ACTUATORS_H
 
-#include <QObject>
+#include <QtCore/QObject>
 #include "config/sensorconfiguration.h"
 
 class Cyclist;

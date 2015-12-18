@@ -63,7 +63,6 @@ private:
     void setupMenuBar();
     void step();
     void startRun(RealLifeVideo rlv, int courseNr);
-    bool handleStopRun();
 
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
 

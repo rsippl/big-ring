@@ -96,7 +96,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Escape:
         if (_run) {
-            handleStopRun();
+            _run->handleStopRun(this);
         }
     default:
         QWidget::keyPressEvent(event);
@@ -239,34 +239,10 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     });
 }
 
-bool MainWindow::handleStopRun()
-{
-    _run->pause();
-
-    QMessageBox stopRunMessageBox(this);
-    stopRunMessageBox.setText(tr("Save ride progress before closing?"));
-    stopRunMessageBox.setIcon(QMessageBox::Question);
-    stopRunMessageBox.setInformativeText(tr("If you don't save the ride, progress will be lost."));
-    stopRunMessageBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-    stopRunMessageBox.setDefaultButton(QMessageBox::Save);
-
-    switch(stopRunMessageBox.exec()) {
-    case QMessageBox::Save:
-        _run->saveProgress();
-        // fallthrough
-    case QMessageBox::Discard:
-        _run->stop();
-        return true;
-    default:
-        _run->play();
-        return false;
-    }
-}
-
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     // if the user chooses not stop the run, just ignore the event.
-    if (_run && !handleStopRun()) {
+    if (_run && !_run->handleStopRun(this)) {
         event->ignore();
         return;
     }

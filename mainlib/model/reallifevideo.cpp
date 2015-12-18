@@ -75,13 +75,6 @@ Course::Course(): Course("", Type::Invalid, 0, 0)
     // empty
 }
 
-
-Course::Course(float start, float end):
-    Course(QObject::tr("Unfinished Run"), Type::Unfinished, start, end)
-{
-    // empty
-}
-
 RealLifeVideo::RealLifeVideo(const QString& name, RealLifeVideoFileType fileType, const VideoInformation& videoInformation,
                              const QList<Course>& courses, const QList<DistanceMappingEntry>& distanceMappings, Profile profile):
     RealLifeVideo(name, fileType, videoInformation, std::move(std::vector<Course>(courses.begin(), courses.end())),
@@ -166,15 +159,6 @@ const std::vector<DistanceMappingEntry> &RealLifeVideo::distanceMappings() const
 const std::vector<InformationBox> &RealLifeVideo::informationBoxes() const
 {
     return _d->_informationBoxes;
-}
-
-void RealLifeVideo::setUnfinishedRun(float distance)
-{
-    if (!_d->_courses.empty() && _d->_courses.back().type() == Course::Type::Unfinished) {
-        _d->_courses.pop_back();
-    }
-    Course unfinishedCourse(distance, totalDistance());
-    _d->_courses.push_back(unfinishedCourse);
 }
 
 void RealLifeVideo::addStartPoint(float distance, const QString &name)

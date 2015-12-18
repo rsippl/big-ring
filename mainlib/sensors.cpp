@@ -46,13 +46,21 @@ Sensors::Sensors(AntCentralDispatch* antCentralDispatch,
         connect(_updateTimer, &QTimer::timeout, this, &Sensors::sendPowerUpdate);
     }
     connect(_antCentralDispatch, &AntCentralDispatch::sensorFound, this, &Sensors::setSensorFound);
+    connect(_antCentralDispatch, &AntCentralDispatch::sensorNotFound, this, &Sensors::setSensorNotFound);
     connect(_antCentralDispatch, &AntCentralDispatch::sensorValue, this, &Sensors::sensorValue);
+}
+
+Sensors::~Sensors()
+{
+    _antCentralDispatch->closeAllChannels();
 }
 
 void Sensors::initialize()
 {
-    for (SensorConfiguration configuration: _sensorConfigurationGroup.sensorConfigurations()) {
-        _antCentralDispatch->searchForSensor(configuration.sensorType(), configuration.deviceNumber());
+    if (_antCentralDispatch->antAdapterPresent()) {
+        for (SensorConfiguration configuration: _sensorConfigurationGroup.sensorConfigurations()) {
+            _antCentralDispatch->searchForSensor(configuration.sensorType(), configuration.deviceNumber());
+        }
     }
     if (_sensorConfigurationGroup.simulationSetting() == SimulationSetting::FIXED_POWER) {
         _updateTimer->start();
@@ -73,6 +81,19 @@ void Sensors::setSensorFound(AntSensorType sensorType, int)
     default:
         ; // noop
     }
+}
+
+/**
+ * @brief If a sensor is not found, we'll retry the search.
+ * @param channelType the type of sensor that was not found.
+ * @param deviceNumber the device number that was not found.
+ */
+void Sensors::setSensorNotFound(AntSensorType channelType, int deviceNumber)
+{
+    qDebug() << "Sensor of type" << ANT_SENSOR_TYPE_STRINGS[channelType] << "with device number" << deviceNumber << "not found. Retrying";
+    QTimer::singleShot(0, this, [this, channelType, deviceNumber]() {
+        _antCentralDispatch->searchForSensor(channelType, deviceNumber);
+    });
 }
 
 void Sensors::sensorValue(const SensorValueType sensorValueType,

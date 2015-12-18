@@ -1,3 +1,12 @@
+# 1.4.0
+
+- Add the ability to save rides to TCX.
+- Remove "Unfinished runs". This functionality was broken.
+- Stability fixes for ANT+. 
+  - Retry search when sensor is not found when doing a ride.
+  - Close all ANT+ channels when closing "Add Sensor Dialog"
+
+
 # 1.3.0
 
 - ALPHA support for ANT+ FE-C trainers.

@@ -116,9 +116,9 @@ void Simulation::simulationStep()
     _cyclist.setSpeed(speed);
     _cyclist.setDistance(_cyclist.distance() + distanceTravelled);
     _cyclist.setDistanceTravelled(_cyclist.distanceTravelled() + distanceTravelled);
+    _cyclist.setAltitude(_currentRlv.altitudeForDistance(_cyclist.distance()));
 
     emit slopeChanged(_currentRlv.slopeForDistance(_cyclist.distance()));
-    emit altitudeChanged(_currentRlv.altitudeForDistance(_cyclist.distance()));
 }
 
 void Simulation::rlvSelected(RealLifeVideo rlv)
@@ -145,6 +145,7 @@ void Simulation::courseSelected(const Course &course)
 {
     reset();
     _cyclist.setDistance(course.start());
+    _cyclist.setAltitude(_currentRlv.altitudeForDistance(course.start()));
 }
 
 void Simulation::setPower(int power)

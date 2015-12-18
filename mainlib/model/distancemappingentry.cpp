@@ -19,3 +19,8 @@ quint32 DistanceMappingEntry::frameNumber() const
 {
     return _frameNumber;
 }
+
+float DistanceMappingEntry::metersPerFrame() const
+{
+    return _metersPerFrame;
+}

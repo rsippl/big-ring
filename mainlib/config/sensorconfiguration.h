@@ -28,8 +28,6 @@
 #include "model/virtualpower.h"
 namespace indoorcycling {
 
-
-
 class SensorConfiguration
 {
 public:

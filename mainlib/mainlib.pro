@@ -151,6 +151,9 @@ HEADERS += \
     $$VIDEO_HEADERS \
     actuators.h \
     profilepainter.h \
+    ridefile.h \
+    ridefilewriter.h \
+    ridesampler.h \
     sensors.h \
     quantityprinter.h \
     util/util.h
@@ -165,6 +168,9 @@ SOURCES += \
     $$VIDEO_SOURCES \
     actuators.cpp \
     profilepainter.cpp \
+    ridefile.cpp \
+    ridefilewriter.cpp \
+    ridesampler.cpp \
     quantityprinter.cpp \
     sensors.cpp
 

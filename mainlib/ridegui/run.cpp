@@ -21,6 +21,8 @@
 #include "actuators.h"
 #include "ant/antcentraldispatch.h"
 #include "newvideowidget.h"
+#include "ridefilewriter.h"
+#include "ridesampler.h"
 #include "run.h"
 #include "config/bigringsettings.h"
 #include "config/sensorconfiguration.h"
@@ -28,6 +30,8 @@
 
 #include <QtCore/QTimer>
 #include <QtCore/QtDebug>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QProgressDialog>
 
 using indoorcycling::Actuators;
 using indoorcycling::AntCentralDispatch;
@@ -75,6 +79,8 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
         }
     });
     _informationMessageTimer.start();
+
+    _rideFileSampler = new RideSampler(_rlv.name(), _course.name(), *_simulation, this);
 }
 
 Run::~Run()
@@ -87,16 +93,6 @@ const Simulation &Run::simulation() const
     return *_simulation;
 }
 
-void Run::saveProgress()
-{
-    _rlv.setUnfinishedRun(_cyclist->distance());
-    QSettings settings;
-    settings.beginGroup("unfinished_runs");
-    const QString key = _rlv.name();
-    settings.setValue(key, QVariant::fromValue(_cyclist->distance()));
-    settings.endGroup();
-}
-
 QTime Run::time() const
 {
     return _simulation->runTime();
@@ -104,7 +100,7 @@ QTime Run::time() const
 
 void Run::start()
 {
-    _simulation->play(true);
+    play();
     _actuators->setSlope(_rlv.slopeForDistance(_cyclist->distance()));
     _state = State::STARTING;
 }
@@ -112,6 +108,7 @@ void Run::start()
 void Run::play()
 {
     _simulation->play(true);
+    _rideFileSampler->start();
 }
 
 void Run::stop()
@@ -124,6 +121,33 @@ void Run::stop()
 void Run::pause()
 {
     _simulation->play(false);
+    _rideFileSampler->stop();
+}
+
+bool Run::handleStopRun(QWidget *parent)
+{
+    pause();
+
+    const QString savePath = RideFileWriter().determineFilePath(_rideFileSampler->rideFile());
+
+    QMessageBox stopRunMessageBox(parent);
+    stopRunMessageBox.setText(tr("Save ride?"));
+    stopRunMessageBox.setIcon(QMessageBox::Question);
+    stopRunMessageBox.setInformativeText(tr("Ride file will be written to %1.").arg(savePath));
+    stopRunMessageBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    stopRunMessageBox.setDefaultButton(QMessageBox::Save);
+
+    switch(stopRunMessageBox.exec()) {
+    case QMessageBox::Save:
+        saveRideFile(parent);
+        // fallthrough
+    case QMessageBox::Discard:
+        stop();
+        return true;
+    default:
+        play();
+        return false;
+    }
 }
 
 void Run::distanceChanged(float distance)
@@ -140,6 +164,20 @@ void Run::speedChanged(float speed)
     } else if (_state == State::RIDING && speed < 0.01) {
         setState(State::PAUSED);
     }
+}
+
+QString Run::saveRideFile(QWidget *parent)
+{
+    RideFileWriter writer;
+
+    QProgressDialog progressDialog("Saving...", QString(), 0, 100, parent);
+    progressDialog.setWindowModality(Qt::WindowModal);
+
+    // write the file. We'll use a lambda function to let the progress dialog update it's progress bar if there's
+    // a need for it (if the operation takes too long.
+    return writer.writeRideFile(_rideFileSampler->rideFile(), [&progressDialog](int percent) {
+        progressDialog.setValue(percent);
+    });
 }
 
 void Run::setState(State newState)
