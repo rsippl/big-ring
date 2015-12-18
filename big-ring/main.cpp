@@ -18,7 +18,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "mainwindow.h"
+#include "maingui/mainwindow.h"
 #include <QtCore/QtGlobal>
 #include <QtCore/QTime>
 #include <QApplication>

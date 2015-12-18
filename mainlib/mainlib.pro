@@ -79,6 +79,40 @@ IMPORTER_SOURCES += \
     importer/reallifevideoimporter.cpp \
     importer/rlvfileparser.cpp
 
+MAINGUI_HEADERS +=\
+    maingui/addsensorconfigurationdialog.h \
+    maingui/altitudeprofilewidget.h \
+    maingui/createnewcoursedialog.h \
+    maingui/mainwindow.h \
+    maingui/videoitemdelegate.h \
+    maingui/videolistmodel.h \
+    maingui/videolistview.h \
+    maingui/settingsdialog.h \
+    maingui/videodetails.h \
+    maingui/videoqlistview.h \
+    maingui/videoscreenshotwidget.h
+
+MAINGUI_SOURCES +=\
+    maingui/addsensorconfigurationdialog.cpp \
+    maingui/altitudeprofilewidget.cpp \
+    maingui/createnewcoursedialog.cpp \
+    maingui/mainwindow.cpp \
+    maingui/videoitemdelegate.cpp \
+    maingui/videolistmodel.cpp \
+    maingui/videolistview.cpp \
+    maingui/settingsdialog.cpp \
+    maingui/videodetails.cpp \
+    maingui/videoqlistview.cpp \
+    maingui/videoscreenshotwidget.cpp
+
+
+MAINGUI_FORMS +=\
+    maingui/addsensorconfigurationdialog.ui \
+    maingui/altitudeprofilewidget.ui \
+    maingui/createnewcoursedialog.ui \
+    maingui/settingsdialog.ui \
+    maingui/videodetails.ui \
+    maingui/videoscreenshotwidget.ui
 
 MODEL_HEADERS += \
     model/cyclist.h \
@@ -168,6 +202,7 @@ HEADERS += \
     $$CONFIG_HEADERS \
     $$GENERALGUI_HEADERS \
     $$IMPORTER_HEADERS \
+    $$MAINGUI_HEADERS \
     $$MODEL_HEADERS \
     $$RIDE_HEADERS \
     $$RIDEGUI_HEADERS \
@@ -180,11 +215,15 @@ SOURCES += \
     $$CONFIG_SOURCES \
     $$GENERALGUI_SOURCES \
     $$IMPORTER_SOURCES \
+    $$MAINGUI_SOURCES \
     $$MODEL_SOURCES \
     $$RIDE_SOURCES \
     $$RIDEGUI_SOURCES \
     $$UTIL_SOURCES \
     $$VIDEO_SOURCES
+
+FORMS += \
+    $$MAINGUI_FORMS
 
 LIBS +=  -lusb-1.0
 

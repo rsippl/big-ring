@@ -107,13 +107,13 @@
   <customwidget>
    <class>AltitudeProfileWidget</class>
    <extends>QWidget</extends>
-   <header>altitudeprofilewidget.h</header>
+   <header>maingui/altitudeprofilewidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>VideoScreenshotWidget</class>
    <extends>QWidget</extends>
-   <header>videoscreenshotwidget.h</header>
+   <header>maingui/videoscreenshotwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

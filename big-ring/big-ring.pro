@@ -9,40 +9,7 @@ TEMPLATE = app
 
 include(../config.pri)
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    videolistview.cpp \
-    videolistmodel.cpp \
-    videoitemdelegate.cpp \
-    settingsdialog.cpp \
-    videoscreenshotwidget.cpp \
-    altitudeprofilewidget.cpp \
-    videodetails.cpp \
-    createnewcoursedialog.cpp \
-    addsensorconfigurationdialog.cpp \
-    videoqlistview.cpp
-
-HEADERS  += mainwindow.h \
-    videolistview.h \
-    videolistmodel.h \
-    videoitemdelegate.h \
-    settingsdialog.h \
-    videoscreenshotwidget.h \
-    altitudeprofilewidget.h \
-    videodetails.h \
-    createnewcoursedialog.h \
-    addsensorconfigurationdialog.h \
-    videoqlistview.h
-
-RESOURCES +=
-
-FORMS += \
-    settingsdialog.ui \
-    videoscreenshotwidget.ui \
-    altitudeprofilewidget.ui \
-    videodetails.ui \
-    createnewcoursedialog.ui \
-    addsensorconfigurationdialog.ui
+SOURCES += main.cpp
 
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib

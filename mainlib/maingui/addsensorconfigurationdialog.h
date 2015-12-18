@@ -41,7 +41,7 @@ class AddSensorConfigurationDialog : public QDialog
 public:
     explicit AddSensorConfigurationDialog(indoorcycling::AntCentralDispatch* antCentralDispatch,
                                           QWidget *parent = 0);
-    ~AddSensorConfigurationDialog();
+    virtual ~AddSensorConfigurationDialog();
 
 private slots:
     void fillUsbStickPresentLabel(bool present);

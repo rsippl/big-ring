@@ -22,7 +22,7 @@
 #include "ui_settingsdialog.h"
 
 
-#include "addsensorconfigurationdialog.h"
+#include "maingui/addsensorconfigurationdialog.h"
 
 #include <QtCore/QMap>
 #include <QtCore/QSettings>
