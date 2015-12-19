@@ -40,9 +40,9 @@ ANT_SOURCES += \
     ant/antspeedandcadencechannelhandler.cpp
 
 linux {
-    ANT_SOURCES += ant/thirdparty/core.c
-    ANT_HEADERS += ant/thirdparty/usb.h \
-                   ant/thirdparty/usbi.h
+    ANT_SOURCES += thirdparty/libusb-compat/core.c
+    ANT_HEADERS += thirdparty/libusb-compat/usb.h \
+                   thirdparty/libusb-compat/usbi.h
 }
 !win32 {
     ANT_HEADERS += ant/unixserialusbant.h

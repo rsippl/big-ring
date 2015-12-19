@@ -26,7 +26,7 @@
 
 extern "C" {
 #ifdef Q_OS_LINUX
-#include "thirdparty/usb.h"
+#include "thirdparty/libusb-compat/usb.h"
 #endif
 #ifdef Q_OS_WIN
 #include <lusb0_usb.h>
