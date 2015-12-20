@@ -70,7 +70,7 @@ public slots:
     /**
      * @brief close the channel
      */
-    void close();
+    virtual void close();
 
     void handleChannelEvent(const AntChannelEventMessage& message);
     void handleBroadcastEvent(const BroadCastMessage& broadcastMessage);

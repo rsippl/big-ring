@@ -90,8 +90,10 @@ void AntChannelHandler::channelOpened()
 void AntChannelHandler::transferTxCompleted()
 {
     _acknowledgedMessageInFlight = false;
-    _acknowledgedMessagesToSend.pop();
-    qDebug() << "dequeued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
+    if (!_acknowledgedMessagesToSend.empty()) {
+        _acknowledgedMessagesToSend.pop();
+        qDebug() << "dequeued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
+    }
 }
 
 /**
@@ -136,6 +138,9 @@ void AntChannelHandler::close()
 {
     qDebug() << QString("Closing channel #%1").arg(_channelNumber);
     setState(ChannelState::CLOSED);
+    while (!_acknowledgedMessagesToSend.empty()) {
+        _acknowledgedMessagesToSend.pop();
+    }
     emit antMessageGenerated(AntMessage2::closeChannel(_channelNumber));
 }
 
@@ -188,7 +193,7 @@ void AntChannelHandler::handleBroadcastEvent(const BroadCastMessage &broadcastMe
     } else if (_state == ChannelState::TRACKING) {
         handleBroadCastMessage(broadcastMessage);
     } else {
-        qDebug() << "Did not expect a broad cast message in state"
+        qDebug() << "channel" << _channelNumber << "Did not expect a broad cast message in state"
                  << CHANNEL_STATE_STRINGS[_state]
                     << QString("data page = %1").arg(QString::number(broadcastMessage.dataPage()));
     }

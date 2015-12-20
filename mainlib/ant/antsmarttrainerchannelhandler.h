@@ -28,6 +28,8 @@ public:
 
     void setWeight(const qreal userWeightInKilograms, const qreal bikeWeightInKilograms);
     void setSlope(const qreal slopeInPercent);
+public slots:
+    virtual void close() override;
 protected:
     virtual void channelOpened() override final;
     virtual void handleBroadCastMessage(const BroadCastMessage &message) override;

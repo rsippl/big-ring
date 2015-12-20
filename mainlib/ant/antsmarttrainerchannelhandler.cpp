@@ -270,6 +270,12 @@ void AntSmartTrainerChannelHandler::setSlope(const qreal slopeInPercent)
     queueAcknowledgedMessage(createTrackResistanceMessage());
 }
 
+void AntSmartTrainerChannelHandler::close()
+{
+    _configurationCheckerTimer->stop();
+    AntChannelHandler::close();
+}
+
 void AntSmartTrainerChannelHandler::channelOpened()
 {
     queueAcknowledgedMessage(createWindResistenceMessage());

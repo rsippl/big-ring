@@ -22,6 +22,7 @@
 
 #include <QtCore/QDebug>
 
+#include <QtCore/QTimer>
 #ifdef Q_OS_LINUX
 #include <QtCore/QProcess>
 #endif
@@ -29,6 +30,13 @@
 #include <windows.h>
 #endif
 
+namespace
+{
+const QString GNOME_RESET_SCREEEN_SAVER_COMMAND = "dbus-send --session --dest=org.gnome.ScreenSaver "
+        "--type=method_call /org/gnome/ScreenSaver org.gnome.ScreenSaver.SimulateUserActivity";
+const QString KDE_RESET_SCREEN_SAVER_COMMAND = "dcop kdesktop KScreensaverIface quit";
+const QString XSCREENSAVER_RESET_SCREEN_SAVER_COMMAND = "xset s reset";
+}
 namespace indoorcycling
 {
 ScreenSaverBlocker::ScreenSaverBlocker(QWidget* parent) :
@@ -54,8 +62,7 @@ void ScreenSaverBlocker::blockScreenSaver()
     qDebug() << "Blocking screensaver.";
     QProcess* const process = new QProcess;
 
-    const quintptr windowId = _window->winId();
-    const QString command = QString("xdg-screensaver suspend %1").arg(windowId);
+    const QString command = QString("xdg-screensaver suspend %1").arg(_window->winId());
 
     connect(process, SIGNAL(error(QProcess::ProcessError)), this,
             SLOT(handleError(QProcess::ProcessError)));
@@ -63,6 +70,12 @@ void ScreenSaverBlocker::blockScreenSaver()
     connect(process, SIGNAL(finished(int)), process, SLOT(deleteLater()));
 
     process->start(command);
+
+    // we'll also start a timer to send an "activity signal" every 5 seconds.
+    QTimer * const activityTimer = new QTimer(this);
+    connect(activityTimer, &QTimer::timeout, this, &ScreenSaverBlocker::resetScreenSaver);
+    activityTimer->setInterval(5000);
+    activityTimer->start();
 }
 
 void ScreenSaverBlocker::unblockScreenSaver()
@@ -70,8 +83,23 @@ void ScreenSaverBlocker::unblockScreenSaver()
     qDebug() << "Allowing screensaver to work again";
     QProcess* const process = new QProcess;
 
-    const quintptr windowId = _window->winId();
-    const QString command = QString("xdg-screensaver resume %1").arg(windowId);
+    const QString command = QString("xdg-screensaver resume %1").arg(_window->winId());
+    connect(process, SIGNAL(finished(int)), process, SLOT(deleteLater()));
+    process->start(command);
+}
+
+void ScreenSaverBlocker::resetScreenSaver()
+{
+    for (const QString &command: { GNOME_RESET_SCREEEN_SAVER_COMMAND, KDE_RESET_SCREEN_SAVER_COMMAND, XSCREENSAVER_RESET_SCREEN_SAVER_COMMAND}) {
+        resetScreenSaverForDesktopEnvironment(command);
+    }
+}
+
+/** Start a process to reset the screen saver for a desktop environment */
+void ScreenSaverBlocker::resetScreenSaverForDesktopEnvironment(const QString &command)
+{
+    QProcess* const process = new QProcess;
+
     connect(process, SIGNAL(finished(int)), process, SLOT(deleteLater()));
     process->start(command);
 }
