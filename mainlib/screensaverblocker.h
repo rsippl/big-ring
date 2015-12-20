@@ -53,6 +53,8 @@ public:
 public slots:
 #ifndef Q_OS_WIN
     void handleError(QProcess::ProcessError error);
+    void resetScreenSaver();
+    void resetScreenSaverForDesktopEnvironment(const QString &command);
 #endif
 private:
     void blockScreenSaver();
