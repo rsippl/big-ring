@@ -27,25 +27,57 @@
 template <typename T>
 class DistanceEntryCollection {
 public:
-    typedef typename std::vector<T>::const_iterator It;
+    explicit DistanceEntryCollection();
+    explicit DistanceEntryCollection(const std::vector<T> &entries, std::function<qreal(const T&)> distanceFunction);
+    explicit DistanceEntryCollection(const DistanceEntryCollection& other);
 
-    explicit DistanceEntryCollection(const std::vector<T> &entries, const std::function<qreal(const T&)> distanceFunction);
+    DistanceEntryCollection<T> &operator =(const DistanceEntryCollection& other);
 
+    bool empty() const {
+        return _entries.empty();
+    }
+
+    const std::vector<T> &entries() const {
+        return _entries;
+    }
     const typename std::vector<T>::const_iterator iteratorForDistance(const qreal distance);
     const T *entryForDistance(const qreal distance);
 
 private:
     std::vector<T> _entries;
-    const std::function<qreal(const T&)> _distanceFunction;
+    std::function<qreal(const T&)> _distanceFunction;
 
     typename std::vector<T>::const_iterator _currentEntry;
 };
 
 template <typename T>
-DistanceEntryCollection<T>::DistanceEntryCollection(const std::vector<T> &entries, const std::function<qreal (const T &)> distanceFunction):
+DistanceEntryCollection<T>::DistanceEntryCollection()
+{
+    // empty
+}
+
+template <typename T>
+DistanceEntryCollection<T>::DistanceEntryCollection(const std::vector<T> &entries, std::function<qreal(const T &)> distanceFunction):
     _entries(entries), _distanceFunction(distanceFunction), _currentEntry(_entries.begin())
 {
     // empty
+}
+
+template <typename T>
+DistanceEntryCollection<T>::DistanceEntryCollection(const DistanceEntryCollection &other):
+    DistanceEntryCollection<T>(other._entries, other._distanceFunction)
+{
+
+}
+
+template <typename T>
+DistanceEntryCollection<T> &DistanceEntryCollection<T>::operator =(const DistanceEntryCollection<T> &other)
+{
+    _entries = other._entries;
+    _distanceFunction = other._distanceFunction;
+    _currentEntry = _entries.begin();
+
+    return *this;
 }
 
 template <typename T>

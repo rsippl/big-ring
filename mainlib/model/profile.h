@@ -22,7 +22,8 @@
 #define PROFILE_H
 
 #include <vector>
-
+#include <QtCore/QObject>
+#include "distanceentrycollection.h"
 class ProfileEntry
 {
 public:
@@ -76,17 +77,12 @@ private:
 
     ProfileType _type;
     float _startAltitude;
-    ProfileEntryVector _entries;
+    mutable DistanceEntryCollection<ProfileEntry> _entries;
+
     /** Get an iterator the the ProfileEntry we need for a specific distance */
     const ProfileEntryVectorIt entryIteratorForDistance(const float distance) const;
     const std::pair<const ProfileEntryVectorIt,
         const ProfileEntryVectorIt> rangeForDistances(float start, float end) const;
-
-    /** mutable iterator that we use for memoryzing the current profile entry. This helps
-     * us to find the entry for a distance quickly, because most often the same entry
-     * will be reused many (100s of) times.
-     */
-    mutable std::vector<ProfileEntry>::const_iterator _currentProfileEntry;
 };
 
 #endif // PROFILE_H
