@@ -32,7 +32,7 @@ public:
 private slots:
     void testWithEmptyEntries();
     void testWithSingleEntry();
-    void testWithThreeEntries();
+    void testWithFourEntries();
 };
 
 #endif // DISTANCEENTRYCOLLECTIONTEST_H

@@ -68,9 +68,9 @@ void DistanceEntryCollectionTest::testWithSingleEntry()
     QVERIFY2(*entry == entries[0], "First entry should be found");
 }
 
-void DistanceEntryCollectionTest::testWithThreeEntries()
+void DistanceEntryCollectionTest::testWithFourEntries()
 {
-    std::vector<SimpleEntry> entries = { SimpleEntry(0.0, 0.0), SimpleEntry(10.0, 1.0), SimpleEntry(20.0, 3.0) };
+    std::vector<SimpleEntry> entries = { SimpleEntry(0.0, 0.0), SimpleEntry(10.0, 1.0), SimpleEntry(20.0, 3.0), SimpleEntry(30.0, 4.0) };
     DistanceEntryCollection<SimpleEntry> indexed(entries, indexFunction);
 
     const SimpleEntry *entry = indexed.entryForDistance(1.0);
@@ -89,4 +89,9 @@ void DistanceEntryCollectionTest::testWithThreeEntries()
     entry = indexed.entryForDistance(10.0);
     QVERIFY2(entry, "Entry should not be null");
     QVERIFY2(*entry == entries[1], "Second entry should be found");
+
+    for (int i = 0; i < 300; ++i) {
+        entry = indexed.entryForDistance(i / 10.0);
+        QVERIFY2(entry, "Entry should not be null");
+    }
 }

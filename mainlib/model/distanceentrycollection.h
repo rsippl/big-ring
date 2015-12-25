@@ -86,15 +86,33 @@ const typename std::vector<T>::const_iterator DistanceEntryCollection<T>::iterat
     if (_entries.empty()) {
         return _entries.end();
     }
-    const bool atLastEntry = _currentEntry == _entries.end() || _currentEntry + 1 == _entries.end();
-    const bool isDistanceSmallerThenCurrent = distance < _distanceFunction(*_currentEntry);
-    const bool isDistanceBiggerThenCurrent = !atLastEntry && distance > _distanceFunction(*(_currentEntry + 1));
+    auto nextEntry = _currentEntry + 1;
+    const bool atLastEntry = _currentEntry == _entries.end() || nextEntry == _entries.end();
+    const bool isDistanceBiggerThenEndOfCurrent = !atLastEntry && distance > _distanceFunction(*(nextEntry));
 
+    // optimization for the common case. With most of these distance entry collections, we're going through them
+    // from beginning to end. Rather than doing a binary search right away, we'll first check if the distance that
+    // is requested is bigger than the start of the next entry, but smaller than the start of the entry after that.
+    // If so, we can just use the next entry, without going to search mode.
+    if (!atLastEntry && isDistanceBiggerThenEndOfCurrent) {
+        auto entryAfterNext = nextEntry + 1;
+        const bool distanceSmallerThanEndOfNextEntry = entryAfterNext != _entries.end() && distance < _distanceFunction(*entryAfterNext);
+        if (distanceSmallerThanEndOfNextEntry) {
+            _currentEntry = nextEntry;
+            return _currentEntry;
+        }
+    }
+    const bool isDistanceSmallerThenStartOfCurrent = distance < _distanceFunction(*_currentEntry);
     // if the distance we're looking for is smaller than the current entry, or bigger than the
     // start of the next entry, then we need to search which entry to use. If not, we can
     // simply use the current entry.
-    if (isDistanceSmallerThenCurrent || (!atLastEntry && isDistanceBiggerThenCurrent)) {
-        auto it = std::lower_bound(_entries.begin(), _entries.end(), distance, [this](const T &entry, qreal distance) {
+    if (isDistanceSmallerThenStartOfCurrent || (!atLastEntry && isDistanceBiggerThenEndOfCurrent)) {
+        // optimization, determine bounds. If distance is before current entry start at begin, otherwise, start at nextEntry.
+        auto begin = isDistanceSmallerThenStartOfCurrent ? _entries.begin() : nextEntry;
+        // if distance is after current entry, end at end of vector, otherwise, end at the current entry.
+        auto end = isDistanceBiggerThenEndOfCurrent ? _entries.end(): _currentEntry;
+
+        auto it = std::lower_bound(begin, end, distance, [this](const T &entry, qreal distance) {
             return _distanceFunction(entry) < distance;
         });
 
