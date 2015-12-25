@@ -1,3 +1,7 @@
+# 1.5.0
+
+- Simplify directory structure. Makes build easier to understand.
+
 # 1.4.0
 
 - Add the ability to save rides to TCX.
