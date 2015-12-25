@@ -20,6 +20,7 @@
 
 #include "reallifevideo.h"
 
+#include "distanceentrycollection.h"
 #include "distancemappingentry.h"
 #include "videoinformation.h"
 
@@ -28,6 +29,10 @@
 
 namespace
 {
+std::function<qreal(const DistanceMappingEntry&)> distanceMappingEntryDistanceFunction = [](const DistanceMappingEntry& entry) {
+    return entry.distance();
+};
+
 std::map<RealLifeVideoFileType,const QString> REAL_LIFE_VIDEO_TYPE_NAMES =
 {{RealLifeVideoFileType::GPX, "GPX"},
  {RealLifeVideoFileType::TACX, "TACX"},
@@ -53,7 +58,7 @@ public:
     QString _name;
     RealLifeVideoFileType _fileType;
     Profile _profile;
-    std::vector<DistanceMappingEntry> _distanceMappings;
+    DistanceEntryCollection<DistanceMappingEntry> _distanceMappings;
     VideoInformation _videoInformation;
     std::vector<Course> _courses;
     std::vector<InformationBox> _informationBoxes;
@@ -95,7 +100,7 @@ RealLifeVideo::RealLifeVideo(const QString &name, RealLifeVideoFileType fileType
     _d->_videoInformation = videoInformation;
     _d->_courses = courses;
     _d->_videoCorrectionFactor = 1.0;
-    _d->_distanceMappings = distanceMappings;
+    _d->_distanceMappings = DistanceEntryCollection<DistanceMappingEntry>(distanceMappings, distanceMappingEntryDistanceFunction);
     _d->_informationBoxes = informationBoxes;
 }
 
@@ -153,7 +158,7 @@ const std::vector<Course> &RealLifeVideo::courses() const
 
 const std::vector<DistanceMappingEntry> &RealLifeVideo::distanceMappings() const
 {
-    return _d->_distanceMappings;
+    return _d->_distanceMappings.entries();
 }
 
 const std::vector<InformationBox> &RealLifeVideo::informationBoxes() const
@@ -171,16 +176,6 @@ void RealLifeVideo::addCustomCourse(float startDistance, float endDistance, cons
     Course customCourse(name, Course::Type::Custom, startDistance, endDistance);
     _d->_courses.push_back(customCourse);
 }
-
-void RealLifeVideo::printDistanceMapping()
-{
-    int i = 0;
-    for(auto distanceMapping: _d->_distanceMappings) {
-        qDebug() << i++ << distanceMapping.frameNumber() << distanceMapping.distance();
-    }
-    qDebug() << "framerate" << _d->_videoInformation.frameRate();
-}
-
 
 float RealLifeVideo::metersPerFrame(const float distance) const
 {
@@ -264,10 +259,10 @@ void RealLifeVideo::calculateVideoCorrectionFactor(quint64 totalNrOfFrames)
     // some rlvs, mostly the old ones like the old MajorcaTour have only two
     // entries in the distancemappings list. For these rlvs, it seems to work
     // better to just use a _videoCorrectionFactor of 1.0.
-    if (_d->_distanceMappings.size() < 3) {
+    if (_d->_distanceMappings.entries().size() < 3) {
         _d->_videoCorrectionFactor = 1;
     } else {
-        const auto &lastDistanceMapping = _d->_distanceMappings.back();
+        const auto &lastDistanceMapping = _d->_distanceMappings.entries().back();
         quint64 framesInLastEntry;
         if (totalNrOfFrames > lastDistanceMapping.frameNumber()) {
             framesInLastEntry = totalNrOfFrames - lastDistanceMapping.frameNumber();
@@ -281,25 +276,7 @@ void RealLifeVideo::calculateVideoCorrectionFactor(quint64 totalNrOfFrames)
 
 const DistanceMappingEntry &RealLifeVideo::findDistanceMappingEntryFor(const float distance) const
 {
-    if (distance < _lastKeyDistance || distance > _nextLastKeyDistance) {
-        unsigned i = (distance > _nextLastKeyDistance) ? _currentDistanceMappingIndex + 1: 0;
-        for (; i < _d->_distanceMappings.size(); ++i) {
-            const DistanceMappingEntry &nextEntry = _d->_distanceMappings[i];
-            if (nextEntry.distance() > distance) {
-                break;
-            } else {
-                _currentDistanceMappingIndex = i;
-            }
-        }
-
-        _lastKeyDistance = _d->_distanceMappings[_currentDistanceMappingIndex].distance();
-        if (_currentDistanceMappingIndex + 1 < _d->_distanceMappings.size()) {
-            _nextLastKeyDistance = _d->_distanceMappings[_currentDistanceMappingIndex + 1].distance();
-        } else {
-            _nextLastKeyDistance = 0;
-        }
-    }
-    return _d->_distanceMappings[_currentDistanceMappingIndex];
+    return *(_d->_distanceMappings.iteratorForDistance(distance));
 }
 
 const InformationBox RealLifeVideo::informationBoxForDistanceTacx(const float distance) const

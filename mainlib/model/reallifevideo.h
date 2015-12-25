@@ -122,7 +122,6 @@ public:
     /** Add a new custom course */
     void addCustomCourse(float startDistance, float endDistance, const QString& name);
 
-    void printDistanceMapping();
     /** Get the number or frames per meter for a certain distance */
     float metersPerFrame(const float distance) const;
     /** Get the exact frame for a distance. */
