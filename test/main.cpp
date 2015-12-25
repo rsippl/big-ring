@@ -1,4 +1,5 @@
 #include "antmessage2test.h"
+#include "distanceentrycollectiontest.h"
 #include "profiletest.h"
 #include "reallifevideocachetest.h"
 #include "ridefilewritertest.h"
@@ -11,6 +12,7 @@
 int main(int, char**) {
     AntMessage2Test antMessage2Test;
     QTest::qExec(&antMessage2Test);
+
     VirtualTrainingFileParserTest virtualTrainingFileParserTest;
     QTest::qExec(&virtualTrainingFileParserTest);
     VirtualPowerTest vpTest;
@@ -23,4 +25,7 @@ int main(int, char**) {
     QTest::qExec(&rideFileWriterTest);
     RealLifeVideoCacheTest saveAndLoadTest;
     QTest::qExec(&saveAndLoadTest);
+
+    DistanceEntryCollectionTest distanceEntryCollectionTest;
+    QTest::qExec(&distanceEntryCollectionTest);
 }

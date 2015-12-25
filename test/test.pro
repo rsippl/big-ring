@@ -12,7 +12,8 @@ SOURCES += \
     profiletest.cpp \
     rollingaveragecalculatortest.cpp \
     reallifevideocachetest.cpp \
-    ridefilewritertest.cpp
+    ridefilewritertest.cpp \
+    distanceentrycollectiontest.cpp
 
 HEADERS += \
     antmessage2test.h \
@@ -22,7 +23,8 @@ HEADERS += \
     profiletest.h \
     rollingaveragecalculatortest.h \
     reallifevideocachetest.h \
-    ridefilewritertest.h
+    ridefilewritertest.h \
+    distanceentrycollectiontest.h
 
 
 RESOURCES += \

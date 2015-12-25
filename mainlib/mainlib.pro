@@ -116,6 +116,7 @@ MAINGUI_FORMS +=\
 
 MODEL_HEADERS += \
     model/cyclist.h \
+    model/distanceentrycollection.h \
     model/distancemappingentry.h \
     model/profile.h \
     model/reallifevideo.h \
