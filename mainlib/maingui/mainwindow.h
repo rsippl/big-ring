@@ -74,6 +74,7 @@ private:
 
     VideoListView* const _listView;
     QScopedPointer<NewVideoWidget> _videoWidget;
+    bool _guiFullScreen;
     QRect _savedGeometry;
 };
 

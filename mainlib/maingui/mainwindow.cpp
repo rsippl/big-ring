@@ -202,7 +202,10 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     _savedGeometry = geometry();
     if (isMaximized()) {
         _menuBar->hide();
+        _guiFullScreen = true;
         showFullScreen();
+    } else {
+        _guiFullScreen = false;
     }
     connect(&_run->simulation().cyclist(), &Cyclist::distanceChanged, _videoWidget.data(), &NewVideoWidget::setDistance);
     connect(_videoWidget.data(), &NewVideoWidget::readyToPlay, this, [this](bool ready) {
@@ -213,18 +216,17 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     });
     connect(_run.get(), &Run::newInformationMessage, _videoWidget.data(), &NewVideoWidget::displayInformationBox);
     connect(_run.get(), &Run::stopped, _run.get(), [this]() {
-        bool maximize = _videoWidget->isFullScreen();
         _run.reset();
         _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
         _stackedWidget->removeWidget(_videoWidget.data());
         _videoWidget.reset();
         _menuBar->show();
-        if (maximize) {
+        if (_guiFullScreen) {
             showMaximized();
         } else {
             showNormal();
+            setGeometry(_savedGeometry);
         }
-        setGeometry(_savedGeometry);
         raise();
     });
     connect(_run.get(), &Run::riding, this, &MainWindow::removeDisplayMessage);
