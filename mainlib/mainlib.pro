@@ -118,6 +118,7 @@ MODEL_HEADERS += \
     model/cyclist.h \
     model/distanceentrycollection.h \
     model/distancemappingentry.h \
+    model/geoposition.h \
     model/profile.h \
     model/reallifevideo.h \
     model/ridefile.h \
@@ -131,6 +132,7 @@ MODEL_HEADERS += \
 MODEL_SOURCES += \
     model/cyclist.cpp \
     model/distancemappingentry.cpp \
+    model/geoposition.cpp \
     model/profile.cpp \
     model/reallifevideo.cpp \
     model/ridefile.cpp \

@@ -64,6 +64,9 @@ private:
 
     void saveInformationBoxes(QDataStream &out, const std::vector<InformationBox> &entries) const;
     std::vector<InformationBox> readInformationBoxes(QDataStream &in) const;
+
+    void savePositions(QDataStream &out, const std::vector<GeoPosition> &positions) const;
+    std::vector<GeoPosition> readPositions(QDataStream &in) const;
 };
 
 #endif // REALLIFEVIDEOCACHE_H

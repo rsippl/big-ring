@@ -29,10 +29,6 @@
 
 namespace
 {
-std::function<qreal(const DistanceMappingEntry&)> distanceMappingEntryDistanceFunction = [](const DistanceMappingEntry& entry) {
-    return entry.distance();
-};
-
 std::map<RealLifeVideoFileType,const QString> REAL_LIFE_VIDEO_TYPE_NAMES =
 {{RealLifeVideoFileType::GPX, "GPX"},
  {RealLifeVideoFileType::TACX, "TACX"},
@@ -59,6 +55,7 @@ public:
     RealLifeVideoFileType _fileType;
     Profile _profile;
     DistanceEntryCollection<DistanceMappingEntry> _distanceMappings;
+    DistanceEntryCollection<GeoPosition> _geoPositions;
     VideoInformation _videoInformation;
     std::vector<Course> _courses;
     std::vector<InformationBox> _informationBoxes;
@@ -80,18 +77,10 @@ Course::Course(): Course("", Type::Invalid, 0, 0)
     // empty
 }
 
-RealLifeVideo::RealLifeVideo(const QString& name, RealLifeVideoFileType fileType, const VideoInformation& videoInformation,
-                             const QList<Course>& courses, const QList<DistanceMappingEntry>& distanceMappings, Profile profile):
-    RealLifeVideo(name, fileType, videoInformation, std::move(std::vector<Course>(courses.begin(), courses.end())),
-                  std::move(std::vector<DistanceMappingEntry>(distanceMappings.begin(), distanceMappings.end())), profile)
-{
-    // empty
-}
-
 RealLifeVideo::RealLifeVideo(const QString &name, RealLifeVideoFileType fileType, const VideoInformation &videoInformation,
                              const std::vector<Course> &&courses,
                              const std::vector<DistanceMappingEntry> &&distanceMappings,
-                             Profile& profile, const std::vector<InformationBox> &&informationBoxes):
+                             Profile& profile, const std::vector<InformationBox> &&informationBoxes, const std::vector<GeoPosition> &&geoPositions):
     _d(new RealLifeVideoData)
 {
     _d->_name = name;
@@ -100,12 +89,20 @@ RealLifeVideo::RealLifeVideo(const QString &name, RealLifeVideoFileType fileType
     _d->_videoInformation = videoInformation;
     _d->_courses = courses;
     _d->_videoCorrectionFactor = 1.0;
-    _d->_distanceMappings = DistanceEntryCollection<DistanceMappingEntry>(distanceMappings, distanceMappingEntryDistanceFunction);
+    _d->_distanceMappings = DistanceEntryCollection<DistanceMappingEntry>(distanceMappings,
+        [](const DistanceMappingEntry &entry) {
+        return entry.distance();
+    });
     _d->_informationBoxes = informationBoxes;
+    _d->_geoPositions =
+            DistanceEntryCollection<GeoPosition>(geoPositions,
+                                                 [](const GeoPosition &position) {
+        return position.distance();
+    });
 }
 
 RealLifeVideo::RealLifeVideo(const RealLifeVideo &other):
-    _d(other._d), _lastKeyDistance(other._lastKeyDistance), _nextLastKeyDistance(other._nextLastKeyDistance)
+    _d(other._d)
 {
 
 }
@@ -166,6 +163,21 @@ const std::vector<InformationBox> &RealLifeVideo::informationBoxes() const
     return _d->_informationBoxes;
 }
 
+const std::vector<GeoPosition> &RealLifeVideo::positions() const
+{
+    return _d->_geoPositions.entries();
+}
+
+const QGeoRectangle RealLifeVideo::geoRectangle() const
+{
+    QList<QGeoCoordinate> coordinates;
+    coordinates.reserve(_d->_geoPositions.entries().size());
+    for (const GeoPosition &position: _d->_geoPositions.entries()) {
+        coordinates.append(position.coordinate());
+    }
+    return QGeoRectangle(coordinates);
+}
+
 void RealLifeVideo::addStartPoint(float distance, const QString &name)
 {
     addCustomCourse(distance, totalDistance(), name);
@@ -198,6 +210,11 @@ float RealLifeVideo::slopeForDistance(const float distance) const
 float RealLifeVideo::altitudeForDistance(const float distance) const
 {
     return _d->_profile.altitudeForDistance(distance);
+}
+
+const GeoPosition *RealLifeVideo::positionForDistance(const float distance) const
+{
+    return _d->_geoPositions.entryForDistance(distance);
 }
 
 const InformationBox RealLifeVideo::informationBoxForDistance(const float distance) const

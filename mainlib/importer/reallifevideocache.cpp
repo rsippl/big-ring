@@ -86,9 +86,11 @@ std::unique_ptr<RealLifeVideo> RealLifeVideoCache::load(const QFile &rlvFile)
     std::vector<DistanceMappingEntry> distanceMappings = readDistanceMappings(in);
     Profile profile = readProfile(in);
     std::vector<InformationBox> informationBoxes = readInformationBoxes(in);
+    std::vector<GeoPosition> positions = readPositions(in);
 
     return std::unique_ptr<RealLifeVideo>(new RealLifeVideo(rlvName, fileType, videoInformation, std::move(courses),
-                                                            std::move(distanceMappings), profile, std::move(informationBoxes)));
+                                                            std::move(distanceMappings), profile, std::move(informationBoxes),
+                                                            std::move(positions)));
 }
 
 void RealLifeVideoCache::save(const QFile &rlvFile, const RealLifeVideo &rlv)
@@ -112,6 +114,7 @@ void RealLifeVideoCache::save(const QFile &rlvFile, const RealLifeVideo &rlv)
     saveDistanceMappings(out, rlv.distanceMappings());
     saveProfile(out, rlv.profile());
     saveInformationBoxes(out, rlv.informationBoxes());
+    savePositions(out, rlv.positions());
 }
 
 QString RealLifeVideoCache::absoluteFilenameForRlv(const QString &name) const
@@ -260,4 +263,30 @@ std::vector<InformationBox> RealLifeVideoCache::readInformationBoxes(QDataStream
         entries.push_back(InformationBox(frameNumber, distance, message, QFileInfo(imageFilePath)));
     }
     return entries;
+}
+
+void RealLifeVideoCache::savePositions(QDataStream &out, const std::vector<GeoPosition> &positions) const
+{
+    out << static_cast<quint32>(positions.size());
+    for (const GeoPosition &position: positions) {
+        out << position.distance();
+        out << position.coordinate();
+    }
+}
+
+std::vector<GeoPosition> RealLifeVideoCache::readPositions(QDataStream &in) const
+{
+    quint32 numberOfEntries;
+    in >> numberOfEntries;
+
+    std::vector<GeoPosition> positions;
+    positions.reserve(numberOfEntries);
+
+    for (auto i = 0u; i < numberOfEntries; ++i) {
+        qreal distance;
+        QGeoCoordinate coordinate;
+        in >> distance >> coordinate;
+        positions.push_back(GeoPosition(distance, coordinate));
+    }
+    return positions;
 }

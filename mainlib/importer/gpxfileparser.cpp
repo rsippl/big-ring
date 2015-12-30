@@ -92,12 +92,15 @@ RealLifeVideo GpxFileParser::parseXml(const QFile &inputFile,
         }
     }
 
+    std::vector<GeoPosition> geoPositions = convertTrackPoints(trackPoints);
+
     VideoInformation videoInformation(videoFileInfo.filePath(), frameRate);
-    Profile profile(ProfileType::SLOPE, 0.0f, convertProfileEntries(smoothTrack(trackPoints)));
+    Profile profile(ProfileType::SLOPE, 0.0f, convertProfileEntries(smoothTrack(geoPositions)));
     std::vector<Course> courses = { Course("Complete Distance", 0, profile.totalDistance()) };
     std::vector<DistanceMappingEntry> distanceMappings = convertDistanceMappings(frameRate, trackPoints);
     RealLifeVideo rlv(name, RealLifeVideoFileType::GPX, videoInformation, std::move(courses),
-                      std::move(distanceMappings), profile);
+                      std::move(distanceMappings), profile, std::move(std::vector<InformationBox>()),
+                      std::move(geoPositions));
     return rlv;
 }
 
@@ -129,17 +132,36 @@ QGeoPositionInfo GpxFileParser::readTrackPoint(QXmlStreamReader &reader) const
     return geoPositionInfo;
 }
 
-std::vector<ProfileEntry> GpxFileParser::convertProfileEntries(const std::vector<QGeoPositionInfo> &trackPoints) const
+std::vector<GeoPosition> GpxFileParser::convertTrackPoints(const std::vector<QGeoPositionInfo> &positions) const
+{
+    qreal currentDistance = 0;
+    std::vector<GeoPosition> geoPositions;
+    const QGeoPositionInfo *lastEntry = nullptr;
+    geoPositions.reserve(positions.size());
+    for (const QGeoPositionInfo& position: positions) {
+        if (lastEntry == nullptr) {
+            geoPositions.push_back(GeoPosition(currentDistance, position.coordinate()));
+        } else {
+            const qreal segmentDistance = distanceBetweenPoints(*lastEntry, position);
+            currentDistance += segmentDistance;
+            geoPositions.push_back(GeoPosition(currentDistance, position.coordinate()));
+        }
+        lastEntry = &position;
+    }
+    return geoPositions;
+}
+
+std::vector<ProfileEntry> GpxFileParser::convertProfileEntries(const std::vector<GeoPosition> &trackPoints) const
 {
     std::vector<ProfileEntry> profileEntries;
 
-    const QGeoPositionInfo *lastEntry = nullptr;
+    const GeoPosition *lastEntry = nullptr;
     qreal currentDistance = 0;
     qreal currentElevation = 0;
-    for (const QGeoPositionInfo &trackPoint: trackPoints) {
+    for (const GeoPosition &trackPoint: trackPoints) {
         qreal segmentDistance = 0;
         if (lastEntry) {
-            segmentDistance = distanceBetweenPoints(*lastEntry, trackPoint);
+            segmentDistance = trackPoint.distance() - lastEntry->distance();
             qreal segmentAltitudeDifference = trackPoint.coordinate().altitude() - currentElevation;
 
             if (segmentDistance > 0) {
@@ -168,18 +190,18 @@ std::vector<ProfileEntry> GpxFileParser::convertProfileEntries(const std::vector
  * @param trackPoints the trackpoints.
  * @return the track with the altitudes smoothed.
  */
-std::vector<QGeoPositionInfo> GpxFileParser::smoothTrack(const std::vector<QGeoPositionInfo> &trackPoints) const
+std::vector<GeoPosition> GpxFileParser::smoothTrack(const std::vector<GeoPosition> &trackPoints) const
 {
-    std::vector<QGeoPositionInfo> smoothedTrackPoints = trackPoints;
+    std::vector<GeoPosition> smoothedTrackPoints = trackPoints;
     for (int i = 0; i < 20; ++i) {
         smoothedTrackPoints = smoothTrackPoints(smoothedTrackPoints);
     }
     return smoothedTrackPoints;
 }
 
-std::vector<QGeoPositionInfo> GpxFileParser::smoothTrackPoints(const std::vector<QGeoPositionInfo> &trackPoints) const
+std::vector<GeoPosition> GpxFileParser::smoothTrackPoints(const std::vector<GeoPosition> &trackPoints) const
 {
-    std::vector<QGeoPositionInfo> smoothedTrackPoints;
+    std::vector<GeoPosition> smoothedTrackPoints;
     if (!trackPoints.empty()) {
         smoothedTrackPoints.push_back(trackPoints[0]);
         for(unsigned i = 1; i < trackPoints.size() - 1; ++i) {
@@ -192,7 +214,7 @@ std::vector<QGeoPositionInfo> GpxFileParser::smoothTrackPoints(const std::vector
     return smoothedTrackPoints;
 }
 
-QGeoPositionInfo GpxFileParser::smoothSingleTrackPoint(const QGeoPositionInfo &previousPoint, const QGeoPositionInfo &point, const QGeoPositionInfo &nextPoint) const
+GeoPosition GpxFileParser::smoothSingleTrackPoint(const GeoPosition &previousPoint, const GeoPosition &point, const GeoPosition &nextPoint) const
 {
     QGeoCoordinate coordinate = point.coordinate();
 
@@ -200,7 +222,7 @@ QGeoPositionInfo GpxFileParser::smoothSingleTrackPoint(const QGeoPositionInfo &p
                                                point.coordinate().altitude(),
                                                nextPoint.coordinate().altitude()));
 
-    return QGeoPositionInfo(coordinate, point.timestamp());
+    return GeoPosition(point.distance(), coordinate);
 }
 
 qreal GpxFileParser::distanceBetweenPoints(const QGeoPositionInfo &start, const QGeoPositionInfo &end) const

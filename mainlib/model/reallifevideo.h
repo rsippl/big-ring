@@ -28,7 +28,9 @@
 #include <QtCore/QSharedPointer>
 #include <QtCore/QString>
 
+#include <QtPositioning/QGeoRectangle>
 
+#include "geoposition.h"
 #include "profile.h"
 
 /** The different types of RealLifeVideo that are supported */
@@ -98,11 +100,11 @@ class RealLifeVideoData;
 class RealLifeVideo
 {
 public:
-    explicit RealLifeVideo(const QString& name, RealLifeVideoFileType fileType, const VideoInformation& videoInformation, const QList<Course>& courses,
-                           const QList<DistanceMappingEntry>& distanceMappings, Profile profile);
     explicit RealLifeVideo(const QString& name, RealLifeVideoFileType fileType, const VideoInformation& videoInformation, const std::vector<Course> &&courses,
                            const std::vector<DistanceMappingEntry>&& distanceMappings, Profile &profile,
-                           const std::vector<InformationBox> &&informationBoxes = std::vector<InformationBox>());
+                           const std::vector<InformationBox> &&informationBoxes = std::vector<InformationBox>(),
+                           const std::vector<GeoPosition> &&geoPositions =
+            std::vector<GeoPosition>());
     RealLifeVideo(const RealLifeVideo& other);
     explicit RealLifeVideo();
 
@@ -116,6 +118,9 @@ public:
     const std::vector<Course>& courses() const;
     const std::vector<DistanceMappingEntry> &distanceMappings() const;
     const std::vector<InformationBox> &informationBoxes() const;
+    const std::vector<GeoPosition> &positions() const;
+
+    const QGeoRectangle geoRectangle() const;
 
     /** Add a new custom start point */
     void addStartPoint(float distance, const QString& name);
@@ -130,6 +135,8 @@ public:
     float slopeForDistance(const float distance) const;
     //! Get the altitude for a distance */
     float altitudeForDistance(const float distance) const;
+    //! Get the geo coordinate for a distance */
+    const GeoPosition *positionForDistance(const float distance) const;
     //! Get the information box message for a distance */
     const InformationBox informationBoxForDistance(const float distance) const;
     /** Total distance */
@@ -146,10 +153,6 @@ private:
     const InformationBox informationBoxForDistanceTacx(const float distance) const;
 
     QSharedPointer<RealLifeVideoData> _d;
-
-    mutable float _lastKeyDistance = -1;
-    mutable float _nextLastKeyDistance = -1;
-    mutable unsigned int _currentDistanceMappingIndex = 0;
 };
 typedef QList<RealLifeVideo> RealLifeVideoList;
 

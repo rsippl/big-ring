@@ -55,3 +55,21 @@ void VirtualTrainingFileParserTest::testWithBavellaFile()
     QCOMPARE(rlv.frameForDistance(332.8), 1000u);
     QCOMPARE(tacxRlv.frameForDistance(332.8), 1000u);
 }
+
+void VirtualTrainingFileParserTest::testCoordinates()
+{
+    QFile f(":///resources/FR_Bavella-utf8.xml");
+    indoorcycling::VirtualTrainingFileParser parser(videoFiles);
+    RealLifeVideo rlv = parser.parseVirtualTrainingFile(f);
+
+    const GeoPosition *position = rlv.positionForDistance(0);
+    QVERIFY2(position != nullptr, "Position should be set");
+    QCOMPARE(position->coordinate().latitude(), 41.8621241580695);
+    position = rlv.positionForDistance(5555);
+    QVERIFY2(position != nullptr, "Position should be set");
+    QCOMPARE(position->coordinate().latitude(), 41.8474907800555);
+    QCOMPARE(position->coordinate().longitude(), 9.35294321738184);
+
+    const QGeoRectangle geoRectangle = rlv.geoRectangle();
+    qDebug() << "geo rectangle" << geoRectangle.topLeft() << geoRectangle.bottomRight();
+}
