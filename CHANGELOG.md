@@ -1,5 +1,9 @@
 # 1.5.0
 
+- Fix OpenGL code. A faulty fragment shader was used that worked, but
+not on newer hardware.
+- Restoring window size after a ride should work better. Not perfect yet
+on Windows unfortunately.
 - Simplify directory structure. Makes build easier to understand.
 
 # 1.4.0
