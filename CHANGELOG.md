@@ -1,3 +1,7 @@
+# 1.6.0
+
+- Make folder where TCX files are saved user configurable.
+
 # 1.5.0
 
 - Fix OpenGL code. A faulty fragment shader was used that worked, but

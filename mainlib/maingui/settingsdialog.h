@@ -66,6 +66,8 @@ private slots:
 
     void on_bikeWeightSpinBox_valueChanged(double arg1);
 
+    void on_changeTcxFolderButton_clicked();
+
 private:
     void reset();
     void fillSensorSettingsComboBox();
@@ -77,6 +79,7 @@ private:
     void fillVideoFolderList();
     void fillPowerAveragingComboBox();
     void saveVideoFolder(const QString &folder);
+    bool ableToWriteInFolder(const QString &folder);
 
     Ui::SettingsDialog *_ui;
     BigRingSettings _settings;

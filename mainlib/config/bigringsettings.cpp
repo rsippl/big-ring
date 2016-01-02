@@ -19,6 +19,9 @@
  */
 #include "bigringsettings.h"
 
+#include <QtCore/QDir>
+#include <QtCore/QStandardPaths>
+
 namespace
 {
 // By default we'll average power over 3 seconds.
@@ -38,9 +41,26 @@ QString BigRingSettings::videoFolder() const
     return _settings.value("videoFolder").toString();
 }
 
-void BigRingSettings::setVideoFolder(const QString folder)
+void BigRingSettings::setVideoFolder(const QString &folder)
 {
     _settings.setValue("videoFolder", QVariant::fromValue(folder));
+}
+
+QString BigRingSettings::tcxFolder() const
+{
+    if (_settings.contains("tcxSaveFolder")) {
+        return _settings.value("tcxSaveFolder").toString();
+    } else {
+        const QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+        const QString directoryName = QString("Big-Ring/Rides");
+
+        return documentsPath + "/" + directoryName;
+    }
+}
+
+void BigRingSettings::setTcxFolder(const QString &folder)
+{
+    _settings.setValue("tcxSaveFolder", QVariant::fromValue(folder));
 }
 
 qreal BigRingSettings::userWeight() const

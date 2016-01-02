@@ -64,6 +64,8 @@ SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDisp
     _ui->userWeightSpinBox->setValue(bigRingSettings.userWeight());
     _ui->bikeWeightSpinBox->setValue(bigRingSettings.bikeWeight());
 
+
+
     reset();
 }
 
@@ -199,6 +201,24 @@ void SettingsDialog::saveVideoFolder(const QString& folder)
     _videoLoadFunction();
 }
 
+bool SettingsDialog::ableToWriteInFolder(const QString &folder)
+{
+    // try to write and remove a file in the directory. If that does not work, permissions might be off.
+    QDir tcxDirectory(folder);
+    const QString testFilePath = tcxDirectory.absoluteFilePath("testfile");
+    QFile testFile(testFilePath);
+    if (testFile.open(QFile::ReadWrite)) {
+        // remove the test file again.
+        testFile.close();
+        testFile.remove();
+        return true;
+    } else {
+        QMessageBox::warning(this, tr("Unable to write in folder"),
+                             tr("Unable to write in folder %1, please choose another folder or adjust permissions.").arg(folder));
+        return false;
+    }
+}
+
 void SettingsDialog::on_antConfigurationChooser_currentIndexChanged(
         const QString &selectedConfiguration)
 {
@@ -214,6 +234,8 @@ void SettingsDialog::reset()
     fillSimulationSettingLabel();
     fillVideoFolderList();
     fillPowerAveragingComboBox();
+
+    _ui->tcxSaveLocationTextEdit->setText(_settings.tcxFolder());
 }
 
 void SettingsDialog::on_deleteConfigurationButton_clicked()
@@ -247,7 +269,6 @@ void SettingsDialog::on_powerAveragingCombobox_currentIndexChanged(int index)
     QVariant data = _ui->powerAveragingCombobox->itemData(index);
     // values are 1, 3 and 10 seconds.
     _settings.setPowerAveragingForDisplayMilliseconds(data.toInt());
-
 }
 
 void SettingsDialog::on_userWeightSpinBox_valueChanged(double userWeight)
@@ -258,4 +279,25 @@ void SettingsDialog::on_userWeightSpinBox_valueChanged(double userWeight)
 void SettingsDialog::on_bikeWeightSpinBox_valueChanged(double bikeWeight)
 {
     BigRingSettings().setBikeWeight(bikeWeight);
+}
+
+void SettingsDialog::on_changeTcxFolderButton_clicked()
+{
+    const QStringList homeDirectories = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+
+    const QString startDirectory = (homeDirectories.isEmpty()) ? QString() : homeDirectories[0];
+    const QString dir = QFileDialog::getExistingDirectory(this, tr("Choose Ride File Directory"),
+                                                    startDirectory);
+    if (dir.isEmpty()) {
+        // file dialog was cancelled.
+        return;
+    }
+
+    if (ableToWriteInFolder(dir)) {
+        _settings.setTcxFolder(dir);
+        _ui->tcxSaveLocationTextEdit->setText(dir);
+    } else {
+        // open the file dialog again. We'll put this on the event loop to avoid blocking.
+        QTimer::singleShot(0, this, &SettingsDialog::on_changeTcxFolderButton_clicked);
+    }
 }

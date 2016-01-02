@@ -33,7 +33,12 @@ public:
     BigRingSettings();
 
     QString videoFolder() const;
-    void setVideoFolder(const QString folder);
+    void setVideoFolder(const QString &folder);
+
+    /** Get the absolute path to folder where tcx ride files are saved */
+    QString tcxFolder() const;
+    /** Set the absolute path to the folder where tcx ride files are saved */
+    void setTcxFolder(const QString &folder);
 
     qreal userWeight() const;
     void setUserWeight(const qreal userWeight);
@@ -43,6 +48,7 @@ public:
 
     int powerAveragingForDisplayMilliseconds() const;
     void setPowerAveragingForDisplayMilliseconds(const int averagingMilliseconds);
+
 private:
     QSettings _settings;
 };
