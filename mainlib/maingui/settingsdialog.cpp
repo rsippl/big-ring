@@ -54,16 +54,14 @@ SettingsDialog::SettingsDialog(indoorcycling::AntCentralDispatch* antCentralDisp
                                QWidget *parent) :
     QDialog(parent),
     _ui(new Ui::SettingsDialog),
+    _quantityPrinter(new QuantityPrinter(this)),
+    _unitConverter(new UnitConverter(this)),
     _antCentralDispatch(antCentralDispatch),
     _videoLoadFunction(videoLoadFunction)
 {
     _ui->setupUi(this);
     QSettings settings;
     _ui->unitChooser->setCurrentText(settings.value("units").toString());
-    BigRingSettings bigRingSettings;
-    _ui->userWeightSpinBox->setValue(bigRingSettings.userWeight());
-    _ui->bikeWeightSpinBox->setValue(bigRingSettings.bikeWeight());
-
 
 
     reset();
@@ -78,6 +76,7 @@ void SettingsDialog::on_unitChooser_currentTextChanged(const QString &choice)
 {
     QSettings settings;
     settings.setValue("units", choice);
+    reset();
 }
 
 void SettingsDialog::on_pushButton_clicked()
@@ -171,10 +170,30 @@ void SettingsDialog::fillVideoFolderList()
     _ui->videoFolderLineEdit->setText(_settings.videoFolder());
 }
 
+void SettingsDialog::fillWeights()
+{
+    _ui->userWeightSpinBox->blockSignals(true);
+    _ui->bikeWeightSpinBox->blockSignals(true);
+
+    const qreal userWeight = _unitConverter->convertWeightToSystemUnit(_settings.userWeight());
+    _ui->userWeightSpinBox->setValue(userWeight);
+    const qreal bikeWeight = _unitConverter->convertWeightToSystemUnit(_settings.bikeWeight());
+    _ui->bikeWeightSpinBox->setValue(bikeWeight);
+
+    QString unitString = QString(" %1").arg(_quantityPrinter->unitForWeight());
+
+    _ui->userWeightSpinBox->setSuffix(unitString);
+    _ui->bikeWeightSpinBox->setSuffix(unitString);
+
+    _ui->userWeightSpinBox->blockSignals(false);
+    _ui->bikeWeightSpinBox->blockSignals(false);
+}
+
 void SettingsDialog::fillPowerAveragingComboBox()
 {
     _ui->powerAveragingCombobox->blockSignals(true);
 
+    _ui->powerAveragingCombobox->clear();
     _ui->powerAveragingCombobox->addItem(tr("No Averaging"), 0);
     _ui->powerAveragingCombobox->addItem(tr("1 Second"), 1000);
     _ui->powerAveragingCombobox->addItem(tr("3 Seconds"), 3000);
@@ -234,6 +253,7 @@ void SettingsDialog::reset()
     fillSimulationSettingLabel();
     fillVideoFolderList();
     fillPowerAveragingComboBox();
+    fillWeights();
 
     _ui->tcxSaveLocationTextEdit->setText(_settings.tcxFolder());
 }
@@ -273,12 +293,14 @@ void SettingsDialog::on_powerAveragingCombobox_currentIndexChanged(int index)
 
 void SettingsDialog::on_userWeightSpinBox_valueChanged(double userWeight)
 {
-    BigRingSettings().setUserWeight(userWeight);
+    const double weightInKilograms = _unitConverter->convertWeightFromSystemUnit(userWeight);
+    BigRingSettings().setUserWeight(weightInKilograms);
 }
 
 void SettingsDialog::on_bikeWeightSpinBox_valueChanged(double bikeWeight)
 {
-    BigRingSettings().setBikeWeight(bikeWeight);
+    const double weightInKilograms = _unitConverter->convertWeightFromSystemUnit(bikeWeight);
+    BigRingSettings().setBikeWeight(weightInKilograms);
 }
 
 void SettingsDialog::on_changeTcxFolderButton_clicked()
