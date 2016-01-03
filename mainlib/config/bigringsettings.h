@@ -49,6 +49,8 @@ public:
     int powerAveragingForDisplayMilliseconds() const;
     void setPowerAveragingForDisplayMilliseconds(const int averagingMilliseconds);
 
+    /** Get the unique id for this installation */
+    QString clientId();
 private:
     QSettings _settings;
 };

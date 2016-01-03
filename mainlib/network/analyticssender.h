@@ -3,10 +3,8 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QTimer>
-#include <QtCore/QUuid>
 #include <QtNetwork/QNetworkAccessManager>
 
-#include "reallifevideo.h"
 class AnalyticsSender : public QObject
 {
     Q_OBJECT
@@ -23,8 +21,7 @@ private:
     QNetworkAccessManager *_networkAccessManager;
     QTimer *_sendTimer;
 
-    QUuid _uuid;
-    RealLifeVideo _currentRlv;
+    const QString _clientId;
 };
 
 #endif // ANALYTICSSENDER_H

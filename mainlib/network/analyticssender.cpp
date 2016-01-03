@@ -1,5 +1,6 @@
 #include "analyticssender.h"
 
+#include <config/bigringsettings.h>
 #include <QtNetwork/QHostInfo>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
@@ -7,38 +8,34 @@
 #include <QtCore/QUrlQuery>
 
 namespace {
-const int SEND_DELAY_SECONDS = 5;
+const int SEND_DELAY_SECONDS = 60;
 const QString URL = "https://www.google-analytics.com/collect";
 }
 AnalyticsSender::AnalyticsSender(QObject *parent) :
-    QObject(parent), _networkAccessManager(new QNetworkAccessManager(this)), _sendTimer(new QTimer(this))
+    QObject(parent), _networkAccessManager(new QNetworkAccessManager(this)), _sendTimer(new QTimer(this)), _clientId(BigRingSettings().clientId())
 {
     _sendTimer->setInterval(SEND_DELAY_SECONDS * 1000);
     connect(_sendTimer, &QTimer::timeout, this, &AnalyticsSender::sendAnalyticsUpdate);
     _sendTimer->start();
-    _uuid = QUuid::createUuid();
+    QTimer::singleShot(0, this, &AnalyticsSender::sendAnalyticsUpdate);
 }
 
 void AnalyticsSender::sendAnalyticsUpdate()
 {
-    QString hostname = QHostInfo::localHostName() + "." + QHostInfo::localDomainName();
     QNetworkRequest request(URL);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
     QUrlQuery params;
     params.addQueryItem("v", "1");
-    params.addQueryItem("tid", "UA-65087849-3");
-    params.addQueryItem("cid", _uuid.toString());
-    params.addQueryItem("t", "event");
-    params.addQueryItem("ec", "action"); // Event category
-    params.addQueryItem("ea", "browsing"); // Event action
-    params.addQueryItem("el", "empty");// Event label
-    params.addQueryItem("ev", "empty"); // Event value
-//    params.addQueryItem("dh", hostname);
-    params.addQueryItem("dp", "Main");
-//    params.addQueryItem("dt", "Main");
+    params.addQueryItem("tid", "UA-65087849-5");
+    params.addQueryItem("cid", _clientId);
+    params.addQueryItem("t", "pageview");
+    params.addQueryItem("dp", "/Main");
+    params.addQueryItem("dt", "Main");
 
-    QNetworkReply *reply = _networkAccessManager->post(request, params.toString(QUrl::FullyEncoded).toUtf8());
+    const QByteArray body = params.toString(QUrl::FullyEncoded).toUtf8();
+
+    QNetworkReply *reply = _networkAccessManager->post(request, body);
     connect(reply, &QNetworkReply::finished, this, &AnalyticsSender::replyReceived);
 }
 

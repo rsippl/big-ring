@@ -32,7 +32,7 @@
 #include <QtWidgets/QProgressDialog>
 #include <QtWidgets/QVBoxLayout>
 
-#include "analyticssender.h"
+#include "network/analyticssender.h"
 #include "ant/antcentraldispatch.h"
 #include "model/cyclist.h"
 #include "settingsdialog.h"
@@ -218,7 +218,6 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     });
     connect(_run.get(), &Run::newInformationMessage, _videoWidget.data(), &NewVideoWidget::displayInformationBox);
     connect(_run.get(), &Run::stopped, _run.get(), [this]() {
-        bool maximize = _videoWidget->isFullScreen();
         _run.reset();
         _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
         _stackedWidget->removeWidget(_videoWidget.data());
