@@ -4,6 +4,10 @@ QT_VERSION = 5
 QMAKE_CXXFLAGS += -std=c++11 -W -Wall -Wextra -Werror
 QT       += core concurrent gui opengl network serialport widgets positioning
 
+VERSION = 1.6.0.0
+
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+
 INCLUDEPATH = $$PWD
 
 linux {

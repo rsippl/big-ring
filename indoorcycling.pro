@@ -3,11 +3,10 @@ include(config.pri)
 
 SUBDIRS += \
     mainlib \
-    indoorcycling2 \
-    antlib \
+    big-ring \
     anttestapp \
-    test 
+    test
 
-indoorcycling2.depends = antlib mainlib
-anttestapp.depends = antlib
-test.depends = antlib mainlib
+big-ring.depends = mainlib
+anttestapp.depends = mainlib
+test.depends = mainlib
