@@ -415,7 +415,8 @@ AntMessage2 AntSmartTrainerChannelHandler::createUserConfigurationMessage()
     quint8 bikeWeightMsb = ((bikeWeight >> 4) & 0xFF);
     content += bikeWeightMsb;
 
-    content += 0xFF; // default wheel size (0.7m diameter, 700C, normal racing wheels.
+    quint8 wheelDiameter = 70u;
+    content += wheelDiameter; // default wheel size (0.7m diameter, 700C, normal racing wheels.
     quint8 invalidGearRatio = 0x0;
     content += invalidGearRatio; // invalid gear ratio. Not needed.
 
