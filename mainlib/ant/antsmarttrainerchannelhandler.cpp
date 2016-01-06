@@ -62,6 +62,13 @@ private:
     State _state;
 };
 
+static const auto STATE_STRINGS = std::map<GeneralFitnessEquipmentMessage::State,QString>(
+    {{GeneralFitnessEquipmentMessage::State::ASLEEP, QString("ASLEEP")},
+     {GeneralFitnessEquipmentMessage::State::READY, "READY"},
+     {GeneralFitnessEquipmentMessage::State::IN_USE, "IN_USE"},
+     {GeneralFitnessEquipmentMessage::State::FINISHED, "FINISHED"}});
+
+
 /**
  * GeneralFitnessEquipmentMessage is an ANT+ Broadcast message.
  *
@@ -280,12 +287,12 @@ void AntSmartTrainerChannelHandler::channelOpened()
 {
     queueAcknowledgedMessage(createWindResistenceMessage());
     queueAcknowledgedMessage(createTrackResistanceMessage());
-    _configurationCheckerTimer->start();
+//    _configurationCheckerTimer->start();
 }
 
 void AntSmartTrainerChannelHandler::handleGeneralFitnessEquipmentMessage(const GeneralFitnessEquipmentMessage &message)
 {
-    qDebug() << "state = " << static_cast<int>(message.state());
+    qDebug() << channelIdString() << "channel state = " << STATE_STRINGS.at(message.state());
 }
 
 void AntSmartTrainerChannelHandler::handleSpecificTrainerDataMessage(const SpecificTrainerDataMessage &message)
@@ -294,33 +301,34 @@ void AntSmartTrainerChannelHandler::handleSpecificTrainerDataMessage(const Speci
     emit sensorValue(SensorValueType::CADENCE_RPM, AntSensorType::SMART_TRAINER, QVariant::fromValue(message.cadence()));
 
     if (message.userConfigurationNeeded()) {
+        qDebug() << channelIdString() << "User configuration needed. Queueing user configuration message";
         queueAcknowledgedMessage(createUserConfigurationMessage());
     }
 }
 
 void AntSmartTrainerChannelHandler::handleCommandStatusReplyMessage(const CommandStatusReplyMessage &message)
 {
-    qDebug("Last received command id = %d, Sequence # = %d, Status = %d", message.received(), message.sequenceNr(), static_cast<quint8>(message.status()));
+    qDebug("%s Last received command id = %d, Sequence # = %d, Status = %d", qPrintable(channelIdString()), message.received(), message.sequenceNr(), static_cast<quint8>(message.status()));
     queueAcknowledgedMessage(createRequestMessage(DataPage::WIND_RESISTANCE));
     queueAcknowledgedMessage(createRequestMessage(DataPage::TRACK_RESISTANCE));
 }
 
 void AntSmartTrainerChannelHandler::handleTrackResistanceMessage(const TrackResistanceMessage &message)
 {
-    qDebug() << "Track resistance, slope = " << message.slope();
+    qDebug() << channelIdString() << "Track resistance, slope = " << message.slope();
 }
 
 void AntSmartTrainerChannelHandler::handleWindResistanceMessage(const WindResistanceMessage &message)
 {
-    qDebug() << "wind resistance" << message.windResistanceCoeffient() << message.windSpeed() << message.draftingFactor();
+    qDebug() << channelIdString() << "wind resistance" << message.windResistanceCoeffient() << message.windSpeed() << message.draftingFactor();
 }
 
 void AntSmartTrainerChannelHandler::handleUserConfigurationMessage(const UserConfigurationMessage &message)
 {
     if (qFuzzyCompare(message.userWeight(), _userWeight)) {
-        qDebug() << "User weight correctly configured";
+        qDebug() << channelIdString() << "User weight correctly configured";
     } else {
-        qWarning("User weight not correctly configured on device!");
+        qWarning("%s User weight not correctly configured on device!", qPrintable(channelIdString()));
     }
 }
 

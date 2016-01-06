@@ -107,6 +107,12 @@ protected:
      * The default implementation is empty.
      */
     virtual void channelOpened();
+
+    /**
+     * Provides a simple id for every channel. Useful for debugging.
+     * @return an id of the channel, with channel number, device number, etc
+     */
+    QString channelIdString() const;
 private:
     void setState(ChannelState state);
     void advanceState(const AntMessage2::AntMessageId messageId);
