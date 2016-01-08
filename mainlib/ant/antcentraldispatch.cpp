@@ -102,7 +102,7 @@ bool AntCentralDispatch::searchForSensor(AntSensorType channelType, int deviceNu
     connect(channel, &AntChannelHandler::sensorValue, this, &AntCentralDispatch::handleSensorValue);
     connect(channel, &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
     connect(channel, &AntChannelHandler::searchTimeout, this, &AntCentralDispatch::searchTimedOut);
-    connect(channel, &AntChannelHandler::finished, this, &AntCentralDispatch::handleChannelFinished);
+    connect(channel, &AntChannelHandler::unassigned, this, &AntCentralDispatch::handleChannelUnassigned);
 
     channel->initialize();
     _channels[channelNumber] = make_qobject_unique(channel);
@@ -178,7 +178,7 @@ bool AntCentralDispatch::openMasterChannel(AntSensorType sensorType)
     _masterChannels[sensorType] = channel;
 
     connect(channel, &AntChannelHandler::antMessageGenerated, this, &AntCentralDispatch::sendAntMessage);
-    connect(channel, &AntChannelHandler::finished, this, &AntCentralDispatch::handleChannelFinished);
+    connect(channel, &AntChannelHandler::unassigned, this, &AntCentralDispatch::handleChannelUnassigned);
 
     channel->initialize();
 
@@ -316,10 +316,10 @@ void AntCentralDispatch::handleSensorValue(const SensorValueType sensorValueType
     emit sensorValue(sensorValueType, sensorType, value);
 }
 
-void AntCentralDispatch::handleChannelFinished(int channelNumber)
+void AntCentralDispatch::handleChannelUnassigned(int channelNumber)
 {
-    Q_ASSERT_X(_channels[channelNumber] != nullptr, "AntCentralDispatch::handleChannelFinished",
-               "getting channel finished for empty channel number.");
+    Q_ASSERT_X(_channels[channelNumber] != nullptr, "AntCentralDispatch::handleChannelUnassigned",
+               "getting channel unassigned for empty channel number.");
     const auto handler = std::move(_channels[channelNumber]);
     _channels[channelNumber] = make_qobject_unique<AntChannelHandler>();
 

@@ -60,7 +60,7 @@ signals:
     void sensorFound(int channelNumber, AntSensorType sensorType, int sensorDeviceNumber);
     void searchTimeout(int channelNumber, AntSensorType sensorType);
     /** emitted when communication on the channel is finished and it can be deleted */
-    void finished(int channelNumber);
+    void unassigned(int channelNumber);
 public slots:
     /** Set the device number of the sensor. Call this method before initializing
      * the channel, because it will be used to set the channel's parameters. */

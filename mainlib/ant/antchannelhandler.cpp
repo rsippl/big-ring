@@ -292,7 +292,7 @@ void AntChannelHandler::advanceState(const AntMessage2::AntMessageId messageId)
         break;
     case ChannelState::UNASSIGNED:
         assertMessageId(AntMessage2::AntMessageId::UNASSIGN_CHANNEL, messageId);
-        emit finished(_channelNumber);
+        emit unassigned(_channelNumber);
         qDebug() << channelIdString() << "Channel unassigned. Can be deleted";
         break;
     case ChannelState::TRACKING:
