@@ -140,6 +140,12 @@ MODEL_SOURCES += \
     model/videoinformation.cpp \
     model/virtualpower.cpp
 
+NETWORK_HEADERS += \
+    network/analyticssender.h
+
+NETWORK_SOURCES += \
+    network/analyticssender.cpp
+
 RIDE_HEADERS += \
     ride/actuators.h \
     ride/ridefilewriter.h \
@@ -204,6 +210,7 @@ HEADERS += \
     $$IMPORTER_HEADERS \
     $$MAINGUI_HEADERS \
     $$MODEL_HEADERS \
+    $$NETWORK_HEADERS \
     $$RIDE_HEADERS \
     $$RIDEGUI_HEADERS \
     $$UTIL_HEADERS \
@@ -217,6 +224,7 @@ SOURCES += \
     $$IMPORTER_SOURCES \
     $$MAINGUI_SOURCES \
     $$MODEL_SOURCES \
+    $$NETWORK_SOURCES \
     $$RIDE_SOURCES \
     $$RIDEGUI_SOURCES \
     $$UTIL_SOURCES \

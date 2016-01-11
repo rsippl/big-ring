@@ -21,6 +21,7 @@
 
 #include <QtCore/QDir>
 #include <QtCore/QStandardPaths>
+#include <QtCore/QUuid>
 
 namespace
 {
@@ -98,4 +99,14 @@ void BigRingSettings::setPowerAveragingForDisplayMilliseconds(const int averagin
     settings.beginGroup("display");
     settings.setValue("powerAveragingMilliseconds", averagingMilliseconds);
     settings.endGroup();
+}
+
+QString BigRingSettings::clientId()
+{
+    if (!_settings.contains("clientId")) {
+        const QUuid clientId = QUuid::createUuid();
+        const QString asString = clientId.toRfc4122().toHex();
+        _settings.setValue("clientId", QVariant::fromValue(asString));
+    }
+    return _settings.value("clientId").toString();
 }

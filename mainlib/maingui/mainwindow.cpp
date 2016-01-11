@@ -32,6 +32,7 @@
 #include <QtWidgets/QProgressDialog>
 #include <QtWidgets/QVBoxLayout>
 
+#include "network/analyticssender.h"
 #include "ant/antcentraldispatch.h"
 #include "model/cyclist.h"
 #include "settingsdialog.h"
@@ -45,7 +46,8 @@ MainWindow::MainWindow(QWidget *parent) :
     _antCentralDispatch(new indoorcycling::AntCentralDispatch(this)),
     _menuBar(new QMenuBar),
     _stackedWidget(new QStackedWidget),
-    _listView(new VideoListView(this))
+    _listView(new VideoListView(this)),
+    _analyticsSender(new AnalyticsSender(this))
 {
     _antCentralDispatch->initialize();
     setupMenuBar();
@@ -227,6 +229,7 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
             showNormal();
             setGeometry(_savedGeometry);
         }
+        setGeometry(_savedGeometry);
         raise();
     });
     connect(_run.get(), &Run::riding, this, &MainWindow::removeDisplayMessage);

@@ -30,6 +30,7 @@
 #include "importer/reallifevideoimporter.h"
 #include "util/util.h"
 
+class AnalyticsSender;
 class Cyclist;
 class VideoListView;
 class NewVideoWidget;
@@ -76,6 +77,8 @@ private:
     QScopedPointer<NewVideoWidget> _videoWidget;
     bool _guiFullScreen;
     QRect _savedGeometry;
+
+    AnalyticsSender *_analyticsSender;
 };
 
 #endif // MAINWINDOW_H
