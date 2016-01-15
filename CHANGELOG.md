@@ -1,6 +1,13 @@
 # 1.6.0
 
+- ANT+ FE-C: always ask trainer for capabilities before sending 
+  configuration.
+- ANT+: when search for sensor fails, retry search after a second.
+- When using imperial units, user and bike weight can be configured
+  in pounds (lbs).
 - Make folder where TCX files are saved user configurable.
+- Add Google Analytics tracking to determine how often the program
+  is used.
 
 # 1.5.0
 
