@@ -180,7 +180,7 @@ void SettingsDialog::fillWeights()
     const qreal bikeWeight = _unitConverter->convertWeightToSystemUnit(_settings.bikeWeight());
     _ui->bikeWeightSpinBox->setValue(bikeWeight);
 
-    QString unitString = QString(" %1").arg(_quantityPrinter->unitForWeight());
+    const QString unitString = QString(" %1").arg(_quantityPrinter->unitForWeight());
 
     _ui->userWeightSpinBox->setSuffix(unitString);
     _ui->bikeWeightSpinBox->setSuffix(unitString);
