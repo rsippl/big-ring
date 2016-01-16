@@ -181,7 +181,7 @@ private slots:
     /**
       * handle that communication on a channel is finished.
       */
-    void handleChannelFinished(int channelNumber);
+    void handleChannelUnassigned(int channelNumber);
 private:
     /**
      * Start scanning for an ANT+ usb stick. When scanning is finished, antUsbStickScanningFinished(AntDeviceType) is emitted.

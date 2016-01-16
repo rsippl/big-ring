@@ -28,6 +28,8 @@ namespace
 using indoorcycling::VirtualPowerTrainer;
 using indoorcycling::VirtualPowerFunctionType;
 
+typedef std::function<float(float)> SpeedConversionFunctionType;
+
 struct PowerCurve {
     UnitConverter::SpeedUnit speedUnit;
     std::vector<float> coefficients;
@@ -57,7 +59,7 @@ const PowerCurve &findPowerCurve(VirtualPowerTrainer trainer)
     return (*it).second;
 }
 
-const std::function<float(float)> determineSpeedConversionFunction(VirtualPowerTrainer trainer) {
+const SpeedConversionFunctionType determineSpeedConversionFunction(VirtualPowerTrainer trainer) {
     switch (findPowerCurve(trainer).speedUnit) {
     case UnitConverter::SpeedUnit::KilometersPerHour:
         return [](double metersPerSecond) {
@@ -79,7 +81,7 @@ namespace indoorcycling
 VirtualPowerFunctionType virtualPowerFunctionForTrainer(VirtualPowerTrainer trainer)
 {
     const PowerCurve &powerCurve = findPowerCurve(trainer);
-    std::function<float(float)> speedConversionFunction = determineSpeedConversionFunction(trainer);
+    SpeedConversionFunctionType speedConversionFunction = determineSpeedConversionFunction(trainer);
 
     return [powerCurve, speedConversionFunction](float speedMetersPerSecond) {
         const float convertedSpeed = speedConversionFunction(speedMetersPerSecond);

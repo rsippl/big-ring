@@ -27,6 +27,7 @@
 
 namespace {
 const int FIXED_POWER_UPDATE_INTERVAL = 250; // ms
+const int SEARCH_RETRY_INTERVAL = 1000; // ms
 }
 namespace indoorcycling {
 
@@ -91,7 +92,7 @@ void Sensors::setSensorFound(AntSensorType sensorType, int)
 void Sensors::setSensorNotFound(AntSensorType channelType, int deviceNumber)
 {
     qDebug() << "Sensor of type" << ANT_SENSOR_TYPE_STRINGS[channelType] << "with device number" << deviceNumber << "not found. Retrying";
-    QTimer::singleShot(0, this, [this, channelType, deviceNumber]() {
+    QTimer::singleShot(SEARCH_RETRY_INTERVAL, this, [this, channelType, deviceNumber]() {
         _antCentralDispatch->searchForSensor(channelType, deviceNumber);
     });
 }

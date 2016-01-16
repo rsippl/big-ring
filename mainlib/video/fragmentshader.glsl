@@ -1,4 +1,5 @@
 #version 110
+#extension GL_ARB_texture_rectangle : enable
 /*
  * Copyright (c) 2012-2015 Ilja Booij (ibooij@gmail.com)
  *
@@ -17,28 +18,44 @@
  * You should have received a copy of the GNU General Public License
  * along with Big Ring Indoor Video Cycling.  If not, see
  * <http://www.gnu.org/licenses/>.
+ *
+ * This code was inspired by the YUV-to-RGB shader in http://slouken.blogspot.nl/2011/02/mpeg-acceleration-with-glsl.html
  */
+
 uniform sampler2DRect yTex;
 uniform sampler2DRect uTex, vTex;
+
+// YUV offset
+const vec3 offset = vec3(-0.0625, -0.5, -0.5);
+
+// RGB coefficients
+const vec3 Rcoeff = vec3(1.164,  0.000,  1.596);
+const vec3 Gcoeff = vec3(1.164, -0.391, -0.813);
+const vec3 Bcoeff = vec3(1.164,  2.018,  0.000);
+
 void main(void)
 {
-     float nx, ny, y, u, v, r, g, b;
+    vec2 tcoord;
+    vec3 yuv, rgb;
 
-     nx = gl_TexCoord[0].x;
-     ny = gl_TexCoord[0].y;
+    tcoord.x = gl_TexCoord[0].x;
+    tcoord.y = gl_TexCoord[0].y;
 
-     y = texture2DRect(yTex, vec2(nx, ny)).r;
-     u = texture2DRect(uTex, vec2(nx * 0.5, ny * 0.5)).r;
-     v = texture2DRect(vTex, vec2(nx * 0.5, ny * 0.5)).r;
+    // Get the Y value
+    yuv.x = texture2DRect(yTex, tcoord).r;
 
-     y=1.1643*(y-0.0625);
-     u=u-0.5;
-     v=v-0.5;
+    // Get the U and V values
+    tcoord *= 0.5;
+    yuv.y = texture2DRect(uTex, tcoord).r;
+    yuv.z = texture2DRect(vTex, tcoord).r;
 
-     r=y+1.5958*v;
-     g=y-0.39173*u-0.81290*v;
-     b=y+2.017*u;
+    // Do the color transform
+    yuv += offset;
+    rgb.r = dot(yuv, Rcoeff);
+    rgb.g = dot(yuv, Gcoeff);
+    rgb.b = dot(yuv, Bcoeff);
 
-     gl_FragColor = vec4(r, g, b, 1.0);
+    // assign the color (with alpha 1.0).
+    gl_FragColor = vec4(rgb, 1.0);
 }
 

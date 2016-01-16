@@ -3,6 +3,9 @@
 #include <QtCore/QDir>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QStandardPaths>
+#include <QtCore/QtDebug>
+
+#include "config/bigringsettings.h"
 
 namespace {
 const QString DATE_TIME_FORMAT_WITH_MILLIS = "yyyy-MM-ddTHH:mm:ss.zzz";
@@ -35,17 +38,16 @@ QString RideFileWriter::dateTimeString(const QDateTime dateTime, bool withMillis
 
 QString RideFileWriter::determineFilePath(const RideFile &rideFile) const
 {
-    QDir appDir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
-    const QString directoryName = QString("Big-Ring/Rides");
-    const bool ok = appDir.mkpath(directoryName);
-    if (!ok) {
-        qFatal("unable to create dir");
+    QDir tcxDir(BigRingSettings().tcxFolder());
+    if (!tcxDir.exists()) {
+        if (!tcxDir.mkpath(".")) {
+            qDebug() << "Unable to create directory" << tcxDir.absolutePath();
+        }
     }
 
-    appDir.cd(directoryName);
     const QString filename = QString("%1.tcx").arg(rideFile.startTime().toString("yyyy_MM_dd_HH_mm_ss"));
 
-    return appDir.filePath(filename);
+    return tcxDir.filePath(filename);
 }
 
 void RideFileWriter::writeTcx(const RideFile &rideFile, QFile &outputFile, std::function<void(int)> &progressFunction)

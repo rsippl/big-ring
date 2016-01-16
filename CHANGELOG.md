@@ -1,5 +1,20 @@
+# 1.6.0
+
+- ANT+ FE-C: always ask trainer for capabilities before sending 
+  configuration.
+- ANT+: when search for sensor fails, retry search after a second.
+- When using imperial units, user and bike weight can be configured
+  in pounds (lbs).
+- Make folder where TCX files are saved user configurable.
+- Add Google Analytics tracking to determine how often the program
+  is used.
+
 # 1.5.0
 
+- Fix OpenGL code. A faulty fragment shader was used that worked, but
+not on newer hardware.
+- Restoring window size after a ride should work better. Not perfect yet
+on Windows unfortunately.
 - Simplify directory structure. Makes build easier to understand.
 
 # 1.4.0

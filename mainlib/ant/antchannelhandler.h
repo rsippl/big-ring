@@ -60,7 +60,7 @@ signals:
     void sensorFound(int channelNumber, AntSensorType sensorType, int sensorDeviceNumber);
     void searchTimeout(int channelNumber, AntSensorType sensorType);
     /** emitted when communication on the channel is finished and it can be deleted */
-    void finished(int channelNumber);
+    void unassigned(int channelNumber);
 public slots:
     /** Set the device number of the sensor. Call this method before initializing
      * the channel, because it will be used to set the channel's parameters. */
@@ -107,6 +107,12 @@ protected:
      * The default implementation is empty.
      */
     virtual void channelOpened();
+
+    /**
+     * Provides a simple id for every channel. Useful for debugging.
+     * @return an id of the channel, with channel number, device number, etc
+     */
+    QString channelIdString() const;
 private:
     void setState(ChannelState state);
     void advanceState(const AntMessage2::AntMessageId messageId);

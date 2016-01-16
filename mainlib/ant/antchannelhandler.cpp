@@ -54,12 +54,12 @@ AntChannelHandler::AntChannelHandler(const int channelNumber, const AntSensorTyp
 void AntChannelHandler::queueAcknowledgedMessage(const AntMessage2 &message)
 {
     if (_acknowledgedMessagesToSend.size() > ACKNOWLEDGED_MESSAGE_QUEUE_SIZE) {
-        qDebug() << "Queueing Acknowledged message, queue is full. Removing oldest message from queue";
+        qDebug() << channelIdString() << "Queueing Acknowledged message, queue is full. Removing oldest message from queue";
         _acknowledgedMessagesToSend.pop();
     }
     _acknowledgedMessagesToSend.push(message);
     if (_acknowledgedMessagesToSend.size() > 1) {
-        qDebug() << "Queued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
+        qDebug() << channelIdString() << "Queued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
     }
 }
 
@@ -81,6 +81,12 @@ quint8 AntChannelHandler::transmissionType() const
 void AntChannelHandler::channelOpened()
 {
     // empty.
+}
+
+QString AntChannelHandler::channelIdString() const
+{
+    return QString("Channel #%1, device type %2, device #%3:")
+            .arg(_channelNumber).arg(static_cast<int>(_sensorType)).arg(_deviceNumber);
 }
 
 /**
@@ -220,7 +226,8 @@ void AntChannelHandler::assertMessageId(const AntMessage2::AntMessageId expected
                           .arg(antMessageIdToString(expected))
                           .arg(antMessageIdToString(actual))));
     if (expected != actual) {
-        QString message = QString("Expected messageid in state %1 was 0x%2, but it was 0x%3.")
+        QString message = QString("%1 Expected messageid in state %2 was 0x%3, but it was 0x%4.")
+                .arg(channelIdString())
                 .arg(CHANNEL_STATE_STRINGS[_state]).arg(antMessageIdToString(expected))
                 .arg(antMessageIdToString(actual));
         qWarning("%s", qPrintable(message));
@@ -234,7 +241,7 @@ void AntChannelHandler::assertMessageId(const AntMessage2::AntMessageId expected
 void AntChannelHandler::sendNextAcknowledgedMessage()
 {
     if (!_acknowledgedMessageInFlight && !_acknowledgedMessagesToSend.empty()) {
-        qDebug() << "sending acknowledged message";
+        qDebug() << channelIdString() << "sending acknowledged message";
         _acknowledgedMessageInFlight = true;
         emit antMessageGenerated(_acknowledgedMessagesToSend.front());
     }
@@ -285,15 +292,15 @@ void AntChannelHandler::advanceState(const AntMessage2::AntMessageId messageId)
         break;
     case ChannelState::UNASSIGNED:
         assertMessageId(AntMessage2::AntMessageId::UNASSIGN_CHANNEL, messageId);
-        emit finished(_channelNumber);
-        qDebug() << "Channel unassigned. Can be deleted";
+        emit unassigned(_channelNumber);
+        qDebug() << channelIdString() << "Channel unassigned. Can be deleted";
         break;
     case ChannelState::TRACKING:
         assertMessageId(AntMessage2::AntMessageId::SET_SEARCH_TIMEOUT, messageId);
-        qDebug() << "search timeout set after acquiring sensor.";
+        qDebug() << channelIdString() << "search timeout set after acquiring sensor.";
         break;
     default:
-        qDebug() << "Unhandled state" << CHANNEL_STATE_STRINGS[_state];
+        qDebug() << channelIdString() << "Unhandled state" << CHANNEL_STATE_STRINGS[_state];
     }
 }
 
@@ -303,7 +310,8 @@ void AntChannelHandler::advanceState(const AntMessage2::AntMessageId messageId)
  */
 void AntChannelHandler::handleFirstBroadCastMessage(const BroadCastMessage&)
 {
-    qDebug() << QString("channel %1: First broadcast message received, requesting sensor id")
+    qDebug() << channelIdString() <<
+                QString("channel %1: First broadcast message received, requesting sensor id")
                 .arg(_channelNumber);
     emit antMessageGenerated(AntMessage2::requestMessage(_channelNumber,
                                                          AntMessage2::AntMessageId::SET_CHANNEL_ID));
@@ -319,7 +327,7 @@ AntMasterChannelHandler::AntMasterChannelHandler(int channelNumber, const AntSen
 
 void AntMasterChannelHandler::handleBroadCastMessage(const BroadCastMessage &)
 {
-    qDebug() << QString("received broadcast message on master channel #%1").arg(channelNumber());
+    qDebug() << channelIdString() << QString("received broadcast message on master channel #%1").arg(channelNumber());
 }
 
 }

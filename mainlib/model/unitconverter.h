@@ -25,6 +25,10 @@ public:
         KilometersPerHour,
         MilesPerHour
     };
+    enum class WeightUnit {
+        Kilograms,
+        Lbs
+    };
 
     explicit UnitConverter(QObject *parent);
 
@@ -32,6 +36,8 @@ public:
     DistanceUnit distanceUnitForSystem();
     DistanceUnit altitudeUnitForSystem();
     SpeedUnit speedUnitForSystem();
+    WeightUnit weightUnitForSystem();
+
     /** convert a distance to the distance unit provided */
     double convertDistanceToSystemUnit(double distance);
     static double convertDistanceTo(double distance, DistanceUnit);
@@ -43,7 +49,11 @@ public:
     double convertSpeedToSystemUnit(double speedMetersPerSecond);
     static double convertAltitudeTo(double meters, DistanceUnit unit);
     double convertAltitudeToSystemUnit(double meters);
-    double convertAltitudeFromSystemUnit(double altitudeMeters);
+    double convertAltitudeFromSystemUnit(double altitudeInSystemUnit);
+
+    static double convertWeightTo(double weightInKilograms, WeightUnit unit);
+    double convertWeightToSystemUnit(double weightInKilograms);
+    double convertWeightFromSystemUnit(double weightInSystemUnit);
 private:
     QSettings _settings;
 };

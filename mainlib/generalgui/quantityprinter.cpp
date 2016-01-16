@@ -70,9 +70,19 @@ QString QuantityPrinter::unitForAltitude() const
     return unitString(Quantity::Altitude);
 }
 
+QString QuantityPrinter::unitForWeight() const
+{
+    if (_unitConverter->system() == UnitConverter::System::Imperial) {
+        return "lbs";
+    }
+    return "kg";
+}
+
 QString QuantityPrinter::print(QVariant value, QuantityPrinter::Quantity quantity, Precision precision, int width) const
 {
     switch(quantity) {
+    case Quantity::Altitude:
+        return printAltitude(value.toReal());
     case Quantity::Distance:
         return printDistance(value.toReal(), precision, width);
     case Quantity::Speed:
@@ -85,9 +95,11 @@ QString QuantityPrinter::print(QVariant value, QuantityPrinter::Quantity quantit
         return QString("%1").arg(value.toInt(), width);
     case Quantity::Grade:
         return QString("%1").arg(value.toReal(), width, 'f', 1);
-    default:
-        return "Unknown";
+    case Quantity::Weight:
+        return printWeight(value.toReal());
     }
+    Q_ASSERT_X(false, "QuantityPrinter::print", "This should not be reached");
+    return "";
 }
 
 QString QuantityPrinter::printDistance(qreal meters, Precision precision, int width) const
@@ -112,4 +124,9 @@ QString QuantityPrinter::printSpeed(qreal metersPerSecond, int width) const
 QString QuantityPrinter::printAltitude(qreal meters) const
 {
     return QString("%1").arg(static_cast<int>(qRound(_unitConverter->convertAltitudeToSystemUnit(meters))));
+}
+
+QString QuantityPrinter::printWeight(qreal weightInKilograms) const
+{
+    return QString("%1").arg(_unitConverter->convertWeightToSystemUnit(weightInKilograms), 4, 'f', 1);
 }

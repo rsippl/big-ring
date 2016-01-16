@@ -42,17 +42,20 @@ public:
         Power,
         HeartRate,
         Cadence,
-        Grade
+        Grade,
+        Weight
     };
 
     explicit QuantityPrinter(QObject *parent = 0);
     QString unitString(Quantity quantity, QuantityPrinter::Precision precision = Precision::NonPrecise, QVariant value = QVariant::fromValue(0.0)) const;
     QString unitForDistance(QuantityPrinter::Precision precision, QVariant value) const;
     QString unitForAltitude() const;
+    QString unitForWeight() const;
     QString print(QVariant value, Quantity quantity, Precision = Precision::NonPrecise, int width = 5) const;
     QString printDistance(qreal meters, Precision = Precision::NonPrecise, int width = 5) const;
     QString printSpeed(qreal metersPerSecond, int width) const;
     QString printAltitude(qreal meters) const;
+    QString printWeight(qreal weightInKilograms) const;
 private:
     UnitConverter *_unitConverter;
     QSettings _settings;

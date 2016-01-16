@@ -25,27 +25,30 @@
 #include <QtCore/QtDebug>
 #include <QtCore/QTimer>
 #include <QtCore/QUrl>
-
 #include <QtWidgets/QAction>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QProgressDialog>
 #include <QtWidgets/QVBoxLayout>
 
+#include "videolistview.h"
+#include "settingsdialog.h"
 #include "ant/antcentraldispatch.h"
 #include "model/cyclist.h"
-#include "settingsdialog.h"
-#include "videolistview.h"
+#include "model/simulation.h"
+#include "network/analyticssender.h"
+#include "network/versionchecker.h"
 #include "ridegui/run.h"
 #include "ridegui/newvideowidget.h"
-#include "model/simulation.h"
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent, Qt::Window),
     _antCentralDispatch(new indoorcycling::AntCentralDispatch(this)),
     _menuBar(new QMenuBar),
     _stackedWidget(new QStackedWidget),
-    _listView(new VideoListView(this))
+    _listView(new VideoListView(this)),
+    _analyticsSender(new AnalyticsSender(this))
 {
     _antCentralDispatch->initialize();
     setupMenuBar();
@@ -118,6 +121,22 @@ void MainWindow::removeDisplayMessage()
     }
 }
 
+// We'll only show the new version information if there's no run currently under way
+void MainWindow::newVersionAvailable(bool newVersion, const QString &version)
+{
+    if (newVersion && !_run) {
+        const QString detailedText = tr("There is a new version of Big Ring available. Download version %1 from "
+                                        "<a href='https://ibooij.github.io/big-ring/'>https://ibooij.github.io/big-ring/</a>.").arg(version);
+        QMessageBox informationBox(this);
+        informationBox.setWindowTitle(tr("New version available"));
+        informationBox.setTextFormat(Qt::RichText);
+        informationBox.setIcon(QMessageBox::Information);
+        informationBox.setTextInteractionFlags(Qt::LinksAccessibleByMouse);
+        informationBox.setText(detailedText);
+        informationBox.exec();
+    }
+}
+
 /**
  * Asynchronously load all videos.
  */
@@ -165,7 +184,9 @@ void MainWindow::setupMenuBar()
 
     _showPreferencesAction = new QAction(tr("Preferences"), this);
     connect(_showPreferencesAction, &QAction::triggered, _showPreferencesAction, [=]() {
-        std::function<void(void)> videoLoadFunction(std::bind(&MainWindow::loadVideos, this));
+        std::function<void(void)>  videoLoadFunction = [=]() -> void {
+            this->loadVideos();
+        };
         SettingsDialog dialog(_antCentralDispatch, videoLoadFunction, this);
         dialog.exec();
         update();
@@ -202,7 +223,10 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     _savedGeometry = geometry();
     if (isMaximized()) {
         _menuBar->hide();
+        _guiFullScreen = true;
         showFullScreen();
+    } else {
+        _guiFullScreen = false;
     }
     connect(&_run->simulation().cyclist(), &Cyclist::distanceChanged, _videoWidget.data(), &NewVideoWidget::setDistance);
     connect(_videoWidget.data(), &NewVideoWidget::readyToPlay, this, [this](bool ready) {
@@ -213,16 +237,16 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
     });
     connect(_run.get(), &Run::newInformationMessage, _videoWidget.data(), &NewVideoWidget::displayInformationBox);
     connect(_run.get(), &Run::stopped, _run.get(), [this]() {
-        bool maximize = _videoWidget->isFullScreen();
         _run.reset();
         _stackedWidget->setCurrentIndex(_stackedWidget->indexOf(_listView));
         _stackedWidget->removeWidget(_videoWidget.data());
         _videoWidget.reset();
         _menuBar->show();
-        if (maximize) {
+        if (_guiFullScreen) {
             showMaximized();
         } else {
             showNormal();
+            setGeometry(_savedGeometry);
         }
         setGeometry(_savedGeometry);
         raise();
@@ -254,6 +278,15 @@ void MainWindow::showEvent(QShowEvent *showEvent)
 {
     QWidget::showEvent(showEvent);
     if (!showEvent->spontaneous()) {
-        QTimer::singleShot(0, this, SLOT(loadVideos()));
+        QTimer::singleShot(0, this, &MainWindow::initialize);
     }
+}
+
+void MainWindow::initialize()
+{
+    loadVideos();
+    VersionChecker *versionChecker = new VersionChecker(this);
+    connect(versionChecker, &VersionChecker::newVersionAvailable, this, &MainWindow::newVersionAvailable);
+    connect(versionChecker, &VersionChecker::newVersionAvailable, versionChecker, &VersionChecker::deleteLater);
+    versionChecker->checkForNewVersion();
 }

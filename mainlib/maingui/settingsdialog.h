@@ -30,8 +30,9 @@
 #include "ant/antsensortype.h"
 #include "config/bigringsettings.h"
 #include "config/sensorconfiguration.h"
+#include "generalgui/quantityprinter.h"
+#include "model/unitconverter.h"
 #include "importer/reallifevideoimporter.h"
-
 
 namespace indoorcycling {
 class AntCentralDispatch;
@@ -66,6 +67,8 @@ private slots:
 
     void on_bikeWeightSpinBox_valueChanged(double arg1);
 
+    void on_changeTcxFolderButton_clicked();
+
 private:
     void reset();
     void fillSensorSettingsComboBox();
@@ -75,10 +78,14 @@ private:
                          const indoorcycling::AntSensorType type);
     void fillSimulationSettingLabel();
     void fillVideoFolderList();
+    void fillWeights();
     void fillPowerAveragingComboBox();
     void saveVideoFolder(const QString &folder);
+    bool ableToWriteInFolder(const QString &folder);
 
     Ui::SettingsDialog *_ui;
+    QuantityPrinter * const _quantityPrinter;
+    UnitConverter * const _unitConverter;
     BigRingSettings _settings;
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
     std::function<void(void)> _videoLoadFunction;
