@@ -79,6 +79,8 @@ void loadStyleSheet(QApplication& a)
     palette.setColor(QPalette::ButtonText, Qt::white);
     palette.setColor(QPalette::BrightText, Qt::red);
 
+    palette.setColor(QPalette::Link, Qt::green);
+
     palette.setColor(QPalette::Highlight, QColor(Qt::green).lighter());
     palette.setColor(QPalette::HighlightedText, Qt::black);
     palette.setColor(QPalette::Disabled, QPalette::Text, Qt::darkGray);

@@ -141,10 +141,12 @@ MODEL_SOURCES += \
     model/virtualpower.cpp
 
 NETWORK_HEADERS += \
-    network/analyticssender.h
+    network/analyticssender.h \
+    network/versionchecker.h
 
 NETWORK_SOURCES += \
-    network/analyticssender.cpp
+    network/analyticssender.cpp \
+    network/versionchecker.cpp
 
 RIDE_HEADERS += \
     ride/actuators.h \
@@ -214,8 +216,7 @@ HEADERS += \
     $$RIDE_HEADERS \
     $$RIDEGUI_HEADERS \
     $$UTIL_HEADERS \
-    $$VIDEO_HEADERS \
-    util/util.h
+    $$VIDEO_HEADERS
 
 SOURCES += \
     $$ANT_SOURCES \

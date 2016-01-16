@@ -57,12 +57,14 @@ protected:
     virtual void closeEvent(QCloseEvent *);
     virtual void showEvent(QShowEvent *);
 private slots:
+    void initialize();
     void loadVideos();
     void importFinished(RealLifeVideoList rlvs);
     void removeDisplayMessage();
+    /** Show that a new version is available */
+    void newVersionAvailable(bool newVersion, const QString &version);
 private:
     void setupMenuBar();
-    void step();
     void startRun(RealLifeVideo rlv, int courseNr);
 
     indoorcycling::AntCentralDispatch* const _antCentralDispatch;
