@@ -7,6 +7,7 @@
 
 #include <QtPositioning/QGeoPositionInfo>
 
+#include "model/geoposition.h"
 #include "model/reallifevideo.h"
 
 namespace indoorcycling {
@@ -79,13 +80,14 @@ private:
     const QFileInfo *videoFileForGpsFile(const QFile &inputFile) const;
     RealLifeVideo parseXml(const QFile &inputFile, const QFileInfo &videoFileInfo, QXmlStreamReader &reader) const;
     QGeoPositionInfo readTrackPoint(QXmlStreamReader &reader) const;
-    std::vector<ProfileEntry> convertProfileEntries(const std::vector<QGeoPositionInfo> &trackPoints) const;
-    std::vector<QGeoPositionInfo> smoothTrack(const std::vector<QGeoPositionInfo> &trackPoints) const;
-    std::vector<QGeoPositionInfo> smoothTrackPoints(const std::vector<QGeoPositionInfo> &trackPoints) const;
-    QGeoPositionInfo smoothSingleTrackPoint(
-            const QGeoPositionInfo &previousPoint,
-            const QGeoPositionInfo &point,
-            const QGeoPositionInfo &nextPoint) const;
+    std::vector<GeoPosition> convertTrackPoints(const std::vector<QGeoPositionInfo> &positions) const;
+    std::vector<ProfileEntry> convertProfileEntries(const std::vector<GeoPosition> &trackPoints) const;
+    std::vector<GeoPosition> smoothTrack(const std::vector<GeoPosition> &trackPoints) const;
+    std::vector<GeoPosition> smoothTrackPoints(const std::vector<GeoPosition> &trackPoints) const;
+    GeoPosition smoothSingleTrackPoint(
+            const GeoPosition &previousPoint,
+            const GeoPosition &point,
+            const GeoPosition &nextPoint) const;
 
     qreal distanceBetweenPoints(const QGeoPositionInfo &start, const QGeoPositionInfo &end) const;
 

@@ -30,6 +30,12 @@ void Cyclist::setSpeed(float speed) {
     emit speedChanged(speed);
 }
 
+void Cyclist::setGeoPosition(const GeoPosition &position)
+{
+    _geoPosition = position;
+    emit geoPositionChanged(_geoPosition);
+}
+
 void Cyclist::setDistance(float distance) {
     _distance = distance;
     emit distanceChanged(distance);
@@ -76,6 +82,11 @@ int Cyclist::heartRate() const
 int Cyclist::power() const
 {
     return _power;
+}
+
+GeoPosition Cyclist::geoPosition() const
+{
+    return _geoPosition;
 }
 
 int Cyclist::cadence() const

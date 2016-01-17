@@ -133,6 +133,7 @@ private:
     QString findVideoFile(QString filename) const;
     std::vector<Course> readCourses(QXmlStreamReader& reader) const;
     std::vector<InformationBox> readInformationBoxes(QXmlStreamReader &reader) const;
+    std::vector<GeoPosition> readPositions(QXmlStreamReader &reader) const;
 
     std::vector<virtualtrainingfileparser::DistanceMappingEntry> readDistanceMappings(QXmlStreamReader &reader) const;
     std::vector<DistanceMappingEntry> convertDistanceMappings(const std::vector<virtualtrainingfileparser::DistanceMappingEntry> & entries) const;

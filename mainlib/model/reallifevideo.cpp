@@ -20,6 +20,7 @@
 
 #include "reallifevideo.h"
 
+#include "distanceentrycollection.h"
 #include "distancemappingentry.h"
 #include "videoinformation.h"
 
@@ -53,7 +54,8 @@ public:
     QString _name;
     RealLifeVideoFileType _fileType;
     Profile _profile;
-    std::vector<DistanceMappingEntry> _distanceMappings;
+    DistanceEntryCollection<DistanceMappingEntry> _distanceMappings;
+    DistanceEntryCollection<GeoPosition> _geoPositions;
     VideoInformation _videoInformation;
     std::vector<Course> _courses;
     std::vector<InformationBox> _informationBoxes;
@@ -75,18 +77,10 @@ Course::Course(): Course("", Type::Invalid, 0, 0)
     // empty
 }
 
-RealLifeVideo::RealLifeVideo(const QString& name, RealLifeVideoFileType fileType, const VideoInformation& videoInformation,
-                             const QList<Course>& courses, const QList<DistanceMappingEntry>& distanceMappings, Profile profile):
-    RealLifeVideo(name, fileType, videoInformation, std::move(std::vector<Course>(courses.begin(), courses.end())),
-                  std::move(std::vector<DistanceMappingEntry>(distanceMappings.begin(), distanceMappings.end())), profile)
-{
-    // empty
-}
-
 RealLifeVideo::RealLifeVideo(const QString &name, RealLifeVideoFileType fileType, const VideoInformation &videoInformation,
                              const std::vector<Course> &&courses,
                              const std::vector<DistanceMappingEntry> &&distanceMappings,
-                             Profile& profile, const std::vector<InformationBox> &&informationBoxes):
+                             Profile& profile, const std::vector<InformationBox> &&informationBoxes, const std::vector<GeoPosition> &&geoPositions):
     _d(new RealLifeVideoData)
 {
     _d->_name = name;
@@ -95,12 +89,20 @@ RealLifeVideo::RealLifeVideo(const QString &name, RealLifeVideoFileType fileType
     _d->_videoInformation = videoInformation;
     _d->_courses = courses;
     _d->_videoCorrectionFactor = 1.0;
-    _d->_distanceMappings = distanceMappings;
+    _d->_distanceMappings = DistanceEntryCollection<DistanceMappingEntry>(distanceMappings,
+        [](const DistanceMappingEntry &entry) {
+        return entry.distance();
+    });
     _d->_informationBoxes = informationBoxes;
+    _d->_geoPositions =
+            DistanceEntryCollection<GeoPosition>(geoPositions,
+                                                 [](const GeoPosition &position) {
+        return position.distance();
+    });
 }
 
 RealLifeVideo::RealLifeVideo(const RealLifeVideo &other):
-    _d(other._d), _lastKeyDistance(other._lastKeyDistance), _nextLastKeyDistance(other._nextLastKeyDistance)
+    _d(other._d)
 {
 
 }
@@ -153,12 +155,27 @@ const std::vector<Course> &RealLifeVideo::courses() const
 
 const std::vector<DistanceMappingEntry> &RealLifeVideo::distanceMappings() const
 {
-    return _d->_distanceMappings;
+    return _d->_distanceMappings.entries();
 }
 
 const std::vector<InformationBox> &RealLifeVideo::informationBoxes() const
 {
     return _d->_informationBoxes;
+}
+
+const std::vector<GeoPosition> &RealLifeVideo::positions() const
+{
+    return _d->_geoPositions.entries();
+}
+
+const QGeoRectangle RealLifeVideo::geoRectangle() const
+{
+    QList<QGeoCoordinate> coordinates;
+    coordinates.reserve(_d->_geoPositions.entries().size());
+    for (const GeoPosition &position: _d->_geoPositions.entries()) {
+        coordinates.append(position.coordinate());
+    }
+    return QGeoRectangle(coordinates);
 }
 
 void RealLifeVideo::addStartPoint(float distance, const QString &name)
@@ -171,16 +188,6 @@ void RealLifeVideo::addCustomCourse(float startDistance, float endDistance, cons
     Course customCourse(name, Course::Type::Custom, startDistance, endDistance);
     _d->_courses.push_back(customCourse);
 }
-
-void RealLifeVideo::printDistanceMapping()
-{
-    int i = 0;
-    for(auto distanceMapping: _d->_distanceMappings) {
-        qDebug() << i++ << distanceMapping.frameNumber() << distanceMapping.distance();
-    }
-    qDebug() << "framerate" << _d->_videoInformation.frameRate();
-}
-
 
 float RealLifeVideo::metersPerFrame(const float distance) const
 {
@@ -203,6 +210,39 @@ float RealLifeVideo::slopeForDistance(const float distance) const
 float RealLifeVideo::altitudeForDistance(const float distance) const
 {
     return _d->_profile.altitudeForDistance(distance);
+}
+
+/**
+ * @brief RealLifeVideo::positionForDistance get the gps position for a distance.
+ *
+ * If the distance is greater than the last position entry for the rlv, the last position will be returned.
+ *
+ * @param distance distance to get position for.
+ * @return the position for the distance, or GeoPosition::NULL_POSITION if no position could be found.
+ */
+const GeoPosition RealLifeVideo::positionForDistance(const float distance) const
+{
+    const auto entry = _d->_geoPositions.iteratorForDistance(distance);
+    if (_d->_geoPositions.isEndEntryIterator(entry)) {
+        // no position, just return NULL_POSITION.
+        return GeoPosition::NULL_POSITION;
+    }
+    const auto nextEntry = entry + 1;
+    if (_d->_geoPositions.isEndEntryIterator(nextEntry)) {
+        // last entry, just return it.
+        return *entry;
+    }
+    // interpolate between entries
+    const float distanceBetweenPositions = nextEntry->distance() - entry->distance();
+    const float latitudeDifference = entry->coordinate().latitude() - nextEntry->coordinate().latitude();
+    const float longitudeDifference = entry->coordinate().longitude() - nextEntry->coordinate().longitude();
+
+    const float ratio = (distance - entry->distance()) / distanceBetweenPositions;
+
+    QGeoCoordinate interpolatedCoordinate(entry->coordinate().latitude() + ratio * latitudeDifference,
+                                          entry->coordinate().longitude() + ratio * longitudeDifference);
+
+    return GeoPosition(distance, interpolatedCoordinate);
 }
 
 const InformationBox RealLifeVideo::informationBoxForDistance(const float distance) const
@@ -264,10 +304,10 @@ void RealLifeVideo::calculateVideoCorrectionFactor(quint64 totalNrOfFrames)
     // some rlvs, mostly the old ones like the old MajorcaTour have only two
     // entries in the distancemappings list. For these rlvs, it seems to work
     // better to just use a _videoCorrectionFactor of 1.0.
-    if (_d->_distanceMappings.size() < 3) {
+    if (_d->_distanceMappings.entries().size() < 3) {
         _d->_videoCorrectionFactor = 1;
     } else {
-        const auto &lastDistanceMapping = _d->_distanceMappings.back();
+        const auto &lastDistanceMapping = _d->_distanceMappings.entries().back();
         quint64 framesInLastEntry;
         if (totalNrOfFrames > lastDistanceMapping.frameNumber()) {
             framesInLastEntry = totalNrOfFrames - lastDistanceMapping.frameNumber();
@@ -281,25 +321,7 @@ void RealLifeVideo::calculateVideoCorrectionFactor(quint64 totalNrOfFrames)
 
 const DistanceMappingEntry &RealLifeVideo::findDistanceMappingEntryFor(const float distance) const
 {
-    if (distance < _lastKeyDistance || distance > _nextLastKeyDistance) {
-        unsigned i = (distance > _nextLastKeyDistance) ? _currentDistanceMappingIndex + 1: 0;
-        for (; i < _d->_distanceMappings.size(); ++i) {
-            const DistanceMappingEntry &nextEntry = _d->_distanceMappings[i];
-            if (nextEntry.distance() > distance) {
-                break;
-            } else {
-                _currentDistanceMappingIndex = i;
-            }
-        }
-
-        _lastKeyDistance = _d->_distanceMappings[_currentDistanceMappingIndex].distance();
-        if (_currentDistanceMappingIndex + 1 < _d->_distanceMappings.size()) {
-            _nextLastKeyDistance = _d->_distanceMappings[_currentDistanceMappingIndex + 1].distance();
-        } else {
-            _nextLastKeyDistance = 0;
-        }
-    }
-    return _d->_distanceMappings[_currentDistanceMappingIndex];
+    return *(_d->_distanceMappings.iteratorForDistance(distance));
 }
 
 const InformationBox RealLifeVideo::informationBoxForDistanceTacx(const float distance) const

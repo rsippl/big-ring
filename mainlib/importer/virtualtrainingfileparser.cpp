@@ -58,6 +58,7 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
     std::vector<Course> courses;
     std::vector<DistanceMappingEntry> distanceMappings;
     std::vector<InformationBox> informationBoxes;
+    std::vector<GeoPosition> positions;
 
     QXmlStreamReader::TokenType currentTokenType;
     while (!reader.atEnd()) {
@@ -78,6 +79,8 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
             distanceMappings = convertDistanceMappings(readDistanceMappings(reader));
         } else if (isElement(currentTokenType, reader, "informations")) {
             informationBoxes = readInformationBoxes(reader);
+        } else if (isElement(currentTokenType, reader, "positions")) {
+            positions = readPositions(reader);
         } else {
 //            qDebug() << "unknown token" << reader.name();
         }
@@ -92,7 +95,8 @@ RealLifeVideo VirtualTrainingFileParser::parseXml(QXmlStreamReader &reader) cons
 
     return RealLifeVideo(name, RealLifeVideoFileType::VIRTUAL_TRAINING, videoInformation,
                          std::move(courses), std::move(distanceMappings), profile,
-                         std::move(informationBoxes));
+                         std::move(informationBoxes),
+                         std::move(positions));
 }
 
 std::vector<virtualtrainingfileparser::ProfileEntry> VirtualTrainingFileParser::readProfileEntries(QXmlStreamReader &reader) const
@@ -192,6 +196,24 @@ std::vector<InformationBox> VirtualTrainingFileParser::readInformationBoxes(QXml
         }
     }
     return informationBoxes;
+}
+
+std::vector<GeoPosition> VirtualTrainingFileParser::readPositions(QXmlStreamReader &reader) const
+{
+    std::vector<GeoPosition> positions;
+    while(!reader.atEnd()) {
+        QXmlStreamReader::TokenType tokenType = reader.readNext();
+        if (isElement(tokenType, reader, "position")) {
+            const qreal distance = readSingleAttribute(reader.attributes(), "distance").toDouble();
+            const qreal latitude = readSingleAttribute(reader.attributes(), "lat").toDouble();
+            const qreal longitude = readSingleAttribute(reader.attributes(), "lon").toDouble();
+
+            positions.push_back(GeoPosition(distance, QGeoCoordinate(latitude, longitude)));
+        } else if (tokenType == QXmlStreamReader::EndElement && reader.name() == "positions") {
+            break;
+        }
+    }
+    return positions;
 }
 
 std::vector<virtualtrainingfileparser::DistanceMappingEntry> VirtualTrainingFileParser::readDistanceMappings(QXmlStreamReader &reader) const

@@ -1,4 +1,5 @@
 #include "antmessage2test.h"
+#include "distanceentrycollectiontest.h"
 #include "profiletest.h"
 #include "reallifevideocachetest.h"
 #include "ridefilewritertest.h"
@@ -8,19 +9,22 @@
 
 #include <QTest>
 
+template <typename T>
+void execTest()
+{
+    T test;
+    if (QTest::qExec(&test) > 0) {
+        std::exit(1);
+    }
+}
+
 int main(int, char**) {
-    AntMessage2Test antMessage2Test;
-    QTest::qExec(&antMessage2Test);
-    VirtualTrainingFileParserTest virtualTrainingFileParserTest;
-    QTest::qExec(&virtualTrainingFileParserTest);
-    VirtualPowerTest vpTest;
-    QTest::qExec(&vpTest);
-    ProfileTest profileTest;
-    QTest::qExec(&profileTest);
-    RollingAverageCalculatorTest racTest;
-    QTest::qExec(&racTest);
-    RideFileWriterTest rideFileWriterTest;
-    QTest::qExec(&rideFileWriterTest);
-    RealLifeVideoCacheTest saveAndLoadTest;
-    QTest::qExec(&saveAndLoadTest);
+    execTest<AntMessage2Test>();
+    execTest<VirtualPowerTest>();
+    execTest<ProfileTest>();
+    execTest<RollingAverageCalculatorTest>();
+    execTest<RideFileWriterTest>();
+    execTest<RealLifeVideoCacheTest>();
+    execTest<DistanceEntryCollectionTest>();
+    execTest<VirtualTrainingFileParserTest>();
 }

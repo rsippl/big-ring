@@ -10,6 +10,7 @@ public:
     explicit VirtualTrainingFileParserTest(QObject *parent = 0);
 private slots:
     void testWithBavellaFile();
+    void testCoordinates();
 
 };
 

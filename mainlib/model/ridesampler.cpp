@@ -30,7 +30,7 @@
 
 namespace {
 // We sample every second.
-const int SAMPLE_INTERVAL_MS = 250;
+const int SAMPLE_INTERVAL_MS = 1000;
 }
 
 RideSampler::RideSampler(const QString &rlvName, const QString &courseName, const Simulation &simulation, QObject *parent):
@@ -64,7 +64,8 @@ void RideSampler::takeSample()
                                 cyclist.distanceTravelled(),
                                 cyclist.heartRate(),
                                 cyclist.power(),
-                                cyclist.speed()};
+                                cyclist.speed(),
+                                cyclist.geoPosition()};
     _rideFile.addSample(sample);
 }
 
