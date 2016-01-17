@@ -92,7 +92,7 @@ void loadStyleSheet(QApplication& a)
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    logFile = fopen("message.log", "a");
+    logFile = fopen("message.log", "w");
 
     qInstallMessageHandler(prettyLogging);
     loadStyleSheet(a);
