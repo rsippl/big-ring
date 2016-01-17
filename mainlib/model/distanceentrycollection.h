@@ -40,9 +40,12 @@ public:
     const std::vector<T> &entries() const {
         return _entries;
     }
+
     const typename std::vector<T>::const_iterator iteratorForDistance(const qreal distance);
+
     const T *entryForDistance(const qreal distance);
 
+    bool isEndEntryIterator(const typename std::vector<T>::const_iterator &it) const;
 private:
     std::vector<T> _entries;
     std::function<qreal(const T&)> _distanceFunction;
@@ -134,6 +137,12 @@ const T *DistanceEntryCollection<T>::entryForDistance(const qreal distance)
         return nullptr;
     }
     return &(*it);
+}
+
+template <typename T>
+bool DistanceEntryCollection<T>::isEndEntryIterator(const typename std::vector<T>::const_iterator &it) const
+{
+    return it == _entries.end();
 }
 
 #endif // DISTANCEENTRYCOLLECTION_H

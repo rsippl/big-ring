@@ -64,11 +64,14 @@ void VirtualTrainingFileParserTest::testCoordinates()
 
     GeoPosition position = rlv.positionForDistance(0);
     QVERIFY2(position.isValid(), "Position should be set");
-    QCOMPARE(position.coordinate().latitude(), 41.8621241580695);
+    QVERIFY(position.coordinate().latitude() > 41.862);
+    QVERIFY(position.coordinate().latitude() < 41.863);
     position = rlv.positionForDistance(5555);
     QVERIFY2(position.isValid(), "Position should be set");
-    QCOMPARE(position.coordinate().latitude(), 41.8474907800555);
-    QCOMPARE(position.coordinate().longitude(), 9.35294321738184);
+    QVERIFY(position.coordinate().latitude() > 41.847);
+    QVERIFY(position.coordinate().latitude() < 41.848);
+    QVERIFY(position.coordinate().longitude() > 9.353);
+    QVERIFY(position.coordinate().longitude() < 9.354);
 
     const QGeoRectangle geoRectangle = rlv.geoRectangle();
     qDebug() << "geo rectangle" << geoRectangle.topLeft() << geoRectangle.bottomRight();

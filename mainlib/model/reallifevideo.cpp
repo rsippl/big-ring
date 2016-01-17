@@ -212,13 +212,37 @@ float RealLifeVideo::altitudeForDistance(const float distance) const
     return _d->_profile.altitudeForDistance(distance);
 }
 
-const GeoPosition &RealLifeVideo::positionForDistance(const float distance) const
+/**
+ * @brief RealLifeVideo::positionForDistance get the gps position for a distance.
+ *
+ * If the distance is greater than the last position entry for the rlv, the last position will be returned.
+ *
+ * @param distance distance to get position for.
+ * @return the position for the distance, or GeoPosition::NULL_POSITION if no position could be found.
+ */
+const GeoPosition RealLifeVideo::positionForDistance(const float distance) const
 {
-    const GeoPosition *geoPosition =_d->_geoPositions.entryForDistance(distance);
-    if (geoPosition) {
-        return *geoPosition;
+    const auto entry = _d->_geoPositions.iteratorForDistance(distance);
+    if (_d->_geoPositions.isEndEntryIterator(entry)) {
+        // no position, just return NULL_POSITION.
+        return GeoPosition::NULL_POSITION;
     }
-    return GeoPosition::NULL_POSITION;
+    const auto nextEntry = entry + 1;
+    if (_d->_geoPositions.isEndEntryIterator(nextEntry)) {
+        // last entry, just return it.
+        return *entry;
+    }
+    // interpolate between entries
+    const float distanceBetweenPositions = nextEntry->distance() - entry->distance();
+    const float latitudeDifference = entry->coordinate().latitude() - nextEntry->coordinate().latitude();
+    const float longitudeDifference = entry->coordinate().longitude() - nextEntry->coordinate().longitude();
+
+    const float ratio = (distance - entry->distance()) / distanceBetweenPositions;
+
+    QGeoCoordinate interpolatedCoordinate(entry->coordinate().latitude() + ratio * latitudeDifference,
+                                          entry->coordinate().longitude() + ratio * longitudeDifference);
+
+    return GeoPosition(distance, interpolatedCoordinate);
 }
 
 const InformationBox RealLifeVideo::informationBoxForDistance(const float distance) const
