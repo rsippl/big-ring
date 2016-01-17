@@ -13,7 +13,7 @@ RideFileWriterTest::RideFileWriterTest(QObject *parent) :
 
 void RideFileWriterTest::testWriteSimpleRideFile()
 {
-    RideFile rideFile(QDateTime::currentDateTime(), "rlv", "course");
+    RideFile rideFile("rlv", "course");
     RideFileWriter writer;
 
     RideFile::Sample sample;

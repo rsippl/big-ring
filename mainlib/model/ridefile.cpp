@@ -9,14 +9,14 @@ const QString ISO_WITH_MILLISECONDS_FORMAT("hh:mm:ss.zzz");
 }
 
 RideFile::RideFile():
-    RideFile(QDateTime(), "", "")
+    RideFile("", "")
 {
     // empty
 }
 
 
-RideFile::RideFile(const QDateTime &startTime, const QString &rlvName, const QString &courseName):
-    _startTime(startTime), _rlvName(rlvName), _courseName(courseName)
+RideFile::RideFile(const QString &rlvName, const QString &courseName):
+    _startTime(QDateTime::currentDateTimeUtc()), _rlvName(rlvName), _courseName(courseName)
 {
     // empty
 }

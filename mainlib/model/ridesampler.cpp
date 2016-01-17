@@ -34,7 +34,7 @@ const int SAMPLE_INTERVAL_MS = 1000;
 }
 
 RideSampler::RideSampler(const QString &rlvName, const QString &courseName, const Simulation &simulation, QObject *parent):
-    QObject(parent), _simulation(simulation), _rideFile(QDateTime::currentDateTime(), rlvName, courseName)
+    QObject(parent), _simulation(simulation), _rideFile(rlvName, courseName)
 {
     _sampleTimer.setInterval(SAMPLE_INTERVAL_MS);
     connect(&_sampleTimer, &QTimer::timeout, this, &RideSampler::takeSample);

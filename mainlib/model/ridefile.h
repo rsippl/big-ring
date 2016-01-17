@@ -28,10 +28,10 @@ public:
     };
 
     explicit RideFile();
-    explicit RideFile(const QDateTime &startTime, const QString &rlvName, const QString &courseName);
+    explicit RideFile(const QString &rlvName, const QString &courseName);
 
     /**
-     * Start time of the ride.
+     * Start time of the ride. Timezone of the start time is UTC!
      */
     const QDateTime &startTime() const;
     const QString &rlvName() const;
