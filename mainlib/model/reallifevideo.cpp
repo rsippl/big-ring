@@ -212,9 +212,13 @@ float RealLifeVideo::altitudeForDistance(const float distance) const
     return _d->_profile.altitudeForDistance(distance);
 }
 
-const GeoPosition *RealLifeVideo::positionForDistance(const float distance) const
+const GeoPosition &RealLifeVideo::positionForDistance(const float distance) const
 {
-    return _d->_geoPositions.entryForDistance(distance);
+    const GeoPosition *geoPosition =_d->_geoPositions.entryForDistance(distance);
+    if (geoPosition) {
+        return *geoPosition;
+    }
+    return GeoPosition::NULL_POSITION;
 }
 
 const InformationBox RealLifeVideo::informationBoxForDistance(const float distance) const

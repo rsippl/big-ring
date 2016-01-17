@@ -62,13 +62,13 @@ void VirtualTrainingFileParserTest::testCoordinates()
     indoorcycling::VirtualTrainingFileParser parser(videoFiles);
     RealLifeVideo rlv = parser.parseVirtualTrainingFile(f);
 
-    const GeoPosition *position = rlv.positionForDistance(0);
-    QVERIFY2(position != nullptr, "Position should be set");
-    QCOMPARE(position->coordinate().latitude(), 41.8621241580695);
+    GeoPosition position = rlv.positionForDistance(0);
+    QVERIFY2(position.isValid(), "Position should be set");
+    QCOMPARE(position.coordinate().latitude(), 41.8621241580695);
     position = rlv.positionForDistance(5555);
-    QVERIFY2(position != nullptr, "Position should be set");
-    QCOMPARE(position->coordinate().latitude(), 41.8474907800555);
-    QCOMPARE(position->coordinate().longitude(), 9.35294321738184);
+    QVERIFY2(position.isValid(), "Position should be set");
+    QCOMPARE(position.coordinate().latitude(), 41.8474907800555);
+    QCOMPARE(position.coordinate().longitude(), 9.35294321738184);
 
     const QGeoRectangle geoRectangle = rlv.geoRectangle();
     qDebug() << "geo rectangle" << geoRectangle.topLeft() << geoRectangle.bottomRight();

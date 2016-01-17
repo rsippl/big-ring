@@ -21,7 +21,8 @@
 #ifndef CYCLIST_H
 #define CYCLIST_H
 
-#include <QObject>
+#include <QtCore/QObject>
+#include "geoposition.h"
 
 class Cyclist : public QObject
 {
@@ -32,6 +33,7 @@ public:
     void setDistanceTravelled(float distanceTravelled);
     void setAltitude(float altitude);
     void setSpeed(float speed);
+    void setGeoPosition(const GeoPosition &position);
 
     float distance() const;
     float distanceTravelled() const;
@@ -40,6 +42,7 @@ public:
     int heartRate() const;
     int cadence() const;
     int power() const;
+    GeoPosition geoPosition() const;
 
     qreal userWeight() const;
     qreal bikeWeight() const;
@@ -55,6 +58,7 @@ signals:
     void cadenceChanged(int cadence);
     void powerChanged(int power);
 
+
     void speedChanged(float speed);
     /** distance on track changed */
     void distanceChanged(float distance);
@@ -62,6 +66,8 @@ signals:
     void distanceTravelledChanged(float distanceTravelled);
     /** altitude changed */
     void altitudeChanged(float altitude);
+    /** geo position changed */
+    void geoPositionChanged(const GeoPosition &geoPosition);
 
 private:
     const qreal _userWeight;
@@ -74,6 +80,7 @@ private:
     float _distance = 0;
     float _distanceTravelled = 0;
     float _altitude = 0;
+    GeoPosition _geoPosition;
 };
 
 #endif // CYCLIST_H

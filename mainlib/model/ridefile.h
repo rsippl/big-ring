@@ -4,6 +4,8 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QTime>
 
+#include "geoposition.h"
+
 /**
  * A record of a complete ride.
  */
@@ -22,6 +24,7 @@ public:
         int heartRate;
         int power;
         float speed;
+        GeoPosition position;
     };
 
     explicit RideFile();

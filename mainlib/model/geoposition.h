@@ -26,10 +26,14 @@
 class GeoPosition
 {
 public:
+    explicit GeoPosition();
     explicit GeoPosition(qreal distance, const QGeoCoordinate &coordinate);
 
     qreal distance() const;
     const QGeoCoordinate &coordinate() const;
+    bool isValid() const;
+
+    static const GeoPosition NULL_POSITION;
 private:
     qreal _distance;
     QGeoCoordinate _coordinate;

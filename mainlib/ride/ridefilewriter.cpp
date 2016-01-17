@@ -113,6 +113,13 @@ void RideFileWriter::writeTrackPoint(QXmlStreamWriter &writer, const QDateTime &
 
     // simple elements
     writer.writeTextElement("Time", dateTimeString(startTime.addMSecs(sample.time.msecsSinceStartOfDay()), true));
+
+    if (sample.position.isValid()) {
+        writer.writeStartElement("Position");
+        writer.writeTextElement("LatitudeDegrees", QString::number(sample.position.coordinate().latitude(), 'f', 10));
+        writer.writeTextElement("LongitudeDegrees", QString::number(sample.position.coordinate().longitude(), 'f', 10));
+        writer.writeEndElement();
+    }
     writer.writeTextElement("AltitudeMeters", QString::number(sample.altitude));
     writer.writeTextElement("DistanceMeters", QString::number(sample.distance));
     writer.writeTextElement("Cadence", QString::number(sample.cadence));

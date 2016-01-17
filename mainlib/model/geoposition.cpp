@@ -20,6 +20,14 @@
 
 #include "geoposition.h"
 
+const GeoPosition GeoPosition::NULL_POSITION = GeoPosition();
+
+GeoPosition::GeoPosition():
+    GeoPosition(0, QGeoCoordinate())
+{
+    // empty
+}
+
 GeoPosition::GeoPosition(qreal distance, const QGeoCoordinate &coordinate) :
     _distance(distance), _coordinate(coordinate)
 {
@@ -34,4 +42,9 @@ qreal GeoPosition::distance() const
 const QGeoCoordinate &GeoPosition::coordinate() const
 {
     return _coordinate;
+}
+
+bool GeoPosition::isValid() const
+{
+    return _coordinate.isValid();
 }

@@ -135,8 +135,9 @@ public:
     float slopeForDistance(const float distance) const;
     //! Get the altitude for a distance */
     float altitudeForDistance(const float distance) const;
-    //! Get the geo coordinate for a distance */
-    const GeoPosition *positionForDistance(const float distance) const;
+    /*! Get the geo coordinate for a distance. If no position could be found,
+     * this returns GeoPosition::NULL_POSITION. */
+    const GeoPosition &positionForDistance(const float distance) const;
     //! Get the information box message for a distance */
     const InformationBox informationBoxForDistance(const float distance) const;
     /** Total distance */
