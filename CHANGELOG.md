@@ -1,5 +1,7 @@
 # 1.6.0
 
+- Checks for new release on start up.
+- Adds GPS positions to tcx files if rlv file contains gps information.
 - ANT+ FE-C: always ask trainer for capabilities before sending 
   configuration.
 - ANT+: when search for sensor fails, retry search after a second.
