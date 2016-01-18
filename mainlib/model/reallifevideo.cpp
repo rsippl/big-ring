@@ -232,17 +232,7 @@ const GeoPosition RealLifeVideo::positionForDistance(const float distance) const
         // last entry, just return it.
         return *entry;
     }
-    // interpolate between entries
-    const float distanceBetweenPositions = nextEntry->distance() - entry->distance();
-    const float latitudeDifference = entry->coordinate().latitude() - nextEntry->coordinate().latitude();
-    const float longitudeDifference = entry->coordinate().longitude() - nextEntry->coordinate().longitude();
-
-    const float ratio = (distance - entry->distance()) / distanceBetweenPositions;
-
-    QGeoCoordinate interpolatedCoordinate(entry->coordinate().latitude() + ratio * latitudeDifference,
-                                          entry->coordinate().longitude() + ratio * longitudeDifference);
-
-    return GeoPosition(distance, interpolatedCoordinate);
+    return GeoPosition::interpolateBetween(*entry, *nextEntry, distance);
 }
 
 const InformationBox RealLifeVideo::informationBoxForDistance(const float distance) const

@@ -70,8 +70,15 @@ void VirtualTrainingFileParserTest::testCoordinates()
     QVERIFY2(position.isValid(), "Position should be set");
     QVERIFY(position.coordinate().latitude() > 41.847);
     QVERIFY(position.coordinate().latitude() < 41.848);
-    QVERIFY(position.coordinate().longitude() > 9.353);
-    QVERIFY(position.coordinate().longitude() < 9.354);
+    QVERIFY(position.coordinate().longitude() > 9.352);
+    QVERIFY(position.coordinate().longitude() < 9.353);
+
+    position = rlv.positionForDistance(5556);
+    QVERIFY2(position.isValid(), "Position should be set");
+    QVERIFY(position.coordinate().latitude() > 41.847);
+    QVERIFY(position.coordinate().latitude() < 41.848);
+    QVERIFY(position.coordinate().longitude() > 9.352);
+    QVERIFY(position.coordinate().longitude() < 9.353);
 
     const QGeoRectangle geoRectangle = rlv.geoRectangle();
     qDebug() << "geo rectangle" << geoRectangle.topLeft() << geoRectangle.bottomRight();

@@ -26,14 +26,39 @@
 class GeoPosition
 {
 public:
+    /**
+     * Construct an empty, invalid, GeoPosition object
+     */
     explicit GeoPosition();
+    /**
+     * @brief construct a GeoPosition object from a distance and a coodinate.
+     * @param distance distance on the track (from the start)
+     * @param coordinate the coordinate.
+     */
     explicit GeoPosition(qreal distance, const QGeoCoordinate &coordinate);
 
+    /** distance from the start */
     qreal distance() const;
+    /** the coordinate of the position. Will be invalid if the isValid() method returns false */
     const QGeoCoordinate &coordinate() const;
+    /** latitude of the position */
+    double latitude() const;
+    /** longitude of the position */
+    double longitude() const;
+    /** true if the position is valid */
     bool isValid() const;
 
+    /** A NULL position with an invalid coordinate. */
     static const GeoPosition NULL_POSITION;
+
+    /**
+     * @brief interpolate between two positions.
+     *
+     * @param position1 first position
+     * @param position2 second position
+     * @param distance distance of the position we want to interpolate. Value should be between position1.distance() and position2.distance().
+     */
+    static GeoPosition interpolateBetween(const GeoPosition &position1, const GeoPosition &position2, const double distance);
 private:
     qreal _distance;
     QGeoCoordinate _coordinate;

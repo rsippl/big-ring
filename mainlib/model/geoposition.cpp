@@ -44,7 +44,34 @@ const QGeoCoordinate &GeoPosition::coordinate() const
     return _coordinate;
 }
 
+double GeoPosition::latitude() const
+{
+    return _coordinate.latitude();
+}
+
+double GeoPosition::longitude() const
+{
+    return _coordinate.longitude();
+}
+
 bool GeoPosition::isValid() const
 {
     return _coordinate.isValid();
+}
+
+GeoPosition GeoPosition::interpolateBetween(const GeoPosition &position1, const GeoPosition &position2, const double distance)
+{
+    if (position1.coordinate() == position2.coordinate()) {
+        return position1;
+    }
+    const double distanceBetweenPositions = position2.distance() - position1.distance();
+    const double ratio = (distance - position1.distance()) / distanceBetweenPositions;
+
+    const double latitudeDifference = position2.latitude() - position1.coordinate().latitude();
+    const double longitudeDifference = position2.longitude() - position1.coordinate().longitude();
+
+    const double interpolatedLatitude = position1.latitude() + ratio * latitudeDifference;
+    const double interpolatedLongitude = position1.longitude() + ratio * longitudeDifference;
+
+    return GeoPosition(distance, QGeoCoordinate(interpolatedLatitude, interpolatedLongitude));
 }
