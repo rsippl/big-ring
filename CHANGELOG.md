@@ -1,3 +1,7 @@
+# 1.6.1
+
+- Fix for GPS interpolation. Fixes #60.
+
 # 1.6.0
 
 - Checks for new release on start up.
