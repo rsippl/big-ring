@@ -23,6 +23,12 @@ void VirtualPowerTest::testKurtKineticRoadMachine()
     compareWithPowerTable(kkFunction, {{7.96, 202}}, SpeedUnit::METERS_PER_SECOND);
 }
 
+void VirtualPowerTest::testCycleopsJetFluidPro()
+{
+    auto jetFluidProFunction = virtualPowerFunctionForTrainer(VirtualPowerTrainer::CYCLEOPS_JET_FLUID_PRO);
+    compareWithPowerTable(jetFluidProFunction, {{10.0, 64}, {24.0, 444}, {30.0, 768}}, SpeedUnit::MILES_PER_HOUR);
+}
+
 void VirtualPowerTest::testCycleopsFluid2()
 {
     auto fluid2Function = virtualPowerFunctionForTrainer(VirtualPowerTrainer::CYCLEOPS_FLUID_2);
