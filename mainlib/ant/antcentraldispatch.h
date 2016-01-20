@@ -24,6 +24,7 @@
 #include <memory>
 #include <vector>
 
+#include <QtCore/QFile>
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
 #include <QtCore/QTimer>
@@ -222,6 +223,15 @@ private:
      */
     void handleChannelIdMessage(const SetChannelIdMessage& channelIdMessage);
 
+    enum class AntMessageIO {
+        IN,
+        OUT
+    };
+    /**
+     * Log ANT+ message
+     */
+    void logAntMessage(const AntMessageIO io, const AntMessage2& message);
+
     /** function template for sending a message to a channel. */
     template <class T>
     bool sendToChannel(const T& message, std::function<void(AntChannelHandler&, const T&)> sendFunction);
@@ -236,6 +246,7 @@ private:
     QPointer<AntPowerMasterChannelHandler> _powerTransmissionChannelHandler;
     QPointer<AntHeartRateMasterChannelHandler> _heartRateMasterChannelhandler;
     QTimer* const _initializationTimer;
+    QFile _logFile;
 };
 }
 

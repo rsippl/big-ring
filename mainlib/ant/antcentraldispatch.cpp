@@ -48,7 +48,8 @@ namespace indoorcycling {
 
 AntCentralDispatch::AntCentralDispatch(QObject *parent) :
     QObject(parent), _initialized(false), _antMessageGatherer(new AntMessageGatherer(this)),
-    _powerTransmissionChannelHandler(nullptr), _initializationTimer(new QTimer(this))
+    _powerTransmissionChannelHandler(nullptr), _initializationTimer(new QTimer(this)),
+    _logFile("ant.log")
 {
     connect(_antMessageGatherer, &AntMessageGatherer::antMessageReceived, this,
             &AntCentralDispatch::messageFromAntUsbStick);
@@ -57,6 +58,10 @@ AntCentralDispatch::AntCentralDispatch(QObject *parent) :
     connect(_initializationTimer, &QTimer::timeout, _initializationTimer, [this]() {
         emit initializationFinished(false);
     });
+
+    if (!_logFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        qWarning("Unable to open ant log file.");
+    }
 }
 
 bool AntCentralDispatch::antAdapterPresent() const
@@ -213,6 +218,8 @@ void AntCentralDispatch::setSlope(const qreal slopeInPercent)
 void AntCentralDispatch::messageFromAntUsbStick(const QByteArray &bytes)
 {
     std::unique_ptr<AntMessage2> antMessage = AntMessage2::createMessageFromBytes(bytes);
+
+    logAntMessage(AntMessageIO::IN, *antMessage);
     switch(antMessage->id()) {
     case AntMessage2::AntMessageId::CHANNEL_EVENT:
         handleChannelEvent(*antMessage->asChannelEventMessage());
@@ -330,10 +337,29 @@ void AntCentralDispatch::handleChannelUnassigned(int channelNumber)
     }
 }
 
+void AntCentralDispatch::logAntMessage(const AntMessageIO io, const AntMessage2 &message)
+{
+    if (_logFile.isWritable()) {
+        const QString inOrOut = (io == AntMessageIO::IN) ? "IN" : "OUT";
+        const QString logMessage = QString("%1:\t%2\t%3\n")
+                .arg(QDateTime::currentDateTimeUtc().toString(Qt::ISODate))
+                .arg(inOrOut)
+                .arg(QString(message.toHex()));
+
+        _logFile.write(logMessage.toUtf8());
+        _logFile.flush();
+    }
+}
+
 void AntCentralDispatch::sendAntMessage(const AntMessage2 &message)
 {
     Q_ASSERT_X(_antUsbStick.get(), "AntCentralDispatch::sendAntMessage", "usb stick should be present.");
     if (_antUsbStick) {
+        if (_logFile.isOpen()) {
+            logAntMessage(AntMessageIO::OUT, message);
+        } else {
+            qDebug() << "Log file is not open";
+        }
         qDebug() << "Sending ANT Message:" << message.toString();
         _antUsbStick->writeAntMessage(message);
     }
