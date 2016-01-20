@@ -49,6 +49,10 @@ public:
     int powerAveragingForDisplayMilliseconds() const;
     void setPowerAveragingForDisplayMilliseconds(const int averagingMilliseconds);
 
+    /** Get the video display aspect ratio option */
+    Qt::AspectRatioMode videoAspectRatio() const;
+    void setVideoAspectRatio(Qt::AspectRatioMode aspectRatioMode);
+
     /** Get the unique id for this installation */
     QString clientId();
 private:

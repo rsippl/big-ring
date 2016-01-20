@@ -212,6 +212,35 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="title">
+          <string>Video Display Options</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QRadioButton" name="videoFillScreenOption">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fill the whole screen, keeping aspect ratio of video. Parts of video will be cut off if necessary.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string extracomment="Fill the whole screen, cutting of parts if needed">Fill Screen</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="videoShowWholeVideoOption">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show whole video, possibly showing black bars left and right of or above and below video.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string extracomment="Show whole video, possibly showing black bars left and right of or above and below video.">Show whole video</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -411,8 +440,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>266</x>
-     <y>463</y>
+     <x>275</x>
+     <y>426</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -427,8 +456,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>334</x>
-     <y>463</y>
+     <x>343</x>
+     <y>426</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>

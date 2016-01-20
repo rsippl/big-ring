@@ -99,6 +99,7 @@ private:
     ProfileItem* _profileItem;
     indoorcycling::ScreenSaverBlocker* _screenSaverBlocker;
     QTimer* _mouseIdleTimer;
+    Qt::AspectRatioMode _aspectRatioMode;
 };
 
 #endif // NEWVIDEOWIDGET_H

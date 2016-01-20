@@ -170,6 +170,15 @@ void SettingsDialog::fillVideoFolderList()
     _ui->videoFolderLineEdit->setText(_settings.videoFolder());
 }
 
+void SettingsDialog::fillVideoDisplayOptions()
+{
+    if (_settings.videoAspectRatio() == Qt::KeepAspectRatio) {
+        _ui->videoShowWholeVideoOption->setChecked(true);
+    } else {
+        _ui->videoFillScreenOption->setChecked(true);
+    }
+}
+
 void SettingsDialog::fillWeights()
 {
     _ui->userWeightSpinBox->blockSignals(true);
@@ -252,6 +261,7 @@ void SettingsDialog::reset()
     fillSensorLabels();
     fillSimulationSettingLabel();
     fillVideoFolderList();
+    fillVideoDisplayOptions();
     fillPowerAveragingComboBox();
     fillWeights();
 
@@ -321,5 +331,19 @@ void SettingsDialog::on_changeTcxFolderButton_clicked()
     } else {
         // open the file dialog again. We'll put this on the event loop to avoid blocking.
         QTimer::singleShot(0, this, &SettingsDialog::on_changeTcxFolderButton_clicked);
+    }
+}
+
+void SettingsDialog::on_videoFillScreenOption_toggled(bool checked)
+{
+    if (checked) {
+        _settings.setVideoAspectRatio(Qt::KeepAspectRatioByExpanding);
+    }
+}
+
+void SettingsDialog::on_videoShowWholeVideoOption_toggled(bool checked)
+{
+    if (checked) {
+        _settings.setVideoAspectRatio(Qt::KeepAspectRatio);
     }
 }

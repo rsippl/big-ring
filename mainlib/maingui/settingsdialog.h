@@ -69,6 +69,10 @@ private slots:
 
     void on_changeTcxFolderButton_clicked();
 
+    void on_videoFillScreenOption_toggled(bool checked);
+
+    void on_videoShowWholeVideoOption_toggled(bool checked);
+
 private:
     void reset();
     void fillSensorSettingsComboBox();
@@ -78,6 +82,7 @@ private:
                          const indoorcycling::AntSensorType type);
     void fillSimulationSettingLabel();
     void fillVideoFolderList();
+    void fillVideoDisplayOptions();
     void fillWeights();
     void fillPowerAveragingComboBox();
     void saveVideoFolder(const QString &folder);

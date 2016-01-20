@@ -101,6 +101,29 @@ void BigRingSettings::setPowerAveragingForDisplayMilliseconds(const int averagin
     settings.endGroup();
 }
 
+Qt::AspectRatioMode BigRingSettings::videoAspectRatio() const
+{
+    QSettings settings;
+    settings.beginGroup("display");
+
+    Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatioByExpanding;
+    QString aspectRatioModeString = settings.value("aspectRatioMode", "KeepAspectRatioByExpanding").toString();
+    if (aspectRatioModeString == "KeepAspectRatio") {
+        aspectRatioMode = Qt::KeepAspectRatio;
+    }
+    settings.endGroup();
+
+    return aspectRatioMode;
+}
+
+void BigRingSettings::setVideoAspectRatio(Qt::AspectRatioMode aspectRatioMode)
+{
+    _settings.beginGroup("display");
+    const QString aspectRatioModeSetting = (aspectRatioMode == Qt::KeepAspectRatio) ? "KeepAspectRatio" : "KeepAspectRatioByExpanding";
+    _settings.setValue("aspectRatioMode", QVariant::fromValue(aspectRatioModeSetting));
+    _settings.endGroup();
+}
+
 QString BigRingSettings::clientId()
 {
     if (!_settings.contains("clientId")) {

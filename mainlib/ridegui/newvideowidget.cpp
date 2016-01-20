@@ -79,6 +79,7 @@ NewVideoWidget::NewVideoWidget(QWidget *parent) :
     connect(_mouseIdleTimer, &QTimer::timeout, _mouseIdleTimer, []() {
         QApplication::setOverrideCursor(Qt::BlankCursor);
     });
+    _aspectRatioMode = BigRingSettings().videoAspectRatio();
 }
 
 void NewVideoWidget::setupVideoPlayer(QGLWidget* paintWidget)
@@ -296,7 +297,7 @@ void NewVideoWidget::drawBackground(QPainter *painter, const QRectF &)
     QPointF topLeft = mapToScene(viewport()->rect().topLeft());
     QPointF bottemRight = mapToScene(viewport()->rect().bottomRight());
     const QRectF r = QRectF(topLeft, bottemRight);
-    _videoPlayer->displayCurrentFrame(painter, r, Qt::KeepAspectRatioByExpanding);
+    _videoPlayer->displayCurrentFrame(painter, r, _aspectRatioMode);
 
 }
 
