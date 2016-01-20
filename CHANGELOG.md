@@ -1,3 +1,8 @@
+# 1.7.1
+
+- Add ANT+ messages log file. Useful for debugging ANT+ behaviour.
+- Add configuration option for aspect ratio of videos. Fixes #64.
+
 # 1.6.1
 
 - Fix for GPS interpolation. Fixes #60.
