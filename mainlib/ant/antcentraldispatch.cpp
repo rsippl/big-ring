@@ -219,7 +219,7 @@ void AntCentralDispatch::messageFromAntUsbStick(const QByteArray &bytes)
 {
     std::unique_ptr<AntMessage2> antMessage = AntMessage2::createMessageFromBytes(bytes);
 
-    logAntMessage(AntMessageIO::IN, *antMessage);
+    logAntMessage(AntMessageIO::INPUT, *antMessage);
     switch(antMessage->id()) {
     case AntMessage2::AntMessageId::CHANNEL_EVENT:
         handleChannelEvent(*antMessage->asChannelEventMessage());
@@ -340,7 +340,7 @@ void AntCentralDispatch::handleChannelUnassigned(int channelNumber)
 void AntCentralDispatch::logAntMessage(const AntMessageIO io, const AntMessage2 &message)
 {
     if (_logFile.isWritable()) {
-        const QString inOrOut = (io == AntMessageIO::IN) ? "IN" : "OUT";
+        const QString inOrOut = (io == AntMessageIO::INPUT) ? "IN" : "OUT";
         const QString logMessage = QString("%1:\t%2\t%3\n")
                 .arg(QDateTime::currentDateTimeUtc().toString(Qt::ISODate))
                 .arg(inOrOut)
@@ -356,7 +356,7 @@ void AntCentralDispatch::sendAntMessage(const AntMessage2 &message)
     Q_ASSERT_X(_antUsbStick.get(), "AntCentralDispatch::sendAntMessage", "usb stick should be present.");
     if (_antUsbStick) {
         if (_logFile.isOpen()) {
-            logAntMessage(AntMessageIO::OUT, message);
+            logAntMessage(AntMessageIO::OUTPUT, message);
         } else {
             qDebug() << "Log file is not open";
         }

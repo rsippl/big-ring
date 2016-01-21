@@ -224,8 +224,7 @@ private:
     void handleChannelIdMessage(const SetChannelIdMessage& channelIdMessage);
 
     enum class AntMessageIO {
-        IN,
-        OUT
+        INPUT, OUTPUT
     };
     /**
      * Log ANT+ message
