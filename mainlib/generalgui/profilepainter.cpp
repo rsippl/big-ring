@@ -133,7 +133,7 @@ void ProfilePainter::drawDistanceMarkers(QPainter &painter, const QRect &rect, f
     const double distanceBetweenMarkers = determineDistanceMarkers(totalDistance);
 
     for (double distance = distanceBetweenMarkers; distance < totalDistance; distance += distanceBetweenMarkers) {
-        int x = distanceToX(rect, startDistance, totalDistance, distance);
+        int x = distanceToX(rect, startDistance, totalDistance, distance + startDistance);
         painter.drawLine(x, rect.height () - 20, x, rect.height());
         QString distanceMarker = QString("%1 %2").arg(_quantityPrinter->printDistance(distance))
                 .arg(_quantityPrinter->unitForDistance(QuantityPrinter::Precision::NonPrecise,
