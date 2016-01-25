@@ -36,7 +36,7 @@ const float MINIMUM_SLOPE = -12.0;
 const float MAXIMUM_SLOPE = 12.0;
 const float INVERSE_SLOPE_RANGE = 1 / (MAXIMUM_SLOPE - MINIMUM_SLOPE);
 
-const std::array<double,7> MARKER_DISTANCES = {{0.5, 1, 2, 5, 10, 20, 50}};
+const std::array<double,8> MARKER_DISTANCES = {{0.25, 0.5, 1, 2, 5, 10, 20, 50}};
 const std::array<double,7> MARKER_ALTITUDES = {{10, 20, 50, 100, 200, 500, 1000}};
 }
 
@@ -133,7 +133,7 @@ void ProfilePainter::drawDistanceMarkers(QPainter &painter, const QRect &rect, f
     const double distanceBetweenMarkers = determineDistanceMarkers(totalDistance);
 
     for (double distance = distanceBetweenMarkers; distance < totalDistance; distance += distanceBetweenMarkers) {
-        int x = distanceToX(rect, startDistance, totalDistance, distance);
+        int x = distanceToX(rect, startDistance, totalDistance, distance + startDistance);
         painter.drawLine(x, rect.height () - 20, x, rect.height());
         QString distanceMarker = QString("%1 %2").arg(_quantityPrinter->printDistance(distance))
                 .arg(_quantityPrinter->unitForDistance(QuantityPrinter::Precision::NonPrecise,
