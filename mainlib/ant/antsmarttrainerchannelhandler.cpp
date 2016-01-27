@@ -448,7 +448,12 @@ AntMessage2 AntSmartTrainerChannelHandler::createTrackResistanceMessage()
     qint16 slopeAsInt = static_cast<qint16>(std::round((boundedSlope + 200) * 100));
     content += slopeAsInt & 0xFF;
     content += ((slopeAsInt >> 8) & 0xFF);
-    content += 0xFF; // default value;
+    // rolling resistance coefficient on an asphalt road (0.004)
+    // this is the same as the default value (0xFF), but older Tacx Vortex Smart
+    // firmware versions (before 3.1.13) have a bug where the default value
+    // is not interpreted correctly. The value 0.004 is divided by 0.00005 to
+    // get the value communicated, 80 (0x50).
+    content += 0x50; // 0.004 / 0.00005
 
     return AntMessage2(AntMessage2::AntMessageId::ACKNOWLEDGED_MESSAGE, content);
 }
