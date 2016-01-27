@@ -4,6 +4,8 @@
 #include "model/videoinformation.h"
 #include "video/videoinforeader.h"
 
+#include <deque>
+
 #include <QtCore/QDateTime>
 #include <QtCore/QtDebug>
 #include <QtCore/QTextStream>
@@ -11,6 +13,10 @@
 #include <QtPositioning/QGeoPositionInfo>
 
 namespace {
+
+const size_t NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE = 15;
+const float MINIMUM_SLOPE = -15.0;
+const float MAXIMUM_SLOPE = 20.0;
 
 QString readSingleAttribute(const QXmlStreamAttributes& attributes, const QString& attributeName) {
     for (auto attribute: attributes) {
@@ -24,10 +30,6 @@ QString readSingleAttribute(const QXmlStreamAttributes& attributes, const QStrin
 bool isElement(const QXmlStreamReader::TokenType currentTokenType, const QXmlStreamReader& reader, const QString &elementName)
 {
     return (currentTokenType == QXmlStreamReader::StartElement && reader.name() == elementName);
-}
-
-double smooth(double previous, double current, double next) {
-    return 0.3 * previous + 0.4 * current + 0.3 * next;
 }
 
 /**
@@ -95,7 +97,7 @@ RealLifeVideo GpxFileParser::parseXml(const QFile &inputFile,
     std::vector<GeoPosition> geoPositions = convertTrackPoints(trackPoints);
 
     VideoInformation videoInformation(videoFileInfo.filePath(), frameRate);
-    Profile profile(ProfileType::SLOPE, 0.0f, convertProfileEntries(smoothTrack(geoPositions)));
+    Profile profile(ProfileType::SLOPE, 0.0f, smoothProfile(convertProfileEntries(geoPositions)));
     std::vector<Course> courses = { Course("Complete Distance", 0, profile.totalDistance()) };
     std::vector<DistanceMappingEntry> distanceMappings = convertDistanceMappings(frameRate, trackPoints);
     RealLifeVideo rlv(name, RealLifeVideoFileType::GPX, videoInformation, std::move(courses),
@@ -185,44 +187,36 @@ std::vector<ProfileEntry> GpxFileParser::convertProfileEntries(const std::vector
     return profileEntries;
 }
 
+
 /**
- * @brief smooth the track. We will only smooth altitude, not lat-lon, because that will mess with distances.
- * @param trackPoints the trackpoints.
- * @return the track with the altitudes smoothed.
+ * Smooth the profile by taking a running average for the slope of each entry.
  */
-std::vector<GeoPosition> GpxFileParser::smoothTrack(const std::vector<GeoPosition> &trackPoints) const
+std::vector<ProfileEntry> GpxFileParser::smoothProfile(const std::vector<ProfileEntry> &profile) const
 {
-    std::vector<GeoPosition> smoothedTrackPoints = trackPoints;
-    for (int i = 0; i < 20; ++i) {
-        smoothedTrackPoints = smoothTrackPoints(smoothedTrackPoints);
+    std::vector<ProfileEntry> smoothedProfile;
+    smoothedProfile.reserve(profile.size());
+    if (profile.empty()) {
+        return profile;
     }
-    return smoothedTrackPoints;
-}
-
-std::vector<GeoPosition> GpxFileParser::smoothTrackPoints(const std::vector<GeoPosition> &trackPoints) const
-{
-    std::vector<GeoPosition> smoothedTrackPoints;
-    if (!trackPoints.empty()) {
-        smoothedTrackPoints.push_back(trackPoints[0]);
-        for(unsigned i = 1; i < trackPoints.size() - 1; ++i) {
-            smoothedTrackPoints.push_back(smoothSingleTrackPoint(trackPoints[i -1],
-                                       trackPoints[i], trackPoints[i + 1]));
+    std::deque<float> averageEntries;
+    float altitude = profile[0].altitude();
+    for (const ProfileEntry& sourceEntry: profile) {
+        const float boundedSlope = qBound(MINIMUM_SLOPE, sourceEntry.slope(), MAXIMUM_SLOPE);
+        averageEntries.push_back(boundedSlope);
+        if (averageEntries.size() > 15) {
+            averageEntries.pop_front();
         }
-        smoothedTrackPoints.push_back(trackPoints.back());
+        const float averageSlope = std::accumulate(averageEntries.begin(), averageEntries.end(), 0.0) / averageEntries.size();
+
+        if (!smoothedProfile.empty()) {
+            const ProfileEntry& lastEntry = smoothedProfile.back();
+            const float distanceDifference = sourceEntry.distance() - lastEntry.distance();
+            altitude += lastEntry.slope() * 0.01 * distanceDifference;
+        }
+
+        smoothedProfile.push_back(ProfileEntry(sourceEntry.distance(), averageSlope, altitude));
     }
-    Q_ASSERT(smoothedTrackPoints.size() == trackPoints.size());
-    return smoothedTrackPoints;
-}
-
-GeoPosition GpxFileParser::smoothSingleTrackPoint(const GeoPosition &previousPoint, const GeoPosition &point, const GeoPosition &nextPoint) const
-{
-    QGeoCoordinate coordinate = point.coordinate();
-
-    coordinate.setAltitude(smooth(previousPoint.coordinate().altitude(),
-                                               point.coordinate().altitude(),
-                                               nextPoint.coordinate().altitude()));
-
-    return GeoPosition(point.distance(), coordinate);
+    return smoothedProfile;
 }
 
 qreal GpxFileParser::distanceBetweenPoints(const QGeoPositionInfo &start, const QGeoPositionInfo &end) const
