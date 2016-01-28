@@ -14,4 +14,11 @@ install:
       && sudo apt-get -qq install g++-4.8 libc6-i386 qt54tools qt54svg qt54webkit qt54script
       && export CXX="g++-4.8"
       && export CC="gcc-4.8";
+script:
+ - QTDIR="/opt/qt54"
+      && PATH="$QTDIR/bin:$PATH"
+      && qt54-env.sh 
+      ;
+ - qmake
+ - make 
 
