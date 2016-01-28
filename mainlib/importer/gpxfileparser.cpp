@@ -199,8 +199,8 @@ std::vector<ProfileEntry> GpxFileParser::smoothProfile(const std::vector<Profile
     for (auto it = profile.cbegin(); it != profile.end(); ++it) {
         // determine bounds of the interval that we use for averaging. Make sure not to go beyond the
         // begin or end of the vector.
-        auto averageEntriesBegin = std::max(profile.cbegin(), it - NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE / 2);
-        auto averageEntriesEnd = std::min(profile.cend(), it + NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE / 2 + 1);
+        const auto averageEntriesBegin = std::max(profile.cbegin(), it - NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE / 2);
+        const auto averageEntriesEnd = std::min(profile.cend(), it + NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE / 2 + 1);
 
         // calculate the (simple) average
         const float averageSlope = std::accumulate(averageEntriesBegin, averageEntriesEnd, 0.0, [](const float sum, const ProfileEntry& entry) {
@@ -211,7 +211,7 @@ std::vector<ProfileEntry> GpxFileParser::smoothProfile(const std::vector<Profile
 
         // determine altitude from distance and new slope. For the first entry, distanceDifference will be zero.
         const float distanceDifference = it->distance() - lastEntry.distance();
-        float newAltitude = lastEntry.altitude() + lastEntry.slope() * 0.01 * distanceDifference;
+        const float newAltitude = lastEntry.altitude() + lastEntry.slope() * 0.01 * distanceDifference;
 
         smoothedProfile.push_back(ProfileEntry(it->distance(), averageSlope, newAltitude));
     }
