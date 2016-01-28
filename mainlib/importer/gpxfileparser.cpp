@@ -14,7 +14,7 @@
 
 namespace {
 
-const size_t NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE = 15;
+const int NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE = 7;
 const float MINIMUM_SLOPE = -15.0;
 const float MAXIMUM_SLOPE = 20.0;
 
@@ -195,26 +195,25 @@ std::vector<ProfileEntry> GpxFileParser::smoothProfile(const std::vector<Profile
 {
     std::vector<ProfileEntry> smoothedProfile;
     smoothedProfile.reserve(profile.size());
-    if (profile.empty()) {
-        return profile;
-    }
-    std::deque<float> averageEntries;
-    float altitude = profile[0].altitude();
-    for (const ProfileEntry& sourceEntry: profile) {
-        const float boundedSlope = qBound(MINIMUM_SLOPE, sourceEntry.slope(), MAXIMUM_SLOPE);
-        averageEntries.push_back(boundedSlope);
-        if (averageEntries.size() > 15) {
-            averageEntries.pop_front();
-        }
-        const float averageSlope = std::accumulate(averageEntries.begin(), averageEntries.end(), 0.0) / averageEntries.size();
 
-        if (!smoothedProfile.empty()) {
-            const ProfileEntry& lastEntry = smoothedProfile.back();
-            const float distanceDifference = sourceEntry.distance() - lastEntry.distance();
-            altitude += lastEntry.slope() * 0.01 * distanceDifference;
-        }
+    for (auto it = profile.cbegin(); it != profile.end(); ++it) {
+        // determine bounds of the interval that we use for averaging. Make sure not to go beyond the
+        // begin or end of the vector.
+        auto averageEntriesBegin = std::max(profile.cbegin(), it - NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE / 2);
+        auto averageEntriesEnd = std::min(profile.cend() - 1, it + NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE / 2);
 
-        smoothedProfile.push_back(ProfileEntry(sourceEntry.distance(), averageSlope, altitude));
+        // calculate the (simple) average
+        const float averageSlope = std::accumulate(averageEntriesBegin, averageEntriesEnd, 0.0, [](const float sum, const ProfileEntry& entry) {
+            return sum + qBound(MINIMUM_SLOPE, entry.slope(), MAXIMUM_SLOPE);
+        }) / (averageEntriesEnd - averageEntriesBegin + 1);
+
+        const ProfileEntry& lastEntry = (smoothedProfile.empty()) ? *it : smoothedProfile.back();
+
+        // determine altitude from distance and new slope. For the first entry, distanceDifference will be zero.
+        const float distanceDifference = it->distance() - lastEntry.distance();
+        float newAltitude = lastEntry.altitude() + lastEntry.slope() * 0.01 * distanceDifference;
+
+        smoothedProfile.push_back(ProfileEntry(it->distance(), averageSlope, newAltitude));
     }
     return smoothedProfile;
 }
