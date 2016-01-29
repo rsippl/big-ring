@@ -6,12 +6,6 @@ const quint8 TRAINER_EQUIPMENT_TYPE = 25;
 
 const int CONFIGURATION_CHECK_INTERVAL = 5000;
 
-const double DEFAULT_FRONTAL_AREA = 0.4; // m2
-const double DEFAULT_DRAG_COEFFICIENT = 1.0;
-const double DEFAULT_AIR_DENSITY = 1.275; // kg / m^3
-
-const double DEFAULT_WIND_RESISTANCE_COEFFICIENT = DEFAULT_FRONTAL_AREA * DEFAULT_DRAG_COEFFICIENT * DEFAULT_AIR_DENSITY;
-const quint8 DEFAULT_WIND_RESISTANCE_COEFFICIENT_AS_BYTE = static_cast<quint8>(DEFAULT_WIND_RESISTANCE_COEFFICIENT);
 }
 namespace indoorcycling {
 
@@ -425,7 +419,16 @@ AntMessage2 AntSmartTrainerChannelHandler::createWindResistenceMessage()
     content += 0xFF; // reserved
 
     // Wind Resistance Coefficient [kg/m] = Frontal Surface Area [m 2 ] x Drag Coefficient x Air Density [kg/m 3 ]
+    // It's ugly to put these constants here, but I want to keep them close to the place they are used.
+    const double DEFAULT_FRONTAL_AREA = 0.4; // m2
+    const double DEFAULT_DRAG_COEFFICIENT = 1.0;
+    const double DEFAULT_AIR_DENSITY = 1.275; // kg / m^3
+    const double DEFAULT_WIND_RESISTANCE_COEFFICIENT = DEFAULT_FRONTAL_AREA * DEFAULT_DRAG_COEFFICIENT * DEFAULT_AIR_DENSITY;
+    // Note that the wind resistance coefficent has to be multiplied by 100!
+    const quint8 DEFAULT_WIND_RESISTANCE_COEFFICIENT_AS_BYTE = static_cast<quint8>(DEFAULT_WIND_RESISTANCE_COEFFICIENT * 100);
+
     content += DEFAULT_WIND_RESISTANCE_COEFFICIENT_AS_BYTE;
+
     // Wind speed. 0 = -127 km/h, 127 = 0 km/h, 254 = 127 km/h
     content += static_cast<quint8>(127);
     // Drag factor. Default = 1.0 / 0.01 = 100
