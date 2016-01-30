@@ -82,12 +82,7 @@ private:
     QGeoPositionInfo readTrackPoint(QXmlStreamReader &reader) const;
     std::vector<GeoPosition> convertTrackPoints(const std::vector<QGeoPositionInfo> &positions) const;
     std::vector<ProfileEntry> convertProfileEntries(const std::vector<GeoPosition> &trackPoints) const;
-    std::vector<GeoPosition> smoothTrack(const std::vector<GeoPosition> &trackPoints) const;
-    std::vector<GeoPosition> smoothTrackPoints(const std::vector<GeoPosition> &trackPoints) const;
-    GeoPosition smoothSingleTrackPoint(
-            const GeoPosition &previousPoint,
-            const GeoPosition &point,
-            const GeoPosition &nextPoint) const;
+    std::vector<ProfileEntry> smoothProfile(const std::vector<ProfileEntry> &profile) const;
 
     qreal distanceBetweenPoints(const QGeoPositionInfo &start, const QGeoPositionInfo &end) const;
 

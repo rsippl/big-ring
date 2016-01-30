@@ -1,8 +1,9 @@
-# 1.7.1
+# 1.7.0
 
 - Add ANT+ messages log file. Useful for debugging ANT+ behaviour.
 - Add configuration option for aspect ratio of videos. Fixes #64.
 - Always show distance markers in profile. Fixes #65.
+- Slope smoothing for GPX uses moving average.
 
 # 1.6.1
 
