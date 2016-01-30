@@ -73,6 +73,12 @@ private slots:
 
     void on_videoShowWholeVideoOption_toggled(bool checked);
 
+    void on_maximumInclineSpinBox_valueChanged(int maximumDownhillPercentage);
+
+    void on_maximumDeclineSpinBox_valueChanged(int maximumDownhillPercentage);
+
+    void on_powerForElevationCorrectionSpinBox_valueChanged(int powerForElevationCorrection);
+
 private:
     void reset();
     void fillSensorSettingsComboBox();
@@ -85,6 +91,7 @@ private:
     void fillVideoDisplayOptions();
     void fillWeights();
     void fillPowerAveragingComboBox();
+    void fillMaximumUpAndDownhill();
     void saveVideoFolder(const QString &folder);
     bool ableToWriteInFolder(const QString &folder);
 

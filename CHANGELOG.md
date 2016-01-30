@@ -4,6 +4,8 @@
 - Add configuration option for aspect ratio of videos. Fixes #64.
 - Always show distance markers in profile. Fixes #65.
 - Slope smoothing for GPX uses moving average.
+- Set maximum downhill and uphill slope for smart trainers, to save the knees of the rider. Fixes #52.
+- Set power correction for riders living at altitude.
 
 # 1.6.1
 

@@ -30,6 +30,8 @@ const int POWER_AVERAGING_MILLISECONDS_DEFAULT = 3000;
 
 const qreal USER_WEIGHT_KILOGRAMS_DEFAULT = 75.0;
 const qreal BIKE_WEIGHT_KILOGRAMS_DEFAULT = 10.0;
+
+const qreal DEFAULT_UP_AND_DOWNHILL_CAPS = 25.0;
 }
 
 BigRingSettings::BigRingSettings()
@@ -121,6 +123,48 @@ void BigRingSettings::setVideoAspectRatio(Qt::AspectRatioMode aspectRatioMode)
     _settings.beginGroup("display");
     const QString aspectRatioModeSetting = (aspectRatioMode == Qt::KeepAspectRatio) ? "KeepAspectRatio" : "KeepAspectRatioByExpanding";
     _settings.setValue("aspectRatioMode", QVariant::fromValue(aspectRatioModeSetting));
+    _settings.endGroup();
+}
+
+qreal BigRingSettings::maximumDownhillForSmartTrainer() const
+{
+    QSettings settings;
+    settings.beginGroup("simulation");
+    return settings.value("maximumDownhillForSmartTrainer", QVariant::fromValue(DEFAULT_UP_AND_DOWNHILL_CAPS)).toDouble();
+}
+
+void BigRingSettings::setMaximumDownhillForSmartTrainer(const qreal maximumDownhill)
+{
+    _settings.beginGroup("simulation");
+    _settings.setValue("maximumDownhillForSmartTrainer", QVariant::fromValue(maximumDownhill));
+    _settings.endGroup();
+}
+
+int BigRingSettings::powerForElevationCorrection() const
+{
+    QSettings settings;
+    settings.beginGroup("simulation");
+    return settings.value("powerForElevationCorrection", QVariant::fromValue(0)).toInt();
+}
+
+void BigRingSettings::setPowerForElevationCorrection(const int powerForElevationCorrection)
+{
+    _settings.beginGroup("simulation");
+    _settings.setValue("powerForElevationCorrection", QVariant::fromValue(powerForElevationCorrection));
+    _settings.endGroup();
+}
+
+qreal BigRingSettings::maximumUphillForSmartTrainer() const
+{
+    QSettings settings;
+    settings.beginGroup("simulation");
+    return settings.value("maximumUphillForSmartTrainer", QVariant::fromValue(DEFAULT_UP_AND_DOWNHILL_CAPS)).toDouble();
+}
+
+void BigRingSettings::setMaximumUphillForSmartTrainer(const qreal maximumUphill)
+{
+    _settings.beginGroup("simulation");
+    _settings.setValue("maximumUphillForSmartTrainer", QVariant::fromValue(maximumUphill));
     _settings.endGroup();
 }
 

@@ -26,6 +26,8 @@ private:
     const NamedSensorConfigurationGroup _sensorConfigurationGroup;
 
     qreal _currentSlope = 0.0;
+    const qreal _maximumSlope;
+    const qreal _minimumSlope;
 };
 }
 #endif // ACTUATORS_H

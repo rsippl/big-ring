@@ -59,6 +59,8 @@ private:
     void handleWheelSpeed(const QVariant& sensorValue);
     int calculatePower(const float wheelSpeedRpm) const;
 
+    void adjustAndBroadcastPower(int power);
+
     AntCentralDispatch* const _antCentralDispatch;
     const NamedSensorConfigurationGroup _sensorConfigurationGroup;
 
@@ -71,6 +73,7 @@ private:
 
     bool _cadenceSensorPresent = false;
     bool _powerSensorPresent = false;
+    const double _powerForElevationAdjustment;
 };
 }
 #endif // SENSORS_H
