@@ -1,9 +1,10 @@
 # 1.7.0
 
-- Add ANT+ messages log file. Useful for debugging ANT+ behaviour.
+- Support for Tacx Vortex Smart fixed. 
+- Slope smoothing for GPX uses moving average. Makes for much better gpx profiles.
 - Add configuration option for aspect ratio of videos. Fixes #64.
 - Always show distance markers in profile. Fixes #65.
-- Slope smoothing for GPX uses moving average.
+- Add ANT+ messages log file. Useful for debugging ANT+ behaviour.
 
 # 1.6.1
 
