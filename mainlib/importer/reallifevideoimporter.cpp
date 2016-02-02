@@ -101,7 +101,7 @@ RealLifeVideoList RealLifeVideoImporter::importRlvFiles(const QString& rootFolde
     const QSet<QString> rlvFiles = findRlvFiles(rootFolder);
     qDebug() << "rlv files" << rlvFiles;
     const QSet<QString> pgmfFiles = findFiles(rootFolder, { "*.pgmf" });
-    const QSet<QString> aviFiles = findFiles(rootFolder, { "*.avi" });
+    const QSet<QString> aviFiles = findFiles(rootFolder, { "*.avi", "*.mp4" });
 
     QCoreApplication::postEvent(this, new NrOfRlvsFoundEvent(rlvFiles.size()));
 

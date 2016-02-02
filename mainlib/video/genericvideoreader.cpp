@@ -108,7 +108,22 @@ qint64 GenericVideoReader::loadNextFrame()
                                   &frameFinished, &packet);
         }
     }
-    qint64 currentFrameNumber = packet.dts;
+
+    qint64 pts = packet.pts;
+    bool nopts = pts == static_cast<qint64>(AV_NOPTS_VALUE);
+    qint64 currentFrameNumber;
+    if (pts == static_cast<qint64>(AV_NOPTS_VALUE)) {
+        currentFrameNumber = packet.dts;
+    } else {
+        AVStream* videoStream = formatContext()->streams[_currentVideoStream];
+        double timeBase = av_q2d(videoStream->time_base);
+        double framerate = av_q2d(videoStream->avg_frame_rate);
+        currentFrameNumber = packet.pts * av_q2d(av_mul_q(videoStream->time_base, videoStream->avg_frame_rate));
+        qDebug() << timeBase << framerate << av_q2d(av_mul_q(videoStream->time_base, videoStream->avg_frame_rate));
+    }
+
+    qDebug() << "pts" <<pts << "dts" << packet.dts << "current frame number" << currentFrameNumber << nopts;
+
     av_free_packet(&packet);
     return currentFrameNumber;
 }
@@ -116,8 +131,10 @@ qint64 GenericVideoReader::loadNextFrame()
 qint64 GenericVideoReader::totalNumberOfFrames()
 {
     AVStream* videoStream = formatContext()->streams[_currentVideoStream];
-    qreal frameRate = av_q2d(videoStream->avg_frame_rate);
-    return frameRate * (formatContext()->duration / AV_TIME_BASE);
+    qint64 nrOfFrames = videoStream->duration * av_q2d(av_mul_q(videoStream->time_base, videoStream->avg_frame_rate));
+
+    return nrOfFrames;
+
 }
 
 void GenericVideoReader::openVideoFileInternal(const QString &videoFilename)
@@ -170,6 +187,10 @@ int GenericVideoReader::findVideoStream(AVFormatContext *formatContext) const
 {
     for (quint32 i = 0; i < formatContext->nb_streams; ++i) {
         if (formatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+            AVStream* stream = formatContext->streams[i];
+            qDebug() << "Time base" << stream->time_base.num << stream->time_base.den;
+            quint64 startTime = stream->start_time;
+            qDebug() << startTime << (startTime != AV_NOPTS_VALUE);
             return static_cast<int>(i);
         }
     }
