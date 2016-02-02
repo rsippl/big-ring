@@ -89,9 +89,14 @@ void GenericVideoReader::printError(const QString &message)
 void GenericVideoReader::performSeek(qint64 targetFrameNumber)
 {
     qDebug() << "seeking to" << targetFrameNumber;
-    av_seek_frame(formatContext(), _currentVideoStream, targetFrameNumber,
+    AVStream* videoStream = formatContext()->streams[_currentVideoStream];
+    double timeBase = av_q2d(videoStream->time_base);
+    double framerate = av_q2d(videoStream->avg_frame_rate);
+
+    qint64  ts = targetFrameNumber / (timeBase * framerate);
+    av_seek_frame(formatContext(), _currentVideoStream, ts,
                   AVSEEK_FLAG_FRAME | AVSEEK_FLAG_BACKWARD);
-    avcodec_flush_buffers(codecContext());
+        avcodec_flush_buffers(codecContext());
 }
 
 qint64 GenericVideoReader::loadNextFrame()
