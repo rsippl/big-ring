@@ -17,7 +17,7 @@ VideoInfoReader::~VideoInfoReader()
 VideoInfo VideoInfoReader::videoInfoForVideo(const QFileInfo &videoFileInfo)
 {
     openVideoFileInternal(videoFileInfo.filePath());
-    AVStream* stream = videoStream();
+    const AVStream* stream = videoStream();
     VideoInfo videoInfo = { static_cast<float>(av_q2d(stream->avg_frame_rate)) };
     return videoInfo;
 }
