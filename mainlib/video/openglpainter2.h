@@ -33,7 +33,7 @@
 
 namespace
 {
-const int NUMBER_OF_BUFFERS = 5;
+const int NUMBER_OF_BUFFERS = 25;
 }
 class OpenGLPainter2 : public QObject
 {
@@ -117,6 +117,7 @@ private:
     QOpenGLBuffer _vertexBuffer;
 
     std::array<QOpenGLBuffer, NUMBER_OF_BUFFERS> _pixelBuffers;
+    std::array<bool, NUMBER_OF_BUFFERS> _pixelBuffersMapped;
     std::array<qint64, NUMBER_OF_BUFFERS> _frameNumbers;
     quint32 _currentPixelBufferWritePosition;
     quint32 _currentPixelBufferReadPosition;

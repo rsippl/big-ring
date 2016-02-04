@@ -60,8 +60,8 @@ public:
 
 signals:
     /*!
-     * \brief signal emitted when a video is loaded. \param videoDurationNanoSeconds will hold the length
-     * of the video in nanoseconds.
+     * \brief signal emitted when a video is loaded. \param totalNumberOfFrames will hold the length
+     * of the video in frames.
      */
     void videoLoaded(qint64 totalNumberOfFrames);
     /*!

@@ -164,10 +164,15 @@ FrameBuffer OpenGLPainter2::getNextFrameBuffer()
     QOpenGLBuffer currentMappedBuffer = _pixelBuffers[_currentPixelBufferMappedPosition];
     currentMappedBuffer.bind();
     FrameBuffer frameBuffer;
-    frameBuffer.ptr = currentMappedBuffer.map(QOpenGLBuffer::WriteOnly);
-    if (frameBuffer.ptr == nullptr) {
-        qDebug() << "unable to map buffer";
+    if (_pixelBuffersMapped[_currentPixelBufferMappedPosition]) {
+        qDebug() << "buffer already mapped" << _currentPixelBufferMappedPosition;
     }
+    frameBuffer.ptr = currentMappedBuffer.map(QOpenGLBuffer::WriteOnly);
+
+    if (frameBuffer.ptr == nullptr) {
+        qDebug() << "unable to map buffer" << _currentPixelBufferMappedPosition;
+    }
+    _pixelBuffersMapped[_currentPixelBufferMappedPosition] = true;
     frameBuffer.index = _currentPixelBufferMappedPosition;
     frameBuffer.frameSize = _sourceTotalSize;
     _currentPixelBufferMappedPosition = (_currentPixelBufferMappedPosition + 1) % _pixelBuffers.size();
@@ -199,6 +204,7 @@ void OpenGLPainter2::setFrameLoaded(int index, qint64 frameNumber, const QSize &
     _currentPixelBufferWritePosition = index;
     _pixelBuffers[index].bind();
     _pixelBuffers[index].unmap();
+    _pixelBuffersMapped[index] = false;
     _pixelBuffers[index].release();
     _frameNumbers[index] = frameNumber;
     _firstFrameLoaded = true;
@@ -214,6 +220,7 @@ void OpenGLPainter2::requestNewFrames()
 
 bool OpenGLPainter2::showFrame(qint64 frameNumber)
 {
+    qDebug() << "show frame" << frameNumber;
     // if we are requested to show the current frame, do nothing.
     if (_frameNumbers[_currentPixelBufferReadPosition] >= frameNumber) {
         qDebug() << "now new frame shown, because" << _frameNumbers[_currentPixelBufferReadPosition] << ">=" << frameNumber;
@@ -393,6 +400,7 @@ void OpenGLPainter2::initYuv420PTextureInfo()
         pixelBuffer.allocate(combinedSizeOfTextures());
         pixelBuffer.release();
         _pixelBuffers[i] = pixelBuffer;
+        _pixelBuffersMapped[i] = false;
     }
     _texturesInitialized = false;
 }
