@@ -1,11 +1,15 @@
-# 1.7.0
+# 1.8.0
 
-- Add ANT+ messages log file. Useful for debugging ANT+ behaviour.
-- Add configuration option for aspect ratio of videos. Fixes #64.
-- Always show distance markers in profile. Fixes #65.
-- Slope smoothing for GPX uses moving average.
 - Set maximum downhill and uphill slope for smart trainers, to save the knees of the rider. Fixes #52.
 - Set power correction for riders living at altitude.
+
+# 1.7.0
+
+- Support for Tacx Vortex Smart fixed. 
+- Slope smoothing for GPX uses moving average. Makes for much better gpx profiles.
+- Add configuration option for aspect ratio of videos. Fixes #64.
+- Always show distance markers in profile. Fixes #65.
+- Add ANT+ messages log file. Useful for debugging ANT+ behaviour.
 
 # 1.6.1
 

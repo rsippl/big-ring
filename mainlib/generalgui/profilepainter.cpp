@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2015 Ilja Booij (ibooij@gmail.com)
+ * Copyright (c) 2015-2016 Ilja Booij (ibooij@gmail.com)
+ * Copyright (c) 2016 Vlad Naoukin (vladn2000@hotmail.com)
  *
  * This file is part of Big Ring Indoor Video Cycling
  *
@@ -33,8 +34,8 @@ namespace
 {
 const int MAXIMUM_HUE = 240; // dark blue;
 const float MINIMUM_SLOPE = -12.0;
-const float MAXIMUM_SLOPE = 12.0;
-const float INVERSE_SLOPE_RANGE = 1 / (MAXIMUM_SLOPE - MINIMUM_SLOPE);
+const float MAXIMUM_SLOPE = 18.0;
+const float SLOPE_RANGE = MAXIMUM_SLOPE - MINIMUM_SLOPE;
 
 const std::array<double,8> MARKER_DISTANCES = {{0.25, 0.5, 1, 2, 5, 10, 20, 50}};
 const std::array<double,7> MARKER_ALTITUDES = {{10, 20, 50, 100, 200, 500, 1000}};
@@ -214,11 +215,19 @@ int ProfilePainter::altitudeToHeight(const QRect& rect, float altitudeAboveMinim
     return static_cast<int>(((altitudeAboveMinimum) / altitudeDiff) * rect.height() * .9);
 }
 
+/**
+ * Determine the color for a slope. We'll use HSV color values from 240 (dark blue) for a steep downhill grade
+ * through 0 to -60 (magenta) for a steep uphill grade. QColor::fromHsv does not deal with negative values, so we'll
+ * add 360 for negative hues.
+ *
+ * For determining the hue, we'll take the slope, bounded by MINIMUM_SLOPE and MAXIMUM_SLOPE and project it onto
+ * the range determined by SLOPE_RANGE (MAXIMUM_SLOPE - MINIMUM_SLOPE). We'll normalize this value to a value between
+ * 0 and 1. and then project that on to the HUE range.
+ */
 QColor ProfilePainter::colorForSlope(const float slope) const {
     const float boundedSlope = qBound(MINIMUM_SLOPE, slope, MAXIMUM_SLOPE);
-    /* 0 is MINIMUM_SLOPE or lower, 1 = MAXIMUM_SLOPE or higher*/
-    const float normalizedSlope = (boundedSlope - MINIMUM_SLOPE) * INVERSE_SLOPE_RANGE;
+    const float normalizedSlope = (boundedSlope - MINIMUM_SLOPE) / SLOPE_RANGE;
 
-    return QColor::fromHsv(MAXIMUM_HUE - (normalizedSlope * MAXIMUM_HUE), 255, 255);
+    const int hueValue = MAXIMUM_HUE - static_cast<int>(std::round((normalizedSlope * SLOPE_RANGE * 10)));
+    return QColor::fromHsv((hueValue >= 0)? hueValue: hueValue + 360, 255, 255);
 }
-
