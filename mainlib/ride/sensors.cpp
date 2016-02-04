@@ -36,8 +36,7 @@ Sensors::Sensors(AntCentralDispatch* antCentralDispatch,
                  const NamedSensorConfigurationGroup &sensorConfigurationGroup,
                  QObject *parent) :
     QObject(parent), _antCentralDispatch(antCentralDispatch),
-    _sensorConfigurationGroup(sensorConfigurationGroup),
-    _powerForElevationAdjustment(0.01 * BigRingSettings().powerForElevationCorrection())
+    _sensorConfigurationGroup(sensorConfigurationGroup)
 {
     if (_sensorConfigurationGroup.simulationSetting() == SimulationSetting::FIXED_POWER ||
         _sensorConfigurationGroup.simulationSetting() == SimulationSetting::VIRTUAL_POWER) {
@@ -122,11 +121,11 @@ void Sensors::sendPowerUpdate()
     if (_sensorConfigurationGroup.simulationSetting() == SimulationSetting::FIXED_POWER) {
         const int fixedPower = _sensorConfigurationGroup.fixedPower();
         const int withRandomPower = fixedPower + (qrand() % 40) - 20;
-        adjustAndBroadcastPower(withRandomPower);
+        emit powerWattsMeasured(withRandomPower);
     } else if (_sensorConfigurationGroup.simulationSetting() == SimulationSetting::VIRTUAL_POWER) {
         qDebug() << "no speed/power input, setting power to 0W.";
         _powerWatts = 0;
-        emit adjustAndBroadcastPower(_powerWatts);
+        emit powerWattsMeasured(_powerWatts);
     }
 }
 
@@ -180,7 +179,7 @@ void Sensors::handlePower(const QVariant &sensorValue, const AntSensorType senso
 
     if (useValue) {
         _powerWatts = sensorValue.toInt();
-        adjustAndBroadcastPower(_powerWatts);
+        emit powerWattsMeasured(_powerWatts);
     }
 }
 
@@ -191,7 +190,7 @@ void Sensors::handleWheelSpeed(const QVariant &sensorValue)
         float wheelSpeedMps = _wheelSpeedRpm * 2.096 / 60.0;
         emit wheelSpeedMpsMeasured(wheelSpeedMps);
     } else if (_sensorConfigurationGroup.simulationSetting() == SimulationSetting::VIRTUAL_POWER) {
-        adjustAndBroadcastPower(calculatePower(_wheelSpeedRpm));
+        emit powerWattsMeasured(calculatePower(_wheelSpeedRpm));
         _updateTimer->start();
     }
 }
@@ -205,10 +204,5 @@ int Sensors::calculatePower(const float wheelSpeedRpm) const
                 .arg(wheelSpeedMps, 2, 'f')
                 .arg(virtualPower, 2, 'f');
     return static_cast<int>(virtualPower);
-}
-
-void Sensors::adjustAndBroadcastPower(int power)
-{
-    emit powerWattsMeasured(static_cast<int>(power * (1.0 + _powerForElevationAdjustment)));
 }
 }
