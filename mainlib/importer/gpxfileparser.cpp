@@ -143,12 +143,18 @@ std::vector<GeoPosition> GpxFileParser::convertTrackPoints(const std::vector<QGe
     for (const QGeoPositionInfo& position: positions) {
         if (lastEntry == nullptr) {
             geoPositions.push_back(GeoPosition(currentDistance, position.coordinate()));
+            lastEntry = &position;
         } else {
             const qreal segmentDistance = distanceBetweenPoints(*lastEntry, position);
             currentDistance += segmentDistance;
-            geoPositions.push_back(GeoPosition(currentDistance, position.coordinate()));
+            if (segmentDistance < 0.1) {
+                qDebug() << "segment distance very small, pruning position.";
+            } else {
+                geoPositions.push_back(GeoPosition(currentDistance, position.coordinate()));
+                lastEntry = &position;
+            }
         }
-        lastEntry = &position;
+
     }
     return geoPositions;
 }
