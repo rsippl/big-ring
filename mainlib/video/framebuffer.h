@@ -18,26 +18,17 @@ public:
         // no need to do anything
     }
 
-    void withMutex(const std::function<void(FrameBuffer&)> func) {
+    void withMutex(const std::function<void(void *ptr, const QSize &frameSize, int index)> func) {
         QMutexLocker locker(&_mutex);
-        func(*this);
-    }
 
-    void *mappedBufferPointer() const {
-        return _ptr;
+        func(_ptr, _frameSize, _index);
     }
 
     void reset() {
+        QMutexLocker locker(&_mutex);
         _ptr = nullptr;
     }
 
-    QSize frameSize() const {
-        return _frameSize;
-    }
-
-    int index() const {
-        return _index;
-    }
 private:
     void* _ptr;
     const QSize _frameSize;

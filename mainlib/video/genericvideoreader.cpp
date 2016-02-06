@@ -115,16 +115,13 @@ qint64 GenericVideoReader::loadNextFrame()
         }
     }
 
-    qint64 pts = packet.pts;
-    bool nopts = pts == static_cast<qint64>(AV_NOPTS_VALUE);
     qint64 currentFrameNumber;
+    qint64 pts = packet.pts;
     if (pts == static_cast<qint64>(AV_NOPTS_VALUE)) {
         currentFrameNumber = packet.dts;
     } else {
         currentFrameNumber = timestampToFrameNumber(pts);
     }
-
-    qDebug() << "pts" <<pts << "dts" << packet.dts << "current frame number" << currentFrameNumber << nopts;
 
     av_free_packet(&packet);
     return currentFrameNumber;

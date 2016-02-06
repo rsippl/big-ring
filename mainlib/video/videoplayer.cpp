@@ -64,7 +64,6 @@ void VideoPlayer::stop()
 
 void VideoPlayer::stepToFrame(quint32 frameNumber)
 {
-    qDebug() << "stepping to frame" << frameNumber;
     if (_loadState == LoadState::DONE) {
         if (frameNumber > _lastFrameLoaded) {
             qWarning("Requesting to show a frame (%ud) that is not loaded yet. last = %lld!. Step size %d", frameNumber, _lastFrameLoaded, _stepSize);
@@ -130,18 +129,13 @@ void VideoPlayer::setSeekReady(qint64 frameNumber)
 
 void VideoPlayer::setFrameLoaded(int index, qint64 frameNumber, const QSize &frameSize)
 {
-    qDebug() << "frame" << frameNumber << "loaded";
     _lastFrameLoaded = frameNumber;
     _painter->setFrameLoaded(index, frameNumber, frameSize);
 }
 
 void VideoPlayer::setFrameNeeded(const std::weak_ptr<FrameBuffer> &frameBuffer)
 {
-    if (auto locked = frameBuffer.lock()) {
-        if (locked->mappedBufferPointer()) {
-            _videoReader->copyNextFrame(frameBuffer, _stepSize - 1);
-        }
-    }
+    _videoReader->copyNextFrame(frameBuffer, _stepSize - 1);
 }
 
 void VideoPlayer::updateCurrentFrameNumber(const quint32 frameNumber)

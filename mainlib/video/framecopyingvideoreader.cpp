@@ -97,10 +97,14 @@ void FrameCopyingVideoReader::openVideoFileInternal(const QString &videoFilename
 void FrameCopyingVideoReader::copyNextFrameInternal(std::weak_ptr<FrameBuffer> &buffer, int skipFrames)
 {
     AVFrame* frame = frameYuv().frame;
+    int frameBufferIndex = -1;
+    QSize requestFrameSize;
     if (auto locked = buffer.lock()) {
-        locked->withMutex([this, frame, skipFrames] (FrameBuffer &frameBuffer) {
-            if (frameBuffer.mappedBufferPointer()) {
-                quint8* bufferPointer = reinterpret_cast<quint8*>(frameBuffer.mappedBufferPointer());
+        locked->withMutex([this, frame, &frameBufferIndex, &requestFrameSize] (void *ptr, const QSize& frameSize, int index) {
+            if (ptr) {
+                frameBufferIndex = index;
+                requestFrameSize = frameSize;
+                quint8* bufferPointer = reinterpret_cast<quint8*>(ptr);
                 quint32 offset = 0;
                 quint32 ysize = frame->linesize[0] * frame->height;
                 std::memcpy(bufferPointer, frame->data[0], ysize);
@@ -110,20 +114,21 @@ void FrameCopyingVideoReader::copyNextFrameInternal(std::weak_ptr<FrameBuffer> &
                 offset += usize;
                 quint32 vsize = usize;
                 std::memcpy(bufferPointer + offset, frame->data[2], vsize);
-                emit frameCopied(frameBuffer.index(), _currentFrameNumber, frameBuffer.frameSize());
-
-                // skip frames. We still have to decode these frames, but they won't be saved in _frame for
-                // copying to video memory. This is used when the frame rate requested is higher than
-                // the normal frame rate of the video.
-                for (int i = 0; i < skipFrames; ++i) {
-                    _currentFrameNumber = loadNextFrame();
-                }
-                _currentFrameNumber = loadNextFrame();
             }
         });
     } else {
         qDebug() << "unable to lock weak_ptr, skipFrames =" << skipFrames;
     }
+    if (frameBufferIndex >= 0) {
+        emit frameCopied(frameBufferIndex, _currentFrameNumber, requestFrameSize);
+    }
+    // skip frames. We still have to decode these frames, but they won't be saved in _frame for
+    // copying to video memory. This is used when the frame rate requested is higher than
+    // the normal frame rate of the video.
+    for (int i = 0; i < skipFrames; ++i) {
+        _currentFrameNumber = loadNextFrame();
+    }
+    _currentFrameNumber = loadNextFrame();
 }
 
 void FrameCopyingVideoReader::seekToFrameInternal(const qint64 frameNumber)

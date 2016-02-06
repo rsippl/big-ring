@@ -165,9 +165,8 @@ std::weak_ptr<FrameBuffer> OpenGLPainter2::getNextFrameBuffer()
 
     std::shared_ptr<FrameBuffer> oldFrameBuffer = _mappedPixelBuffers[_currentPixelBufferMappedPosition];
     if (oldFrameBuffer) {
-        oldFrameBuffer->withMutex([this](FrameBuffer& frameBuffer) {
-            frameBuffer.reset();
-        });
+        oldFrameBuffer->reset();
+
         _pixelBuffers[_currentPixelBufferMappedPosition].bind();
         _pixelBuffers[_currentPixelBufferMappedPosition].unmap();
         _pixelBuffers[_currentPixelBufferMappedPosition].release();
@@ -233,7 +232,6 @@ void OpenGLPainter2::requestNewFrames()
 
 bool OpenGLPainter2::showFrame(qint64 frameNumber)
 {
-    qDebug() << "show frame" << frameNumber;
     // if we are requested to show the current frame, do nothing.
     if (_frameNumbers[_currentPixelBufferReadPosition] >= frameNumber) {
         qDebug() << "now new frame shown, because" << _frameNumbers[_currentPixelBufferReadPosition] << ">=" << frameNumber;
