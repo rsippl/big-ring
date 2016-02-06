@@ -26,7 +26,7 @@
 #include <QtCore/QTimer>
 #include <QtOpenGL/QGLContext>
 
-struct FrameBuffer;
+class FrameBuffer;
 class OpenGLPainter2;
 class FrameCopyingVideoReader;
 

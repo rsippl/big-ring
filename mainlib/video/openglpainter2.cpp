@@ -165,8 +165,9 @@ std::weak_ptr<FrameBuffer> OpenGLPainter2::getNextFrameBuffer()
 
     std::shared_ptr<FrameBuffer> oldFrameBuffer = _mappedPixelBuffers[_currentPixelBufferMappedPosition];
     if (oldFrameBuffer) {
-        QMutexLocker locker(&oldFrameBuffer->mutex());
-        oldFrameBuffer->reset();
+        oldFrameBuffer->withMutex([this](FrameBuffer& frameBuffer) {
+            frameBuffer.reset();
+        });
         _pixelBuffers[_currentPixelBufferMappedPosition].bind();
         _pixelBuffers[_currentPixelBufferMappedPosition].unmap();
         _pixelBuffers[_currentPixelBufferMappedPosition].release();

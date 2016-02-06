@@ -1,6 +1,7 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
+#include <functional>
 #include <QtCore/QMutex>
 #include <QtCore/QSize>
 
@@ -17,16 +18,17 @@ public:
         // no need to do anything
     }
 
+    void withMutex(const std::function<void(FrameBuffer&)> func) {
+        QMutexLocker locker(&_mutex);
+        func(*this);
+    }
+
     void *mappedBufferPointer() const {
         return _ptr;
     }
 
     void reset() {
         _ptr = nullptr;
-    }
-
-    QMutex &mutex() {
-        return _mutex;
     }
 
     QSize frameSize() const {
