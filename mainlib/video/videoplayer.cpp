@@ -135,10 +135,12 @@ void VideoPlayer::setFrameLoaded(int index, qint64 frameNumber, const QSize &fra
     _painter->setFrameLoaded(index, frameNumber, frameSize);
 }
 
-void VideoPlayer::setFrameNeeded(const FrameBuffer &frameBuffer)
+void VideoPlayer::setFrameNeeded(const std::weak_ptr<FrameBuffer> &frameBuffer)
 {
-    if (frameBuffer.ptr) {
-        _videoReader->copyNextFrame(frameBuffer, _stepSize - 1);
+    if (auto locked = frameBuffer.lock()) {
+        if (locked->mappedBufferPointer()) {
+            _videoReader->copyNextFrame(frameBuffer, _stepSize - 1);
+        }
     }
 }
 

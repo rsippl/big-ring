@@ -35,13 +35,13 @@ public:
 class CopyNextFrameEvent: public QEvent
 {
 public:
-    CopyNextFrameEvent(const FrameBuffer& frameBuffer, int skipFrames):
+    CopyNextFrameEvent(const std::weak_ptr<FrameBuffer> &frameBuffer, int skipFrames):
         QEvent(CopyNextFrameEventType), _frameBuffer(frameBuffer), _skipFrames(skipFrames)
     {
         // empty
     }
 
-    FrameBuffer _frameBuffer;
+    std::weak_ptr<FrameBuffer> _frameBuffer;
     int _skipFrames;
 };
 
@@ -69,7 +69,7 @@ FrameCopyingVideoReader::~FrameCopyingVideoReader()
     qDebug() << "closing VideoReader2";
 }
 
-void FrameCopyingVideoReader::copyNextFrame(const FrameBuffer &buffer, int skipFrames)
+void FrameCopyingVideoReader::copyNextFrame(const std::weak_ptr<FrameBuffer> &buffer, int skipFrames)
 {
     QCoreApplication::postEvent(this, new CopyNextFrameEvent(buffer, skipFrames));
 }
@@ -94,29 +94,34 @@ void FrameCopyingVideoReader::openVideoFileInternal(const QString &videoFilename
                      frameSize, totalNumberOfFrames());
 }
 
-void FrameCopyingVideoReader::copyNextFrameInternal(const FrameBuffer &buffer, int skipFrames)
+void FrameCopyingVideoReader::copyNextFrameInternal(std::weak_ptr<FrameBuffer> &buffer, int skipFrames)
 {
     AVFrame* frame = frameYuv().frame;
-    if (buffer.ptr) {
-        quint8* bufferPointer = reinterpret_cast<quint8*>(buffer.ptr);
-        quint32 offset = 0;
-        quint32 ysize = frame->linesize[0] * frame->height;
-        std::memcpy(bufferPointer, frame->data[0], ysize);
-        offset += ysize;
-        quint32 usize = frame->linesize[1] * frame->height / 2;
-        std::memcpy(bufferPointer + offset, frame->data[1], usize);
-        offset += usize;
-        quint32 vsize = usize;
-        std::memcpy(bufferPointer + offset, frame->data[2], vsize);
-        emit frameCopied(buffer.index, _currentFrameNumber, buffer.frameSize);
+    if (auto locked = buffer.lock()) {
+        QMutexLocker locker(&locked->mutex());
+        if (locked->mappedBufferPointer()) {
+            quint8* bufferPointer = reinterpret_cast<quint8*>(locked->mappedBufferPointer());
+            quint32 offset = 0;
+            quint32 ysize = frame->linesize[0] * frame->height;
+            std::memcpy(bufferPointer, frame->data[0], ysize);
+            offset += ysize;
+            quint32 usize = frame->linesize[1] * frame->height / 2;
+            std::memcpy(bufferPointer + offset, frame->data[1], usize);
+            offset += usize;
+            quint32 vsize = usize;
+            std::memcpy(bufferPointer + offset, frame->data[2], vsize);
+            emit frameCopied(locked->index(), _currentFrameNumber, locked->frameSize());
 
-        // skip frames. We still have to decode these frames, but they won't be saved in _frame for
-        // copying to video memory. This is used when the frame rate requested is higher than
-        // the normal frame rate of the video.
-        for (int i = 0; i < skipFrames; ++i) {
+            // skip frames. We still have to decode these frames, but they won't be saved in _frame for
+            // copying to video memory. This is used when the frame rate requested is higher than
+            // the normal frame rate of the video.
+            for (int i = 0; i < skipFrames; ++i) {
+                _currentFrameNumber = loadNextFrame();
+            }
             _currentFrameNumber = loadNextFrame();
         }
-        _currentFrameNumber = loadNextFrame();
+    } else {
+        qDebug() << "unable to lock weak_ptr, skipFrames =" << skipFrames;
     }
 }
 

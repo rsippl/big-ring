@@ -153,7 +153,7 @@ void OpenGLPainter2::paint(QPainter *painter, const QRectF &rect, Qt::AspectRati
 //    qDebug() << "Painting took" << time.elapsed() << "ms";
 }
 
-FrameBuffer OpenGLPainter2::getNextFrameBuffer()
+std::weak_ptr<FrameBuffer> OpenGLPainter2::getNextFrameBuffer()
 {
     if (!_openGLInitialized) {
         _widget->context()->makeCurrent();
@@ -162,19 +162,31 @@ FrameBuffer OpenGLPainter2::getNextFrameBuffer()
     _widget->context()->makeCurrent();
 
     QOpenGLBuffer currentMappedBuffer = _pixelBuffers[_currentPixelBufferMappedPosition];
-    currentMappedBuffer.bind();
-    FrameBuffer frameBuffer;
-    if (_pixelBuffersMapped[_currentPixelBufferMappedPosition]) {
-        qDebug() << "buffer already mapped" << _currentPixelBufferMappedPosition;
-    }
-    frameBuffer.ptr = currentMappedBuffer.map(QOpenGLBuffer::WriteOnly);
 
-    if (frameBuffer.ptr == nullptr) {
-        qDebug() << "unable to map buffer" << _currentPixelBufferMappedPosition;
+    std::shared_ptr<FrameBuffer> oldFrameBuffer = _mappedPixelBuffers[_currentPixelBufferMappedPosition];
+    if (oldFrameBuffer) {
+        QMutexLocker locker(&oldFrameBuffer->mutex());
+        oldFrameBuffer->reset();
+        _pixelBuffers[_currentPixelBufferMappedPosition].bind();
+        _pixelBuffers[_currentPixelBufferMappedPosition].unmap();
+        _pixelBuffers[_currentPixelBufferMappedPosition].release();
+    }
+    _mappedPixelBuffers[_currentPixelBufferMappedPosition] = std::shared_ptr<FrameBuffer>(nullptr);
+    currentMappedBuffer.bind();
+
+    if (_pixelBuffersMapped[_currentPixelBufferMappedPosition]) {
+//        qDebug() << "buffer already mapped" << _currentPixelBufferMappedPosition;
+    }
+    void *mappedBufferPtr = currentMappedBuffer.map(QOpenGLBuffer::WriteOnly);
+
+    if (mappedBufferPtr == nullptr) {
+//        qDebug() << "unable to map buffer" << _currentPixelBufferMappedPosition;
     }
     _pixelBuffersMapped[_currentPixelBufferMappedPosition] = true;
-    frameBuffer.index = _currentPixelBufferMappedPosition;
-    frameBuffer.frameSize = _sourceTotalSize;
+
+    std::shared_ptr<FrameBuffer> frameBuffer(new FrameBuffer(mappedBufferPtr, _sourceTotalSize, _currentPixelBufferMappedPosition));
+    _mappedPixelBuffers[_currentPixelBufferMappedPosition] = frameBuffer;
+
     _currentPixelBufferMappedPosition = (_currentPixelBufferMappedPosition + 1) % _pixelBuffers.size();
     currentMappedBuffer.release();
 

@@ -29,11 +29,12 @@
 #include <QtGui/QOpenGLFunctions_1_3>
 
 #include <array>
+#include <memory>
 #include "framebuffer.h"
 
 namespace
 {
-const int NUMBER_OF_BUFFERS = 25;
+const int NUMBER_OF_BUFFERS = 50;
 }
 class OpenGLPainter2 : public QObject
 {
@@ -49,7 +50,7 @@ signals:
      * When this signal is emitted, we need to load another frame for the painter.
      * @param frameBuffer the structure in which to load the frame.
      */
-    void frameNeeded(const FrameBuffer& frameBuffer);
+    void frameNeeded(const std::weak_ptr<FrameBuffer>& frameBuffer);
 public slots:
     /**
      * Set the video size.
@@ -87,7 +88,7 @@ private:
     void initializeTextureCoordinatesBuffer();
     quint32 combinedSizeOfTextures();
     /** Get a new FrameBuffer, to which we can copy frame information from libav */
-    FrameBuffer getNextFrameBuffer();
+    std::weak_ptr<FrameBuffer> getNextFrameBuffer();
     /**
      * Make the OpenGLPainter reqeuest new frames to fill it's buffers.
      */
@@ -117,6 +118,7 @@ private:
     QOpenGLBuffer _vertexBuffer;
 
     std::array<QOpenGLBuffer, NUMBER_OF_BUFFERS> _pixelBuffers;
+    std::array<std::shared_ptr<FrameBuffer>, NUMBER_OF_BUFFERS> _mappedPixelBuffers;
     std::array<bool, NUMBER_OF_BUFFERS> _pixelBuffersMapped;
     std::array<qint64, NUMBER_OF_BUFFERS> _frameNumbers;
     quint32 _currentPixelBufferWritePosition;

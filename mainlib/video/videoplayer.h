@@ -21,6 +21,7 @@
 #ifndef VIDEOPLAYER_H
 #define VIDEOPLAYER_H
 
+#include <memory>
 #include <QObject>
 #include <QtCore/QTimer>
 #include <QtOpenGL/QGLContext>
@@ -95,7 +96,7 @@ private slots:
 
     void setFrameLoaded(int index, qint64 frameNumber, const QSize& frameSize);
 
-    void setFrameNeeded(const FrameBuffer& frameBuffer);
+    void setFrameNeeded(const std::weak_ptr<FrameBuffer> &frameBuffer);
 private:
     enum class LoadState
     {
