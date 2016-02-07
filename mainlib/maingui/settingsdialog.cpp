@@ -223,6 +223,17 @@ void SettingsDialog::fillPowerAveragingComboBox()
     }
 }
 
+void SettingsDialog::fillMaximumUpAndDownhill()
+{
+    _ui->maximumInclineSpinBox->setValue(static_cast<int>(_settings.maximumUphillForSmartTrainer()));
+    _ui->maximumDeclineSpinBox->setValue(static_cast<int>(_settings.maximumDownhillForSmartTrainer()));
+}
+
+void SettingsDialog::fillDifficultySetting()
+{
+    _ui->difficultySettingSlider->setValue(_settings.difficultySetting());
+}
+
 void SettingsDialog::saveVideoFolder(const QString& folder)
 {
     BigRingSettings().setVideoFolder(folder);
@@ -264,8 +275,11 @@ void SettingsDialog::reset()
     fillVideoDisplayOptions();
     fillPowerAveragingComboBox();
     fillWeights();
+    fillMaximumUpAndDownhill();
+    fillDifficultySetting();
 
     _ui->tcxSaveLocationTextEdit->setText(_settings.tcxFolder());
+    _ui->powerForElevationCorrectionSpinBox->setValue(_settings.powerForElevationCorrection());
 }
 
 void SettingsDialog::on_deleteConfigurationButton_clicked()
@@ -346,4 +360,25 @@ void SettingsDialog::on_videoShowWholeVideoOption_toggled(bool checked)
     if (checked) {
         _settings.setVideoAspectRatio(Qt::KeepAspectRatio);
     }
+}
+
+void SettingsDialog::on_maximumInclineSpinBox_valueChanged(int maximumUphillPercentage)
+{
+    _settings.setMaximumUphillForSmartTrainer(static_cast<double>(maximumUphillPercentage));
+}
+
+void SettingsDialog::on_maximumDeclineSpinBox_valueChanged(int maximumDownhillPercentage)
+{
+    _settings.setMaximumDownhillForSmartTrainer(static_cast<double>(maximumDownhillPercentage));
+}
+
+void SettingsDialog::on_powerForElevationCorrectionSpinBox_valueChanged(int powerForElevationCorrection)
+{
+    _settings.setPowerForElevationCorrection(powerForElevationCorrection);
+}
+
+void SettingsDialog::on_difficultySettingSlider_valueChanged(int value)
+{
+    _ui->difficultySettingLabel->setText(QString("%1 %").arg(value));
+    _settings.setDifficultySetting(value);
 }

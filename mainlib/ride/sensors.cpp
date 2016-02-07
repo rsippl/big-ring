@@ -20,7 +20,7 @@
 #include "sensors.h"
 
 #include "ant/antcentraldispatch.h"
-
+#include "config/bigringsettings.h"
 #include <QtCore/QDebug>
 #include <QtCore/QtMath>
 #include <QtCore/QVariant>

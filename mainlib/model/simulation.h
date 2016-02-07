@@ -40,6 +40,7 @@ class Simulation : public QObject
     Q_OBJECT
 public:
     explicit Simulation(SimulationSetting simulationSetting, Cyclist& cyclist,
+                        double powerForElevationCorrection,
                         QObject *parent = 0);
     virtual ~Simulation();
 
@@ -77,6 +78,7 @@ private:
     QTime _simulationTime;
     QTime _idleTime;
     Cyclist& _cyclist;
+    const double _powerForElevationCorrection;
     RealLifeVideo _currentRlv;
     QTimer _simulationUpdateTimer;
 };
