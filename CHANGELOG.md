@@ -1,3 +1,8 @@
+# 1.8.0
+
+- BETA Support for mp4 video files added.
+- For very steep grades, color the profile purple.
+
 # 1.7.0
 
 - Support for Tacx Vortex Smart fixed. 
