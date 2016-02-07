@@ -21,11 +21,12 @@
 #ifndef VIDEOPLAYER_H
 #define VIDEOPLAYER_H
 
+#include <memory>
 #include <QObject>
 #include <QtCore/QTimer>
 #include <QtOpenGL/QGLContext>
 
-struct FrameBuffer;
+class FrameBuffer;
 class OpenGLPainter2;
 class FrameCopyingVideoReader;
 
@@ -60,8 +61,8 @@ public:
 
 signals:
     /*!
-     * \brief signal emitted when a video is loaded. \param videoDurationNanoSeconds will hold the length
-     * of the video in nanoseconds.
+     * \brief signal emitted when a video is loaded. \param totalNumberOfFrames will hold the length
+     * of the video in frames.
      */
     void videoLoaded(qint64 totalNumberOfFrames);
     /*!
@@ -95,7 +96,7 @@ private slots:
 
     void setFrameLoaded(int index, qint64 frameNumber, const QSize& frameSize);
 
-    void setFrameNeeded(const FrameBuffer& frameBuffer);
+    void setFrameNeeded(const std::weak_ptr<FrameBuffer> &frameBuffer);
 private:
     enum class LoadState
     {

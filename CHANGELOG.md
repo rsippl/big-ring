@@ -1,3 +1,11 @@
+# 1.8.0
+
+- BETA Support for mp4 video files added.
+- For very steep grades, color the profile purple.
+- Set maximum downhill and uphill slope for smart trainers, to save the knees of the rider. Fixes #52.
+- Add difficulty setting to only apply a percentage of slope on the trainer.
+- Set power correction for riders living at altitude.
+
 # 1.7.0
 
 - Support for Tacx Vortex Smart fixed. 

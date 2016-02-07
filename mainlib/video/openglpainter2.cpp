@@ -65,7 +65,9 @@ void OpenGLPainter2::loadPlaneTextureFromPbo(int glTextureUnit, int textureUnit,
 
     _glFunctions->glActiveTexture(glTextureUnit);
     _glFunctions->glBindTexture(GL_TEXTURE_RECTANGLE, textureUnit);
-    _pixelBuffers[_currentPixelBufferReadPosition].bind();
+    QOpenGLBuffer &pixelBuffer = _pixelBuffers[_currentPixelBufferReadPosition].openGlPixelBuffer;
+
+    pixelBuffer.bind();
 
     // for the first texture upload of a texture unit, we need to use glTexImage2D. After that, we can use
     // glTexSubImage2D, which should be faster most of the times.
@@ -77,7 +79,7 @@ void OpenGLPainter2::loadPlaneTextureFromPbo(int glTextureUnit, int textureUnit,
                      0,GL_LUMINANCE,GL_UNSIGNED_BYTE, (void*) offset);
     }
 
-    _pixelBuffers[_currentPixelBufferReadPosition].release();
+    pixelBuffer.release();
     _glFunctions->glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
     _glFunctions->glTexParameteri(GL_TEXTURE_RECTANGLE,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
     _glFunctions->glTexParameteri( GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
@@ -102,7 +104,6 @@ void OpenGLPainter2::paint(QPainter *painter, const QRectF &rect, Qt::AspectRati
     // has been called, as they may get disabled
     bool stencilTestEnabled = _glFunctions->glIsEnabled(GL_STENCIL_TEST);
     bool scissorTestEnabled = _glFunctions->glIsEnabled(GL_SCISSOR_TEST);
-    _pixelBuffers[_currentPixelBufferReadPosition].bufferId();
 
     painter->beginNativePainting();
 
@@ -153,7 +154,7 @@ void OpenGLPainter2::paint(QPainter *painter, const QRectF &rect, Qt::AspectRati
 //    qDebug() << "Painting took" << time.elapsed() << "ms";
 }
 
-FrameBuffer OpenGLPainter2::getNextFrameBuffer()
+std::weak_ptr<FrameBuffer> OpenGLPainter2::getNextFrameBuffer()
 {
     if (!_openGLInitialized) {
         _widget->context()->makeCurrent();
@@ -161,17 +162,31 @@ FrameBuffer OpenGLPainter2::getNextFrameBuffer()
     }
     _widget->context()->makeCurrent();
 
-    QOpenGLBuffer currentMappedBuffer = _pixelBuffers[_currentPixelBufferMappedPosition];
-    currentMappedBuffer.bind();
-    FrameBuffer frameBuffer;
-    frameBuffer.ptr = currentMappedBuffer.map(QOpenGLBuffer::WriteOnly);
-    if (frameBuffer.ptr == nullptr) {
-        qDebug() << "unable to map buffer";
+    QOpenGLBuffer &openGlBuffer = _pixelBuffers[_currentPixelBufferMappedPosition].openGlPixelBuffer;
+
+    openGlBuffer.bind();
+    // if the frame buffer is currently mapped, we first need to reset the mapped pointer and then unmap the pixel buffer.
+    std::shared_ptr<FrameBuffer> oldFrameBuffer = _pixelBuffers[_currentPixelBufferMappedPosition].mappedPixelBuffer;
+    if (oldFrameBuffer) {
+        // resets the mapped pointer in oldFrameBuffer. reset() uses a mutex internally
+        oldFrameBuffer->reset();
+        openGlBuffer.unmap();
     }
-    frameBuffer.index = _currentPixelBufferMappedPosition;
-    frameBuffer.frameSize = _sourceTotalSize;
+
+    /* map the OpenGL buffer to a pointer in memory, so a frame can be copied */
+    void *mappedBufferPtr = openGlBuffer.map(QOpenGLBuffer::WriteOnly);
+
+    if (mappedBufferPtr == nullptr) {
+        qWarning("Unable map opengl pixel buffer nr %d", _currentPixelBufferMappedPosition);
+    }
+
+    std::shared_ptr<FrameBuffer> frameBuffer(new FrameBuffer(mappedBufferPtr, _sourceTotalSize, _currentPixelBufferMappedPosition));
+    _pixelBuffers[_currentPixelBufferMappedPosition].mappedPixelBuffer = frameBuffer;
+
+    // Set mapped pixel buffer position to the next position to map.
     _currentPixelBufferMappedPosition = (_currentPixelBufferMappedPosition + 1) % _pixelBuffers.size();
-    currentMappedBuffer.release();
+
+    openGlBuffer.release();
 
     return frameBuffer;
 }
@@ -197,14 +212,18 @@ void OpenGLPainter2::setFrameLoaded(int index, qint64 frameNumber, const QSize &
     time.start();
     _widget->context()->makeCurrent();
     _currentPixelBufferWritePosition = index;
-    _pixelBuffers[index].bind();
-    _pixelBuffers[index].unmap();
-    _pixelBuffers[index].release();
-    _frameNumbers[index] = frameNumber;
+    QOpenGLBuffer &buffer = _pixelBuffers[index].openGlPixelBuffer;
+    buffer.bind();
+    buffer.unmap();
+    buffer.release();
+    _pixelBuffers[index].frameNumber = frameNumber;
     _firstFrameLoaded = true;
     _glFunctions->glFlush();
 }
 
+/**
+ * Request new frames to make sure the buffer is a full as possible.
+ */
 void OpenGLPainter2::requestNewFrames()
 {
     while (_currentPixelBufferMappedPosition != _currentPixelBufferReadPosition) {
@@ -215,13 +234,13 @@ void OpenGLPainter2::requestNewFrames()
 bool OpenGLPainter2::showFrame(qint64 frameNumber)
 {
     // if we are requested to show the current frame, do nothing.
-    if (_frameNumbers[_currentPixelBufferReadPosition] >= frameNumber) {
-        qDebug() << "now new frame shown, because" << _frameNumbers[_currentPixelBufferReadPosition] << ">=" << frameNumber;
+    if (_pixelBuffers[_currentPixelBufferReadPosition].frameNumber >= frameNumber) {
+        qDebug() << "now new frame shown, because" << _pixelBuffers[_currentPixelBufferReadPosition].frameNumber << ">=" << frameNumber;
         return false;
     }
 
     quint32 newIndex = (_currentPixelBufferReadPosition + 1) % _pixelBuffers.size();
-    while (_frameNumbers[newIndex] < frameNumber && newIndex != _currentPixelBufferReadPosition) {
+    while (_pixelBuffers[newIndex].frameNumber < frameNumber && newIndex != _currentPixelBufferReadPosition) {
         newIndex = (newIndex + 1) % _pixelBuffers.size();
     }
     if (newIndex == _currentPixelBufferWritePosition) {
@@ -383,8 +402,8 @@ void OpenGLPainter2::initYuv420PTextureInfo()
     initializeTextureCoordinatesBuffer();
 
     for (quint32 i = 0; i < _pixelBuffers.size(); ++i) {
-        if (_pixelBuffers[i].isCreated()) {
-            _pixelBuffers[i].destroy();
+        if (_pixelBuffers[i].openGlPixelBuffer.isCreated()) {
+            _pixelBuffers[i].openGlPixelBuffer.destroy();
         }
         QOpenGLBuffer pixelBuffer(QOpenGLBuffer::PixelUnpackBuffer);
         pixelBuffer.create();
@@ -392,7 +411,7 @@ void OpenGLPainter2::initYuv420PTextureInfo()
         pixelBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
         pixelBuffer.allocate(combinedSizeOfTextures());
         pixelBuffer.release();
-        _pixelBuffers[i] = pixelBuffer;
+        _pixelBuffers[i].openGlPixelBuffer = pixelBuffer;
     }
     _texturesInitialized = false;
 }

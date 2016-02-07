@@ -50,7 +50,8 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     NamedSensorConfigurationGroup sensorConfigurationGroup =
             NamedSensorConfigurationGroup::selectedConfigurationGroup();
 
-   _simulation = new Simulation(sensorConfigurationGroup.simulationSetting(), *_cyclist, this);
+    const int powerForElevationCorrectionPercentage = settings.powerForElevationCorrection();
+   _simulation = new Simulation(sensorConfigurationGroup.simulationSetting(), *_cyclist, powerForElevationCorrectionPercentage * 0.01, this);
 
     _simulation->rlvSelected(rlv);
     _simulation->courseSelected(course);

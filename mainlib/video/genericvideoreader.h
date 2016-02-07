@@ -48,13 +48,15 @@ protected:
     AVCodecContext *codecContext() const;
     AVFormatContext *formatContext() const;
     AVFrameWrapper &frameYuv() const;
-    AVStream *videoStream() const;
+    const AVStream *videoStream() const;
 private:
     void initialize();
     void close();
     void printError(int errorNumber, const QString& message);
     void printError(const QString &message);
     int findVideoStream(AVFormatContext* formatContext) const;
+    qint64 frameNumberToTimestamp(const qint64 frameNumber) const;
+    qint64 timestampToFrameNumber(const qint64 timestamp) const;
 
     bool _initialized = false;
     // libav specific data
@@ -63,6 +65,7 @@ private:
     AVFormatContext* _formatContext = nullptr;
     std::unique_ptr<AVFrameWrapper> _frameYuv;
     int _currentVideoStream;
+    AVStream* _videoStream = nullptr;
 };
 
 #endif // GENERICVIDEOREADER_H

@@ -29,11 +29,12 @@
 #include <QtGui/QOpenGLFunctions_1_3>
 
 #include <array>
+#include <memory>
 #include "framebuffer.h"
 
 namespace
 {
-const int NUMBER_OF_BUFFERS = 5;
+const int NUMBER_OF_BUFFERS = 50;
 }
 class OpenGLPainter2 : public QObject
 {
@@ -49,7 +50,7 @@ signals:
      * When this signal is emitted, we need to load another frame for the painter.
      * @param frameBuffer the structure in which to load the frame.
      */
-    void frameNeeded(const FrameBuffer& frameBuffer);
+    void frameNeeded(const std::weak_ptr<FrameBuffer>& frameBuffer);
 public slots:
     /**
      * Set the video size.
@@ -87,7 +88,7 @@ private:
     void initializeTextureCoordinatesBuffer();
     quint32 combinedSizeOfTextures();
     /** Get a new FrameBuffer, to which we can copy frame information from libav */
-    FrameBuffer getNextFrameBuffer();
+    std::weak_ptr<FrameBuffer> getNextFrameBuffer();
     /**
      * Make the OpenGLPainter reqeuest new frames to fill it's buffers.
      */
@@ -116,10 +117,25 @@ private:
     QOpenGLBuffer _textureCoordinatesBuffer;
     QOpenGLBuffer _vertexBuffer;
 
-    std::array<QOpenGLBuffer, NUMBER_OF_BUFFERS> _pixelBuffers;
-    std::array<qint64, NUMBER_OF_BUFFERS> _frameNumbers;
+    /**
+     * Buffer containing
+     * * a QOpenGLBuffer representing an OpenGL Pixel Buffer Object.
+     * * a Mapped Pixel Buffer object, which represents the QOpenGLBuffer mapped to memory, so we can copy a frame into it.
+     * * a frameNumber, representing the number of the frame that is contained.
+     */
+    struct PixelBuffer {
+        QOpenGLBuffer openGlPixelBuffer;
+        std::shared_ptr<FrameBuffer> mappedPixelBuffer;
+        qint64 frameNumber;
+    };
+    /** This is our frame buffer, containing a number of frames that can be displayed */
+    std::array<PixelBuffer, NUMBER_OF_BUFFERS> _pixelBuffers;
+
+    /** The last position in _pixelBuffers in which a frame was written. */
     quint32 _currentPixelBufferWritePosition;
+    /** The current position from which a frame will displayed. */
     quint32 _currentPixelBufferReadPosition;
+    /** The last position in _pixelBuffers which has been mapped to memory. */
     quint32 _currentPixelBufferMappedPosition;
 
     QOpenGLShaderProgram _program;

@@ -35,6 +35,7 @@ void GenericVideoReader::initialize()
 
 void GenericVideoReader::close()
 {
+    _videoStream = nullptr;
     if (_codecContext) {
         avcodec_close(_codecContext);
     }
@@ -89,9 +90,14 @@ void GenericVideoReader::printError(const QString &message)
 void GenericVideoReader::performSeek(qint64 targetFrameNumber)
 {
     qDebug() << "seeking to" << targetFrameNumber;
-    av_seek_frame(formatContext(), _currentVideoStream, targetFrameNumber,
+    AVStream* videoStream = formatContext()->streams[_currentVideoStream];
+    double timeBase = av_q2d(videoStream->time_base);
+    double framerate = av_q2d(videoStream->avg_frame_rate);
+
+    qint64  ts = targetFrameNumber / (timeBase * framerate);
+    av_seek_frame(formatContext(), _currentVideoStream, ts,
                   AVSEEK_FLAG_FRAME | AVSEEK_FLAG_BACKWARD);
-    avcodec_flush_buffers(codecContext());
+        avcodec_flush_buffers(codecContext());
 }
 
 qint64 GenericVideoReader::loadNextFrame()
@@ -108,7 +114,15 @@ qint64 GenericVideoReader::loadNextFrame()
                                   &frameFinished, &packet);
         }
     }
-    qint64 currentFrameNumber = packet.dts;
+
+    qint64 currentFrameNumber;
+    qint64 pts = packet.pts;
+    if (pts == static_cast<qint64>(AV_NOPTS_VALUE)) {
+        currentFrameNumber = packet.dts;
+    } else {
+        currentFrameNumber = timestampToFrameNumber(pts);
+    }
+
     av_free_packet(&packet);
     return currentFrameNumber;
 }
@@ -116,8 +130,7 @@ qint64 GenericVideoReader::loadNextFrame()
 qint64 GenericVideoReader::totalNumberOfFrames()
 {
     AVStream* videoStream = formatContext()->streams[_currentVideoStream];
-    qreal frameRate = av_q2d(videoStream->avg_frame_rate);
-    return frameRate * (formatContext()->duration / AV_TIME_BASE);
+    return timestampToFrameNumber(videoStream->duration);
 }
 
 void GenericVideoReader::openVideoFileInternal(const QString &videoFilename)
@@ -142,8 +155,9 @@ void GenericVideoReader::openVideoFileInternal(const QString &videoFilename)
     if (_currentVideoStream < 0) {
         printError("Unable to find video stream");
     }
+    _videoStream = _formatContext->streams[_currentVideoStream];
 
-    _codecContext = _formatContext->streams[_currentVideoStream]->codec;
+    _codecContext = _videoStream->codec;
     if (!_codecContext) {
         printError("Unable to open codec context");
     }
@@ -176,6 +190,16 @@ int GenericVideoReader::findVideoStream(AVFormatContext *formatContext) const
     return -1;
 }
 
+qint64 GenericVideoReader::frameNumberToTimestamp(const qint64 frameNumber) const
+{
+    return frameNumber / av_q2d(av_mul_q(_videoStream->time_base, _videoStream->avg_frame_rate));
+}
+
+qint64 GenericVideoReader::timestampToFrameNumber(const qint64 timestamp) const
+{
+    return timestamp * av_q2d(av_mul_q(_videoStream->time_base, _videoStream->avg_frame_rate));
+}
+
 AVCodecContext *GenericVideoReader::codecContext() const
 {
     return _codecContext;
@@ -191,10 +215,10 @@ AVFrameWrapper &GenericVideoReader::frameYuv() const
     return *_frameYuv;
 }
 
-AVStream *GenericVideoReader::videoStream() const
+const AVStream *GenericVideoReader::videoStream() const
 {
-    Q_ASSERT(_formatContext != nullptr);
-    return _formatContext->streams[_currentVideoStream];
+    Q_ASSERT(_videoStream != nullptr);
+    return _videoStream;
 }
 
 AVFrameWrapper::AVFrameWrapper()

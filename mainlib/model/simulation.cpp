@@ -57,9 +57,9 @@ float calculateGravityForce(const Cyclist& cyclist, float grade)
 
 
 
-Simulation::Simulation(SimulationSetting simulationSetting, Cyclist &cyclist, QObject *parent) :
+Simulation::Simulation(SimulationSetting simulationSetting, Cyclist &cyclist, double powerForElevationCorrection, QObject *parent) :
     QObject(parent), _simulationSetting(simulationSetting),
-    _lastElapsed(0), _simulationTime(0,0,0), _idleTime(),_cyclist(cyclist)
+    _lastElapsed(0), _simulationTime(0,0,0), _idleTime(),_cyclist(cyclist), _powerForElevationCorrection(powerForElevationCorrection)
 {
     _simulationUpdateTimer.setInterval(1000 / 30);
     connect(&_simulationUpdateTimer, SIGNAL(timeout()), SLOT(simulationStep()));
@@ -176,8 +176,10 @@ float Simulation::calculateSpeed(quint64 timeDelta)
         return _wheelSpeedMetersPerSecond;
     }
 
+    double power = (1.0 + _powerForElevationCorrection) * _cyclist.power();
+
     // Calculate speed from power.
-    if (_cyclist.power() < 1.0f) {
+    if (power < 1.0f) {
         // if there is no power input and current speed is zero, assume we have no input.
         if (_cyclist.speed() < MINIMUM_SPEED)
             return 0;
@@ -193,7 +195,7 @@ float Simulation::calculateSpeed(quint64 timeDelta)
 
     // if speed is very low, use cyclist weight, otherwise force gets very high. Is there
     // a better way to do this?
-    const float force = (_cyclist.speed() > (MINIMUM_SPEED - 0.1)) ? _cyclist.power() / _cyclist.speed() : _cyclist.totalWeight();
+    const float force = (_cyclist.speed() > (MINIMUM_SPEED - 0.1)) ? power / _cyclist.speed() : _cyclist.totalWeight();
 
     const float resistantForce = calculateAeroDrag(_cyclist) +
             calculateGravityForce(_cyclist, _currentRlv.slopeForDistance(_cyclist.distance())) +

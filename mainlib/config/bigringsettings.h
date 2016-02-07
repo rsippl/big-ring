@@ -53,6 +53,20 @@ public:
     Qt::AspectRatioMode videoAspectRatio() const;
     void setVideoAspectRatio(Qt::AspectRatioMode aspectRatioMode);
 
+    /** Maximum uphill percentage for smart trainers */
+    qreal maximumUphillForSmartTrainer() const;
+    void setMaximumUphillForSmartTrainer(const qreal maximumDownhill);
+
+    /** Maximum downhill percentage for smart trainers */
+    qreal maximumDownhillForSmartTrainer() const;
+    void setMaximumDownhillForSmartTrainer(const qreal maximumDownhill);
+
+    int powerForElevationCorrection() const;
+    void setPowerForElevationCorrection(const int correction);
+
+    int difficultySetting() const;
+    void setDifficultySetting(const int percent);
+
     /** Get the unique id for this installation */
     QString clientId();
 private:
