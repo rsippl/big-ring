@@ -10,7 +10,8 @@ Actuators::Actuators(const Cyclist *cyclist, indoorcycling::AntCentralDispatch *
                                     const NamedSensorConfigurationGroup &sensorConfigurationGroup, QObject *parent):
     QObject(parent), _cyclist(cyclist), _antCentralDispatch(antCentralDispatch), _sensorConfigurationGroup(sensorConfigurationGroup),
     _maximumSlope(BigRingSettings().maximumUphillForSmartTrainer()),
-    _minimumSlope(-BigRingSettings().maximumDownhillForSmartTrainer())
+    _minimumSlope(-BigRingSettings().maximumDownhillForSmartTrainer()),
+    _difficultySetting(BigRingSettings().difficultySetting() * 0.01)
 {
     connect(_antCentralDispatch, &AntCentralDispatch::sensorFound, this, &Actuators::setSensorFound);
 }
@@ -29,9 +30,12 @@ void Actuators::setSensorFound(AntSensorType channelType, int)
 
 void Actuators::setSlope(const qreal slopeInPercent)
 {
-    const qreal cappedSlope = qBound(_minimumSlope, slopeInPercent, _maximumSlope);
-    if (!qFuzzyCompare(cappedSlope, _currentSlope)) {
-        _currentSlope = cappedSlope;
+    if (!qFuzzyCompare(slopeInPercent, _currentSlope)) {
+        _currentSlope = slopeInPercent;
+
+        const qreal slopeWithDifficultySetting = slopeInPercent * _difficultySetting;
+        const qreal cappedSlope = qBound(_minimumSlope, slopeWithDifficultySetting, _maximumSlope);
+
         _antCentralDispatch->setSlope(cappedSlope);
     }
 }

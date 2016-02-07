@@ -64,6 +64,9 @@ public:
     int powerForElevationCorrection() const;
     void setPowerForElevationCorrection(const int correction);
 
+    int difficultySetting() const;
+    void setDifficultySetting(const int percent);
+
     /** Get the unique id for this installation */
     QString clientId();
 private:

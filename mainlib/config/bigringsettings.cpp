@@ -32,6 +32,7 @@ const qreal USER_WEIGHT_KILOGRAMS_DEFAULT = 75.0;
 const qreal BIKE_WEIGHT_KILOGRAMS_DEFAULT = 10.0;
 
 const qreal DEFAULT_UP_AND_DOWNHILL_CAPS = 25.0;
+const int DEFAULT_DIFFICULTY_SETTING = 100;
 }
 
 BigRingSettings::BigRingSettings()
@@ -151,6 +152,21 @@ void BigRingSettings::setPowerForElevationCorrection(const int powerForElevation
 {
     _settings.beginGroup("simulation");
     _settings.setValue("powerForElevationCorrection", QVariant::fromValue(powerForElevationCorrection));
+    _settings.endGroup();
+}
+
+int BigRingSettings::difficultySetting() const
+{
+    QSettings settings;
+    settings.beginGroup("simulation");
+    return settings.value("difficultySetting", QVariant::fromValue(DEFAULT_DIFFICULTY_SETTING)).toInt();
+}
+
+void BigRingSettings::setDifficultySetting(const int percent)
+{
+    _settings.beginGroup("simulation");
+    const int actualPercent = qBound(1, percent, 100);
+    _settings.setValue("difficultySetting", QVariant::fromValue(actualPercent));
     _settings.endGroup();
 }
 

@@ -28,6 +28,7 @@ private:
     qreal _currentSlope = 0.0;
     const qreal _maximumSlope;
     const qreal _minimumSlope;
+    const qreal _difficultySetting;
 };
 }
 #endif // ACTUATORS_H

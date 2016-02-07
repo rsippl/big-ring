@@ -79,6 +79,8 @@ private slots:
 
     void on_powerForElevationCorrectionSpinBox_valueChanged(int powerForElevationCorrection);
 
+    void on_difficultySettingSlider_valueChanged(int value);
+
 private:
     void reset();
     void fillSensorSettingsComboBox();
@@ -92,6 +94,7 @@ private:
     void fillWeights();
     void fillPowerAveragingComboBox();
     void fillMaximumUpAndDownhill();
+    void fillDifficultySetting();
     void saveVideoFolder(const QString &folder);
     bool ableToWriteInFolder(const QString &folder);
 

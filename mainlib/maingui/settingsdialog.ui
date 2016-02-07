@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>561</width>
-    <height>468</height>
+    <width>560</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -39,7 +39,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <property name="usesScrollButtons">
       <bool>true</bool>
@@ -491,7 +491,7 @@
           <item row="0" column="1">
            <widget class="QSpinBox" name="powerForElevationCorrectionSpinBox">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -505,6 +505,51 @@
             <property name="maximum">
              <number>25</number>
             </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Trainer Difficulty Setting. Setting this lower than 100% will decrease resistance on hills and increase resistance on downhills. The speed is still calculated using the original grade, so climbing will not go faster.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QWidget" name="widget_3" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <item>
+              <widget class="QSlider" name="difficultySettingSlider">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>100</number>
+               </property>
+               <property name="value">
+                <number>100</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TicksBelow</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="difficultySettingLabel">
+               <property name="text">
+                <string>100%</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
          </layout>
