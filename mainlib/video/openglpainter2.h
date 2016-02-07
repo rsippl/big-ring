@@ -117,11 +117,25 @@ private:
     QOpenGLBuffer _textureCoordinatesBuffer;
     QOpenGLBuffer _vertexBuffer;
 
-    std::array<QOpenGLBuffer, NUMBER_OF_BUFFERS> _pixelBuffers;
-    std::array<std::shared_ptr<FrameBuffer>, NUMBER_OF_BUFFERS> _mappedPixelBuffers;
-    std::array<qint64, NUMBER_OF_BUFFERS> _frameNumbers;
+    /**
+     * Buffer containing
+     * * a QOpenGLBuffer representing an OpenGL Pixel Buffer Object.
+     * * a Mapped Pixel Buffer object, which represents the QOpenGLBuffer mapped to memory, so we can copy a frame into it.
+     * * a frameNumber, representing the number of the frame that is contained.
+     */
+    struct PixelBuffer {
+        QOpenGLBuffer openGlPixelBuffer;
+        std::shared_ptr<FrameBuffer> mappedPixelBuffer;
+        qint64 frameNumber;
+    };
+    /** This is our frame buffer, containing a number of frames that can be displayed */
+    std::array<PixelBuffer, NUMBER_OF_BUFFERS> _pixelBuffers;
+
+    /** The last position in _pixelBuffers in which a frame was written. */
     quint32 _currentPixelBufferWritePosition;
+    /** The current position from which a frame will displayed. */
     quint32 _currentPixelBufferReadPosition;
+    /** The last position in _pixelBuffers which has been mapped to memory. */
     quint32 _currentPixelBufferMappedPosition;
 
     QOpenGLShaderProgram _program;
