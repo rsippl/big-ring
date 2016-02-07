@@ -174,15 +174,11 @@ std::weak_ptr<FrameBuffer> OpenGLPainter2::getNextFrameBuffer()
     _mappedPixelBuffers[_currentPixelBufferMappedPosition] = std::shared_ptr<FrameBuffer>(nullptr);
     currentMappedBuffer.bind();
 
-    if (_pixelBuffersMapped[_currentPixelBufferMappedPosition]) {
-//        qDebug() << "buffer already mapped" << _currentPixelBufferMappedPosition;
-    }
     void *mappedBufferPtr = currentMappedBuffer.map(QOpenGLBuffer::WriteOnly);
 
     if (mappedBufferPtr == nullptr) {
-//        qDebug() << "unable to map buffer" << _currentPixelBufferMappedPosition;
+        qWarning("Unable map opengl pixel buffer nr %d", _currentPixelBufferMappedPosition);
     }
-    _pixelBuffersMapped[_currentPixelBufferMappedPosition] = true;
 
     std::shared_ptr<FrameBuffer> frameBuffer(new FrameBuffer(mappedBufferPtr, _sourceTotalSize, _currentPixelBufferMappedPosition));
     _mappedPixelBuffers[_currentPixelBufferMappedPosition] = frameBuffer;
@@ -216,7 +212,6 @@ void OpenGLPainter2::setFrameLoaded(int index, qint64 frameNumber, const QSize &
     _currentPixelBufferWritePosition = index;
     _pixelBuffers[index].bind();
     _pixelBuffers[index].unmap();
-    _pixelBuffersMapped[index] = false;
     _pixelBuffers[index].release();
     _frameNumbers[index] = frameNumber;
     _firstFrameLoaded = true;
@@ -411,7 +406,6 @@ void OpenGLPainter2::initYuv420PTextureInfo()
         pixelBuffer.allocate(combinedSizeOfTextures());
         pixelBuffer.release();
         _pixelBuffers[i] = pixelBuffer;
-        _pixelBuffersMapped[i] = false;
     }
     _texturesInitialized = false;
 }
