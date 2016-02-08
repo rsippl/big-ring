@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>560</width>
-    <height>600</height>
+    <height>748</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -379,113 +379,207 @@
       <attribute name="title">
        <string>Simulation</string>
       </attribute>
-      <layout class="QFormLayout" name="formLayout_3">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Cyclist's Weight</string>
+      <layout class="QVBoxLayout" name="verticalLayout_10">
+       <item>
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QDoubleSpinBox" name="userWeightSpinBox">
-         <property name="suffix">
-          <string> kg</string>
-         </property>
-         <property name="decimals">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <double>400.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>Bike Weight</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QDoubleSpinBox" name="bikeWeightSpinBox">
-         <property name="prefix">
-          <string/>
-         </property>
-         <property name="suffix">
-          <string> kg</string>
-         </property>
-         <property name="decimals">
-          <number>1</number>
-         </property>
-         <property name="minimum">
-          <double>5.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>60.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="value">
-          <double>10.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_13">
-         <property name="text">
-          <string>Maximum downhill for smart trainer</string>
-         </property>
-        </widget>
-       </item>
-       <item row="14" column="0" colspan="2">
-        <widget class="QGroupBox" name="groupBox_4">
          <property name="title">
-          <string>Advanced Options</string>
+          <string>Weight Settings</string>
          </property>
-         <layout class="QFormLayout" name="formLayout_4">
+         <layout class="QFormLayout" name="formLayout_3">
           <item row="0" column="0">
-           <widget class="QLabel" name="label_14">
-            <property name="text">
-             <string>Power for elevation correction. If you are living at elevation but want to correct your power output to sea level, you can set a percentage here which will be added to your power output when determining speed. </string>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="powerForElevationCorrectionSpinBox">
+           <widget class="QLabel" name="label_3">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Cyclist's Weight                                    </string>
+            </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="userWeightSpinBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
             <property name="suffix">
-             <string> %</string>
+             <string> kg</string>
+            </property>
+            <property name="decimals">
+             <number>1</number>
             </property>
             <property name="maximum">
-             <number>25</number>
+             <double>400.000000000000000</double>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_15">
-            <property name="text">
-             <string>Trainer Difficulty Setting. Setting this lower than 100% will decrease resistance on hills and increase resistance on downhills. The speed is still calculated using the original grade, so climbing will not go faster.</string>
+           <widget class="QLabel" name="label_6">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <property name="wordWrap">
-             <bool>true</bool>
+            <property name="text">
+             <string>Bike Weight</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="bikeWeightSpinBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+            <property name="prefix">
+             <string/>
+            </property>
+            <property name="suffix">
+             <string> kg</string>
+            </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>5.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>60.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>10.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Smart Trainer settings</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="1" column="1">
+           <widget class="QWidget" name="widget_4" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>248</width>
+              <height>0</height>
+             </size>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_6">
+             <item>
+              <widget class="QSlider" name="maximumInclineSlider">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximum">
+                <number>25</number>
+               </property>
+               <property name="pageStep">
+                <number>5</number>
+               </property>
+               <property name="value">
+                <number>25</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TicksBelow</enum>
+               </property>
+               <property name="tickInterval">
+                <number>5</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="maximumInclineLabel">
+               <property name="text">
+                <string>25%</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignHCenter|Qt::AlignTop</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="3" column="1">
            <widget class="QWidget" name="widget_3" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>68</height>
+             </size>
+            </property>
             <layout class="QVBoxLayout" name="verticalLayout_5">
              <item>
               <widget class="QSlider" name="difficultySettingSlider">
@@ -512,7 +606,174 @@
                 <string>100%</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignCenter</set>
+                <set>Qt::AlignHCenter|Qt::AlignTop</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="minimumSize">
+             <size>
+              <width>240</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Trainer Difficulty Setting. Setting this lower than 100% will decrease resistance on hills and increase resistance on downhills.</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_13">
+            <property name="minimumSize">
+             <size>
+              <width>240</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Maximum downhill</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_12">
+            <property name="minimumSize">
+             <size>
+              <width>240</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Maximum uphill</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignJustify|Qt::AlignTop</set>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QWidget" name="widget_5" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>68</height>
+             </size>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_7">
+             <item>
+              <widget class="QSlider" name="minimumInclineSlider">
+               <property name="minimum">
+                <number>-25</number>
+               </property>
+               <property name="maximum">
+                <number>0</number>
+               </property>
+               <property name="pageStep">
+                <number>5</number>
+               </property>
+               <property name="value">
+                <number>-25</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="invertedAppearance">
+                <bool>false</bool>
+               </property>
+               <property name="invertedControls">
+                <bool>false</bool>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TicksBelow</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="maximumDownhillLabel">
+               <property name="text">
+                <string>-25 %</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignHCenter|Qt::AlignTop</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_16">
+            <property name="text">
+             <string>These settings change force applied by the trainer. Speed calculations are not affected by these settings.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget_6" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <widget class="QGroupBox" name="groupBox_4">
+            <property name="title">
+             <string>Elevation Correction</string>
+            </property>
+            <layout class="QFormLayout" name="formLayout_4">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_14">
+               <property name="minimumSize">
+                <size>
+                 <width>240</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Power for elevation correction. If you are living at elevation but want to correct your power output to sea level, you can set a percentage here which will be added to your power output when determining speed. </string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QSpinBox" name="powerForElevationCorrectionSpinBox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+               <property name="suffix">
+                <string> %</string>
+               </property>
+               <property name="maximum">
+                <number>25</number>
                </property>
               </widget>
              </item>
@@ -520,95 +781,6 @@
            </widget>
           </item>
          </layout>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QWidget" name="widget_4" native="true">
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <widget class="QSlider" name="maximumInclineSlider">
-            <property name="maximum">
-             <number>25</number>
-            </property>
-            <property name="pageStep">
-             <number>5</number>
-            </property>
-            <property name="value">
-             <number>25</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::TicksBelow</enum>
-            </property>
-            <property name="tickInterval">
-             <number>5</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="maximumInclineLabel">
-            <property name="text">
-             <string>25%</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QWidget" name="widget_5" native="true">
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <item>
-           <widget class="QSlider" name="minimumInclineSlider">
-            <property name="minimum">
-             <number>-25</number>
-            </property>
-            <property name="maximum">
-             <number>0</number>
-            </property>
-            <property name="pageStep">
-             <number>5</number>
-            </property>
-            <property name="value">
-             <number>-25</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="invertedAppearance">
-             <bool>false</bool>
-            </property>
-            <property name="invertedControls">
-             <bool>false</bool>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::TicksBelow</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="maximumDownhillLabel">
-            <property name="text">
-             <string>-25 %</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_12">
-         <property name="text">
-          <string>Maximum uphill for smart trainer</string>
-         </property>
         </widget>
        </item>
       </layout>
