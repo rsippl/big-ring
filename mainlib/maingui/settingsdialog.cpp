@@ -225,8 +225,8 @@ void SettingsDialog::fillPowerAveragingComboBox()
 
 void SettingsDialog::fillMaximumUpAndDownhill()
 {
-    _ui->maximumInclineSpinBox->setValue(static_cast<int>(_settings.maximumUphillForSmartTrainer()));
-    _ui->maximumDeclineSpinBox->setValue(static_cast<int>(_settings.maximumDownhillForSmartTrainer()));
+    _ui->maximumInclineSlider->setValue(static_cast<int>(_settings.maximumUphillForSmartTrainer()));
+    _ui->minimumInclineSlider->setValue(static_cast<int>(_settings.maximumDownhillForSmartTrainer()));
 }
 
 void SettingsDialog::fillDifficultySetting()
@@ -256,6 +256,11 @@ bool SettingsDialog::ableToWriteInFolder(const QString &folder)
                              tr("Unable to write in folder %1, please choose another folder or adjust permissions.").arg(folder));
         return false;
     }
+}
+
+QString SettingsDialog::percentString(const int percent) const
+{
+    return QString("%1 %").arg(percent);
 }
 
 void SettingsDialog::on_antConfigurationChooser_currentIndexChanged(
@@ -362,16 +367,6 @@ void SettingsDialog::on_videoShowWholeVideoOption_toggled(bool checked)
     }
 }
 
-void SettingsDialog::on_maximumInclineSpinBox_valueChanged(int maximumUphillPercentage)
-{
-    _settings.setMaximumUphillForSmartTrainer(static_cast<double>(maximumUphillPercentage));
-}
-
-void SettingsDialog::on_maximumDeclineSpinBox_valueChanged(int maximumDownhillPercentage)
-{
-    _settings.setMaximumDownhillForSmartTrainer(static_cast<double>(maximumDownhillPercentage));
-}
-
 void SettingsDialog::on_powerForElevationCorrectionSpinBox_valueChanged(int powerForElevationCorrection)
 {
     _settings.setPowerForElevationCorrection(powerForElevationCorrection);
@@ -381,4 +376,16 @@ void SettingsDialog::on_difficultySettingSlider_valueChanged(int value)
 {
     _ui->difficultySettingLabel->setText(QString("%1 %").arg(value));
     _settings.setDifficultySetting(value);
+}
+
+void SettingsDialog::on_minimumInclineSlider_valueChanged(int value)
+{
+    _ui->maximumDownhillLabel->setText(percentString(value));
+    _settings.setMaximumDownhillForSmartTrainer(static_cast<qreal>(value));
+}
+
+void SettingsDialog::on_maximumInclineSlider_valueChanged(int value)
+{
+    _ui->maximumInclineLabel->setText(percentString(value));
+    _settings.setMaximumUphillForSmartTrainer(static_cast<qreal>(value));
 }

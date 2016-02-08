@@ -73,13 +73,13 @@ private slots:
 
     void on_videoShowWholeVideoOption_toggled(bool checked);
 
-    void on_maximumInclineSpinBox_valueChanged(int maximumDownhillPercentage);
-
-    void on_maximumDeclineSpinBox_valueChanged(int maximumDownhillPercentage);
-
     void on_powerForElevationCorrectionSpinBox_valueChanged(int powerForElevationCorrection);
 
     void on_difficultySettingSlider_valueChanged(int value);
+
+    void on_minimumInclineSlider_valueChanged(int value);
+
+    void on_maximumInclineSlider_valueChanged(int value);
 
 private:
     void reset();
@@ -97,6 +97,8 @@ private:
     void fillDifficultySetting();
     void saveVideoFolder(const QString &folder);
     bool ableToWriteInFolder(const QString &folder);
+
+    QString percentString(const int percent) const;
 
     Ui::SettingsDialog *_ui;
     QuantityPrinter * const _quantityPrinter;
