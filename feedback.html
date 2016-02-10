@@ -1,0 +1,33 @@
+---
+title: Feedback
+layout: default
+---
+
+<div class="col-md-8" role="main">
+    <h1>Feedback</h1>
+    <p>
+        We would love to hear what you think of Big Ring. If you have ideas about how we can improve Big Ring, please let us know.
+        You can send us a message using the form below.
+    </p>
+    <form class="form-vertical" action="//formspree.io/ibooij+bigring@gmail.com"
+      method="POST">
+      <input type="text" name="_gotcha" style="display:none" />
+      <input type="hidden" name="_next" value="{{ site.url }}/thanks.html" />
+      <div class="form-group">
+          <label for="nameInput">Name</label>
+          <input id="nameInput" class="form-control" type="text" name="name" placeholder="Your name" required="required">
+        </div>
+        <div class="form-group">
+            <label for="emailInput">Email address</label>
+            <input id="emailInput" class="form-control" type="email" name="_replyto" placeholder="Your email address" required="required"/>
+        </div>
+        <div class="form-group">
+            <label for="feedbackInput">Feedback</label>
+            <textarea id="feedbackInput" class="form-control" name="content" cols="40" rows="10" placeholder="Your feedback" required="required"></textarea>
+        </div>
+        <div class="form-group">
+                <button type="submit" class="btn btn-primary" value="Send">Send</button>
+        </div>
+
+    </form>
+</div>
