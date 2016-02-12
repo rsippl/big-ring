@@ -39,7 +39,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <property name="usesScrollButtons">
       <bool>true</bool>
@@ -141,7 +141,7 @@
        <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>Video Folder</string>
+          <string>Video Folders</string>
          </property>
         </widget>
        </item>
@@ -150,6 +150,9 @@
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="0" column="2">
            <widget class="QPushButton" name="addVideoFolderButton">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add Video Folder&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
              <string>+</string>
             </property>
@@ -162,6 +165,9 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove selected Video Folder&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string>-</string>
@@ -182,7 +188,11 @@
            </spacer>
           </item>
           <item row="0" column="0" rowspan="3">
-           <widget class="QListWidget" name="videoFolderList"/>
+           <widget class="QListWidget" name="videoFolderList">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Folders scanned for Real Life Videos&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
