@@ -142,7 +142,7 @@ void MainWindow::newVersionAvailable(bool newVersion, const QString &version)
  */
 void MainWindow::loadVideos()
 {
-    if (BigRingSettings().videoFolder().isEmpty()) {
+    if (BigRingSettings().videoFolders().isEmpty()) {
         QMessageBox::StandardButton choice = QMessageBox::question(
                     this, tr("Video folder not configured"),
                     tr("No location was configured for the Real Life Videos.\n"

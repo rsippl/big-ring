@@ -32,8 +32,9 @@ class BigRingSettings
 public:
     BigRingSettings();
 
-    QString videoFolder() const;
-    void setVideoFolder(const QString &folder);
+    QStringList videoFolders() const;
+    bool addVideoFolder(const QString &folder);
+    void removeVideoFolder(const QString &folder);
 
     /** Get the absolute path to folder where tcx ride files are saved */
     QString tcxFolder() const;

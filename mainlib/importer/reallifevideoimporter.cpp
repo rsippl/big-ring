@@ -40,8 +40,8 @@
 namespace
 {
 RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString> &videoFilePaths, const QList<QString> &pgmfFilePaths);
-QSet<QString> findFiles(const QString& root, const QStringList &patterns);
-QSet<QString> findRlvFiles(const QString &root);
+QSet<QString> findFiles(const QStringList &roots, const QStringList &patterns);
+QSet<QString> findRlvFiles(const QStringList &roots);
 
 const QEvent::Type NR_OF_RLVS_FOUND_TYPE = static_cast<QEvent::Type>(QEvent::User + 100);
 const QEvent::Type RLV_IMPORTED_TYPE = static_cast<QEvent::Type>(NR_OF_RLVS_FOUND_TYPE + 101);
@@ -79,7 +79,7 @@ void RealLifeVideoImporter::importRealLiveVideoFilesFromDir()
     });
 
     futureWatcher->setFuture(QtConcurrent::run([this]() {
-        return this->importRlvFiles(BigRingSettings().videoFolder());
+        return this->importRlvFiles(BigRingSettings().videoFolders());
     }));
 }
 
@@ -96,12 +96,13 @@ bool RealLifeVideoImporter::event(QEvent *event)
     }
 }
 
-RealLifeVideoList RealLifeVideoImporter::importRlvFiles(const QString& rootFolder)
+RealLifeVideoList RealLifeVideoImporter::importRlvFiles(const QStringList& rootFolders)
 {
-    const QSet<QString> rlvFiles = findRlvFiles(rootFolder);
+
+    const QSet<QString> rlvFiles = findRlvFiles(rootFolders);
     qDebug() << "rlv files" << rlvFiles;
-    const QSet<QString> pgmfFiles = findFiles(rootFolder, { "*.pgmf" });
-    const QSet<QString> aviFiles = findFiles(rootFolder, { "*.avi", "*.mp4" });
+    const QSet<QString> pgmfFiles = findFiles(rootFolders, { "*.pgmf" });
+    const QSet<QString> aviFiles = findFiles(rootFolders, { "*.avi", "*.mp4" });
 
     QCoreApplication::postEvent(this, new NrOfRlvsFoundEvent(rlvFiles.size()));
 
@@ -188,22 +189,23 @@ RealLifeVideo parseRealLiveVideoFile(QFile &rlvFile, const QList<QString>& video
     return rlv;
 }
 
-QSet<QString> findFiles(const QString& root, const QStringList& patterns)
+QSet<QString> findFiles(const QStringList& roots, const QStringList& patterns)
 {
-    QDirIterator it(root, patterns, QDir::NoFilter, QDirIterator::Subdirectories);
-
     QSet<QString> filePaths;
+    for (const QString &root: roots) {
+        QDirIterator it(root, patterns, QDir::NoFilter, QDirIterator::Subdirectories);
 
-    while(it.hasNext()) {
-        it.next();
-        filePaths.insert(it.filePath());
+        while(it.hasNext()) {
+            it.next();
+            filePaths.insert(it.filePath());
+        }
     }
     return filePaths;
 }
 
-QSet<QString> findRlvFiles(const QString& root)
+QSet<QString> findRlvFiles(const QStringList& roots)
 {
-    return findFiles(root, { "*.rlv", "*.xml", "*.gpx" } );
+    return findFiles(roots, { "*.rlv", "*.xml", "*.gpx" } );
 }
 
 }

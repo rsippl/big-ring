@@ -1,10 +1,11 @@
 # 1.8.0
 
-- BETA Support for mp4 video files added.
-- For very steep grades, color the profile purple.
+- BETA Support for mp4 video files added. Fixes #70.
+- For very steep grades, color the profile purple. Fixes #72.
 - Set maximum downhill and uphill slope for smart trainers, to save the knees of the rider. Fixes #52.
 - Add difficulty setting to only apply a percentage of slope on the trainer.
-- Set power correction for riders living at altitude.
+- Set power correction for riders living at altitude. Fixes #58.
+- Add support for multiple video folders. Fixes #53.
 
 # 1.7.0
 

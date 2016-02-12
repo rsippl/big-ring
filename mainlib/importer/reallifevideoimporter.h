@@ -70,7 +70,7 @@ signals:
 protected:
     virtual bool event(QEvent *event);
 private:
-    RealLifeVideoList importRlvFiles(const QString& rootDir);
+    RealLifeVideoList importRlvFiles(const QStringList &rootFolders);
     void importReady(const RealLifeVideoList &rlvs);
 };
 

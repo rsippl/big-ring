@@ -40,14 +40,68 @@ BigRingSettings::BigRingSettings()
     // empty
 }
 
-QString BigRingSettings::videoFolder() const
+QStringList BigRingSettings::videoFolders() const
 {
-    return _settings.value("videoFolder").toString();
+    QStringList videoFolders;
+    QSettings settings;
+
+    // There could be a pre-2.8 videoFolder setting. We need to handle this.
+    if (settings.contains("videoFolder")) {
+        QString oldVideoFolderSetting = settings.value("videoFolder").toString();
+        if (!oldVideoFolderSetting.isEmpty()) {
+            videoFolders << oldVideoFolderSetting;
+        }
+    }
+
+    const int size = settings.beginReadArray("videoFolders");
+    for (int i = 0; i < size; ++i) {
+        settings.setArrayIndex(i);
+        const QString videoFolder = settings.value("videoFolder").toString();
+        if (!videoFolders.contains(videoFolder)) {
+            videoFolders << videoFolder;
+        }
+    }
+    settings.endArray();
+
+    std::sort(videoFolders.begin(), videoFolders.end());
+
+    return videoFolders;
 }
 
-void BigRingSettings::setVideoFolder(const QString &folder)
+bool BigRingSettings::addVideoFolder(const QString &folder)
 {
-    _settings.setValue("videoFolder", QVariant::fromValue(folder));
+    QStringList currentVideoFolders = videoFolders();
+    if (currentVideoFolders.contains(folder)) {
+        return false;
+    }
+    QSettings settings;
+    int size = settings.beginReadArray("videoFolders");
+    settings.endArray();
+    settings.beginWriteArray("videoFolders");
+    settings.setArrayIndex(size);
+    settings.setValue("videoFolder", folder);
+    settings.endArray();
+
+    return true;
+}
+
+void BigRingSettings::removeVideoFolder(const QString &folder)
+{
+    // It could be that the legacy setting for videoFolder contained this folder
+    // name. If so, remove it here.
+    if (folder == _settings.value("videoFolder").toString()) {
+        _settings.remove("videoFolder");
+    }
+
+    // We'll just get all current folders, remove the one we have to remove and rewrite the array.
+    QStringList currentVideoFolders = videoFolders();
+    currentVideoFolders.removeOne(folder);
+    _settings.beginWriteArray("videoFolders");
+    for (int i = 0; i < currentVideoFolders.size(); ++i) {
+        _settings.setArrayIndex(i);
+        _settings.setValue("videoFolder", currentVideoFolders[i]);
+    }
+    _settings.endArray();
 }
 
 QString BigRingSettings::tcxFolder() const

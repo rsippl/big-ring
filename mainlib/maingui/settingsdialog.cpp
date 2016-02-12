@@ -167,7 +167,12 @@ void SettingsDialog::fillSimulationSettingLabel()
 
 void SettingsDialog::fillVideoFolderList()
 {
-    _ui->videoFolderLineEdit->setText(_settings.videoFolder());
+    _ui->videoFolderList->clear();
+    for (const QString &videoFolder: _settings.videoFolders()) {
+        _ui->videoFolderList->addItem(videoFolder);
+    }
+
+    _ui->removeVideoFolderButton->setEnabled(_ui->videoFolderList->currentItem() != nullptr);
 }
 
 void SettingsDialog::fillVideoDisplayOptions()
@@ -234,12 +239,6 @@ void SettingsDialog::fillDifficultySetting()
     _ui->difficultySettingSlider->setValue(_settings.difficultySetting());
 }
 
-void SettingsDialog::saveVideoFolder(const QString& folder)
-{
-    BigRingSettings().setVideoFolder(folder);
-    _videoLoadFunction();
-}
-
 bool SettingsDialog::ableToWriteInFolder(const QString &folder)
 {
     // try to write and remove a file in the directory. If that does not work, permissions might be off.
@@ -299,18 +298,6 @@ void SettingsDialog::on_deleteConfigurationButton_clicked()
                     configurationName);
     }
     reset();
-}
-
-void SettingsDialog::on_changeFolderButton_clicked()
-{
-    QStringList homeDirectories = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
-
-    QString startDirectory = (homeDirectories.isEmpty()) ? QString() : homeDirectories[0];
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Open RLV Directory"),
-                                                    startDirectory);
-
-    saveVideoFolder(dir);
-    fillVideoFolderList();
 }
 
 void SettingsDialog::on_powerAveragingCombobox_currentIndexChanged(int index)
@@ -388,4 +375,35 @@ void SettingsDialog::on_maximumInclineSlider_valueChanged(int value)
 {
     _ui->maximumInclineLabel->setText(percentString(value));
     _settings.setMaximumUphillForSmartTrainer(static_cast<qreal>(value));
+}
+
+void SettingsDialog::on_addVideoFolderButton_clicked()
+{
+    QStringList homeDirectories = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+
+    QString startDirectory = (homeDirectories.isEmpty()) ? QString() : homeDirectories[0];
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Open RLV Directory"),
+                                                    startDirectory);
+
+    if (_settings.addVideoFolder(dir)) {
+        fillVideoFolderList();
+        _videoLoadFunction();
+    } else {
+        QMessageBox::warning(this, "Unable to add folder", "Folder is already configured as Video Folder");
+    }
+}
+
+void SettingsDialog::on_videoFolderList_currentRowChanged(int)
+{
+    _ui->removeVideoFolderButton->setEnabled(_ui->videoFolderList->count() > 0);
+}
+
+void SettingsDialog::on_removeVideoFolderButton_clicked()
+{
+    for (auto item: _ui->videoFolderList->selectedItems()) {
+        _settings.removeVideoFolder(item->text());
+        _ui->videoFolderList->removeItemWidget(item);
+    }
+    _videoLoadFunction();
+    fillVideoFolderList();
 }

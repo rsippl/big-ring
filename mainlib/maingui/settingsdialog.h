@@ -60,7 +60,6 @@ private slots:
 
     void on_deleteConfigurationButton_clicked();
 
-    void on_changeFolderButton_clicked();
     void on_powerAveragingCombobox_currentIndexChanged(int index);
 
     void on_userWeightSpinBox_valueChanged(double userWeight);
@@ -81,6 +80,12 @@ private slots:
 
     void on_maximumInclineSlider_valueChanged(int value);
 
+    void on_addVideoFolderButton_clicked();
+
+    void on_videoFolderList_currentRowChanged(int currentRow);
+
+    void on_removeVideoFolderButton_clicked();
+
 private:
     void reset();
     void fillSensorSettingsComboBox();
@@ -95,7 +100,6 @@ private:
     void fillPowerAveragingComboBox();
     void fillMaximumUpAndDownhill();
     void fillDifficultySetting();
-    void saveVideoFolder(const QString &folder);
     bool ableToWriteInFolder(const QString &folder);
 
     QString percentString(const int percent) const;
