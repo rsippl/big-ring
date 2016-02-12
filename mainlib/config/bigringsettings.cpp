@@ -165,7 +165,7 @@ int BigRingSettings::difficultySetting() const
 void BigRingSettings::setDifficultySetting(const int percent)
 {
     _settings.beginGroup("simulation");
-    const int actualPercent = qBound(1, percent, 100);
+    const int actualPercent = qBound(0, percent, 100);
     _settings.setValue("difficultySetting", QVariant::fromValue(actualPercent));
     _settings.endGroup();
 }
