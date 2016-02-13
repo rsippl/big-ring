@@ -4,7 +4,7 @@ QT_VERSION = 5
 QMAKE_CXXFLAGS += -std=c++11 -W -Wall -Wextra -Werror
 QT       += core concurrent gui opengl network serialport widgets positioning
 
-VERSION = 1.7.0.0
+VERSION = 1.7.1.0
 
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
