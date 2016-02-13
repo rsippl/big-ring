@@ -98,6 +98,8 @@ int main(int argc, char *argv[])
     loadStyleSheet(a);
 
     a.setApplicationVersion(APP_VERSION);
+    a.setWindowIcon(QIcon(QPixmap(":/BigRingIcon.png")));
+
     qDebug() << "APP VERSION" << a.applicationVersion();
     a.setOrganizationDomain("org.github.ibooij");
     a.setOrganizationName("Ilja Booij");

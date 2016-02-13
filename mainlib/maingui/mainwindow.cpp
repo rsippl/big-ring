@@ -31,6 +31,7 @@
 #include <QtWidgets/QProgressDialog>
 #include <QtWidgets/QVBoxLayout>
 
+#include "ui_aboutdialog.h"
 #include "videolistview.h"
 #include "settingsdialog.h"
 #include "ant/antcentraldispatch.h"
@@ -50,6 +51,7 @@ MainWindow::MainWindow(QWidget *parent) :
     _listView(new VideoListView(this)),
     _analyticsSender(new AnalyticsSender(this))
 {
+    Q_INIT_RESOURCE(icons);
     _antCentralDispatch->initialize();
     setupMenuBar();
     QVBoxLayout* layout = new QVBoxLayout;
@@ -200,13 +202,19 @@ void MainWindow::setupMenuBar()
     this->addAction(quitAction);
 
     QMenu* helpMenu = _menuBar->addMenu(tr("Help"));
+    QAction* aboutBigRingAction = new QAction(tr("About Big Ring"), this);
+    connect(aboutBigRingAction, &QAction::triggered, this, [=]() {
+        QDialog dialog;
+        Ui::BigRingAboutDialog aboutDialog;
+        aboutDialog.setupUi(&dialog);
+        dialog.exec();
+    });
+    helpMenu->addAction(aboutBigRingAction);
     QAction* aboutQtAction = new QAction(tr("About Qt"), this);
     connect(aboutQtAction, &QAction::triggered, this, [=]() {
         QMessageBox::aboutQt(this);
     });
     helpMenu->addAction(aboutQtAction);
-
-
 }
 
 void MainWindow::startRun(RealLifeVideo rlv, int courseNr)

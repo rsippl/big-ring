@@ -3,14 +3,13 @@ TEMPLATE = lib
 include(../config.pri)
 
 RESOURCES += \
-    $$IN_PWD/video/shaders.qrc
+    $$IN_PWD/video/shaders.qrc \
+    $$IN_PWD/icons.qrc
 
 target = mainlib
 target.path = ../lib
 CONFIG += staticlib
 INCLUDEPATH += thirdparty/include
-
-FORMS +=
 
 ANT_HEADERS += \
     ant/antdevice.h \
@@ -107,6 +106,7 @@ MAINGUI_SOURCES +=\
 
 
 MAINGUI_FORMS +=\
+    maingui/aboutdialog.ui \
     maingui/addsensorconfigurationdialog.ui \
     maingui/altitudeprofilewidget.ui \
     maingui/createnewcoursedialog.ui \

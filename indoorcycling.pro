@@ -10,3 +10,7 @@ SUBDIRS += \
 big-ring.depends = mainlib
 anttestapp.depends = mainlib
 test.depends = mainlib
+
+RESOURCES += \
+    mainlib/icons.qrc \
+    big-ring/icons.qrc

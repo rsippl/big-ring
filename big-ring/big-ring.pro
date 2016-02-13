@@ -45,3 +45,4 @@ win32 {
                    $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
 
 }
+
