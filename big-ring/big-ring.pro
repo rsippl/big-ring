@@ -11,6 +11,8 @@ include(../config.pri)
 
 SOURCES += main.cpp
 
+RC_ICONS = BigRingIcon.ico
+
 # added by QtCreator to add mainlib to dependencies.
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../mainlib/release/ -lmainlib
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../mainlib/debug/ -lmainlib
