@@ -29,7 +29,7 @@ void AnalyticsSender::sendAnalyticsUpdate()
     params.addQueryItem("v", "1");
     params.addQueryItem("tid", "UA-65087849-4");
     params.addQueryItem("cid", _clientId);
-    params.addQueryItem("t", "appview");
+    params.addQueryItem("t", "screenview");
     params.addQueryItem("an", "Big Ring Indoor Video Cycling");
     params.addQueryItem("av", QString(APP_VERSION));
     params.addQueryItem("cd", "Main");
