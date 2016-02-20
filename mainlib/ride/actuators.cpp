@@ -6,9 +6,8 @@
 #include "ant/antcentraldispatch.h"
 namespace indoorcycling {
 
-Actuators::Actuators(const Cyclist *cyclist, indoorcycling::AntCentralDispatch *antCentralDispatch,
-                                    const NamedSensorConfigurationGroup &sensorConfigurationGroup, QObject *parent):
-    QObject(parent), _cyclist(cyclist), _antCentralDispatch(antCentralDispatch), _sensorConfigurationGroup(sensorConfigurationGroup),
+Actuators::Actuators(const Cyclist *cyclist, indoorcycling::AntCentralDispatch *antCentralDispatch, QObject *parent):
+    QObject(parent), _cyclist(cyclist), _antCentralDispatch(antCentralDispatch),
     _maximumSlope(BigRingSettings().maximumUphillForSmartTrainer()),
     _minimumSlope(-BigRingSettings().maximumDownhillForSmartTrainer()),
     _difficultySetting(BigRingSettings().difficultySetting() * 0.01)

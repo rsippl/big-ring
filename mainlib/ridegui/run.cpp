@@ -66,7 +66,7 @@ Run::Run(indoorcycling::AntCentralDispatch *antCentralDispatch, RealLifeVideo& r
     connect(sensors, &Sensors::wheelSpeedMpsMeasured, _simulation, &Simulation::setWheelSpeed);
     sensors->initialize();
 
-    _actuators = new indoorcycling::Actuators(_cyclist, _antCentralDispatch, sensorConfigurationGroup, this);
+    _actuators = new indoorcycling::Actuators(_cyclist, _antCentralDispatch, this);
     connect(_simulation, &Simulation::slopeChanged, _actuators, &Actuators::setSlope);
     _actuators->initialize();
 

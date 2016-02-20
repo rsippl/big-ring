@@ -2,7 +2,7 @@
 #define ACTUATORS_H
 
 #include <QtCore/QObject>
-#include "config/sensorconfiguration.h"
+#include "ant/antsensortype.h"
 
 class Cyclist;
 namespace indoorcycling {
@@ -12,7 +12,7 @@ class Actuators : public QObject
 {
     Q_OBJECT
 public:
-    explicit Actuators(const Cyclist* cyclist, AntCentralDispatch *antCentralDispatch, const NamedSensorConfigurationGroup &sensorConfigurationGroup, QObject *parent = nullptr);
+    explicit Actuators(const Cyclist* cyclist, AntCentralDispatch *antCentralDispatch, QObject *parent = nullptr);
 public slots:
     void initialize();
     void setSensorFound(AntSensorType channelType, int deviceNumber);
@@ -23,7 +23,6 @@ private:
 
     const Cyclist *const _cyclist;
     AntCentralDispatch* const _antCentralDispatch;
-    const NamedSensorConfigurationGroup _sensorConfigurationGroup;
 
     qreal _currentSlope = 0.0;
     const qreal _maximumSlope;
