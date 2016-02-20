@@ -185,7 +185,7 @@ qreal BigRingSettings::maximumDownhillForSmartTrainer() const
 {
     QSettings settings;
     settings.beginGroup("simulation");
-    return settings.value("maximumDownhillForSmartTrainer", QVariant::fromValue(DEFAULT_UP_AND_DOWNHILL_CAPS)).toDouble();
+    return settings.value("maximumDownhillForSmartTrainer", QVariant::fromValue(-DEFAULT_UP_AND_DOWNHILL_CAPS)).toDouble();
 }
 
 void BigRingSettings::setMaximumDownhillForSmartTrainer(const qreal maximumDownhill)
