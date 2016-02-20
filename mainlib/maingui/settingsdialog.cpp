@@ -385,11 +385,14 @@ void SettingsDialog::on_addVideoFolderButton_clicked()
     QString dir = QFileDialog::getExistingDirectory(this, tr("Open RLV Directory"),
                                                     startDirectory);
 
-    if (_settings.addVideoFolder(dir)) {
-        fillVideoFolderList();
-        _videoLoadFunction();
-    } else {
-        QMessageBox::warning(this, "Unable to add folder", "Folder is already configured as Video Folder");
+    // dir might be empty if the user cancelled the action.
+    if (!dir.isEmpty()) {
+        if (_settings.addVideoFolder(dir)) {
+            fillVideoFolderList();
+            _videoLoadFunction();
+        } else {
+            QMessageBox::warning(this, "Unable to add folder", "Folder is already configured as Video Folder");
+        }
     }
 }
 
