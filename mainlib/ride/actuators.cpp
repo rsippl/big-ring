@@ -9,7 +9,7 @@ namespace indoorcycling {
 Actuators::Actuators(const Cyclist *cyclist, indoorcycling::AntCentralDispatch *antCentralDispatch, QObject *parent):
     QObject(parent), _cyclist(cyclist), _antCentralDispatch(antCentralDispatch),
     _maximumSlope(BigRingSettings().maximumUphillForSmartTrainer()),
-    _minimumSlope(-BigRingSettings().maximumDownhillForSmartTrainer()),
+    _minimumSlope(BigRingSettings().maximumDownhillForSmartTrainer()),
     _difficultySetting(BigRingSettings().difficultySetting() * 0.01)
 {
     connect(_antCentralDispatch, &AntCentralDispatch::sensorFound, this, &Actuators::setSensorFound);
