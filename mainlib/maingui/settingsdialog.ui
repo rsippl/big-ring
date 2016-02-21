@@ -789,9 +789,12 @@
                 </size>
                </property>
                <property name="text">
-                <string>Power for elevation correction. If you are living at elevation but want to correct your power output to sea level, you can set a percentage here which will be added to your power output when determining speed. </string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Power for elevation correction. If you are living at elevation but want to correct your power output to sea level, you can set a percentage here which will be added to your power output when determining speed. See &lt;a href=&quot;http://www.joefrielsblog.com/2010/09/altitude-and-aerobic-performance.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Joe Friel - Altitude and Aerobic Performance&lt;/span&gt;&lt;/a&gt; for more information.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="openExternalLinks">
                 <bool>true</bool>
                </property>
               </widget>
