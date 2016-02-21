@@ -29,6 +29,10 @@
 #include "framecopyingvideoreader.h"
 #include "openglpainter2.h"
 
+namespace {
+const quint32 MAX_STEP_SIZE = 5u;
+}
+
 VideoPlayer::VideoPlayer(QGLWidget *paintWidget, QObject *parent) :
     QObject(parent), _videoReader(new FrameCopyingVideoReader), _videoReaderThread(new QThread),
     _loadState(LoadState::NONE), _currentFrameNumber(0u), _lastFrameLoaded(0), _stepSize(1)
@@ -67,15 +71,15 @@ void VideoPlayer::stepToFrame(quint32 frameNumber)
     if (_loadState == LoadState::DONE) {
         if (frameNumber > _lastFrameLoaded) {
             qWarning("Requesting to show a frame (%ud) that is not loaded yet. last = %lld!. Step size %d", frameNumber, _lastFrameLoaded, _stepSize);
-            _stepSize = 10;
+            _stepSize = MAX_STEP_SIZE;
             _painter->fillBuffers();
             return;
         } else {
-            _stepSize = frameNumber - _currentFrameNumber;
-            if (_stepSize == 0) {
+            _stepSize = qMin(frameNumber - _currentFrameNumber, MAX_STEP_SIZE);
+            if (_stepSize == 0u) {
                 return;
             }
-            if (_stepSize > 5) {
+            if (_stepSize >= MAX_STEP_SIZE) {
                 qDebug() << "step size is too big:" << _stepSize << "current frame number:" << _currentFrameNumber;
             }
         }
