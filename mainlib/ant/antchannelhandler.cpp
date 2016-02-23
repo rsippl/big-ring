@@ -26,6 +26,7 @@
 namespace {
 const int SEARCH_TIMEOUT = 10; //seconds.
 const int ACKNOWLEDGED_MESSAGE_QUEUE_SIZE = 4; // 1 acknowledged messages.
+const int ACKNOWLEDGED_MESSAGE_TIMEOUT = 1000; // milliseconds
 
 using indoorcycling::AntChannelHandler;
 const QMap<AntChannelHandler::ChannelState,QString> CHANNEL_STATE_STRINGS(
@@ -48,19 +49,9 @@ AntChannelHandler::AntChannelHandler(const int channelNumber, const AntSensorTyp
     QObject(parent), _channelNumber(channelNumber), _deviceNumber(0), _sensorType(sensorType),
     _channelPeriod(channelPeriod),_state(ChannelState::CLOSED)
 {
-    // empty
-}
-
-void AntChannelHandler::queueAcknowledgedMessage(const AntMessage2 &message)
-{
-    if (_acknowledgedMessagesToSend.size() > ACKNOWLEDGED_MESSAGE_QUEUE_SIZE) {
-        qDebug() << channelIdString() << "Queueing Acknowledged message, queue is full. Removing oldest message from queue";
-        _acknowledgedMessagesToSend.pop();
-    }
-    _acknowledgedMessagesToSend.push(message);
-    if (_acknowledgedMessagesToSend.size() > 1) {
-        qDebug() << channelIdString() << "Queued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
-    }
+    _acknowledgedMessageTimer.setSingleShot(true);
+    _acknowledgedMessageTimer.setInterval(ACKNOWLEDGED_MESSAGE_TIMEOUT);
+    connect(&_acknowledgedMessageTimer, &QTimer::timeout, this, &AntChannelHandler::transferTxFailed);
 }
 
 quint8 AntChannelHandler::channelNumber() const
@@ -87,30 +78,6 @@ QString AntChannelHandler::channelIdString() const
 {
     return QString("Channel #%1, device type %2, device #%3:")
             .arg(_channelNumber).arg(static_cast<int>(_sensorType)).arg(_deviceNumber);
-}
-
-/**
- * An acknowledged message transfer has been completed. Remove the message from the queue. If there are any more
- * messages on the queue, they will be sent after the next broadcast message has been received.
- */
-void AntChannelHandler::transferTxCompleted()
-{
-    _acknowledgedMessageInFlight = false;
-    if (!_acknowledgedMessagesToSend.empty()) {
-        _acknowledgedMessagesToSend.pop();
-        qDebug() << "dequeued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
-    }
-}
-
-/**
- * An acknowledged message transfer has failed. The message will be kept on front of the queue and will be sent after
- * the next broadcast message has been received.
- */
-void AntChannelHandler::transferTxFailed()
-{
-    qDebug() << "An acknowledged message failed. Trying it again";
-    _acknowledgedMessageInFlight = false;
-    sendNextAcknowledgedMessage();
 }
 
 AntChannelHandler::~AntChannelHandler()
@@ -234,17 +201,58 @@ void AntChannelHandler::assertMessageId(const AntMessage2::AntMessageId expected
     }
 }
 
+
+void AntChannelHandler::queueAcknowledgedMessage(const AntMessage2 &message)
+{
+    if (_acknowledgedMessagesToSend.size() > ACKNOWLEDGED_MESSAGE_QUEUE_SIZE) {
+        qDebug() << channelIdString() << "Queueing Acknowledged message, queue is full. Removing oldest message from queue";
+        _acknowledgedMessagesToSend.pop();
+    }
+    _acknowledgedMessagesToSend.push(message);
+    if (_acknowledgedMessagesToSend.size() > 1) {
+        qDebug() << channelIdString() << "Queued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
+    }
+}
+
 /**
  * Send thee next Acknowledged message, if there's any to send. This should only be called after a broadcastmessage
- * has been received.
+ * has been received. When a message is sent, _acknowledgedMessageTimer is started to be able to deal with the fact
+ * that no acknowledgement (SUCCESS or FAILURE) will be received.
  */
 void AntChannelHandler::sendNextAcknowledgedMessage()
 {
     if (!_acknowledgedMessageInFlight && !_acknowledgedMessagesToSend.empty()) {
         qDebug() << channelIdString() << "sending acknowledged message";
         _acknowledgedMessageInFlight = true;
+        _acknowledgedMessageTimer.start();
         emit antMessageGenerated(_acknowledgedMessagesToSend.front());
     }
+}
+
+/**
+ * An acknowledged message transfer has been completed. Remove the message from the queue. If there are any more
+ * messages on the queue, they will be sent after the next broadcast message has been received.
+ */
+void AntChannelHandler::transferTxCompleted()
+{
+    _acknowledgedMessageTimer.stop();
+    _acknowledgedMessageInFlight = false;
+    if (!_acknowledgedMessagesToSend.empty()) {
+        _acknowledgedMessagesToSend.pop();
+        qDebug() << "dequeued Acknowledged message, queue size" << _acknowledgedMessagesToSend.size();
+    }
+}
+
+/**
+ * An acknowledged message transfer has failed. The last acknowledged message will be sent
+ * again.
+ */
+void AntChannelHandler::transferTxFailed()
+{
+    _acknowledgedMessageTimer.stop();
+    qDebug() << "An acknowledged message failed. Trying it again";
+    _acknowledgedMessageInFlight = false;
+    sendNextAcknowledgedMessage();
 }
 
 void AntChannelHandler::advanceState(const AntMessage2::AntMessageId messageId)
