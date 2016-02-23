@@ -23,6 +23,7 @@
 #include <memory>
 #include <queue>
 #include <QtCore/QObject>
+#include <QtCore/QTimer>
 
 #include "antmessage2.h"
 #include "antsensortype.h"
@@ -82,7 +83,7 @@ protected:
 
     /**
      * Queue an Acknowledged message. The message will be sent after all other messages on the queue have been sent.
-     * If the queue is filled up to ACKNOWLEDGED_MESSAGE_QUEUE_CAPACITY, the message will be dropped and false will be returned.
+     * If the queue is filled up to ACKNOWLEDGED_MESSAGE_QUEUE_CAPACITY, the oldest message will be dropped.
      */
     void queueAcknowledgedMessage(const AntMessage2 &message);
 
@@ -113,13 +114,15 @@ protected:
      * @return an id of the channel, with channel number, device number, etc
      */
     QString channelIdString() const;
+private slots:
+    void transferTxCompleted();
+    /** Called when no acknowledgement has been received after sending an acknowledged message */
+    void transferTxFailed();
 private:
     void setState(ChannelState state);
     void advanceState(const AntMessage2::AntMessageId messageId);
     void handleFirstBroadCastMessage(const BroadCastMessage&);
     void assertMessageId(const AntMessage2::AntMessageId expected, const AntMessage2::AntMessageId actual);
-    void transferTxCompleted();
-    void transferTxFailed();
     void sendNextAcknowledgedMessage();
 
     const int _channelNumber;
@@ -132,6 +135,10 @@ private:
     std::queue<AntMessage2> _acknowledgedMessagesToSend;
     /** If this is true, there is an acknowledged message in flight and we cannot send a new one. */
     bool _acknowledgedMessageInFlight = false;
+    /** Timer for acknowledged messages. Every time an acknowledged message is sent, this is timer is started every
+        time an acknowledged message is sent. The timer is stopped when an acknowledgement is received. If it reaches
+        the timeout, this is interpreted as a Failure and the message is sent again. */
+    QTimer _acknowledgedMessageTimer;
 };
 
 class AntMasterChannelHandler: public AntChannelHandler
