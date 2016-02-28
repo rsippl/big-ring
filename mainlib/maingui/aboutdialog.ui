@@ -32,42 +32,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>&lt;h1&gt;Big Ring Indoor Video Cycling&lt;/h1&gt;
-
-&lt;p&gt;
-Authors:
-&lt;ul&gt;
-&lt;li&gt;Ilja Booij&lt;/li&gt;
-&lt;li&gt;Jarek Poświata&lt;/li&gt;
-&lt;li&gt;Vlad Naoukin&lt;/li&gt;
-&lt;/ul&gt;
-Icon created by:
-&lt;ul&gt;
-&lt;li&gt;Mirko Scherrer&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;License&lt;/h2&gt;
-&lt;p&gt;
- This file is part of Big Ring Indoor Video Cycling
- &lt;/p&gt;
-&lt;p&gt;
- Big Ring Indoor Video Cycling is free software: you can redistribute
- it and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation, either version 3 of the
- License, or (at your option) any later version.
- &lt;/p&gt;
-&lt;p&gt;
- Big Ring Indoor Video Cycling  is distributed in the hope that it will
- be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-&lt;/p&gt;
-&lt;p&gt;
-  You should have received a copy of the GNU General Public License
-  along with Big Ring Indoor Video Cycling.  If not, see &lt;a href=&quot;http://www.gnu.org/licenses/&quot;&gt;http://www.gnu.org/licenses/&lt;/a&gt;.
-&lt;/p&gt;
-
-</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:xx-large; font-weight:600;&quot;&gt;Big Ring Indoor Video Cycling&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Authors: &lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Ilja Booij&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Vlad Naoukin&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Jarek Poświata&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Icon created by: &lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Mirko Scherrer &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;span style=&quot; font-size:x-large; font-weight:600;&quot;&gt;License&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This file is part of Big Ring Indoor Video Cycling &lt;/p&gt;&lt;p&gt;Big Ring Indoor Video Cycling is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. &lt;/p&gt;&lt;p&gt;Big Ring Indoor Video Cycling is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. &lt;/p&gt;&lt;p&gt;You should have received a copy of the GNU General Public License along with Big Ring Indoor Video Cycling. If not, see &lt;a href=&quot;http://www.gnu.org/licenses/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://www.gnu.org/licenses/&lt;/span&gt;&lt;/a&gt;. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
