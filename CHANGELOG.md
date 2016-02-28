@@ -6,6 +6,7 @@
 - Add difficulty setting to only apply a percentage of slope on the trainer.
 - Set power correction for riders living at altitude. Fixes #58.
 - Add support for multiple video folders. Fixes #53.
+- Fix disconnection issue for ANT+ FE-C trainers. Fixes #75.
 
 # 1.7.0
 

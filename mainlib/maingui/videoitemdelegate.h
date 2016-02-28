@@ -23,7 +23,9 @@
 #include <QtWidgets/QLabel>
 
 class ProfilePainter;
+class QuantityPrinter;
 class RealLifeVideo;
+
 class VideoItemDelegate: public QAbstractItemDelegate
 {
     Q_OBJECT
@@ -35,13 +37,9 @@ public:
 
 private:
     void paintProfile(QPainter* painter, QRect& rect, RealLifeVideo& rlv) const;
-    QPixmap drawProfilePixmap(QRect &rect, RealLifeVideo& rlv) const;
-
-    qreal distanceToX(const QRect& rect, const RealLifeVideo& rlv, float distance) const;
-    float xToDistance(const QRect& rect, const RealLifeVideo& rlv, int x) const;
-    int altitudeToHeight(const QRect& rect, float altitudeAboveMinimum, float altitudeDiff) const;
 
     ProfilePainter* _profilePainter;
+    QuantityPrinter* _quantityPrinter;
 };
 
 #endif // VIDEOITEMDELEGATE_H

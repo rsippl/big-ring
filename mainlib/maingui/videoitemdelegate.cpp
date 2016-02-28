@@ -18,15 +18,18 @@
  * <http://www.gnu.org/licenses/>.
  */
 #include "generalgui/profilepainter.h"
+#include "generalgui/quantityprinter.h"
 #include "videoitemdelegate.h"
 #include "videolistmodel.h"
+#include <QtWidgets/QApplication>
 #include <QtCore/QtDebug>
 #include <QtGui/QPainter>
 #include <QtGui/QPixmapCache>
 
 
 VideoItemDelegate::VideoItemDelegate(QObject *parent):
-    QAbstractItemDelegate(parent), _profilePainter(new ProfilePainter)
+    QAbstractItemDelegate(parent), _profilePainter(new ProfilePainter(this)),
+    _quantityPrinter(new QuantityPrinter(this))
 {
     // empty
 }
@@ -47,7 +50,13 @@ void VideoItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     paintProfile(painter, profileRect, video);
 
     painter->setPen(pen);
-    painter->drawText(option.rect, video.name());
+
+    QString text = QString("%1\n%2 %3\n%4").arg(video.name()).arg(_quantityPrinter->printDistance(video.totalDistance()))
+            .arg(_quantityPrinter->unitForDistance(QuantityPrinter::Precision::NonPrecise, QVariant::fromValue(video.totalDistance())))
+            .arg(realLifeVideoFileTypeName(video.fileType()));
+    QRect optionRect = option.rect;
+    QRect textRect = optionRect.adjusted(5, 5, 0, 0);
+    painter->drawText(textRect, text);
 }
 
 QSize VideoItemDelegate::sizeHint(const QStyleOptionViewItem &, const QModelIndex &) const

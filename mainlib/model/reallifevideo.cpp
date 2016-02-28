@@ -31,7 +31,7 @@ namespace
 {
 std::map<RealLifeVideoFileType,const QString> REAL_LIFE_VIDEO_TYPE_NAMES =
 {{RealLifeVideoFileType::GPX, "GPX"},
- {RealLifeVideoFileType::TACX, "TACX"},
+ {RealLifeVideoFileType::TACX, "Tacx"},
  {RealLifeVideoFileType::VIRTUAL_TRAINING, "Cycleops Virtual Training"}};
 const QString REAL_LIFE_VIDEO_TYPE_NAMES_UNKNOWN_TYPE;
 }
