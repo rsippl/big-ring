@@ -42,6 +42,8 @@ win32 {
     QMAKE_PRE_LINK = if not exist \"$${OUT_PWD}\\bin\" md \"$${OUT_PWD}\\bin\"
     QMAKE_POST_LINK = copy /y \"$${LIBAV_DLL_PATH}\\*.dll\" \"$${OUT_PWD}\\bin\\\" && \
                      copy /y \"$${LIBUSB_DLL}\" \"$${OUT_PWD}\\bin\\libusb0.dll\" && \
+                     copy /y \"$${QT_CREATOR_DIR}\\bin\\libeay32.dll\" \"$${OUT_PWD}\\bin\\libeay32.dll\" && \
+                     copy /y \"$${QT_CREATOR_DIR}\\bin\\ssleay32.dll\" \"$${OUT_PWD}\\bin\\ssleay32.dll\" && \
                    $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
 
 }

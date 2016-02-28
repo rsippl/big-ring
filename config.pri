@@ -29,7 +29,9 @@ win32 {
     LIBUSB_DLL = $${LIBUSB_PATH}\bin\x86\libusb0_x86.dll
     LIBS += $${LIBUSB_DLL}
 
-    LIBS += -LC:/OpenSSL-Win32/bin/libeay32.dll -LC:/OpenSSL-Win32/bin/ssleay32.dll
+    QT_CREATOR_DIR = C:\Qt-5.5\Tools\QtCreator
+
+    CONFIG += openssl-linked
 }
 
 linux:debug {
