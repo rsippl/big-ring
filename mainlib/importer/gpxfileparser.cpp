@@ -14,7 +14,7 @@
 
 namespace {
 
-const int NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE = 7;
+const int NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE = 5;
 const float MINIMUM_SLOPE = -15.0;
 const float MAXIMUM_SLOPE = 20.0;
 
