@@ -4,7 +4,7 @@ QT_VERSION = 5
 QMAKE_CXXFLAGS += -std=c++11 -W -Wall -Wextra -Werror
 QT       += core concurrent gui opengl network serialport widgets positioning
 
-VERSION = 1.7.1.0
+VERSION = 1.8.0.0
 
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
@@ -17,6 +17,7 @@ linux {
 win32 {
     LIBAV_PATH=C:\development\libav-i686-w64-mingw32-11.2
     LIBAV_DLL_PATH = $$LIBAV_PATH\usr\bin
+
     INCLUDEPATH += $$LIBAV_PATH\usr\include
     LIBS += $$LIBAV_PATH\usr\bin\avcodec-56.dll
     LIBS += $$LIBAV_PATH\usr\bin\avformat-56.dll
