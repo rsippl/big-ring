@@ -46,8 +46,6 @@ QVariant VideoListModel::data(const QModelIndex &index, int role) const
         switch(role) {
         case Qt::DisplayRole:
             return QVariant::fromValue(rlv.name());
-        case Qt::ToolTipRole:
-            return QVariant::fromValue(realLifeVideoFileTypeName(rlv.fileType()));
         case VideoDataRole:
             return QVariant::fromValue(rlv);
         }
