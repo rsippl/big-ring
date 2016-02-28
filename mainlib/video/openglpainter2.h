@@ -34,7 +34,7 @@
 
 namespace
 {
-const int NUMBER_OF_BUFFERS = 50;
+const int NUMBER_OF_BUFFERS = 150;
 }
 class OpenGLPainter2 : public QObject
 {
