@@ -80,7 +80,7 @@ Course::Course(): Course("", Type::Invalid, 0, 0)
 RealLifeVideo::RealLifeVideo(const QString &name, RealLifeVideoFileType fileType, const VideoInformation &videoInformation,
                              const std::vector<Course> &&courses,
                              const std::vector<DistanceMappingEntry> &&distanceMappings,
-                             Profile& profile, const std::vector<InformationBox> &&informationBoxes, const std::vector<GeoPosition> &&geoPositions):
+                             const Profile &profile, const std::vector<InformationBox> &&informationBoxes, const std::vector<GeoPosition> &&geoPositions):
     _d(new RealLifeVideoData)
 {
     _d->_name = name;

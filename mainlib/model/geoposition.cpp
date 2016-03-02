@@ -54,6 +54,11 @@ double GeoPosition::longitude() const
     return _coordinate.longitude();
 }
 
+double GeoPosition::altitude() const
+{
+    return _coordinate.altitude();
+}
+
 bool GeoPosition::isValid() const
 {
     return _coordinate.isValid();
@@ -74,4 +79,11 @@ GeoPosition GeoPosition::interpolateBetween(const GeoPosition &position1, const 
     const double interpolatedLongitude = position1.longitude() + ratio * longitudeDifference;
 
     return GeoPosition(distance, QGeoCoordinate(interpolatedLatitude, interpolatedLongitude));
+}
+
+GeoPosition GeoPosition::withAltitude(const double altitude) const
+{
+    QGeoCoordinate copy = coordinate();
+    copy.setAltitude(altitude);
+    return GeoPosition(distance(), copy);
 }

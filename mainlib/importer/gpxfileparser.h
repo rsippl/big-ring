@@ -54,6 +54,9 @@ namespace indoorcycling {
  * file present that has the same base name as the gpx file. For instance, for a gpx file
  * with the name NO_Tau.gpx, a video is searched with the base name NO_Tau, which would
  * match NO_Tau.avi or NO_Tau.mp4.
+ *
+ * After having read all information. The altitudes of the points are smooth, using a moving average. Afterwards, we
+ * also smooth the slopes between the points to make the profile a little smoother still.
  */
 class GpxFileParser : public QObject
 {
@@ -80,9 +83,14 @@ private:
     const QFileInfo *videoFileForGpsFile(const QFile &inputFile) const;
     RealLifeVideo parseXml(const QFile &inputFile, const QFileInfo &videoFileInfo, QXmlStreamReader &reader) const;
     QGeoPositionInfo readTrackPoint(QXmlStreamReader &reader) const;
-    std::vector<GeoPosition> convertTrackPoints(const std::vector<QGeoPositionInfo> &positions) const;
-    std::vector<ProfileEntry> convertProfileEntries(const std::vector<GeoPosition> &trackPoints) const;
-    std::vector<ProfileEntry> smoothProfile(const std::vector<ProfileEntry> &profile) const;
+
+    using GeoPositionVector = std::vector<GeoPosition>;
+    GeoPositionVector convertTrackPoints(const std::vector<QGeoPositionInfo> &positions) const;
+    std::vector<ProfileEntry> convertProfileEntries(const GeoPositionVector &trackPoints) const;
+    /** Smooth the altitudes, using a moving average */
+    GeoPositionVector smoothAltitudes(const GeoPositionVector &positions) const;
+    /** Smooth the slopes, using a moving average */
+    std::vector<ProfileEntry> smoothSlopes(const std::vector<ProfileEntry> &profile) const;
 
     qreal distanceBetweenPoints(const QGeoPositionInfo &start, const QGeoPositionInfo &end) const;
 

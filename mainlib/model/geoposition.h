@@ -45,6 +45,8 @@ public:
     double latitude() const;
     /** longitude of the position */
     double longitude() const;
+    /** altitude of the position */
+    double altitude() const;
     /** true if the position is valid */
     bool isValid() const;
 
@@ -59,6 +61,14 @@ public:
      * @param distance distance of the position we want to interpolate. Value should be between position1.distance() and position2.distance().
      */
     static GeoPosition interpolateBetween(const GeoPosition &position1, const GeoPosition &position2, const double distance);
+
+    /**
+     * Construct a copy of the same GeoPosition with a different altitude
+     *
+     * @param altitude the altitude.
+     * @return the GeoPosition with a new altitude.
+     */
+    GeoPosition withAltitude(const double altitude) const;
 private:
     qreal _distance;
     QGeoCoordinate _coordinate;

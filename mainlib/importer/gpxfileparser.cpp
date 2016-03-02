@@ -5,6 +5,7 @@
 #include "video/videoinforeader.h"
 
 #include <deque>
+#include <functional>
 
 #include <QtCore/QDateTime>
 #include <QtCore/QtDebug>
@@ -45,6 +46,30 @@ quint32 frameNumberForTrackPoint(const QGeoPositionInfo &trackPoint, const QDate
     return static_cast<quint32>((differenceFromStart * frameRate) / 1000);
 }
 
+/**
+ * Given a begin, current and end iterator to a collection, and value function for calculating the value for a entry
+ * in the collection, calculate the moving average for the "current" value.
+ *
+ * @param begin start iterator
+ * @param current iterator to entry around which running average should be calculated.
+ * @param end end iterator
+ * @param valueFunction function to calculate value from entry.
+ */
+template <typename T>
+double runningAverageValue(const typename std::vector<T>::const_iterator &begin,
+                           const typename std::vector<T>::const_iterator &current,
+                           const typename std::vector<T>::const_iterator &end,
+                           const std::function<double(const T&)> &valueFunction) {
+
+    // determine beginning and end iterator for the moving average.
+    const auto averageEntriesBegin = std::max(begin, current - NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE / 2);
+    const auto averageEntriesEnd = std::min(end, current + NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE / 2 + 1);
+
+    // calculate the average.
+    return std::accumulate(averageEntriesBegin, averageEntriesEnd, 0.0, [&valueFunction](const float sum, const T& entry) {
+        return sum + valueFunction(entry);
+    }) / (averageEntriesEnd - averageEntriesBegin);
+}
 }
 
 namespace indoorcycling {
@@ -94,16 +119,17 @@ RealLifeVideo GpxFileParser::parseXml(const QFile &inputFile,
         }
     }
 
-    std::vector<GeoPosition> geoPositions = convertTrackPoints(trackPoints);
+    const std::vector<GeoPosition> geoPositions = convertTrackPoints(trackPoints);
+    const std::vector<GeoPosition> smoothedAltitudeGeoPositions = smoothAltitudes(geoPositions);
 
-    VideoInformation videoInformation(videoFileInfo.filePath(), frameRate);
-    Profile profile(ProfileType::SLOPE, 0.0f, smoothProfile(convertProfileEntries(geoPositions)));
+    const VideoInformation videoInformation(videoFileInfo.filePath(), frameRate);
+    const Profile profile(ProfileType::SLOPE, 0.0f, smoothSlopes(convertProfileEntries(smoothedAltitudeGeoPositions)));
     std::vector<Course> courses = { Course("Complete Distance", 0, profile.totalDistance()) };
     std::vector<DistanceMappingEntry> distanceMappings = convertDistanceMappings(frameRate, trackPoints);
-    RealLifeVideo rlv(name, RealLifeVideoFileType::GPX, videoInformation, std::move(courses),
+
+    return RealLifeVideo(name, RealLifeVideoFileType::GPX, videoInformation, std::move(courses),
                       std::move(distanceMappings), profile, std::move(std::vector<InformationBox>()),
-                      std::move(geoPositions));
-    return rlv;
+                      std::move(smoothedAltitudeGeoPositions));
 }
 
 QGeoPositionInfo GpxFileParser::readTrackPoint(QXmlStreamReader &reader) const
@@ -134,10 +160,10 @@ QGeoPositionInfo GpxFileParser::readTrackPoint(QXmlStreamReader &reader) const
     return geoPositionInfo;
 }
 
-std::vector<GeoPosition> GpxFileParser::convertTrackPoints(const std::vector<QGeoPositionInfo> &positions) const
+GpxFileParser::GeoPositionVector GpxFileParser::convertTrackPoints(const std::vector<QGeoPositionInfo> &positions) const
 {
     qreal currentDistance = 0;
-    std::vector<GeoPosition> geoPositions;
+    GeoPositionVector geoPositions;
     const QGeoPositionInfo *lastEntry = nullptr;
     geoPositions.reserve(positions.size());
     for (const QGeoPositionInfo& position: positions) {
@@ -159,7 +185,7 @@ std::vector<GeoPosition> GpxFileParser::convertTrackPoints(const std::vector<QGe
     return geoPositions;
 }
 
-std::vector<ProfileEntry> GpxFileParser::convertProfileEntries(const std::vector<GeoPosition> &trackPoints) const
+std::vector<ProfileEntry> GpxFileParser::convertProfileEntries(const GeoPositionVector &trackPoints) const
 {
     std::vector<ProfileEntry> profileEntries;
 
@@ -170,7 +196,7 @@ std::vector<ProfileEntry> GpxFileParser::convertProfileEntries(const std::vector
         qreal segmentDistance = 0;
         if (lastEntry) {
             segmentDistance = trackPoint.distance() - lastEntry->distance();
-            qreal segmentAltitudeDifference = trackPoint.coordinate().altitude() - currentElevation;
+            qreal segmentAltitudeDifference = trackPoint.altitude() - currentElevation;
 
             if (segmentDistance > 0) {
                 float slope = segmentAltitudeDifference / segmentDistance;
@@ -180,38 +206,53 @@ std::vector<ProfileEntry> GpxFileParser::convertProfileEntries(const std::vector
             }
         }
         currentDistance += segmentDistance;
-        currentElevation = trackPoint.coordinate().altitude();
+        currentElevation = trackPoint.altitude();
         lastEntry = &trackPoint;
     }
 
     // if there was an entry, and there's at least one entry in profile entries, add a last entry
     // to profile entries with the same slope as the previous one
     if (lastEntry && !profileEntries.empty()) {
-        profileEntries.push_back(ProfileEntry(currentDistance, profileEntries.back().slope(), lastEntry->coordinate().altitude()));
+        profileEntries.push_back(ProfileEntry(currentDistance, profileEntries.back().slope(), lastEntry->altitude()));
     }
 
     return profileEntries;
+}
+
+GpxFileParser::GeoPositionVector GpxFileParser::smoothAltitudes(const GpxFileParser::GeoPositionVector &positions) const
+{
+    GeoPositionVector smoothedAltitudes;
+    smoothedAltitudes.reserve(positions.size());
+
+    // this function will be passed to the running average function to get the altitude for each position.
+    std::function<double(const GeoPosition&)> altitudeValueFunction([](const GeoPosition &position) {
+        return position.altitude();
+    });
+
+    for (auto it = positions.cbegin(); it != positions.end(); ++it) {
+        const double averageAltitude = runningAverageValue(positions.cbegin(), it, positions.cend(), altitudeValueFunction);
+
+        smoothedAltitudes.push_back(it->withAltitude(averageAltitude));
+    }
+
+    return smoothedAltitudes;
 }
 
 
 /**
  * Smooth the profile by taking a running average for the slope of each entry.
  */
-std::vector<ProfileEntry> GpxFileParser::smoothProfile(const std::vector<ProfileEntry> &profile) const
+std::vector<ProfileEntry> GpxFileParser::smoothSlopes(const std::vector<ProfileEntry> &profile) const
 {
     std::vector<ProfileEntry> smoothedProfile;
     smoothedProfile.reserve(profile.size());
 
-    for (auto it = profile.cbegin(); it != profile.end(); ++it) {
-        // determine bounds of the interval that we use for averaging. Make sure not to go beyond the
-        // begin or end of the vector.
-        const auto averageEntriesBegin = std::max(profile.cbegin(), it - NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE / 2);
-        const auto averageEntriesEnd = std::min(profile.cend(), it + NUMBER_OF_ITEMS_FOR_MOVING_AVERAGE / 2 + 1);
+    std::function<double(const ProfileEntry&)> slopeValueFunction([](const ProfileEntry &entry) {
+        return qBound(MINIMUM_SLOPE, entry.slope(), MAXIMUM_SLOPE);
+    });
 
-        // calculate the (simple) average
-        const float averageSlope = std::accumulate(averageEntriesBegin, averageEntriesEnd, 0.0, [](const float sum, const ProfileEntry& entry) {
-            return sum + qBound(MINIMUM_SLOPE, entry.slope(), MAXIMUM_SLOPE);
-        }) / (averageEntriesEnd - averageEntriesBegin);
+    for (auto it = profile.cbegin(); it != profile.end(); ++it) {
+        const double averageSlope = runningAverageValue(profile.cbegin(), it, profile.cend(), slopeValueFunction);
 
         const ProfileEntry& lastEntry = (smoothedProfile.empty()) ? *it : smoothedProfile.back();
 
@@ -235,8 +276,12 @@ qreal GpxFileParser::distanceBetweenPoints(const QGeoPositionInfo &start, const 
     }
 }
 
-
-
+/**
+ * @brief Convert positions to DistanceMappingEntries.
+ * @param frameRate the frame rate of the video.
+ * @param trackPoints all track points as positions.
+ * @return a vector of DistanceMappingEntry objects which contain the mapping from distance to frames in the video.
+ */
 std::vector<DistanceMappingEntry> GpxFileParser::convertDistanceMappings(
         float frameRate,
         const std::vector<QGeoPositionInfo> &trackPoints) const
@@ -252,7 +297,8 @@ std::vector<DistanceMappingEntry> GpxFileParser::convertDistanceMappings(
     quint32 currentFrame = 0;
     for (const QGeoPositionInfo &trackPoint: trackPoints) {
         qreal segmentDistance = 0;
-        quint32 frameNumberForPoint = frameNumberForTrackPoint(trackPoint, startTime, frameRate);
+        const quint32 frameNumberForPoint = frameNumberForTrackPoint(trackPoint, startTime, frameRate);
+
         if (lastTrackPoint) {
             segmentDistance = distanceBetweenPoints(*lastTrackPoint, trackPoint);
             quint32 frameDifference = frameNumberForPoint - currentFrame;

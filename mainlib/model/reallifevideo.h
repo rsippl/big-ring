@@ -101,7 +101,7 @@ class RealLifeVideo
 {
 public:
     explicit RealLifeVideo(const QString& name, RealLifeVideoFileType fileType, const VideoInformation& videoInformation, const std::vector<Course> &&courses,
-                           const std::vector<DistanceMappingEntry>&& distanceMappings, Profile &profile,
+                           const std::vector<DistanceMappingEntry>&& distanceMappings, const Profile &profile,
                            const std::vector<InformationBox> &&informationBoxes = std::vector<InformationBox>(),
                            const std::vector<GeoPosition> &&geoPositions =
             std::vector<GeoPosition>());
