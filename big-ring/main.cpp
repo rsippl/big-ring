@@ -19,6 +19,7 @@
  */
 
 #include "maingui/mainwindow.h"
+#include <QtCore/QCommandLineParser>
 #include <QtCore/QtGlobal>
 #include <QtCore/QTime>
 #include <QApplication>
@@ -89,9 +90,35 @@ void loadStyleSheet(QApplication& a)
     a.setPalette(palette);
 }
 
+struct Options {
+    bool showDebugOutput = false;
+};
+
+/**
+ * read command line options in to an Options struct.
+ * @param application the application object
+ * @return a filled Options struct.
+ */
+Options parseCommandLine(QApplication &application) {
+    QCommandLineParser parser;
+    parser.setApplicationDescription(application.applicationName());
+    parser.addHelpOption();
+    parser.addVersionOption();
+    QCommandLineOption debugOption("d",  QCoreApplication::translate("main", "Show debug output during ride"));
+    parser.addOption(debugOption);
+
+    parser.process(application);
+
+    Options options;
+    options.showDebugOutput = parser.isSet(debugOption);
+
+    return options;
+}
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
     logFile = fopen("message.log", "w");
 
     qInstallMessageHandler(prettyLogging);
@@ -99,13 +126,15 @@ int main(int argc, char *argv[])
 
     a.setApplicationVersion(APP_VERSION);
     a.setWindowIcon(QIcon(QPixmap(":/BigRingIcon.png")));
-
-    qDebug() << "APP VERSION" << a.applicationVersion();
     a.setOrganizationDomain("org.github.ibooij");
     a.setOrganizationName("Ilja Booij");
     a.setApplicationName("Big Ring Indoor Video Cycling");
 
-    MainWindow w;
+    Options options = parseCommandLine(a);
+
+    qDebug() << "APP VERSION" << a.applicationVersion();
+
+    MainWindow w(options.showDebugOutput);
     w.setWindowTitle(QString("%1 %2").arg(a.applicationName()).arg(a.applicationVersion()));
     w.showMaximized();
 

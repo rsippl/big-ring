@@ -43,7 +43,8 @@ public:
         HeartRate,
         Cadence,
         Grade,
-        Weight
+        Weight,
+        FramesPerSecond
     };
 
     explicit QuantityPrinter(QObject *parent = 0);

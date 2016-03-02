@@ -34,8 +34,7 @@ const quint32 MAX_STEP_SIZE = 5u;
 }
 
 VideoPlayer::VideoPlayer(QGLWidget *paintWidget, QObject *parent) :
-    QObject(parent), _videoReader(new FrameCopyingVideoReader), _videoReaderThread(new QThread),
-    _loadState(LoadState::NONE), _currentFrameNumber(0u), _lastFrameLoaded(0), _stepSize(1)
+    QObject(parent), _videoReader(new FrameCopyingVideoReader), _videoReaderThread(new QThread), _frameRateTimer(new QTimer(this))
 {
     _painter = new OpenGLPainter2(paintWidget, this);
 
@@ -43,6 +42,10 @@ VideoPlayer::VideoPlayer(QGLWidget *paintWidget, QObject *parent) :
     connect(_videoReaderThread, &QThread::finished, _videoReaderThread, &QThread::deleteLater);
     connect(_videoReaderThread, &QThread::finished, _videoReader, &FrameCopyingVideoReader::deleteLater);
     _videoReaderThread->start();
+
+    _frameRateTimer->setInterval(1000);
+    connect(_frameRateTimer, &QTimer::timeout, this, &VideoPlayer::determineFrameRate);
+    _frameRateTimer->start();
 
     connect(_videoReader, &FrameCopyingVideoReader::videoOpened, this, &VideoPlayer::setVideoOpened);
     connect(_videoReader, &FrameCopyingVideoReader::seekReady, this, &VideoPlayer::setSeekReady);
@@ -140,6 +143,13 @@ void VideoPlayer::setFrameLoaded(int index, qint64 frameNumber, const QSize &fra
 void VideoPlayer::setFrameNeeded(const std::weak_ptr<FrameBuffer> &frameBuffer)
 {
     _videoReader->copyNextFrame(frameBuffer, _stepSize - 1);
+}
+
+void VideoPlayer::determineFrameRate()
+{
+    int numberOfFrames = _currentFrameNumber - _lastFrameNumber;
+    emit frameRateChanged(qMax(numberOfFrames, 0));
+    _lastFrameNumber = _currentFrameNumber;
 }
 
 void VideoPlayer::updateCurrentFrameNumber(const quint32 frameNumber)

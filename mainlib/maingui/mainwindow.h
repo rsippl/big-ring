@@ -49,7 +49,10 @@ class MainWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    /** Create a new MainWindow.
+     * @param showDebugOutput if true, debug output will be shown in during a ride
+     */
+    explicit MainWindow(bool showDebugOutput, QWidget *parent = 0);
     ~MainWindow();
 
 protected:
@@ -74,6 +77,8 @@ private:
     QMenuBar* const _menuBar;
     QStackedWidget* const _stackedWidget;
     QAction* _showPreferencesAction;
+
+    const bool _showDebugOutput;
 
     VideoListView* const _listView;
     QScopedPointer<NewVideoWidget> _videoWidget;

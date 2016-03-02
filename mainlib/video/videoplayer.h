@@ -75,6 +75,12 @@ signals:
      */
     void updateVideo();
 
+    /**
+     * emitted when the frame rate changes
+     * @param frameRate the frame rate in frames per second.
+     */
+    void frameRateChanged(int frameRate);
+
 public slots:
     /*! stop the video */
     void stop();
@@ -97,6 +103,8 @@ private slots:
     void setFrameLoaded(int index, qint64 frameNumber, const QSize& frameSize);
 
     void setFrameNeeded(const std::weak_ptr<FrameBuffer> &frameBuffer);
+
+    void determineFrameRate();
 private:
     enum class LoadState
     {
@@ -110,10 +118,12 @@ private:
     FrameCopyingVideoReader * const _videoReader;
     QThread *_videoReaderThread;
 
-    LoadState _loadState;
-    quint32 _currentFrameNumber;
-    qint64 _lastFrameLoaded;
-    quint32 _stepSize;
+    LoadState _loadState = LoadState::NONE;
+    quint32 _currentFrameNumber = 0u;
+    quint32 _lastFrameNumber = 0u;
+    qint64 _lastFrameLoaded = 0;
+    quint32 _stepSize = 1;
+    QTimer *_frameRateTimer;
 };
 
 #endif // VIDEOPLAYER_H

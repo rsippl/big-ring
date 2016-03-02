@@ -46,6 +46,8 @@ QString QuantityPrinter::unitString(QuantityPrinter::Quantity quantity, Quantity
         return tr("BPM");
     case Quantity::Grade:
         return "%";
+    case Quantity::FramesPerSecond:
+        return "FPS";
     default:
         return "#";
     }
@@ -97,6 +99,8 @@ QString QuantityPrinter::print(QVariant value, QuantityPrinter::Quantity quantit
         return QString("%1").arg(value.toReal(), width, 'f', 1);
     case Quantity::Weight:
         return printWeight(value.toReal());
+    case Quantity::FramesPerSecond:
+        return QString("%1").arg(value.toInt(), width);
     }
     Q_ASSERT_X(false, "QuantityPrinter::print", "This should not be reached");
     return "";

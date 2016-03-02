@@ -44,7 +44,7 @@
 #include "video/videoplayer.h"
 
 
-NewVideoWidget::NewVideoWidget(QWidget *parent) :
+NewVideoWidget::NewVideoWidget(bool showDebugOutput, QWidget *parent) :
     QGraphicsView(parent),
     _screenSaverBlocker(new indoorcycling::ScreenSaverBlocker(this)),
     _mouseIdleTimer(new QTimer(this))
@@ -72,6 +72,11 @@ NewVideoWidget::NewVideoWidget(QWidget *parent) :
     _profileItem = new ProfileItem;
     scene->addItem(_profileItem);
 
+    _frameRateItem = new SensorItem(QuantityPrinter::Quantity::FramesPerSecond);
+    _frameRateItem->setValue(QVariant::fromValue(0));
+    _frameRateItem->setVisible(showDebugOutput);
+    scene->addItem(_frameRateItem);
+
     setupVideoPlayer(viewPortWidget);
 
     _mouseIdleTimer->setInterval(500);
@@ -98,6 +103,9 @@ void NewVideoWidget::setupVideoPlayer(QGLWidget* paintWidget)
     });
     connect(_videoPlayer, &VideoPlayer::updateVideo, this, [this]() {
         this->viewport()->update(rect());
+    });
+    connect(_videoPlayer, &VideoPlayer::frameRateChanged, this, [this](const int frameRate) {
+        this->_frameRateItem->setValue(frameRate);
     });
 }
 
@@ -259,6 +267,8 @@ void NewVideoWidget::resizeEvent(QResizeEvent *resizeEvent)
     qreal profileItemWidth = sceneRect().width() - 2 * profileItemLeft;
     qreal profileItemTop = _powerItem->scenePos().y();
     _profileItem->setGeometry(QRectF(profileItemLeft, profileItemTop, profileItemWidth, bottom - profileItemTop));
+
+    _frameRateItem->setPos(mapToScene(0, 0));
 
     resizeEvent->accept();
 }

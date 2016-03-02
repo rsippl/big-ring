@@ -46,7 +46,12 @@ class NewVideoWidget : public QGraphicsView
 {
     Q_OBJECT
 public:
-    explicit NewVideoWidget(QWidget *parent = 0);
+    /**
+     * Create a new NewVideoWidget.
+     * @param showDebugOutput if true, debug output is shown during the ride.
+     * @param parent parent widget.
+     */
+    explicit NewVideoWidget(bool showDebugOutput, QWidget *parent = 0);
     ~NewVideoWidget();
 
     bool isReadyToPlay();
@@ -97,6 +102,7 @@ private:
     SensorItem* _distanceItem;
     SensorItem* _gradeItem;
     ProfileItem* _profileItem;
+    SensorItem *_frameRateItem;
     indoorcycling::ScreenSaverBlocker* _screenSaverBlocker;
     QTimer* _mouseIdleTimer;
     Qt::AspectRatioMode _aspectRatioMode;

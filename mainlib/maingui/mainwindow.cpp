@@ -43,11 +43,12 @@
 #include "ridegui/newvideowidget.h"
 
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(bool showDebugOutput, QWidget *parent) :
     QWidget(parent, Qt::Window),
     _antCentralDispatch(new indoorcycling::AntCentralDispatch(this)),
     _menuBar(new QMenuBar),
     _stackedWidget(new QStackedWidget),
+    _showDebugOutput(showDebugOutput),
     _listView(new VideoListView(this)),
     _analyticsSender(new AnalyticsSender(this))
 {
@@ -221,7 +222,7 @@ void MainWindow::startRun(RealLifeVideo rlv, int courseNr)
 {
     Course course = rlv.courses()[courseNr];
     _run = make_qobject_unique(new Run(_antCentralDispatch, rlv, course));
-    _videoWidget.reset(new NewVideoWidget);
+    _videoWidget.reset(new NewVideoWidget(_showDebugOutput));
     _videoWidget->setRealLifeVideo(rlv);
     _videoWidget->setCourseIndex(courseNr);
     _stackedWidget->addWidget(_videoWidget.data());
