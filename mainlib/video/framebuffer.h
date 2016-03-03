@@ -18,10 +18,16 @@ public:
         // no need to do anything
     }
 
+    /**
+     * Call the supplied function, but only after having acquired the mutex. If the mutex cannot be acquired,
+     * for instance reset() is being called at the same moment, don't do anything.
+     */
     void withMutex(const std::function<void(void *ptr, const QSize &frameSize, int index)> func) {
-        QMutexLocker locker(&_mutex);
-
-        func(_ptr, _frameSize, _index);
+        if (_mutex.tryLock()) {
+            func(_ptr, _frameSize, _index);
+            // always unlock the mutex!
+            _mutex.unlock();
+        }
     }
 
     void reset() {
