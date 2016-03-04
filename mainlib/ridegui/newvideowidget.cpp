@@ -132,6 +132,16 @@ bool NewVideoWidget::isReadyToPlay()
     return _videoPlayer->isReadyToPlay();
 }
 
+bool NewVideoWidget::handleKeyPress(QKeyEvent *event)
+{
+    switch(event->key()) {
+    case Qt::Key_D:
+        _frameRateItem->setVisible(!_frameRateItem->isVisible());
+        return true;
+    }
+    return false;
+}
+
 void NewVideoWidget::setRealLifeVideo(RealLifeVideo rlv)
 {
     Q_EMIT(readyToPlay(false));

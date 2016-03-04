@@ -55,6 +55,8 @@ public:
     ~NewVideoWidget();
 
     bool isReadyToPlay();
+
+    bool handleKeyPress(QKeyEvent*);
 signals:
     void readyToPlay(bool ready);
 

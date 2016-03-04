@@ -77,37 +77,40 @@ MainWindow::~MainWindow()
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     qDebug() << "received key" << event->key() << event->text();
-    switch(event->key()) {
-    case Qt::Key_F:
-        if (_run) {
-            if (isFullScreen()) {
-                showNormal();
-                setGeometry(_savedGeometry);
-                _menuBar->show();
-            } else {
-                _savedGeometry = geometry();
-                if (_run) {
-                    _menuBar->hide();
-                    showFullScreen();
+
+    if (!_run || !_videoWidget->handleKeyPress(event)) {
+        switch(event->key()) {
+        case Qt::Key_F:
+            if (_run) {
+                if (isFullScreen()) {
+                    showNormal();
+                    setGeometry(_savedGeometry);
+                    _menuBar->show();
+                } else {
+                    _savedGeometry = geometry();
+                    if (_run) {
+                        _menuBar->hide();
+                        showFullScreen();
+                    }
                 }
             }
+            break;
+        case Qt::Key_M:
+            if (isMaximized()) {
+                showNormal();
+            } else {
+                showMaximized();
+            }
+            break;
+        case Qt::Key_Escape:
+            if (_run) {
+                _run->handleStopRun(this);
+            }
+        default:
+            QWidget::keyPressEvent(event);
+            return;
+            break;
         }
-        break;
-    case Qt::Key_M:
-        if (isMaximized()) {
-            showNormal();
-        } else {
-            showMaximized();
-        }
-        break;
-    case Qt::Key_Escape:
-        if (_run) {
-            _run->handleStopRun(this);
-        }
-    default:
-        QWidget::keyPressEvent(event);
-        return;
-        break;
     }
     event->accept();
 }
