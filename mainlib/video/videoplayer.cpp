@@ -78,7 +78,11 @@ void VideoPlayer::stepToFrame(quint32 frameNumber)
             _painter->fillBuffers();
             return;
         } else {
-            _stepSize = qMin(frameNumber - _currentFrameNumber, MAX_STEP_SIZE);
+            if (frameNumber - _currentFrameNumber > MAX_STEP_SIZE) {
+                _stepSize = MAX_STEP_SIZE;
+            } else {
+                _stepSize = 1;
+            }
             if (_stepSize == 0u) {
                 return;
             }
