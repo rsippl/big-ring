@@ -101,6 +101,7 @@ void FrameCopyingVideoReader::copyNextFrameInternal(std::weak_ptr<FrameBuffer> &
     QSize requestFrameSize;
     if (auto locked = buffer.lock()) {
         locked->withMutex([this, frame, &frameBufferIndex, &requestFrameSize] (void *ptr, const QSize& frameSize, int index) {
+            Q_ASSERT_X(ptr, "copyNextFrameInternal", "ptr should always be non-null here");
             if (ptr) {
                 frameBufferIndex = index;
                 requestFrameSize = frameSize;

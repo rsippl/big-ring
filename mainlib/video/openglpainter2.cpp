@@ -39,7 +39,12 @@ OpenGLPainter2::OpenGLPainter2(QGLWidget* widget, QObject *parent) :
 
 OpenGLPainter2::~OpenGLPainter2()
 {
-    // empty
+    // we'll make sure that the map pixel buffers cannot be used anymore. To do this, we'll reset all the FrameBuffer
+    // objects in them.
+    std::for_each(_pixelBuffers.begin(), _pixelBuffers.end(),
+                  [](PixelBuffer &buffer) {
+        buffer.mappedPixelBuffer->reset();
+    });
 }
 
 /**

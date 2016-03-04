@@ -24,12 +24,17 @@ public:
      */
     void withMutex(const std::function<void(void *ptr, const QSize &frameSize, int index)> func) {
         if (_mutex.tryLock()) {
-            func(_ptr, _frameSize, _index);
+            if (_ptr) {
+                func(_ptr, _frameSize, _index);
+            }
             // always unlock the mutex!
             _mutex.unlock();
         }
     }
 
+    /**
+     * Reset the buffer so it cannot be used anymore.
+     */
     void reset() {
         QMutexLocker locker(&_mutex);
         _ptr = nullptr;
